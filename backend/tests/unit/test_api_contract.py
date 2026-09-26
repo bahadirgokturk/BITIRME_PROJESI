@@ -3,9 +3,15 @@
 Endpoint uygulandikca ilgili satir CONTRACT_STUBS'tan cikarilir ve gercek testleri yazilir.
 """
 
+from collections.abc import Iterator
+
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+
+from app.api.deps import get_current_user
+from app.models import User
+from app.models.enums import UserRole
 
 VALID_USER = {
     "email": "ayse@example.edu.tr",
@@ -29,11 +35,20 @@ CONTRACT_STUBS: list[tuple[str, str, dict[str, object] | None]] = [
 ]
 
 
+@pytest.fixture
+def admin_app(test_app: FastAPI) -> Iterator[FastAPI]:
+    # Rol kontrolu tests/integration/test_rbac_api.py'de; burada yalniz sozlesme dogrulanir
+    admin = User(id=1, organization_id=1, role=UserRole.ADMIN, is_active=True)
+    test_app.dependency_overrides[get_current_user] = lambda: admin
+    yield test_app
+    test_app.dependency_overrides.clear()
+
+
 @pytest.mark.parametrize(("method", "path", "body"), CONTRACT_STUBS)
 def test_contract_endpoint_is_published_but_not_implemented(
-    test_app: FastAPI, method: str, path: str, body: dict[str, object] | None
+    admin_app: FastAPI, method: str, path: str, body: dict[str, object] | None
 ) -> None:
-    response = TestClient(test_app).request(method, path, json=body)
+    response = TestClient(admin_app).request(method, path, json=body)
 
     assert response.status_code == 501
     assert response.json()["error"]["code"] == "NOT_IMPLEMENTED"
@@ -70,11 +85,11 @@ def test_user_role_enum_matches_database_enum(test_app: FastAPI) -> None:
     ],
 )
 def test_contract_validates_input_before_business_logic(
-    test_app: FastAPI, path: str, body: dict[str, object]
+    admin_app: FastAPI, path: str, body: dict[str, object]
 ) -> None:
     # Gecersiz girdi 501'e ulasmadan 422 ile reddedilir;
     # frontend hata gosterimini simdiden test edebilir
-    response = TestClient(test_app).post(path, json=body)
+    response = TestClient(admin_app).post(path, json=body)
 
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "VALIDATION_ERROR"
