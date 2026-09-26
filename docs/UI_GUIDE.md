@@ -212,8 +212,10 @@ sequenceDiagram
 ## 10. Figma → Kod
 
 - **Dev Mode:** Geliştirici ölçü, renk değişkeni ve boşlukları Figma Dev Mode'dan okur.
-- **AI ile kodlama (öneri):** Figma'nın resmi **MCP sunucusu** Claude Code'a bağlanırsa, Claude seçili frame'i okuyup
-  shadcn/ui bileşenleriyle koda dökebilir. AI'ın yazdığı kod da KOD_KURALLARI'na tabidir ve test edilir.
+- **AI ile kodlama (önerilen):** Repodaki **`campusflow-screen`** skill'i ile Figma frame'inin **ekran görüntüsü**
+  Claude'a verilir; Claude bu rehbere, shadcn/ui'a, sahte API'ye ve test kurallarına göre ekranı yapar
+  (kullanım: [frontend/README.md](../frontend/README.md)). Figma MCP bağlamak **gerekmez**; isteyen ileride ekleyebilir.
+  AI'ın yazdığı kod da KOD_KURALLARI'na tabidir ve test edilir.
 - **Bileşen eşleme:** Figma'daki bileşen adı shadcn adıyla aynı tutulur (Button, Card, Badge…). Yeni bileşen
   gerekiyorsa önce `npx shadcn@latest add <ad>` ile eklenir, sonra özelleştirilir.
 - **İş kuralı bileşende olmaz:** durum → renk eşlemesi `lib/status.ts`, rol → menü `lib/navigation.ts`, hesaplamalar

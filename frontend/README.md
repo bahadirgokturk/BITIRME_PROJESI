@@ -33,6 +33,21 @@ npm run dev                   # http://localhost:3000
 | `src/lib/` | API istemcisi, üretilmiş tipler, saf yardımcılar + testleri (`navigation.ts`, `health.ts`, `queryClient.ts`) |
 | `src/mocks/` | **Sahte API (MSW)**: backend'de henüz hazır olmayan endpoint'ler |
 
+## Claude ile ekran yapmak (önerilen yol)
+
+Repoda **`campusflow-screen`** adlı bir Claude skill'i var (`.claude/skills/campusflow-screen/`). Repoyu Claude
+Code'da açan herkese otomatik yüklenir, kurulum gerekmez. Figma MCP'ye de gerek yok: Figma'da frame'i seç,
+**ekran görüntüsünü** (veya *Export → PNG*) Claude sohbetine sürükle ve şunu yaz:
+
+```
+campusflow-screen skill'ini kullanarak bu Figma ekranını /admin/departments sayfası olarak yap.
+Bu ekranı ADMIN rolü görecek, masaüstü öncelikli.
+```
+
+Claude sırasıyla: branch açar → UI_GUIDE'ı okur → görüntüyü shadcn bileşenlerine ve renk token'larına çevirir →
+API'de gerçekten olan veriyi bulur (yoksa uydurmaz, Bahadır'a sorulacak şeyi yazar) → **önce kırmızı test** →
+ekran → lint/test → dolu PR linki. Her adımı Türkçe açıklar; anlamadığın yerde "bunu açıkla" demen yeterli.
+
 ## Sahte API (MSW) — backend'i beklemeden ekran yapmak
 
 Backend her fazın başında endpoint **şemalarını** yayınlar; iş mantığı gelene kadar bu endpoint'ler

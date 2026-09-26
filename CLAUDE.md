@@ -41,6 +41,7 @@ PRs that violate it are rejected. Most-broken rules:
 - Supervisor is a deterministic decision table, not an LLM.
 - Authorization: role dependency on routes + ownership checks in `services/authorization.py`; unauthorized resource access returns **404** (IDOR).
 - Frontend API types are generated from the backend OpenAPI schema — never hand-write them.
+- Frontend screens: use the project skill `.claude/skills/campusflow-screen` (Figma screenshot → screen).
 - UI work follows `docs/UI_GUIDE.md` (Figma → shadcn/ui, tokens, status colors, screen states). Contract first:
   backend publishes endpoint schemas early in each phase so frontend never waits (`docs/PROJECT_PLAN.md` §1).
 
