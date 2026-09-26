@@ -16,6 +16,10 @@ class DomainError(Exception):
         self.details = details or {}
         super().__init__(self.message)
 
+    @property
+    def headers(self) -> dict[str, str]:
+        return {}
+
 
 class NotFoundError(DomainError):
     # Yetkisiz kaynak erisimi de 404 doner (IDOR, docs/ARCHITECTURE.md bolum 9)
@@ -28,6 +32,20 @@ class UnauthorizedError(DomainError):
     code = "UNAUTHORIZED"
     status = HTTPStatus.UNAUTHORIZED
     default_message = messages.UNAUTHORIZED
+
+
+class TooManyRequestsError(DomainError):
+    code = "TOO_MANY_REQUESTS"
+    status = HTTPStatus.TOO_MANY_REQUESTS
+    default_message = messages.TOO_MANY_LOGIN_ATTEMPTS
+
+    def __init__(self, retry_after_seconds: int) -> None:
+        super().__init__(details={"retry_after_seconds": retry_after_seconds})
+        self.retry_after_seconds = retry_after_seconds
+
+    @property
+    def headers(self) -> dict[str, str]:
+        return {"Retry-After": str(self.retry_after_seconds)}
 
 
 class NotImplementedYetError(DomainError):

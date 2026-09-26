@@ -30,6 +30,7 @@ from app.core.security import (
 )
 from app.models import RefreshToken, User
 from app.repositories import refresh_token_repository, user_repository
+from app.services.login_rate_limiter import LoginRateLimiter
 
 logger = logging.getLogger(__name__)
 
@@ -46,18 +47,26 @@ class IssuedTokens:
 
 
 class AuthService:
-    def __init__(self, session: Session, settings: Settings, clock: Clock) -> None:
+    def __init__(
+        self, session: Session, settings: Settings, clock: Clock, limiter: LoginRateLimiter
+    ) -> None:
         self._session = session
         self._settings = settings
         self._clock = clock
+        self._limiter = limiter
 
-    def login(self, email: str, password: str) -> IssuedTokens:
+    def login(self, email: str, password: str, client_ip: str) -> IssuedTokens:
+        now = self._clock.now()
+        # Engelli iken parola hic denenmez: dogru parola da 429 alir (kaba kuvvet biter)
+        self._limiter.check(email=email, ip=client_ip, now=now)
         user = user_repository.get_by_email(self._session, email)
         password_hash = user.password_hash if user else _TIMING_DUMMY_HASH
         password_ok = verify_password(password_hash, password)
         if user is None or not password_ok or not user.is_active:
+            self._limiter.record_failure(email=email, ip=client_ip, now=now)
             raise UnauthorizedError(messages.INVALID_CREDENTIALS)
-        user.last_login_at = self._clock.now()
+        self._limiter.record_success(email=email)
+        user.last_login_at = now
         tokens, _ = self._issue(user)
         self._session.commit()
         return tokens

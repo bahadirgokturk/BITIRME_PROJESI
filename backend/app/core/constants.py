@@ -14,3 +14,12 @@ PAGE_SIZE_MAX = 200
 # belirtisidir ve tum oturumlar kapatilir. 10 sn: yavas mobil agda bile iki istegi kapsar,
 # saldirganin firsat penceresini de dar tutar.
 REFRESH_REUSE_GRACE_SECONDS = 10
+
+# Giris hiz siniri (OWASP Authentication Cheat Sheet): 15 dk'da e-posta basina 5 hatali deneme
+# unutkan kullaniciya yeter, kaba kuvvet icin cok azdir. IP basina 20: bir sinifin ayni
+# kampus NAT'indan girisini engellemez, farkli e-postalarla deneme yapan saldirgani durdurur.
+LOGIN_MAX_FAILURES_PER_EMAIL = 5
+LOGIN_MAX_FAILURES_PER_IP = 20
+LOGIN_FAILURE_WINDOW_MINUTES = 15
+# Bellek korumasi: bu kadar anahtar birikince suresi dolanlar temizlenir
+LOGIN_LIMITER_PRUNE_THRESHOLD = 10_000

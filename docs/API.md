@@ -19,7 +19,9 @@ Yanıt: `TokenRead {access_token, token_type: "bearer", expires_in}` (access tok
   oturumlar kapatılmaz (`REFRESH_REUSE_GRACE_SECONDS`).
 - Yanlış e-posta, yanlış parola ve pasif kullanıcı aynı `401 UNAUTHORIZED` + aynı mesajı alır.
 - Korumalı endpoint'ler `Authorization: Bearer <access_token>` ister; yoksa/geçersizse `401`.
-- Giriş denemesi hız sınırı ayrı PR'da (FAZ 2).
+- **Hız sınırı:** 15 dk içinde e-posta başına 5, IP başına 20 hatalı deneme → `429 TOO_MANY_REQUESTS` +
+  `Retry-After` başlığı; engelliyken doğru parola da `429` alır. Kayıtlı olmayan e-postalar da aynı kurala
+  tabidir. Başarılı giriş o e-postanın sayacını sıfırlar. Sayaçlar bellekte (tek instance varsayımı).
 
 | Method | Path | Rol | Açıklama |
 |---|---|---|---|

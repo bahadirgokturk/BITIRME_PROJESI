@@ -54,6 +54,10 @@ Production (E7-3) hafta 11'de, staging birkaç hafta sorunsuz çalıştıktan so
    Render (`*.onrender.com`) farklı site sayıldığı için tarayıcı cookie'yi göndermez. Çözüm: frontend
    API'ye **aynı origin** üzerinden gider — Next.js `rewrites` ile `/api/*` → Render. Böylece cookie
    first-party kalır; `SameSite=None` gibi gevşetmelere gerek olmaz.
+9. **Gerçek istemci IP'si:** Giriş hız sınırı IP'ye bakar. Render/Vercel proxy arkasında uvicorn'a
+   `--proxy-headers --forwarded-allow-ips="*"` verilmezse tüm istekler proxy IP'sinden gelmiş görünür ve
+   IP sınırı herkesi birlikte engeller. Sayaçlar bellekte olduğu için backend **tek instance** çalışmalı;
+   ölçeklenirse sayaçlar Postgres'e taşınır.
 
 ## 2. Ortam Değişkenleri
 
