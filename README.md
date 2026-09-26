@@ -92,8 +92,9 @@ Kodla, test yaz, commit at (ör. `feat(cases): add case creation endpoint`), son
 git push -u origin feature/kisa-aciklama
 ```
 
-GitHub'da **`develop`'a** Pull Request aç ve şablonu doldur. PR'ı **Bahadır onaylar**, onaydan sonra
-**Squash and merge** yapılır. `main` ve `develop`'a doğrudan push yapılamaz.
+GitHub'da **`develop`'a** Pull Request aç ve şablonu doldur. Onay gerekmez: testler (CI) yeşilse
+**kendin Squash and merge** yap. Canlıya (`main`) geçiş Bahadır'ın onayıyla olur. `main` ve `develop`'a
+doğrudan push yapılamaz.
 
 ### 3. Projeyi çalıştırma (FAZ 1 tamamlanınca)
 

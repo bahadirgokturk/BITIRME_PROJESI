@@ -36,7 +36,7 @@ stil ayrıntılarını ve Definition of Done'ı içerir.
 - [ ] Kod lint/format/typecheck temiz
 - [ ] Kritik mantık için unit test; endpoint için integration test (mutlu yol + yetki)
 - [ ] CI yeşil
-- [ ] Proje sahibi (@bahadirgokturk) onayladı; kritik alanlarda bir ekip üyesi de inceledi
+- [ ] Kritik alanlarda (workflow, auth, agents, migration) bir ekip üyesine gösterildi
 - [ ] Gerekli migration var ve `upgrade`/`downgrade` yerelde denendi
 - [ ] İlgili `docs/*.md` güncellendi (API, DB, workflow, agent değişiklikleri)
 - [ ] Yeni env değişkeni varsa `.env.example` güncellendi

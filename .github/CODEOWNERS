@@ -1,2 +1,3 @@
-# Tum PR'lar proje sahibinin onayindan gecer (ruleset: Require review from Code Owners)
+# main'e (canli) giden PR'lar proje sahibinin onayini ister (ruleset protect-main: Require review from Code Owners).
+# develop PR'larinda bu review istegi bilgi amaclidir, onay beklenmez.
 * @bahadirgokturk

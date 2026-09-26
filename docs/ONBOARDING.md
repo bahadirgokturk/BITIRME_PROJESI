@@ -96,9 +96,9 @@ git checkout -b feature/kisa-aciklama
 git push -u origin feature/kisa-aciklama
 ```
 
-Sonra GitHub'da **develop'a** Pull Request aç ve PR şablonunu doldur. Bahadır reviewer olarak
-otomatik eklenir (CODEOWNERS). CI yeşil + Bahadır'ın onayı → **Squash and merge**. Merge sonrası branch'i sil.
-Onay beklerken başka bir branch'te çalışmaya devam edebilirsin.
+Sonra GitHub'da **develop'a** Pull Request aç ve PR şablonunu doldur. Onay gerekmez: CI yeşilse
+**kendin Squash and merge** yap ve branch'i sil. (Bahadır otomatik reviewer olarak görünür; bu develop
+için bilgi amaçlıdır, bekleme.) Canlıya geçiş (`develop → main`) Bahadır'ın onayıyla yapılır.
 
 Kurallar:
 - `main` ve `develop`'a doğrudan push yok.

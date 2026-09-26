@@ -8,8 +8,8 @@
 | **B** | Frontend, UX, staff/reporter ekranları, manager dashboard | API sözleşmesi, E2E |
 | **C** | AI/ML (veri, eğitim, sınıflandırma, duplicate), analytics, DevOps/CI, test altyapısı | Agent'lar |
 
-Kural: PR'ları Bahadır onaylar (CODEOWNERS); ayrıca her kişi haftada en az 1 PR'ı **kendi alanı dışında**
-inceleyip yorum bırakır (bilgi paylaşımı için). Haftalık 30 dk demo + planlama.
+Kural: `develop`'a onaysız PR ile girilir; canlıya (`main`) geçişi Bahadır onaylar. Her kişi haftada en az
+1 PR'ı **kendi alanı dışında** inceleyip yorum bırakır (bilgi paylaşımı için). Haftalık 30 dk demo + planlama.
 
 ## 2. Fazlar ve Haftalar
 

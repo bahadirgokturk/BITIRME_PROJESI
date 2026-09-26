@@ -67,15 +67,23 @@ gitGraph
 ```
 
 - Branch'ler: `main` (production), `develop` (staging), `feature/<kısa-ad>`, `fix/<kısa-ad>`, `chore/<kısa-ad>`.
-- `main` ve `develop` **protected** (ruleset `protect-main-develop`): direkt push yok, PR + yeşil CI zorunlu, squash merge.
-- **Onay politikası:** Her PR'ı proje sahibi (@bahadirgokturk) onaylar — `.github/CODEOWNERS` + ruleset'te
-  "Require review from Code Owners". Sahibin kendi PR'ları için repo admin rolü ruleset'te
-  *"For pull requests only"* bypass'ına sahiptir (PR yine zorunlu, sadece onay adımı atlanabilir).
-  Diğer ekip üyeleri de PR'lara yorum/review bırakabilir ve bırakmalıdır.
+- Branch koruması iki ruleset ile yapılır:
+
+| | `protect-develop` (staging) | `protect-main` (production) |
+|---|---|---|
+| Direkt push | ❌ (PR zorunlu) | ❌ (PR zorunlu) |
+| Onay | **Gerekmez** — PR sahibi CI yeşilse kendisi merge eder | **1 onay, Code Owner (@bahadirgokturk)** |
+| Silme / force push | ❌ | ❌ |
+| Merge yöntemi | Squash | Merge commit (develop geçmişi korunur) |
+| Bypass | Yok | Repository admin — *For pull requests only* (sahip kendi release PR'ını onaylayamadığı için) |
+
+- Gerekçe: `develop` test ortamıdır; hız önemli, güvenceyi CI sağlar. Canlıya geçiş (`develop → main`) tek
+  kontrollü kapıdır ve proje sahibinin onayını ister.
+- PR'lara ekip üyelerinin yorum bırakması teşvik edilir (bilgi paylaşımı), ama `develop` için zorunlu değildir.
 - Akış: feature → PR `develop` → CI → staging deploy → ekip testi → PR `develop → main` → production deploy.
 - Commit formatı: Conventional Commits (`feat(cases): add transition table`, `fix:`, `test:`, `docs:`, `chore:`).
 - PR şablonu: amaç, değişiklik, test kanıtı, ekran görüntüsü (UI), doküman güncellendi mi, migration var mı.
-- Kritik PR'lar (workflow, auth, agents, migration) onaydan önce farklı sorumluluk alanından bir ekip üyesi tarafından da incelenir.
+- Kritik PR'lar (workflow, auth, agents, migration) merge'den önce farklı sorumluluk alanından bir ekip üyesine gösterilir.
 - Sürüm etiketi: her production release `vX.Y.Z` tag.
 
 ## 4. CI/CD (GitHub Actions)
