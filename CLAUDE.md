@@ -68,11 +68,18 @@ Explain git steps briefly in Turkish; the team is learning the workflow.
 
 ## Commands
 
-Filled in during FAZ 1 (Docker Compose, backend/frontend scripts). Planned:
+Everything runs in Docker; host needs only Docker + Node (for frontend tooling). `cp .env.example .env` first.
 
 ```bash
-docker compose up --build                              # frontend + backend + postgres
+docker compose up --build                              # frontend :3000 + backend :8000 + postgres :5432
 docker compose exec backend alembic upgrade head
-docker compose exec backend python -m seeds.run --demo
-docker compose exec backend pytest
+docker compose exec backend pytest                     # integration tests use a separate <db>_test database
+docker compose exec backend sh -c "ruff check . && ruff format --check . && mypy"
+docker compose exec backend alembic revision --autogenerate -m "..."   # then review + write downgrade
+cd frontend && npm run lint && npm run typecheck && npm test
+cd frontend && npm run gen:api                         # regenerate API types (backend must be running)
+python scripts/check_ascii_comments.py backend ai frontend/src scripts
 ```
+
+Seeds (`python -m seeds.run --demo`) arrive in FAZ 2. CI (`.github/workflows/ci.yml`) runs all of the above
+plus an OpenAPI drift check (`api-contract` job) on every PR.

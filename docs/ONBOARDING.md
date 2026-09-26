@@ -62,7 +62,7 @@ bash scripts/check-setup.sh
 
 Script eksik program, yanlış sürüm, OneDrive klasörü, eksik git kimliği gibi sorunları listeler.
 
-## 5. Projeyi çalıştır (FAZ 1 tamamlanınca)
+## 5. Projeyi çalıştır
 
 ```bash
 copy .env.example .env
@@ -72,9 +72,16 @@ copy .env.example .env
 docker compose up --build
 ```
 
-- Frontend: http://localhost:3000
+İlk açılışta (ve her yeni migration geldiğinde, ayrı bir terminalde) veritabanı şemasını güncelle:
+
+```bash
+docker compose exec backend alembic upgrade head
+```
+
+- Frontend: http://localhost:3000 — ana sayfadaki "Sistem durumu" kartı "Backend çalışıyor / Veritabanı bağlı" göstermeli
 - Backend API dokümanı: http://localhost:8000/docs
-- Demo kullanıcıları seed çalıştıktan sonra `backend/seeds/README.md` içinde listelenir.
+- Testler: `docker compose exec backend pytest` · frontend için `cd frontend`, `npm ci`, `npm test`
+- Demo kullanıcıları seed ile FAZ 2'de gelecek (`backend/seeds/README.md`).
 
 ## 6. Günlük çalışma akışı
 
