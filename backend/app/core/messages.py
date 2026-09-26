@@ -5,3 +5,6 @@ CONFLICT = "Kayıt mevcut durumla çakışıyor."
 VALIDATION_ERROR = "Gönderilen veriler geçersiz."
 HTTP_ERROR = "İstek işlenemedi."
 NOT_IMPLEMENTED = "Bu özellik henüz hazır değil."
+# Yanlis e-posta ile yanlis parola ayni mesaji alir: kayitli e-postalar disaridan anlasilamaz
+INVALID_CREDENTIALS = "E-posta veya parola hatalı."
+UNAUTHORIZED = "Oturumunuz geçersiz ya da süresi dolmuş. Lütfen yeniden giriş yapın."

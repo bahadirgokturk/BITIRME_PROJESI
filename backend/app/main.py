@@ -16,6 +16,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     configure_logging(settings.log_level)
 
     app = FastAPI(title="CampusFlow AI", version="0.1.0")
+    # Route'lar ayarlari buradan okur (app/api/deps.py); testler kendi ayarlariyla uygulama kurar
+    app.state.settings = settings
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,

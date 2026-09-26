@@ -24,6 +24,12 @@ class NotFoundError(DomainError):
     default_message = messages.NOT_FOUND
 
 
+class UnauthorizedError(DomainError):
+    code = "UNAUTHORIZED"
+    status = HTTPStatus.UNAUTHORIZED
+    default_message = messages.UNAUTHORIZED
+
+
 class NotImplementedYetError(DomainError):
     # Sozlesme once: sema yayinda, is mantigi sonraki PR'da (docs/PROJECT_PLAN.md bolum 1)
     code = "NOT_IMPLEMENTED"

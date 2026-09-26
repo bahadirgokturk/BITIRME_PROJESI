@@ -17,10 +17,6 @@ VALID_USER = {
 VALID_LOCATION = {"kind": "WC", "code": "B-2-WCM", "name": "B Blok 2. Kat Erkek WC"}
 
 CONTRACT_STUBS: list[tuple[str, str, dict[str, object] | None]] = [
-    ("POST", "/api/v1/auth/login", {"email": "ayse@example.edu.tr", "password": "x"}),
-    ("POST", "/api/v1/auth/refresh", None),
-    ("POST", "/api/v1/auth/logout", None),
-    ("GET", "/api/v1/auth/me", None),
     ("GET", "/api/v1/admin/users", None),
     ("POST", "/api/v1/admin/users", VALID_USER),
     ("PATCH", "/api/v1/admin/users/1", {"is_active": False}),

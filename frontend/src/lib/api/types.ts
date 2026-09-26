@@ -484,6 +484,15 @@ export interface operations {
                     "application/json": components["schemas"]["TokenRead"];
                 };
             };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
                 headers: {
@@ -509,7 +518,9 @@ export interface operations {
             query?: never;
             header?: never;
             path?: never;
-            cookie?: never;
+            cookie?: {
+                cf_refresh?: string | null;
+            };
         };
         requestBody?: never;
         responses: {
@@ -520,6 +531,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TokenRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
                 };
             };
             /** @description Unprocessable Entity */
@@ -547,7 +567,9 @@ export interface operations {
             query?: never;
             header?: never;
             path?: never;
-            cookie?: never;
+            cookie?: {
+                cf_refresh?: string | null;
+            };
         };
         requestBody?: never;
         responses: {
@@ -557,6 +579,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
             };
             /** @description Unprocessable Entity */
             422: {
@@ -594,6 +625,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
                 };
             };
             /** @description Unprocessable Entity */
