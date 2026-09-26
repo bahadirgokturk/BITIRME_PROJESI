@@ -9,8 +9,15 @@ Listeler: `?page=1&page_size=20&sort=-created_at` → `{"items": [], "total": 0,
 > Güncel liste: `backend/tests/unit/test_api_contract.py` → `CONTRACT_STUBS`. Frontend bu endpoint'ler için
 > sahte veri (MSW) kullanır. Kesin şemalar için `http://localhost:8000/docs`.
 
-## Auth
-Yanıt: `TokenRead {access_token, token_type: "bearer", expires_in}`; refresh token httpOnly cookie'dedir.
+## Auth — ✅ uygulandı
+Yanıt: `TokenRead {access_token, token_type: "bearer", expires_in}` (access token 30 dk).
+- Refresh token **yalnız cookie'de**: `cf_refresh`, `HttpOnly`, `SameSite=Strict`, `Path=/api/v1/auth`,
+  local dışında `Secure`. Veritabanında yalnız sha256 hash'i tutulur (`refresh_tokens`).
+- **Rotasyon:** her `/auth/refresh` eski token'ı iptal edip yenisini verir. İptal edilmiş bir token tekrar
+  gelirse (çalınma belirtisi) kullanıcının **tüm** oturumları kapatılır.
+- Yanlış e-posta, yanlış parola ve pasif kullanıcı aynı `401 UNAUTHORIZED` + aynı mesajı alır.
+- Korumalı endpoint'ler `Authorization: Bearer <access_token>` ister; yoksa/geçersizse `401`.
+- Giriş denemesi hız sınırı ayrı PR'da (FAZ 2).
 
 | Method | Path | Rol | Açıklama |
 |---|---|---|---|

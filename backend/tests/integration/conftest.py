@@ -1,13 +1,19 @@
 from collections.abc import Iterator
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
 from alembic import command
 from alembic.config import Config
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import URL, Engine, make_url
+from sqlalchemy.orm import Session
 
-from app.core.config import get_settings
+from app.core.clock import get_clock
+from app.core.config import Settings, get_settings
+from app.core.database import get_session
+from app.main import create_app
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]
 TEST_DB_SUFFIX = "_test"
@@ -50,3 +56,46 @@ def test_engine(test_db_url: URL) -> Iterator[Engine]:
     engine = create_engine(test_db_url)
     yield engine
     engine.dispose()
+
+
+@pytest.fixture
+def db_session(test_engine: Engine) -> Iterator[Session]:
+    # Her test kendi transaction'inda calisir ve sonunda geri alinir; servislerin commit'i
+    # savepoint'e donusur, veri testler arasinda sizmaz (docs/TESTING.md "Kurallar")
+    connection = test_engine.connect()
+    transaction = connection.begin()
+    session = Session(bind=connection, join_transaction_mode="create_savepoint")
+    yield session
+    session.close()
+    transaction.rollback()
+    connection.close()
+
+
+class FrozenClock:
+    def __init__(self, now: datetime) -> None:
+        self.current = now
+
+    def now(self) -> datetime:
+        return self.current
+
+    def advance(self, delta: timedelta) -> None:
+        self.current += delta
+
+
+@pytest.fixture
+def clock() -> FrozenClock:
+    return FrozenClock(datetime(2026, 9, 26, 12, 0, tzinfo=UTC))
+
+
+@pytest.fixture
+def client(db_session: Session, clock: FrozenClock, test_db_url: URL) -> Iterator[TestClient]:
+    settings = Settings(
+        database_url=test_db_url.render_as_string(hide_password=False),
+        jwt_secret=get_settings().jwt_secret,
+    )
+    app = create_app(settings)
+    app.dependency_overrides[get_session] = lambda: db_session
+    app.dependency_overrides[get_clock] = lambda: clock
+    # Cookie'ler "Secure" olmadan da gonderilsin diye https taban adresi
+    with TestClient(app, base_url="https://testserver") as test_client:
+        yield test_client

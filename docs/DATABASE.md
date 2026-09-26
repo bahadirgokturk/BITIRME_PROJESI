@@ -175,6 +175,12 @@ autonomy_level, min_confidence_auto numeric (ör. 0.70), notify_manager bool, is
 id, organization_id, name (`classifier`), version, algorithm, metrics_json (accuracy, macro_f1,
 confusion matrix), trained_at, dataset_hash, artifact_path, is_active.
 
+### refresh_tokens
+id, user_id FK users, token_hash char(64) **unique** (sha256; ham token saklanmaz), created_at, expires_at,
+revoked_at NULL. Rotasyonda eski kayıt `revoked_at` alır, yenisi eklenir; iptal edilmiş kayıt tekrar
+kullanılırsa kullanıcının tüm kayıtları iptal edilir (bkz. API.md "Auth"). Süresi dolan kayıtların
+temizliği ileride Monitoring tick'ine eklenebilir.
+
 ### comments
 id, case_id, author_id, body, is_internal (staff/manager notu, reporter görmez), created_at
 

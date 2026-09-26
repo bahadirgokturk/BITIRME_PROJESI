@@ -50,6 +50,10 @@ Production (E7-3) hafta 11'de, staging birkaç hafta sorunsuz çalıştıktan so
 6. Render'da `CORS_ORIGINS` = Vercel staging adresi. (Vercel PR önizleme adresleri değişkendir; gerekirse
    ayrı bir önizleme origin kuralı eklenir.)
 7. Secret'lar yalnız sağlayıcıların env ayarlarında ve GitHub Environments'ta tutulur; repoya yazılmaz.
+8. **Refresh cookie ve farklı alan adları:** Refresh cookie `SameSite=Strict`. Vercel (`*.vercel.app`) ile
+   Render (`*.onrender.com`) farklı site sayıldığı için tarayıcı cookie'yi göndermez. Çözüm: frontend
+   API'ye **aynı origin** üzerinden gider — Next.js `rewrites` ile `/api/*` → Render. Böylece cookie
+   first-party kalır; `SameSite=None` gibi gevşetmelere gerek olmaz.
 
 ## 2. Ortam Değişkenleri
 

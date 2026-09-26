@@ -81,6 +81,16 @@ Sahte girişte tüm kullanıcıların parolası `demo1234`; e-postalar `src/mock
 **Backend bir endpoint'i gerçekten uyguladığında** (PR açıklamasında yazar): ilgili handler'ı
 `handlers.ts`'ten sil → ekran artık gerçek backend'le çalışır. Başka değişiklik gerekmez.
 
+**İstisna — giriş (`/auth/*`):** backend hazır, ama sahte handler'lar login ekranı gerçek API'ye bağlanana
+kadar kalır. Login ekranını bağlarken (E2-1 ekranı):
+- `POST /auth/login` → dönen `access_token`'ı **yalnız bellekte** tut (React state/context); `localStorage`'a
+  **yazma** (XSS ile çalınabilir).
+- Her istekte `Authorization: Bearer <token>` gönder; `401` gelirse bir kez `POST /auth/refresh` dene,
+  o da `401` ise login'e yönlendir.
+- Refresh token'a hiç dokunma: tarayıcı onu httpOnly cookie olarak kendisi tutar. Bunun için `/auth/*`
+  isteklerinde `credentials: "include"` gerekir.
+- Bitince `handlers.ts`'teki dört `/auth/*` handler'ını sil.
+
 ## Yeni bir ekran eklemek (örnek: `/admin/departments`)
 
 1. `develop`'u çek, branch aç: `git checkout -b feature/admin-departments-page`
