@@ -8,15 +8,23 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
+from app.api.deps import require_roles
 from app.api.v1.pagination import PageParams, page_params
-from app.api.v1.responses import ERROR_RESPONSES
+from app.api.v1.responses import AUTHENTICATED_RESPONSES
 from app.core.errors import NotImplementedYetError
+from app.models.enums import UserRole
 from app.schemas.common import Page
 from app.schemas.department import DepartmentCreate, DepartmentRead, DepartmentUpdate
 from app.schemas.location import LocationCreate, LocationRead, LocationUpdate
 from app.schemas.user import UserCreate, UserRead, UserUpdate
 
-router = APIRouter(prefix="/admin", tags=["admin"], responses=ERROR_RESPONSES)
+# Sistem tanimlari yalniz ADMIN'e acik; MANAGER operasyon yapar, tanim degistirmez (gorev ayriligi)
+router = APIRouter(
+    prefix="/admin",
+    tags=["admin"],
+    responses=AUTHENTICATED_RESPONSES,
+    dependencies=[Depends(require_roles(UserRole.ADMIN))],
+)
 Paging = Annotated[PageParams, Depends(page_params)]
 
 

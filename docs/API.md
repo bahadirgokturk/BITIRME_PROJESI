@@ -2,6 +2,8 @@
 
 Base: `/api/v1`. JSON. Auth: `Authorization: Bearer <access_token>`. OpenAPI: `/docs`.
 Hata formatı: `{"error": {"code": "INVALID_TRANSITION", "message": "...", "details": {}}}`.
+Yetki: giriş yok/geçersiz → `401 UNAUTHORIZED`; rol bu endpoint'e erişemez → `403 FORBIDDEN`;
+ID ile istenen kaynağa erişim yok → `404 NOT_FOUND` (kaynağın varlığı sızdırılmaz).
 Listeler: `?page=1&page_size=20&sort=-created_at` → `{"items": [], "total": 0, "page": 1}`.
 
 > **Uygulama durumu:** Sözleşme önce ilerlenir ([PROJECT_PLAN.md](PROJECT_PLAN.md) §1). Şeması yayınlanıp iş mantığı
@@ -91,6 +93,9 @@ Ortak parametreler: `from`, `to`, `department_id?`, `building_id?`
 | GET | `/agents/models` | `ml_models` listesi ve metrikleri |
 
 ## Admin
+**Erişim:** tüm `/admin/*` yalnız **ADMIN** (MANAGER dahil diğer roller `403 FORBIDDEN`, giriş yoksa `401`).
+Rol kontrolü girdi doğrulamasından önce çalışır. Başka kurumun kaydı `404` döner (IDOR, `services/authorization.py`).
+
 FAZ 2 sözleşmesi yayında: `GET/POST /admin/{users,departments,locations}`, `PATCH /admin/{...}/{id}`
 (liste yanıtı `Page[T]`, `?page=&page_size=` en fazla 200). Diğerleri FAZ 2–4'te eklenir.
 CRUD: `/admin/users`, `/admin/departments`, `/admin/locations`, `/admin/case-types`, `/admin/sla-rules`,

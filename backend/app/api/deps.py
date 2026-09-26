@@ -1,5 +1,6 @@
 """Route'larda ortak dependency'ler: ayarlar, servisler, giris yapmis kullanici."""
 
+from collections.abc import Callable
 from typing import Annotated
 
 from fastapi import Depends, Request
@@ -9,8 +10,9 @@ from sqlalchemy.orm import Session
 from app.core.clock import Clock, get_clock
 from app.core.config import Settings
 from app.core.database import get_session
-from app.core.errors import UnauthorizedError
+from app.core.errors import ForbiddenError, UnauthorizedError
 from app.models import User
+from app.models.enums import UserRole
 from app.services.auth_service import AuthService
 from app.services.login_rate_limiter import LoginRateLimiter
 
@@ -48,3 +50,15 @@ def get_current_user(
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+def require_roles(*roles: UserRole) -> Callable[[User], User]:
+    """Route'u belirtilen rollere kisitlar: rol yoksa 403, giris yoksa 401 (docs/WORKFLOW.md)."""
+    allowed = frozenset(roles)
+
+    def dependency(user: CurrentUser) -> User:
+        if user.role not in allowed:
+            raise ForbiddenError()
+        return user
+
+    return dependency

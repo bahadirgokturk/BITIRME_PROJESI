@@ -34,6 +34,13 @@ class UnauthorizedError(DomainError):
     default_message = messages.UNAUTHORIZED
 
 
+class ForbiddenError(DomainError):
+    # Rol bu endpoint'e hic erisemez (orn. reporter -> /admin). Kaynak bazli yetkisizlik 404 doner.
+    code = "FORBIDDEN"
+    status = HTTPStatus.FORBIDDEN
+    default_message = messages.FORBIDDEN
+
+
 class TooManyRequestsError(DomainError):
     code = "TOO_MANY_REQUESTS"
     status = HTTPStatus.TOO_MANY_REQUESTS
