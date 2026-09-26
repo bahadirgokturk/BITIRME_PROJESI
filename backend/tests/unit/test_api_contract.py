@@ -1,0 +1,84 @@
+"""FAZ 2 API sozlesmesi: semalar yayinda, is mantigi henuz yok (501).
+
+Endpoint uygulandikca ilgili satir CONTRACT_STUBS'tan cikarilir ve gercek testleri yazilir.
+"""
+
+import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
+VALID_USER = {
+    "email": "ayse@example.edu.tr",
+    "full_name": "Ayşe Yılmaz",
+    "role": "REPORTER",
+    "reporter_kind": "STUDENT",
+    "password": "cok-gizli-parola-123",
+}
+VALID_LOCATION = {"kind": "WC", "code": "B-2-WCM", "name": "B Blok 2. Kat Erkek WC"}
+
+CONTRACT_STUBS: list[tuple[str, str, dict[str, object] | None]] = [
+    ("POST", "/api/v1/auth/login", {"email": "ayse@example.edu.tr", "password": "x"}),
+    ("POST", "/api/v1/auth/refresh", None),
+    ("POST", "/api/v1/auth/logout", None),
+    ("GET", "/api/v1/auth/me", None),
+    ("GET", "/api/v1/admin/users", None),
+    ("POST", "/api/v1/admin/users", VALID_USER),
+    ("PATCH", "/api/v1/admin/users/1", {"is_active": False}),
+    ("GET", "/api/v1/admin/departments", None),
+    ("POST", "/api/v1/admin/departments", {"code": "CLEANING", "name": "Temizlik"}),
+    ("PATCH", "/api/v1/admin/departments/1", {"name": "Temizlik Birimi"}),
+    ("GET", "/api/v1/admin/locations", None),
+    ("POST", "/api/v1/admin/locations", VALID_LOCATION),
+    ("PATCH", "/api/v1/admin/locations/1", {"importance_weight": 80}),
+]
+
+
+@pytest.mark.parametrize(("method", "path", "body"), CONTRACT_STUBS)
+def test_contract_endpoint_is_published_but_not_implemented(
+    test_app: FastAPI, method: str, path: str, body: dict[str, object] | None
+) -> None:
+    response = TestClient(test_app).request(method, path, json=body)
+
+    assert response.status_code == 501
+    assert response.json()["error"]["code"] == "NOT_IMPLEMENTED"
+
+
+def test_contract_schemas_are_in_openapi(test_app: FastAPI) -> None:
+    schemas = TestClient(test_app).get("/openapi.json").json()["components"]["schemas"]
+
+    expected = {
+        "LoginRequest",
+        "TokenRead",
+        "UserRead",
+        "UserRole",
+        "Page_UserRead_",
+        "DepartmentRead",
+        "LocationRead",
+        "LocationKind",
+    }
+    assert expected <= set(schemas)
+
+
+def test_user_role_enum_matches_database_enum(test_app: FastAPI) -> None:
+    schemas = TestClient(test_app).get("/openapi.json").json()["components"]["schemas"]
+
+    assert schemas["UserRole"]["enum"] == ["REPORTER", "STAFF", "MANAGER", "ADMIN"]
+
+
+@pytest.mark.parametrize(
+    ("path", "body"),
+    [
+        ("/api/v1/auth/login", {"email": "not-an-email", "password": "x"}),
+        ("/api/v1/admin/users", {**VALID_USER, "role": "SUPERUSER"}),
+        ("/api/v1/admin/locations", {**VALID_LOCATION, "importance_weight": 101}),
+    ],
+)
+def test_contract_validates_input_before_business_logic(
+    test_app: FastAPI, path: str, body: dict[str, object]
+) -> None:
+    # Gecersiz girdi 501'e ulasmadan 422 ile reddedilir;
+    # frontend hata gosterimini simdiden test edebilir
+    response = TestClient(test_app).post(path, json=body)
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "VALIDATION_ERROR"
