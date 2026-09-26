@@ -2,6 +2,8 @@
 .env
 .env.*
 !.env.example
+# Gizli olmayan gelistirme varsayilanlari (NEXT_PUBLIC_API_URL)
+!frontend/.env.development
 
 # Python
 __pycache__/

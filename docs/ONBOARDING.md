@@ -68,19 +68,36 @@ Script eksik program, yanlış sürüm, OneDrive klasörü, eksik git kimliği g
 copy .env.example .env
 ```
 
+Veritabanı ve backend Docker'da çalışır:
+
 ```bash
-docker compose up --build
+docker compose up --build -d
 ```
 
-İlk açılışta (ve her yeni migration geldiğinde, ayrı bir terminalde) veritabanı şemasını güncelle:
+İlk açılışta (ve her yeni migration geldiğinde) veritabanı şemasını güncelle:
 
 ```bash
 docker compose exec backend alembic upgrade head
 ```
 
-- Frontend: http://localhost:3000 — ana sayfadaki "Sistem durumu" kartı "Backend çalışıyor / Veritabanı bağlı" göstermeli
+Frontend **Docker dışında**, doğrudan bilgisayarda çalışır (Docker içinde dosya değişikliklerini göremediği için
+hot reload çalışmıyor). İkinci bir terminalde:
+
+```bash
+cd frontend
+```
+
+```bash
+npm ci
+```
+
+```bash
+npm run dev
+```
+
+- Frontend: http://localhost:3000 — "Sistem durumu" kartında iki **yeşil** satır görmelisin: "Backend çalışıyor", "Veritabanı bağlı"
 - Backend API dokümanı: http://localhost:8000/docs
-- Testler: `docker compose exec backend pytest` · frontend için `cd frontend`, `npm ci`, `npm test`
+- Testler: `docker compose exec backend pytest` · frontend için `cd frontend` ve `npm test`
 - Demo kullanıcıları seed ile FAZ 2'de gelecek (`backend/seeds/README.md`).
 
 ## 6. Günlük çalışma akışı

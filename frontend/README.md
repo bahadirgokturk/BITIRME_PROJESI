@@ -5,7 +5,7 @@ Next.js 16 kullanılıyor; API'ler eski sürümlerden farklı olabilir — `node
 
 ```bash
 npm ci
-npm run dev          # http://localhost:3000 (Docker dışında)
+npm run dev          # http://localhost:3000 — Docker dışında çalışır; backend için repo kökünde docker compose up -d
 npm run lint
 npm run typecheck
 npm test

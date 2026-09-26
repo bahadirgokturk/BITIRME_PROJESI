@@ -1,4 +1,6 @@
-# Yerel gelistirme: docker compose up --build  (docs/DEPLOYMENT.md §5)
+# Yerel gelistirme: docker compose up --build  (docs/DEPLOYMENT.md bolum 5)
+# Frontend Docker disinda calisir (cd frontend && npm run dev): Windows/macOS bind mount'larinda
+# Turbopack dosya degisikliklerini alamiyor, hot reload calismiyor (Next.js local-development rehberi).
 services:
   db:
     image: postgres:16-alpine
@@ -34,22 +36,6 @@ services:
       interval: 10s
       timeout: 3s
       retries: 10
-
-  frontend:
-    build: ./frontend
-    env_file: .env
-    environment:
-      # Windows/macOS bind mount'larinda dosya degisikligi olaylari konteynere ulasmiyor
-      WATCHPACK_POLLING: "true"
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
-    depends_on:
-      backend:
-        condition: service_healthy
 
 volumes:
   pgdata:
