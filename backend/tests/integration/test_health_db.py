@@ -6,14 +6,19 @@ from fastapi.testclient import TestClient
 from sqlalchemy.engine import URL, Engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.core.config import Settings
+from app.core.config import Settings, get_settings
 from app.core.database import get_session
 from app.main import create_app
 
 
 @pytest.fixture
 def app_on_test_db(test_db_url: URL, test_engine: Engine) -> Iterator[FastAPI]:
-    app = create_app(Settings(database_url=test_db_url.render_as_string(hide_password=False)))
+    app = create_app(
+        Settings(
+            database_url=test_db_url.render_as_string(hide_password=False),
+            jwt_secret=get_settings().jwt_secret,
+        )
+    )
     factory = sessionmaker(bind=test_engine)
 
     def _session() -> Iterator[Session]:
