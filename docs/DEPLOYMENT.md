@@ -5,15 +5,51 @@
 | | LOCAL | STAGING | PRODUCTION |
 |---|---|---|---|
 | Branch | feature/* | `develop` | `main` |
-| Çalıştırma | Docker Compose (frontend, backend, postgres) | Otomatik deploy (develop merge) | Deploy (main merge + manuel onay) |
+| Çalıştırma | Docker Compose (frontend, backend, postgres) | Otomatik deploy (develop merge) — Vercel + Render + Neon | Deploy (main merge + manuel onay) — Vercel + Render + Neon |
 | Veritabanı | Lokal container | Ayrı DB (demo/seed verisi) | Ayrı DB (seed: yalnız template, demo verisi yok ya da ayrıca kararlaştırılır) |
 | AI | `AI_MODE=ml`, Ollama opsiyonel | `AI_MODE=ml`, `LLM_PROVIDER=none` | aynı |
 | Dosya | `./storage` volume | S3-uyumlu (ör. Supabase Storage) bucket `staging` | ayrı bucket |
 
-**Ücretsiz barındırma önerisi (FAZ 1'de kesinleşir):** Frontend → Vercel Hobby; Backend → Render/Fly.io
-free (Docker); PostgreSQL → Neon (staging ve production **ayrı proje/DB**). Staging ve production aynı
-veritabanını **kullanmaz**. Ücretsiz planlarda uygulama uyuyabilir; bu yüzden SLA durumu okuma anında
-hesaplanır (bkz. ARCHITECTURE §6).
+### 1.1 Barındırma kararı ve zamanlama
+
+**Karar (FAZ 1 sonrası):** Frontend → **Vercel** (Hobby) · Backend → **Render** (ücretsiz web service, Docker) ·
+PostgreSQL → **Neon** (ücretsiz). Staging ve production **ayrı Neon projesi/DB** kullanır; aynı veritabanını
+paylaşmaz. Render'ın kendi ücretsiz Postgres'i süreli olduğu için veritabanı Neon'da tutulur.
+
+**Zamanlama:** Staging, planda son haftalara bırakılmaz; **FAZ 3 ile birlikte (hafta 4–5)** kurulur (backlog E7-3a).
+Gerekçe: env/CORS/migration sorunlarını erken görmek ve danışmana her an açılabilir bir demo linki sunmak.
+Production (E7-3) hafta 11'de, staging birkaç hafta sorunsuz çalıştıktan sonra açılır.
+
+| | Staging | Production |
+|---|---|---|
+| Tetikleyici | `develop`'a merge | `main`'e merge + GitHub Environment `production` manuel onayı |
+| Frontend | Vercel projesi (develop branch'i) | Aynı Vercel projesi, production domain (`main`) |
+| Backend | Render servisi `campusflow-api-staging` | Render servisi `campusflow-api` |
+| Veritabanı | Neon projesi `campusflow-staging` | Neon projesi `campusflow-prod` |
+| Veri | Demo seed | Yalnız template seed |
+
+**Ücretsiz plan kısıtları ve karşılıkları** (koşullar değişebilir; kurulum günü sağlayıcıların güncel limitleri kontrol edilir):
+
+| Kısıt | Etki | Karşılık |
+|---|---|---|
+| Render boştayken uyur | İlk istek 30–60 sn sürer; in-process scheduler durur | SLA durumu okuma anında hesaplanır (ARCHITECTURE §6); gerekirse GitHub Actions cron `POST /internal/monitoring/run`; **sunumdan önce servis bir kez açılıp uyandırılır** |
+| RAM ~512 MB | Büyük modeller sığmaz | TF-IDF + LogisticRegression yeterli; `EMBEDDINGS_ENABLED=false` |
+| Yerel LLM yok | Ollama canlıda çalışmaz | `LLM_PROVIDER=none` ile tam çalışır (ADR-2) |
+| Kalıcı disk yok | Yüklenen fotoğraflar yeniden başlatmada kaybolur | `STORAGE_BACKEND=s3` (S3-uyumlu bucket, ör. Supabase Storage) |
+
+**Kurulum adımları (E7-3a):**
+
+1. *(Bahadır)* Vercel, Render ve Neon hesaplarını GitHub ile açar; repoya erişim verir. Hesap açma ve giriş
+   işlemleri kişinin kendisi tarafından yapılır.
+2. *(A)* Production Dockerfile'ları (çok aşamalı, dev bağımlılıksız, `--reload` yok) ve `deploy-staging.yml` yazılır.
+3. Neon'da `campusflow-staging` açılır; bağlantı adresi Render'a `DATABASE_URL` olarak girilir
+   (`postgresql+psycopg://…?sslmode=require`).
+4. Render servisi Docker ile kurulur; her deploy'da önce `alembic upgrade head`, sonra uygulama başlar;
+   deploy sonrası `/api/v1/health` smoke testi.
+5. Vercel projesi `frontend/` kök dizini ile kurulur; `NEXT_PUBLIC_API_URL` = Render servisinin adresi + `/api/v1`.
+6. Render'da `CORS_ORIGINS` = Vercel staging adresi. (Vercel PR önizleme adresleri değişkendir; gerekirse
+   ayrı bir önizleme origin kuralı eklenir.)
+7. Secret'lar yalnız sağlayıcıların env ayarlarında ve GitHub Environments'ta tutulur; repoya yazılmaz.
 
 ## 2. Ortam Değişkenleri
 

@@ -32,7 +32,7 @@ Her fazın başında iş şu sırayla ilerler (ayrıntı: [UI_GUIDE.md](UI_GUIDE
 | 1 | FAZ 0 | Mimari, ERD, RBAC, state machine, backlog (**bu doküman seti**) |
 | 2 | FAZ 1 | Monorepo, Docker Compose, FastAPI + Next.js iskeleti, Postgres + Alembic, CI pipeline |
 | 3 | FAZ 2 | Auth (JWT), RBAC, admin: kullanıcı/departman/lokasyon; campus template seed |
-| 4 | FAZ 3 | Case oluşturma, state machine, event log, reporter ekranları (`/report`, `/my-cases`) |
+| 4 | FAZ 3 | Case oluşturma, state machine, event log, reporter ekranları (`/report`, `/my-cases`); **staging canlıya alınır** (E7-3a) |
 | 5 | FAZ 4 | Task yönetimi, SLA engine (due_at, SLA status), staff ekranları taslağı |
 | 6 | FAZ 5 | Intake + Classification (kural + TF-IDF/LR v1) + Priority; sentetik veri üretici |
 | 7 | FAZ 6 | Duplicate, Verification, Routing, Supervisor; orchestrator; `agent_decisions` |
@@ -94,7 +94,8 @@ Her fazın başında iş şu sırayla ilerler (ayrıntı: [UI_GUIDE.md](UI_GUIDE
 | E7 | **Kalite & Teslim** | | |
 | E7-1 | Playwright E2E ana senaryo | 11 | B/C |
 | E7-2 | Güvenlik kontrol listesi (IDOR, upload, CORS, rate limit) | 11 | A |
-| E7-3 | Staging + production deploy pipeline | 11 | A |
+| E7-3a | **Staging** canlı ortamı: Vercel + Render + Neon, production Dockerfile'ları, `deploy-staging.yml` ([DEPLOYMENT.md](DEPLOYMENT.md) bölüm 1.1) | 4–5 | A |
+| E7-3 | **Production** ortamı + `deploy-production.yml` (manuel onay), sürüm etiketi | 11 | A |
 | E7-4 | Akademik deney raporu (RQ1–RQ5), tez tabloları/grafikleri | 12 | Hepsi |
 | E7-5 | UI polish, demo senaryosu, sunum | 12 | Hepsi |
 | E8 | **Tasarım (Figma)** — kodlamadan bir faz önce ilerler ([UI_GUIDE.md](UI_GUIDE.md)) | | |
@@ -134,7 +135,7 @@ ayağa kaldırabilir, `/health` yeşil, CI her PR'da çalışır.
 |---|---|---|
 | Gerçek etiketli veri azlığı | RQ1 zayıflar | Erken form, sentetik veri, test setini gerçek veriden tutmak |
 | Kapsam şişmesi | Teslim gecikir | Faz sonu değerlendirmesi; "nice-to-have" listesi (foto AI doğrulama, çoklu task, departman bazlı manager) |
-| Ücretsiz hosting kısıtları (uyku, RAM) | Staging kararsız | Hafif model, embedding opsiyonel, SLA'nın okuma anında hesaplanması |
+| Ücretsiz hosting kısıtları (uyku, RAM) | Staging kararsız, demo'da ilk açılış yavaş | Hafif model, embedding opsiyonel, SLA'nın okuma anında hesaplanması; staging erken (hafta 4–5) kurulur ki sorunlar son haftaya kalmasın; sunumdan önce servis uyandırılır |
 | OneDrive senkronizasyonu | Yavaş build, kilitli dosya | Repo'yu `C:\dev` altına taşımak |
 | Silo çalışma | Entegrasyon sorunları | OpenAPI'den tip üretimi, çapraz review, haftalık entegrasyon demosu |
 | Backend + agent yükünün tek kişide (A) toplanması | Backend gecikirse frontend de bekler | Sözleşme önce (şema ilk gün); B/C veri etiketleme, E2E ve "Ortak" agent'ları üstlenir; kapsam şişerse nice-to-have listesine atılır |
