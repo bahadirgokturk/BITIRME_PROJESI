@@ -66,6 +66,13 @@ Teammates use Claude Code to set up their machines. When asked to set up the env
 
 When starting a new task: `git checkout develop` → `git pull` → `git checkout -b feature/<short-name>`.
 Finish with a pushed branch and a PR to `develop`; the author merges it after CI is green.
+
+**Opening the PR (pre-filled):** the team has no `gh` CLI, so give the user a compare link that opens the PR form
+already filled in — never an empty template. Fill every section of `.github/pull_request_template.md` from the
+actual work (what/why + backlog id, the YAML plan, type, real `pytest --co -q | tail -1` / `npm test` counts,
+whether the new test was seen red first, checklist ticked only where true), in Turkish. Build the link as
+`https://github.com/bahadirgokturk/BITIRME_PROJESI/compare/develop...<branch>?expand=1&title=<urlencoded>&body=<urlencoded>`
+(Conventional Commit title). Keep it under ~7000 characters; if longer, print the body for pasting instead.
 Explain git steps briefly in Turkish; the team is learning the workflow.
 
 ## Commands
