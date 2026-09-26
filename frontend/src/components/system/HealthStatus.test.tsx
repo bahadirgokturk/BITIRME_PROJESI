@@ -5,7 +5,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { HealthStatus } from "./HealthStatus";
 
 function renderWithQuery() {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  // Uygulamadaki varsayilan QueryClient ayarlari (yeniden deneme dahil) kullanilir
+  const client = new QueryClient();
   return render(
     <QueryClientProvider client={client}>
       <HealthStatus />
@@ -31,6 +32,17 @@ describe("HealthStatus", () => {
 
     expect(await screen.findByText("Backend çalışıyor")).toBeInTheDocument();
     expect(screen.getByText("Veritabanı bağlı")).toBeInTheDocument();
+  });
+
+  it("gives backend and database their own indicator", async () => {
+    mockFetch(503, { status: "degraded", database: "unavailable" });
+
+    renderWithQuery();
+
+    const backend = await screen.findByText("Backend çalışıyor");
+    const database = screen.getByText("Veritabanına ulaşılamıyor");
+    expect(backend).toHaveAttribute("data-tone", "ok");
+    expect(database).toHaveAttribute("data-tone", "error");
   });
 
   it("shows degraded state with text, not only color", async () => {

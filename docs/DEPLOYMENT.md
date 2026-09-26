@@ -141,20 +141,21 @@ Migration kuralı: veri silen/destructive migration production'a ekip onayı olm
 
 ```bash
 cp .env.example .env
-docker compose up --build
+docker compose up --build -d
 docker compose exec backend alembic upgrade head
+cd frontend && npm ci && npm run dev
 ```
 
 | Servis | Adres | Not |
 |---|---|---|
-| frontend | http://localhost:3000 | `next dev`, hot reload (bind mount + polling) |
+| frontend | http://localhost:3000 | **Docker dışında** `npm run dev`. Windows/macOS bind mount'larında Turbopack dosya değişikliklerini alamıyor; Next.js dokümanı da geliştirmede Docker'sız çalışmayı öneriyor. Varsayılan env: `frontend/.env.development` |
 | backend | http://localhost:8000/docs | `uvicorn --reload`; sağlık: `/api/v1/health` (DB yoksa 503) |
 | db | localhost:5433 | PostgreSQL 16, `pgdata` volume. Her geliştiricinin **kendi** DB'si vardır; ortak DB yoktur. Host portu `POSTGRES_HOST_PORT` ile değişir (kurulu bir PostgreSQL 5432'yi kullandığı için 5433) |
 
 - Backend testleri konteynerde: `docker compose exec backend pytest`. Integration testleri geliştirme
   DB'sine dokunmaz; aynı sunucuda `<db>_test` veritabanını oluşturup kullanır.
 - Demo seed (`python -m seeds.run --demo`) FAZ 2'de eklenecek.
-- Backend ve frontend Dockerfile'ları şimdilik geliştirme imajıdır; production imajları FAZ 11'de (E7-3).
+- Backend Dockerfile'ı şimdilik geliştirme imajıdır; backend ve frontend production imajları staging kurulumunda (E7-3a) yazılır.
 
 > ⚠️ Repo **OneDrive/Dropbox** altında olmamalı: `node_modules` ve Postgres volume'ları senkronizasyonda
 > ciddi yavaşlık ve dosya kilidi hatalarına yol açar. `C:\dev\campusflow` gibi bir klasör kullanın.

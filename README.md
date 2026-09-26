@@ -96,13 +96,33 @@ GitHub'da **`develop`'a** Pull Request aç ve şablonu doldur. Onay gerekmez: te
 **kendin Squash and merge** yap. Canlıya (`main`) geçiş Bahadır'ın onayıyla olur. `main` ve `develop`'a
 doğrudan push yapılamaz.
 
-### 3. Projeyi çalıştırma (FAZ 1 tamamlanınca)
+### 3. Projeyi çalıştırma
+
+Veritabanı + backend (Docker):
 
 ```bash
-docker compose up --build
+docker compose up --build -d
 ```
 
-Frontend: http://localhost:3000 · API dokümanı: http://localhost:8000/docs
+```bash
+docker compose exec backend alembic upgrade head
+```
+
+Frontend (ikinci terminalde, Docker dışında):
+
+```bash
+cd frontend
+```
+
+```bash
+npm ci
+```
+
+```bash
+npm run dev
+```
+
+Frontend: http://localhost:3000 · API dokümanı: http://localhost:8000/docs · Ayrıntı: [docs/ONBOARDING.md](docs/ONBOARDING.md) §5
 
 ## Dokümantasyon
 
