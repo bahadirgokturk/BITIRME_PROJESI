@@ -14,14 +14,18 @@ from app.core.errors import DomainError
 
 
 def _error_response(
-    status: int, code: str, message: str, details: dict[str, Any] | None = None
+    status: int,
+    code: str,
+    message: str,
+    details: dict[str, Any] | None = None,
+    headers: dict[str, str] | None = None,
 ) -> JSONResponse:
     body = {"error": {"code": code, "message": message, "details": details or {}}}
-    return JSONResponse(status_code=status, content=jsonable_encoder(body))
+    return JSONResponse(status_code=status, content=jsonable_encoder(body), headers=headers)
 
 
 async def _handle_domain_error(_request: Request, exc: DomainError) -> JSONResponse:
-    return _error_response(exc.status, exc.code, exc.message, exc.details)
+    return _error_response(exc.status, exc.code, exc.message, exc.details, exc.headers)
 
 
 async def _handle_validation_error(_request: Request, exc: RequestValidationError) -> JSONResponse:

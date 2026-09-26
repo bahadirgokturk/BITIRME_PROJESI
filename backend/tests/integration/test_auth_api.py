@@ -7,7 +7,11 @@ from httpx import Response
 from sqlalchemy.orm import Session
 
 from app.api.v1.auth import REFRESH_COOKIE_NAME
-from app.core.constants import REFRESH_REUSE_GRACE_SECONDS
+from app.core.constants import (
+    LOGIN_FAILURE_WINDOW_MINUTES,
+    LOGIN_MAX_FAILURES_PER_EMAIL,
+    REFRESH_REUSE_GRACE_SECONDS,
+)
 from tests.integration.conftest import FrozenClock
 from tests.integration.factories import DEFAULT_PASSWORD, make_user
 
@@ -87,6 +91,40 @@ def test_inactive_user_cannot_log_in(client: TestClient, db_session: Session) ->
 
     assert response.status_code == 401
     assert response.json() == _login(client, email="kimse@example.edu.tr").json()
+
+
+def test_brute_force_is_stopped_even_with_the_right_password(
+    client: TestClient, db_session: Session
+) -> None:
+    make_user(db_session)
+    for _ in range(LOGIN_MAX_FAILURES_PER_EMAIL):
+        assert _login(client, password="tahmin").status_code == 401
+
+    blocked = _login(client)
+
+    assert blocked.status_code == 429
+    assert blocked.json()["error"]["code"] == "TOO_MANY_REQUESTS"
+    assert int(blocked.headers["retry-after"]) > 0
+
+
+def test_unknown_email_is_rate_limited_the_same_way(client: TestClient) -> None:
+    # Kayitli olmayan e-posta farkli davransaydi sinir, e-posta listesini sizdirirdi
+    for _ in range(LOGIN_MAX_FAILURES_PER_EMAIL):
+        _login(client, email="kimse@example.edu.tr")
+
+    assert _login(client, email="kimse@example.edu.tr").status_code == 429
+
+
+def test_login_works_again_after_the_block_window(
+    client: TestClient, db_session: Session, clock: FrozenClock
+) -> None:
+    make_user(db_session)
+    for _ in range(LOGIN_MAX_FAILURES_PER_EMAIL):
+        _login(client, password="tahmin")
+
+    clock.advance(timedelta(minutes=LOGIN_FAILURE_WINDOW_MINUTES, seconds=1))
+
+    assert _login(client).status_code == 200
 
 
 # --- /auth/me ---

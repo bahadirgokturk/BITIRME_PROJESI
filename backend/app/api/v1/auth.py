@@ -9,7 +9,7 @@ from datetime import datetime
 from http import HTTPStatus
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Cookie, Depends, Response
+from fastapi import APIRouter, Cookie, Depends, Request, Response
 
 from app.api.deps import CurrentUser, get_app_settings, get_auth_service
 from app.api.v1.responses import ERROR_RESPONSES
@@ -25,6 +25,7 @@ REFRESH_COOKIE_PATH = "/api/v1/auth"
 _AUTH_RESPONSES: dict[int | str, dict[str, Any]] = {
     **ERROR_RESPONSES,
     HTTPStatus.UNAUTHORIZED: {"model": ErrorRead},
+    HTTPStatus.TOO_MANY_REQUESTS: {"model": ErrorRead},
 }
 
 router = APIRouter(prefix="/auth", tags=["auth"], responses=_AUTH_RESPONSES)
@@ -55,9 +56,16 @@ def _token_response(response: Response, tokens: IssuedTokens, settings: Settings
 
 @router.post("/login")
 def login(
-    payload: LoginRequest, response: Response, service: Auth, settings: AppSettings
+    payload: LoginRequest,
+    request: Request,
+    response: Response,
+    service: Auth,
+    settings: AppSettings,
 ) -> TokenRead:
-    return _token_response(response, service.login(payload.email, payload.password), settings)
+    # Canlida proxy arkasinda gercek IP icin uvicorn --proxy-headers gerekir (DEPLOYMENT.md)
+    client_ip = request.client.host if request.client else "unknown"
+    tokens = service.login(payload.email, payload.password, client_ip)
+    return _token_response(response, tokens, settings)
 
 
 @router.post("/refresh")
