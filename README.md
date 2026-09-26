@@ -96,6 +96,15 @@ GitHub'da **`develop`'a** Pull Request aç ve şablonu doldur. Onay gerekmez: te
 **kendin Squash and merge** yap. Canlıya (`main`) geçiş Bahadır'ın onayıyla olur. `main` ve `develop`'a
 doğrudan push yapılamaz.
 
+> 💡 **PR şablonunu elle doldurma.** İş bitince Claude'a şunu yaz:
+>
+> ```
+> Bu işi bitirdim. Testleri ve kontrolleri çalıştır, branch'i push'la ve bana PR şablonu doldurulmuş hazır PR linkini ver.
+> ```
+>
+> Claude şablonu yaptığın işe göre (gerçek test sayıları dahil) doldurup bir link verir; linki açınca form
+> **dolu gelir**. Sen okuyup kontrol et, yanlış işaretlenmiş bir kutu varsa düzelt, sonra **Create pull request**.
+
 ### 3. Projeyi çalıştırma
 
 Veritabanı + backend (Docker):

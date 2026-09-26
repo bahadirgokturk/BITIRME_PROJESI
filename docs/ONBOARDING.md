@@ -125,6 +125,15 @@ Sonra GitHub'da **develop'a** Pull Request aç ve PR şablonunu doldur. Onay ger
 **kendin Squash and merge** yap ve branch'i sil. (Bahadır otomatik reviewer olarak görünür; bu develop
 için bilgi amaçlıdır, bekleme.) Canlıya geçiş (`develop → main`) Bahadır'ın onayıyla yapılır.
 
+> 💡 **PR şablonunu elle doldurma.** İş bitince Claude'a şunu yaz:
+>
+> ```
+> Bu işi bitirdim. Testleri ve kontrolleri çalıştır, branch'i push'la ve bana PR şablonu doldurulmuş hazır PR linkini ver.
+> ```
+>
+> Claude şablonu yaptığın işe göre (gerçek test sayıları dahil) doldurup bir link verir; linki açınca form
+> **dolu gelir**. Sen okuyup kontrol et, yanlış işaretlenmiş bir kutu varsa düzelt, sonra **Create pull request**.
+
 Kurallar:
 - `main` ve `develop`'a doğrudan push yok.
 - Her gün işe başlarken `develop`'u çek; uzun yaşayan branch'lerde `git merge develop` ile güncel kal.
