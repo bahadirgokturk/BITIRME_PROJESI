@@ -46,8 +46,25 @@ PRs that violate it are rejected. Most-broken rules:
 
 - Branches: `main` (production), `develop` (staging), `feature/*`, `fix/*`, `chore/*` — always branch from `develop`.
 - Never push directly to `main` or `develop`; open a PR to `develop`. Conventional Commits (`feat(cases): ...`).
+- PRs to `develop` need no approval: once CI is green the author squash-merges. PRs to `main` (production)
+  require approval from the owner @bahadirgokturk (CODEOWNERS). Never merge into `main` unless the user says so.
 - Never deploy to production or run destructive migrations without explicit team approval.
 - When code changes behaviour described in `docs/`, update the doc in the same PR.
+
+## Helping a teammate set up or start work
+
+Teammates use Claude Code to set up their machines. When asked to set up the environment:
+
+1. Run `scripts/check-setup.ps1` (Windows) or `scripts/check-setup.sh` and show the result.
+2. Walk through each FAIL/WARN using `docs/ONBOARDING.md`. Explain before running anything that
+   installs software or changes global git config, and let the user confirm.
+3. If the repo is inside OneDrive/Dropbox, recommend re-cloning to `C:\dev\campusflow`; never move or
+   delete the user's folders yourself.
+4. Make sure they are on `develop` (`git fetch origin` + `git checkout develop`) before any work.
+
+When starting a new task: `git checkout develop` → `git pull` → `git checkout -b feature/<short-name>`.
+Finish with a pushed branch and a PR to `develop`; the author merges it after CI is green.
+Explain git steps briefly in Turkish; the team is learning the workflow.
 
 ## Commands
 

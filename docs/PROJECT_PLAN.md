@@ -8,7 +8,8 @@
 | **B** | Frontend, UX, staff/reporter ekranları, manager dashboard | API sözleşmesi, E2E |
 | **C** | AI/ML (veri, eğitim, sınıflandırma, duplicate), analytics, DevOps/CI, test altyapısı | Agent'lar |
 
-Kural: Her kişi haftada en az 1 PR'ı **kendi alanı dışında** review eder. Haftalık 30 dk demo + planlama.
+Kural: `develop`'a onaysız PR ile girilir; canlıya (`main`) geçişi Bahadır onaylar. Her kişi haftada en az
+1 PR'ı **kendi alanı dışında** inceleyip yorum bırakır (bilgi paylaşımı için). Haftalık 30 dk demo + planlama.
 
 ## 2. Fazlar ve Haftalar
 
@@ -98,7 +99,7 @@ ayağa kaldırabilir, `/health` yeşil, CI her PR'da çalışır.
 | 6 | Next.js iskeleti: TS strict, Tailwind, shadcn/ui, ESLint, Vitest; login sayfası taslağı; rol bazlı layout | B | `npm run lint && npm run typecheck && npm test` temiz |
 | 7 | Frontend Dockerfile + compose servisi | B | `localhost:3000` açılır, backend health'i gösterir |
 | 8 | `ci.yml`: backend (ruff, mypy, pytest + postgres), frontend (lint, tsc, vitest, build) | C | Örnek PR'da tüm job'lar yeşil |
-| 9 | ~~PR şablonu~~ (FAZ 0'da eklendi), CODEOWNERS (ekip GitHub kullanıcı adlarıyla) | C | CODEOWNERS reviewer'ı otomatik atıyor |
+| 9 | ~~PR şablonu, CODEOWNERS~~ (FAZ 0'da eklendi) | — | — |
 | 9b | KOD_KURALLARI künyesindeki lint kurallarını ruff/ESLint config'ine işle + `check_ascii_comments.py` | C | Bilerek ihlal eden örnek dosyada CI kırmızı |
 | 10 | `ai/` iskeleti + sentetik veri üretici için case type şablon taslağı | C | 11 case type için ≥ 10 şablon cümle |
 | 11 | Anonim veri toplama formu (Google Form) taslağı — KVKK uyumlu, kişisel veri istemez | B/C | Form metni ekipçe onaylandı |
