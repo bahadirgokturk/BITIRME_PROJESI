@@ -1,5 +1,7 @@
+# Windows'ta yazilan dosyalar Linux konteynerinde bozulmasin diye depoda LF tutulur
 * text=auto eol=lf
 *.ps1 text eol=crlf
 *.png binary
 *.jpg binary
+*.webp binary
 *.joblib binary

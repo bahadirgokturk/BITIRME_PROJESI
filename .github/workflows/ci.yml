@@ -1,0 +1,144 @@
+# Her PR'da lint + tip + test (docs/DEPLOYMENT.md bolum 4)
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  repo:
+    name: repo (ASCII comments, scripts)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - name: ASCII comment check (KOD_KURALLARI kural 3)
+        run: uv run --no-project python scripts/check_ascii_comments.py backend ai frontend/src scripts
+      - name: Lint scripts
+        run: |
+          uvx ruff check scripts
+          uvx ruff format --check scripts
+      - name: Test scripts
+        run: uvx pytest -q scripts/tests
+
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: campusflow
+          POSTGRES_PASSWORD: campusflow
+          POSTGRES_DB: campusflow
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U campusflow"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://campusflow:campusflow@localhost:5432/campusflow
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: Ruff
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+      - name: Mypy
+        run: uv run mypy
+      - name: Alembic upgrade / downgrade / upgrade
+        run: |
+          uv run alembic upgrade head
+          uv run alembic downgrade base
+          uv run alembic upgrade head
+          uv run alembic check
+      - name: Collected test count (KOD_KURALLARI kural 9)
+        run: uv run pytest --co -q | tail -1
+      - name: Pytest
+        run: uv run pytest --cov=app --cov-report=term-missing
+
+  ai:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ai
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: Ruff
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+      - name: Mypy
+        run: uv run mypy
+      - name: Collected test count
+        run: uv run pytest --co -q | tail -1
+      - name: Pytest
+        run: uv run pytest
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  api-contract:
+    name: api-contract (OpenAPI types up to date)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Export OpenAPI schema from backend (DB gerekmez)
+        working-directory: backend
+        run: |
+          uv sync --frozen
+          uv run python -m scripts.export_openapi > "$RUNNER_TEMP/openapi.json"
+      - name: Regenerate frontend types and fail on drift (ADR-7)
+        working-directory: frontend
+        run: |
+          npm ci
+          npx openapi-typescript "$RUNNER_TEMP/openapi.json" -o src/lib/api/types.ts
+          git diff --exit-code -- src/lib/api/types.ts

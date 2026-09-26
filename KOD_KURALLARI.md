@@ -200,12 +200,12 @@ Kök neden "5 Neden" ile aranır; düzeltmeden sonra tekrarı ölçülür.
 Her kural hangi düzeyde uygulandığını dürüstçe söyler. Güçlüden zayıfa:
 *tip/DB kısıtı > başarısız test > CI kapısı > lint > yazılı kural + review*.
 
-| # | Kural | Uygulama düzeyi (hedef — FAZ 1'de kurulur) |
+| # | Kural | Uygulama düzeyi (FAZ 1'de kuruldu: `backend/pyproject.toml`, `frontend/eslint.config.mjs`, `ci.yml`) |
 |---|---|---|
 | 1 | Fail fast | Lint: ruff `BLE001` (blind except), `S110`/`S112` (try-except-pass/continue), `E722`; ESLint `no-empty` + review |
 | 2 | Az dallanma | Lint: ruff `C901` (max-complexity 8), `PLR0912` (branches), ESLint `complexity: 8`, `max-depth: 3` |
 | 3 | İngilizce isim | Review (+ ileride tarama betiği) |
-| 3b | ASCII yorum | CI: `scripts/check_ascii_comments.py` (FAZ 1'de yazılacak) |
+| 3b | ASCII yorum | CI: `scripts/check_ascii_comments.py` (tüm ASCII dışı karakterler; `§` dahil) |
 | 4 | TDD | Review + CI'da coverage raporu (kritik modüller ≥ %85) |
 | 5 | Önce spec | PR şablonu alanı + review |
 | 6 | Ölü kod | Lint: ruff `F401`, `F841`, `ERA001` (commented-out code); ESLint `no-unused-vars`, ts `noUnusedLocals` |

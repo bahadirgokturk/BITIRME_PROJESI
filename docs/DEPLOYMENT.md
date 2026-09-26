@@ -101,14 +101,24 @@ gitGraph
 
 Migration kuralı: veri silen/destructive migration production'a ekip onayı olmadan çıkmaz; önce staging'de test edilir.
 
-## 5. Yerel Geliştirme (FAZ 1'de uygulanacak)
+## 5. Yerel Geliştirme
 
 ```bash
+cp .env.example .env
 docker compose up --build
 docker compose exec backend alembic upgrade head
-docker compose exec backend python -m seeds.run --demo
 ```
 
-> ⚠️ Proje klasörü şu an **OneDrive** altında. `node_modules`, `.venv` ve Postgres volume'ları OneDrive
-> senkronizasyonunda ciddi yavaşlık ve dosya kilidi hatalarına yol açar. Repo'yu `C:\dev\campusflow`
-> gibi senkronize olmayan bir klasöre klonlamanız önerilir.
+| Servis | Adres | Not |
+|---|---|---|
+| frontend | http://localhost:3000 | `next dev`, hot reload (bind mount + polling) |
+| backend | http://localhost:8000/docs | `uvicorn --reload`; sağlık: `/api/v1/health` (DB yoksa 503) |
+| db | localhost:5432 | PostgreSQL 16, `pgdata` volume |
+
+- Backend testleri konteynerde: `docker compose exec backend pytest`. Integration testleri geliştirme
+  DB'sine dokunmaz; aynı sunucuda `<db>_test` veritabanını oluşturup kullanır.
+- Demo seed (`python -m seeds.run --demo`) FAZ 2'de eklenecek.
+- Backend ve frontend Dockerfile'ları şimdilik geliştirme imajıdır; production imajları FAZ 11'de (E7-3).
+
+> ⚠️ Repo **OneDrive/Dropbox** altında olmamalı: `node_modules` ve Postgres volume'ları senkronizasyonda
+> ciddi yavaşlık ve dosya kilidi hatalarına yol açar. `C:\dev\campusflow` gibi bir klasör kullanın.

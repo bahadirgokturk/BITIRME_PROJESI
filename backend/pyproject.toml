@@ -1,0 +1,71 @@
+[project]
+name = "campusflow-backend"
+version = "0.1.0"
+description = "CampusFlow AI backend (FastAPI moduler monolit)"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "sqlalchemy>=2.0.36",
+    "alembic>=1.14",
+    "psycopg[binary]>=3.2",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "httpx>=0.28",
+    "ruff>=0.8",
+    "mypy>=1.13",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+files = ["app"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+
+[tool.ruff.lint]
+# Kural kunyesi: KOD_KURALLARI.md (fail fast, az dallanma, olu kod, sihirli sayi, guvenlik)
+select = [
+    "E", "W", "F", "I", "N", "B", "UP", "SIM", "RUF",
+    "C90",      # C901 karmasiklik (kural 2)
+    "PLR0912",  # cok dal (kural 2)
+    "PLR2004",  # sihirli sayi (kural 7)
+    "BLE",      # BLE001 kor except (kural 1)
+    "S",        # guvenlik; S110/S112 try-except-pass (kural 1, 14)
+    "ERA",      # yoruma alinmis kod (kural 6)
+]
+
+# Turkce kullanici metinlerinde noktasiz i (ı) mesrudur
+allowed-confusables = ["ı"]
+
+[tool.ruff.lint.isort]
+# backend/alembic klasoru ayni adli paketi golgeler; paket ucuncu parti sayilir
+known-third-party = ["alembic"]
+known-first-party = ["app", "tests"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 8
+
+[tool.ruff.lint.per-file-ignores]
+# Testlerde assert ve sabit beklenen degerler dogaldir
+"tests/**" = ["S101", "PLR2004"]
+"alembic/**" = ["ERA001"]
+# Autogenerate cikti satirlari uzun olabilir
+"alembic/versions/**" = ["E501"]
