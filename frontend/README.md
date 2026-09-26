@@ -33,6 +33,29 @@ npm run dev                   # http://localhost:3000
 | `src/lib/` | API istemcisi, üretilmiş tipler, saf yardımcılar + testleri (`navigation.ts`, `health.ts`, `queryClient.ts`) |
 | `src/mocks/` | **Sahte API (MSW)**: backend'de henüz hazır olmayan endpoint'ler |
 
+## Claude ile ekran yapmak (önerilen yol)
+
+Repoda **`campusflow-screen`** adlı bir Claude skill'i var (`.claude/skills/campusflow-screen/`). Repoyu Claude
+Code'da açan herkese otomatik yüklenir, kurulum gerekmez.
+
+**1. Figma'yı Claude Code'a bağla (bir kez, kendin yap).** Figma'nın resmi **MCP sunucusunu** Claude Code'a
+bağla; adımlar Figma'nın kendi yardım sayfalarında ("Figma MCP server"). Bu kurulumu yapmak işin bir parçası:
+MCP'nin ne olduğunu, bir aracı Claude'a nasıl bağladığını öğrenmiş olacaksın. Takılırsan Claude'a hatayı
+yapıştırıp sor. Bağlandığını anlamak için Claude'a *"Figma MCP araçların görünüyor mu?"* diye sorabilirsin.
+
+**2. Ekranı yaptır.** Figma'da frame'i seç ve Claude'a yaz:
+
+```
+campusflow-screen skill'ini kullanarak Figma'da seçili ekranı /admin/departments sayfası olarak yap.
+Bu ekranı ADMIN rolü görecek, masaüstü öncelikli.
+```
+
+(MCP henüz bağlı değilse skill önce bağlamanı ister. Mecbur kalırsan frame'in ekran görüntüsünü de verebilirsin.)
+
+Claude sırasıyla: branch açar → UI_GUIDE'ı okur → Figma tasarımını shadcn bileşenlerine ve renk token'larına çevirir →
+API'de gerçekten olan veriyi bulur (yoksa uydurmaz, Bahadır'a sorulacak şeyi yazar) → **önce kırmızı test** →
+ekran → lint/test → dolu PR linki. Her adımı Türkçe açıklar; anlamadığın yerde "bunu açıkla" demen yeterli.
+
 ## Sahte API (MSW) — backend'i beklemeden ekran yapmak
 
 Backend her fazın başında endpoint **şemalarını** yayınlar; iş mantığı gelene kadar bu endpoint'ler

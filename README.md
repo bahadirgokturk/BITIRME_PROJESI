@@ -105,6 +105,9 @@ doğrudan push yapılamaz.
 > Claude şablonu yaptığın işe göre (gerçek test sayıları dahil) doldurup bir link verir; linki açınca form
 > **dolu gelir**. Sen okuyup kontrol et, yanlış işaretlenmiş bir kutu varsa düzelt, sonra **Create pull request**.
 
+> 🎨 **Ekran yaparken:** Figma'nın MCP sunucusunu Claude Code'a bağla (bir kez), frame'i seç ve
+> *"campusflow-screen skill'ini kullanarak Figma'da seçili ekranı yap"* de. Ayrıntı: [frontend/README.md](frontend/README.md#claude-ile-ekran-yapmak-önerilen-yol).
+
 ### 3. Projeyi çalıştırma
 
 Veritabanı + backend (Docker):
