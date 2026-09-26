@@ -8,6 +8,6 @@ class Organization(IdMixin, CreatedAtMixin, Base):
     __tablename__ = "organizations"
 
     name: Mapped[str] = mapped_column(String(200))
-    # Sektor sablonu; bu projede yalniz "campus" kodlanir (docs/ARCHITECTURE.md §4)
+    # Sektor sablonu; bu projede yalniz "campus" kodlanir (docs/ARCHITECTURE.md bolum 4)
     template_code: Mapped[str] = mapped_column(String(30))
     timezone: Mapped[str] = mapped_column(String(50), server_default="Europe/Istanbul")

@@ -1,4 +1,4 @@
-"""DB enum'lari (docs/DATABASE.md §2). Deger = isim; PostgreSQL native enum olarak saklanir."""
+"""DB enum'lari (docs/DATABASE.md bolum 2). Deger = isim; PostgreSQL native enum olarak saklanir."""
 
 from enum import StrEnum
 

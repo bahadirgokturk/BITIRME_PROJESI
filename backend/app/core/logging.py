@@ -1,4 +1,4 @@
-"""Log yapilandirmasi. Parola, token ve kisisel veri loglanmaz (KOD_KURALLARI §14)."""
+"""Log yapilandirmasi. Parola, token ve kisisel veri loglanmaz (KOD_KURALLARI kural 14)."""
 
 import logging
 

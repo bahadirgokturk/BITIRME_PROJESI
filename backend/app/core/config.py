@@ -1,4 +1,4 @@
-"""Uygulama ayarlari: ortam degiskenlerinden okunur (docs/DEPLOYMENT.md §2)."""
+"""Uygulama ayarlari: ortam degiskenlerinden okunur (docs/DEPLOYMENT.md bolum 2)."""
 
 from enum import StrEnum
 from functools import lru_cache

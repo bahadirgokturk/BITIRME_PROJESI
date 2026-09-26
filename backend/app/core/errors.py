@@ -1,4 +1,4 @@
-"""Domain hatalari. HTTP'ye ceviren tek yer app/api/error_handlers.py (KOD_KURALLARI §1)."""
+"""Domain hatalari. HTTP'ye ceviren tek yer app/api/error_handlers.py (KOD_KURALLARI kural 1)."""
 
 from http import HTTPStatus
 from typing import Any, ClassVar
@@ -18,7 +18,7 @@ class DomainError(Exception):
 
 
 class NotFoundError(DomainError):
-    # Yetkisiz kaynak erisimi de 404 doner (IDOR, docs/ARCHITECTURE.md §9)
+    # Yetkisiz kaynak erisimi de 404 doner (IDOR, docs/ARCHITECTURE.md bolum 9)
     code = "NOT_FOUND"
     status = HTTPStatus.NOT_FOUND
     default_message = messages.NOT_FOUND
