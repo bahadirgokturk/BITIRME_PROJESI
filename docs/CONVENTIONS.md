@@ -1,11 +1,12 @@
-# CONVENTIONS — Kodlama Kuralları & Definition of Done
+# CONVENTIONS — Stil Ayrıntıları & Definition of Done
+
+Bağlayıcı ilkeler (fail fast, az dallanma, İngilizce isim / ASCII Türkçe yorum, TDD, sihirli sayı,
+katman sınırları…) **[KOD_KURALLARI.md](../KOD_KURALLARI.md)** içindedir. Bu dosya dile/araca özgü
+stil ayrıntılarını ve Definition of Done'ı içerir.
 
 ## Genel
-- Kod, tablo, kolon, endpoint, değişken adları **İngilizce**; UI metinleri ve dokümanlar **Türkçe**.
-- Magic number yok: eşikler/ağırlıklar `core/constants.py` veya DB/config'te (ör. `DUPLICATE_MERGE_THRESHOLD = 0.80`).
-- İş kuralı route'ta veya React bileşeninde **olmaz** → `services/` / `lib/`.
+- Dokümanlar ve UI metinleri Türkçe; kod tanımlayıcıları İngilizce.
 - Tekrar eden kod yerine küçük yardımcılar; ama erken soyutlama yok (3. tekrarda soyutla).
-- Secret commit edilmez. Log'larda parola, token, tam e-posta yok.
 
 ## Python (backend, ai)
 - Python 3.12, tam type hint, `mypy --strict` (app/ ve agents/ için).
@@ -31,6 +32,7 @@
 
 ## Definition of Done (her backlog maddesi için)
 - [ ] Kabul kriterleri karşılandı, PR açıklamasında gösterildi
+- [ ] [KOD_KURALLARI.md](../KOD_KURALLARI.md) ile uyumlu; PR şablonu dolduruldu
 - [ ] Kod lint/format/typecheck temiz
 - [ ] Kritik mantık için unit test; endpoint için integration test (mutlu yol + yetki)
 - [ ] CI yeşil

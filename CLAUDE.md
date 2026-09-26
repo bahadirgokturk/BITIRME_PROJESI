@@ -1,0 +1,61 @@
+# CLAUDE.md
+
+Guidance for AI coding assistants (Claude Code and others) working in this repository.
+Human contributors: this file is also a good 2-minute summary of the project.
+
+## Project
+
+**CampusFlow AI** — AI-agent-assisted campus incident, task, process and decision-support platform.
+YBS (Management Information Systems) graduation project, 3-person team, ~12 weeks.
+Full spec lives in `docs/`; start with `docs/ARCHITECTURE.md`.
+
+## READ THIS FIRST — `KOD_KURALLARI.md`
+
+**[KOD_KURALLARI.md](KOD_KURALLARI.md) is binding for every line of code.** Read it before writing code.
+PRs that violate it are rejected. Most-broken rules:
+
+| # | Rule | Short version |
+|---|---|---|
+| 1 | Fail fast | No empty `except:` / `catch {}`. Catch only narrow, expected errors with a concrete handling. |
+| 2 | Few branches | Max 2 nesting levels. Guard clauses, dict/table lookups instead of if-chains. |
+| 3 | English identifiers | Variables, functions, files, tables, endpoints: **English**. |
+| 3 | Turkish comments, **ASCII only** | Comments/docstrings in Turkish without `ç ğ ı ö ş ü` (write `c g i o s u`). UI text keeps full Turkish. |
+| 4 | TDD | Failing test first, then the code. Bug fix = failing test first. |
+| 7 | No magic numbers | Thresholds/weights in `core/constants.py` or DB, with a comment giving the reason. |
+| 13 | Layer boundaries | No business logic or SQL in routes/components; agents never touch the DB. |
+
+## Stack
+
+- **backend/** — FastAPI, SQLAlchemy 2, Alembic, Pydantic v2, PostgreSQL 16, Python 3.12, `uv`, pytest, ruff, mypy
+- **frontend/** — Next.js (App Router), TypeScript strict, Tailwind, shadcn/ui, TanStack Query, Vitest, Playwright
+- **ai/** — model training (scikit-learn TF-IDF + LogisticRegression), synthetic data generator, evaluation
+- **No paid LLM APIs.** Agents = rule engine + our own trained ML models + optional local Ollama.
+  The system must fully work with `LLM_PROVIDER=none`. See `docs/AGENTS.md`.
+- **Not used (do not add):** microservices, Kafka, Kubernetes, Redis, Celery, LangChain/LangGraph.
+
+## Architecture essentials
+
+- Modular monolith. Backend layers: `api → services → repositories → models`; `agents/` and `analytics/` are called by services.
+- Status changes only via `WorkflowService.transition()` using the `ALLOWED_TRANSITIONS` table (`docs/WORKFLOW.md`); every transition writes a `case_events` row in the same transaction.
+- Agents take `AgentContext` (read-only data) and return `AgentResult` (decision, confidence, reasons, model); services persist them to `agent_decisions`.
+- Supervisor is a deterministic decision table, not an LLM.
+- Authorization: role dependency on routes + ownership checks in `services/authorization.py`; unauthorized resource access returns **404** (IDOR).
+- Frontend API types are generated from the backend OpenAPI schema — never hand-write them.
+
+## Workflow
+
+- Branches: `main` (production), `develop` (staging), `feature/*`, `fix/*`, `chore/*` — always branch from `develop`.
+- Never push directly to `main` or `develop`; open a PR to `develop`. Conventional Commits (`feat(cases): ...`).
+- Never deploy to production or run destructive migrations without explicit team approval.
+- When code changes behaviour described in `docs/`, update the doc in the same PR.
+
+## Commands
+
+Filled in during FAZ 1 (Docker Compose, backend/frontend scripts). Planned:
+
+```bash
+docker compose up --build                              # frontend + backend + postgres
+docker compose exec backend alembic upgrade head
+docker compose exec backend python -m seeds.run --demo
+docker compose exec backend pytest
+```

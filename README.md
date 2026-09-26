@@ -19,10 +19,17 @@ Tüm süreç event log'a yazılır ve yönetici dashboard'unda KPI / karar deste
 | AI | Python kural motoru, scikit-learn (TF-IDF + Logistic Regression), opsiyonel sentence-transformers & Ollama |
 | DevOps | Docker Compose, GitHub Actions |
 
+## Ekibe yeni katılanlar
+
+1. **[docs/ONBOARDING.md](docs/ONBOARDING.md)** — kurulum ve günlük çalışma akışı (adım adım)
+2. **[KOD_KURALLARI.md](KOD_KURALLARI.md)** — bağlayıcı kod kuralları (AI ile yazdırılan kod dahil)
+3. `scripts/check-setup.ps1` (Windows) / `scripts/check-setup.sh` — ortam kontrolü
+
 ## Dokümantasyon
 
 | Doküman | İçerik |
 |---|---|
+| [CLAUDE.md](CLAUDE.md) | AI kod asistanları için proje özeti ve kurallar |
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Mimari, katmanlar, repo ağacı, mimari kararlar (ADR) |
 | [DATABASE.md](docs/DATABASE.md) | ER diyagramı, tablo şemaları, index'ler |
 | [WORKFLOW.md](docs/WORKFLOW.md) | Case/Task state machine, RBAC matrisi |
