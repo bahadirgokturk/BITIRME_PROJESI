@@ -4,7 +4,14 @@ Base: `/api/v1`. JSON. Auth: `Authorization: Bearer <access_token>`. OpenAPI: `/
 Hata formatı: `{"error": {"code": "INVALID_TRANSITION", "message": "...", "details": {}}}`.
 Listeler: `?page=1&page_size=20&sort=-created_at` → `{"items": [], "total": 0, "page": 1}`.
 
+> **Uygulama durumu:** Sözleşme önce ilerlenir ([PROJECT_PLAN.md](PROJECT_PLAN.md) §1). Şeması yayınlanıp iş mantığı
+> henüz yazılmamış endpoint'ler `501 NOT_IMPLEMENTED` döner; girdi doğrulaması (422) şimdiden çalışır.
+> Güncel liste: `backend/tests/unit/test_api_contract.py` → `CONTRACT_STUBS`. Frontend bu endpoint'ler için
+> sahte veri (MSW) kullanır. Kesin şemalar için `http://localhost:8000/docs`.
+
 ## Auth
+Yanıt: `TokenRead {access_token, token_type: "bearer", expires_in}`; refresh token httpOnly cookie'dedir.
+
 | Method | Path | Rol | Açıklama |
 |---|---|---|---|
 | POST | `/auth/login` | public | email+parola → access token + refresh cookie |
@@ -73,6 +80,8 @@ Ortak parametreler: `from`, `to`, `department_id?`, `building_id?`
 | GET | `/agents/models` | `ml_models` listesi ve metrikleri |
 
 ## Admin
+FAZ 2 sözleşmesi yayında: `GET/POST /admin/{users,departments,locations}`, `PATCH /admin/{...}/{id}`
+(liste yanıtı `Page[T]`, `?page=&page_size=` en fazla 200). Diğerleri FAZ 2–4'te eklenir.
 CRUD: `/admin/users`, `/admin/departments`, `/admin/locations`, `/admin/case-types`, `/admin/sla-rules`,
 `/admin/agent-policies`; `GET /admin/audit-logs`. Silme yerine `is_active=false` (soft delete).
 

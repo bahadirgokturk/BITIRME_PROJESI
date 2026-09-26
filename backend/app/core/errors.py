@@ -24,6 +24,13 @@ class NotFoundError(DomainError):
     default_message = messages.NOT_FOUND
 
 
+class NotImplementedYetError(DomainError):
+    # Sozlesme once: sema yayinda, is mantigi sonraki PR'da (docs/PROJECT_PLAN.md bolum 1)
+    code = "NOT_IMPLEMENTED"
+    status = HTTPStatus.NOT_IMPLEMENTED
+    default_message = messages.NOT_IMPLEMENTED
+
+
 class ConflictError(DomainError):
     code = "CONFLICT"
     status = HTTPStatus.CONFLICT
