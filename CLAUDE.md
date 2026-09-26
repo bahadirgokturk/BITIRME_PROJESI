@@ -73,7 +73,7 @@ Explain git steps briefly in Turkish; the team is learning the workflow.
 Everything runs in Docker; host needs only Docker + Node (for frontend tooling). `cp .env.example .env` first.
 
 ```bash
-docker compose up --build                              # frontend :3000 + backend :8000 + postgres :5432
+docker compose up --build                              # frontend :3000 + backend :8000 + postgres :5433 (host)
 docker compose exec backend alembic upgrade head
 docker compose exec backend pytest                     # integration tests use a separate <db>_test database
 docker compose exec backend sh -c "ruff check . && ruff format --check . && mypy"

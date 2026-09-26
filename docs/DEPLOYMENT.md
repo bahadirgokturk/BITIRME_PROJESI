@@ -149,7 +149,7 @@ docker compose exec backend alembic upgrade head
 |---|---|---|
 | frontend | http://localhost:3000 | `next dev`, hot reload (bind mount + polling) |
 | backend | http://localhost:8000/docs | `uvicorn --reload`; sağlık: `/api/v1/health` (DB yoksa 503) |
-| db | localhost:5432 | PostgreSQL 16, `pgdata` volume |
+| db | localhost:5433 | PostgreSQL 16, `pgdata` volume. Her geliştiricinin **kendi** DB'si vardır; ortak DB yoktur. Host portu `POSTGRES_HOST_PORT` ile değişir (kurulu bir PostgreSQL 5432'yi kullandığı için 5433) |
 
 - Backend testleri konteynerde: `docker compose exec backend pytest`. Integration testleri geliştirme
   DB'sine dokunmaz; aynı sunucuda `<db>_test` veritabanını oluşturup kullanır.
