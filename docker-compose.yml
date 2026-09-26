@@ -7,7 +7,9 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-campusflow}
       POSTGRES_DB: ${POSTGRES_DB:-campusflow}
     ports:
-      - "5432:5432"
+      # Host portu 5433: bilgisayarda kurulu bir PostgreSQL (5432) ile cakismasin.
+      # Backend DB'ye Docker agindan (db:5432) baglanir; bu port yalniz pgAdmin/DBeaver icin.
+      - "${POSTGRES_HOST_PORT:-5433}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

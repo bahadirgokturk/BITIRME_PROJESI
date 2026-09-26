@@ -137,6 +137,8 @@ Kurallar:
 | Sorun | Çözüm |
 |---|---|
 | `docker: command not found` / daemon çalışmıyor | Docker Desktop'ı başlat, WSL2 kurulu mu kontrol et (`wsl --status`) |
-| Port 5432/3000/8000 dolu | Çakışan programı kapat veya `.env`'de portu değiştir |
+| `port is already allocated` (5433) | `.env`'de `POSTGRES_HOST_PORT`'u başka bir değere (ör. 5434) çek. Bilgisayardaki PostgreSQL'i kapatmaya gerek yok |
+| Port 3000/8000 dolu | Çakışan programı kapat |
+| "Ortak veritabanına bağlanalım" önerisi | Gerek yok: herkes `docker compose` ile **kendi** DB'sini çalıştırır; şema migration'la, demo verisi seed ile herkeste aynı olur |
 | Satır sonu (CRLF) farkları diff'te görünüyor | Repo `.gitattributes` ile LF kullanır; `git config --global core.autocrlf false` ayarla ve dosyayı yeniden checkout et |
 | Build çok yavaş | Repo OneDrive içinde mi? `C:\dev` altına taşı |
