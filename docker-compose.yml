@@ -33,5 +33,21 @@ services:
       timeout: 3s
       retries: 10
 
+  frontend:
+    build: ./frontend
+    env_file: .env
+    environment:
+      # Windows/macOS bind mount'larinda dosya degisikligi olaylari konteynere ulasmiyor
+      WATCHPACK_POLLING: "true"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      backend:
+        condition: service_healthy
+
 volumes:
   pgdata:
