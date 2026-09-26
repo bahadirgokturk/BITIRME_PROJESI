@@ -4,8 +4,13 @@ from enum import StrEnum
 from functools import lru_cache
 from typing import Annotated
 
-from pydantic import field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
+
+# HS256 anahtari en az 256 bit olmali (RFC 7518 bolum 3.2): 32 karakter
+JWT_SECRET_MIN_LENGTH = 32
+# .env.example'daki ornek; yalniz local'de kabul edilir
+EXAMPLE_JWT_SECRET = "local-dev-only-secret-change-me-0000000000"  # noqa: S105 - bilinen ornek, reddetmek icin
 
 
 class Environment(StrEnum):
@@ -21,6 +26,11 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     database_url: str
     cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:3000"]
+    jwt_secret: str = Field(min_length=JWT_SECRET_MIN_LENGTH)
+    # Kisa access token calinsa bile zarari sinirlidir; refresh ile yenilenir
+    # (docs/DEPLOYMENT.md bolum 2)
+    jwt_access_ttl_min: int = 30
+    jwt_refresh_ttl_days: int = 7
 
     @field_validator("cors_origins", mode="before")
     @classmethod
@@ -29,6 +39,14 @@ class Settings(BaseSettings):
         if isinstance(value, str):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
         return value
+
+    @model_validator(mode="after")
+    def _reject_example_secret_outside_local(self) -> "Settings":
+        if self.environment is not Environment.LOCAL and self.jwt_secret == EXAMPLE_JWT_SECRET:
+            raise ValueError(
+                "JWT_SECRET ornek degerde birakilmis; staging/production icin yeni anahtar uretin"
+            )
+        return self
 
 
 @lru_cache

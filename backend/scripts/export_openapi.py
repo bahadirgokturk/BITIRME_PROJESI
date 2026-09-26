@@ -10,10 +10,11 @@ from app.main import create_app
 
 # Sema uretimi DB'ye baglanmaz; URL yalnizca ayar dogrulamasi icin
 _UNUSED_DATABASE_URL = "postgresql+psycopg://openapi:openapi@localhost:5432/openapi"
+_UNUSED_JWT_SECRET = "openapi-export-does-not-sign-any-token-000"  # noqa: S105 - imza atilmaz
 
 
 def main() -> None:
-    app = create_app(Settings(database_url=_UNUSED_DATABASE_URL))
+    app = create_app(Settings(database_url=_UNUSED_DATABASE_URL, jwt_secret=_UNUSED_JWT_SECRET))
     print(json.dumps(app.openapi(), ensure_ascii=False, indent=2))
 
 
