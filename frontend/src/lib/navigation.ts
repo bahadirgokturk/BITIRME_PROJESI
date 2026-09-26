@@ -1,8 +1,10 @@
 // Rol bazli menu tablosu; yetki matrisi: docs/WORKFLOW.md bolum 4
 // Rol kontrolu bilesenlerde if ile degil bu tabloyla yapilir (KOD_KURALLARI kural 2)
-// FAZ 2'de UserRole OpenAPI semasina girince Role tipi oradan uretilecek (ADR-7)
-export const ROLES = ["REPORTER", "STAFF", "MANAGER", "ADMIN"] as const;
-export type Role = (typeof ROLES)[number];
+import type { components } from "@/lib/api/types";
+
+// Rol tipi backend enum'undan uretilir (ADR-7); NAVIGATION tablosu her rolu kapsamak zorunda
+export type Role = components["schemas"]["UserRole"];
+export const ROLES: readonly Role[] = ["REPORTER", "STAFF", "MANAGER", "ADMIN"];
 
 export interface NavItem {
   href: string;

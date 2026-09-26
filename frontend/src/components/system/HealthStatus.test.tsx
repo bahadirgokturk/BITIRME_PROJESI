@@ -1,12 +1,14 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { createQueryClient } from "@/lib/queryClient";
 
 import { HealthStatus } from "./HealthStatus";
 
 function renderWithQuery() {
   // Uygulamadaki varsayilan QueryClient ayarlari (yeniden deneme dahil) kullanilir
-  const client = new QueryClient();
+  const client = createQueryClient();
   return render(
     <QueryClientProvider client={client}>
       <HealthStatus />
@@ -58,6 +60,8 @@ describe("HealthStatus", () => {
 
     renderWithQuery();
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Backend'e ulaşılamıyor");
+    // Ag hatasi bir kez yeniden denenir (lib/queryClient.ts); ~1 sn ek bekleme beklenir
+    const alert = await screen.findByRole("alert", {}, { timeout: 3000 });
+    expect(alert).toHaveTextContent("Backend'e ulaşılamıyor");
   });
 });

@@ -95,7 +95,8 @@ npm ci
 npm run dev
 ```
 
-- Frontend: http://localhost:3000 — "Sistem durumu" kartında iki **yeşil** satır görmelisin: "Backend çalışıyor", "Veritabanı bağlı"
+- Frontend: http://localhost:3000 — solda menü ve altında sahte kullanıcı adı ("Ayşe Yılmaz"), ortada "Sistem durumu"
+  kartında iki **yeşil** satır ("Backend çalışıyor", "Veritabanı bağlı"). Frontend rehberi: [frontend/README.md](../frontend/README.md)
 - Backend API dokümanı: http://localhost:8000/docs
 - Testler: `docker compose exec backend pytest` · frontend için `cd frontend` ve `npm test`
 - Demo kullanıcıları seed ile FAZ 2'de gelecek (`backend/seeds/README.md`).
@@ -123,6 +124,15 @@ git push -u origin feature/kisa-aciklama
 Sonra GitHub'da **develop'a** Pull Request aç ve PR şablonunu doldur. Onay gerekmez: CI yeşilse
 **kendin Squash and merge** yap ve branch'i sil. (Bahadır otomatik reviewer olarak görünür; bu develop
 için bilgi amaçlıdır, bekleme.) Canlıya geçiş (`develop → main`) Bahadır'ın onayıyla yapılır.
+
+> 💡 **PR şablonunu elle doldurma.** İş bitince Claude'a şunu yaz:
+>
+> ```
+> Bu işi bitirdim. Testleri ve kontrolleri çalıştır, branch'i push'la ve bana PR şablonu doldurulmuş hazır PR linkini ver.
+> ```
+>
+> Claude şablonu yaptığın işe göre (gerçek test sayıları dahil) doldurup bir link verir; linki açınca form
+> **dolu gelir**. Sen okuyup kontrol et, yanlış işaretlenmiş bir kutu varsa düzelt, sonra **Create pull request**.
 
 Kurallar:
 - `main` ve `develop`'a doğrudan push yok.
