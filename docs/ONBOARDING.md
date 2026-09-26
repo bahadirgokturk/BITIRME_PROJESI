@@ -95,7 +95,8 @@ npm ci
 npm run dev
 ```
 
-- Frontend: http://localhost:3000 — "Sistem durumu" kartında iki **yeşil** satır görmelisin: "Backend çalışıyor", "Veritabanı bağlı"
+- Frontend: http://localhost:3000 — solda menü ve altında sahte kullanıcı adı ("Ayşe Yılmaz"), ortada "Sistem durumu"
+  kartında iki **yeşil** satır ("Backend çalışıyor", "Veritabanı bağlı"). Frontend rehberi: [frontend/README.md](../frontend/README.md)
 - Backend API dokümanı: http://localhost:8000/docs
 - Testler: `docker compose exec backend pytest` · frontend için `cd frontend` ve `npm test`
 - Demo kullanıcıları seed ile FAZ 2'de gelecek (`backend/seeds/README.md`).

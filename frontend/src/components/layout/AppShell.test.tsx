@@ -6,7 +6,7 @@ import { AppShell } from "./AppShell";
 describe("AppShell", () => {
   it("renders the menu of the given role", () => {
     render(
-      <AppShell role="STAFF">
+      <AppShell role="STAFF" userName="Mehmet Demir">
         <p>içerik</p>
       </AppShell>,
     );
@@ -18,5 +18,6 @@ describe("AppShell", () => {
     );
     expect(within(nav).queryByRole("link", { name: "Dashboard" })).not.toBeInTheDocument();
     expect(screen.getByText("içerik")).toBeInTheDocument();
+    expect(screen.getByText("Mehmet Demir")).toBeInTheDocument();
   });
 });

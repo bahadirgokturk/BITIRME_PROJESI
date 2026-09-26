@@ -15,7 +15,15 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   { rules: codeRules },
-  globalIgnores([".next/**", "out/**", "build/**", "coverage/**", "next-env.d.ts"]),
+  globalIgnores([
+    ".next/**",
+    "out/**",
+    "build/**",
+    "coverage/**",
+    "next-env.d.ts",
+    // MSW tarafindan uretilir (npx msw init)
+    "public/mockServiceWorker.js",
+  ]),
 ]);
 
 export default eslintConfig;

@@ -1,8 +1,7 @@
 // Backend REST istemcisi. Hata yutulmaz: her basarisiz yanit ApiError olarak firlatilir.
+import type { components } from "@/lib/api/types";
 
-interface ErrorEnvelope {
-  error: { code: string; message: string; details: Record<string, unknown> };
-}
+type ErrorEnvelope = components["schemas"]["ErrorRead"];
 
 export class ApiError extends Error {
   constructor(
@@ -16,12 +15,12 @@ export class ApiError extends Error {
   }
 }
 
-function apiBaseUrl(): string {
-  const url = process.env.NEXT_PUBLIC_API_URL;
-  if (!url) {
-    throw new Error("NEXT_PUBLIC_API_URL tanimli degil (.env.example)");
+export function apiUrl(path: string): string {
+  const base = process.env.NEXT_PUBLIC_API_URL;
+  if (!base) {
+    throw new Error("NEXT_PUBLIC_API_URL tanimli degil (frontend/.env.development)");
   }
-  return url;
+  return `${base}${path}`;
 }
 
 function isErrorEnvelope(body: unknown): body is ErrorEnvelope {
@@ -29,7 +28,7 @@ function isErrorEnvelope(body: unknown): body is ErrorEnvelope {
 }
 
 export async function apiGet<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${apiBaseUrl()}${path}`, {
+  const response = await fetch(apiUrl(path), {
     ...init,
     headers: { Accept: "application/json", ...init.headers },
   });

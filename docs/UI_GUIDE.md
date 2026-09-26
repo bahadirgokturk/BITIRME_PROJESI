@@ -202,6 +202,8 @@ sequenceDiagram
     FE->>BE: Haftalık demoda gerçek API ile entegrasyon
 ```
 
+- Endpoint henüz `501` dönüyorsa frontend **MSW** sahte API'siyle çalışır (`frontend/src/mocks/`, ayrıntı:
+  [frontend/README.md](../frontend/README.md)). Backend endpoint'i uygulayınca ilgili sahte handler silinir.
 - API tipleri **elle yazılmaz**: backend çalışırken `cd frontend && npm run gen:api`. CI'daki `api-contract` job'u
   tiplerin güncel olmadığı PR'ı kırmızıya çevirir.
 - Ekranda gerekip API'de olmayan bir alan fark edilirse backend'e issue/PR yorumu olarak yazılır; frontend tahmin edip uydurmaz.
