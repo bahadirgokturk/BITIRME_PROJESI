@@ -1,6 +1,6 @@
 ---
 name: campusflow-screen
-description: Build or change a CampusFlow AI frontend screen or component — from a Figma screenshot, a sketch, or a description — following docs/UI_GUIDE.md, shadcn/ui, the MSW mock API and the project's test rules. Use whenever a teammate asks to make, design, implement, fix or polish a page, form, table, card or menu in frontend/, especially when they paste a Figma frame image.
+description: Build or change a CampusFlow AI frontend screen or component — from a Figma frame (via the Figma MCP server), a screenshot, a sketch, or a description — following docs/UI_GUIDE.md, shadcn/ui, the MSW mock API and the project's test rules. Use whenever a teammate asks to make, design, implement, fix or polish a page, form, table, card or menu in frontend/, especially when they point at a Figma frame or paste its image.
 ---
 
 # CampusFlow screen builder
@@ -20,17 +20,25 @@ code comments are Turkish **ASCII only** (KOD_KURALLARI rule 3); UI text is full
    **main device** (UI_GUIDE §2: reporter/staff = mobile first, manager/admin = desktop first),
    **what data** it shows and **what the main action** is.
 
-## 1. Reading a Figma screenshot (no Figma MCP needed)
+## 1. Reading the Figma design
 
-Teammates paste a PNG of the Figma frame instead of connecting Figma. From the image:
+**Preferred: the Figma MCP server.** The team connects Figma's official MCP server to Claude Code themselves —
+setting it up is part of their learning, so do not do it for them. If the Figma MCP tools are not available in
+this session, say so, point them to Figma's own MCP setup guide, and offer to wait. Only if they explicitly say
+they want to continue without it, fall back to a **screenshot** (PNG export of the frame).
+
+With the MCP connected, read the selected frame's structure, variables and component names from Figma instead of
+guessing from pixels. Either way:
 
 - List the parts top to bottom (header, filters, table, form fields, buttons, empty/error text).
 - Map every part to an existing **shadcn/ui** component (`frontend/src/components/ui/`). If one is missing,
   add it with `npx shadcn@latest add <name>` (run inside `frontend/`) — never hand-copy component code.
 - Map colors to the **tokens** in `frontend/src/app/globals.css` (`primary`, `muted`, `destructive`, `border`…)
   — never paste hex values. Map spacing to the Tailwind 4 px scale (4, 8, 12, 16, 24, 32, 48).
-- Say what you could not read from the image (exact color, hidden states, hover) and ask, rather than invent.
-- If the screenshot lacks loading / empty / error states, design them from UI_GUIDE §7 and tell the teammate
+- Say what you could not read from the design (exact color, hidden states, hover) and ask, rather than invent.
+- If a Figma color or spacing does not match any token, tell the teammate — the Figma file should be fixed to
+  use the tokens (UI_GUIDE §4), not the code.
+- If the design lacks loading / empty / error states, design them from UI_GUIDE §7 and tell the teammate
   so they can add those frames to Figma.
 
 ## 2. Data: only what the API really has
@@ -69,7 +77,7 @@ Follow the existing examples: `src/components/system/HealthStatus.test.tsx`, `sr
 
 1. `npm run lint && npm run typecheck && npm test` inside `frontend/` — all green.
 2. With `npm run dev` running, open the page; check it at **375 px** and **1440 px** width and compare with
-   the Figma screenshot. Describe the differences honestly and fix or list them.
+   the Figma frame. Describe the differences honestly and fix or list them.
 3. To see another role's view, set `NEXT_PUBLIC_MOCK_ROLE` in `frontend/.env.local` and restart `npm run dev`.
 
 ## 6. Finish
