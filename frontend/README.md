@@ -64,6 +64,8 @@ Backend her fazın başında endpoint **şemalarını** yayınlar; iş mantığ�
 - `src/mocks/handlers.ts` — hangi endpoint'in sahte olduğu. Burada **olmayan** her istek gerçek backend'e gider.
 - `src/mocks/fixtures.ts` — sahte veriler. Tipleri OpenAPI'den gelir; backend şeması değişirse burası
   **derlenmez**, uyumsuzluk hemen görülür.
+- Sahte cevaplar service worker olmadan, doğrudan API istemcisinin içinde üretilir (`src/mocks/transport.ts`);
+  sekme uzun süre boşta kalsa da kopmaz, her tarayıcıda çalışır.
 - Aynı handler'lar Vitest testlerinde de kullanılır (`vitest.setup.ts`).
 
 Ayarlar `frontend/.env.development` içinde; kendine özel değişiklik için `frontend/.env.local` oluştur (repoya girmez):
@@ -95,7 +97,6 @@ Sahte girişte tüm kullanıcıların parolası `demo1234`; e-postalar `src/mock
 
 | Sorun | Çözüm |
 |---|---|
-| Ekranda "Sahte API (MSW) başlatılamadı" | Tarayıcı service worker'ı engelliyor; Chrome/Firefox/Safari'de aç veya `.env.local`'da `NEXT_PUBLIC_API_MOCKING=disabled` |
 | "Kullanıcı bilgisi alınamadı: Bu özellik henüz hazır değil" | Sahte API kapalı ve backend bu endpoint'i henüz uygulamadı (501); mock'u aç |
 | "Backend'e ulaşılamıyor" | Repo kökünde `docker compose up -d` çalıştır |
 | Tip hatası: alan bulunamadı | Backend şeması değişmiş: `npm run gen:api`, sonra `fixtures.ts`'i düzelt |

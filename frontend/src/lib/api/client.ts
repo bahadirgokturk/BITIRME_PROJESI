@@ -23,15 +23,30 @@ export function apiUrl(path: string): string {
   return `${base}${path}`;
 }
 
+export type Transport = (request: Request) => Promise<Response>;
+
+const networkTransport: Transport = (request) => fetch(request);
+let transport: Transport = networkTransport;
+
+// Gelistirmede sahte API bu noktadan devreye girer (src/mocks/MockProvider.tsx)
+export function setTransport(next: Transport): void {
+  transport = next;
+}
+
+export function resetTransport(): void {
+  transport = networkTransport;
+}
+
 function isErrorEnvelope(body: unknown): body is ErrorEnvelope {
   return typeof body === "object" && body !== null && "error" in body;
 }
 
 export async function apiGet<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const response = await fetch(apiUrl(path), {
+  const request = new Request(apiUrl(path), {
     ...init,
     headers: { Accept: "application/json", ...init.headers },
   });
+  const response = await transport(request);
   const body: unknown = await response.json();
   if (response.ok) {
     return body as T;
