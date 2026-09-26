@@ -22,3 +22,5 @@ class RefreshToken(IdMixin, CreatedAtMixin, Base):
     token_hash: Mapped[str] = mapped_column(String(TOKEN_HASH_LENGTH), unique=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Rotasyonla iptal edildiyse yerine gelen kayit; cikis/toplu iptalde NULL kalir
+    replaced_by_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("refresh_tokens.id"))
