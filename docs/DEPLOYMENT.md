@@ -67,11 +67,15 @@ gitGraph
 ```
 
 - Branch'ler: `main` (production), `develop` (staging), `feature/<kısa-ad>`, `fix/<kısa-ad>`, `chore/<kısa-ad>`.
-- `main` ve `develop` **protected**: direkt push yok, PR + ≥1 onay + yeşil CI zorunlu, squash merge.
+- `main` ve `develop` **protected** (ruleset `protect-main-develop`): direkt push yok, PR + yeşil CI zorunlu, squash merge.
+- **Onay politikası:** Her PR'ı proje sahibi (@bahadirgokturk) onaylar — `.github/CODEOWNERS` + ruleset'te
+  "Require review from Code Owners". Sahibin kendi PR'ları için repo admin rolü ruleset'te
+  *"For pull requests only"* bypass'ına sahiptir (PR yine zorunlu, sadece onay adımı atlanabilir).
+  Diğer ekip üyeleri de PR'lara yorum/review bırakabilir ve bırakmalıdır.
 - Akış: feature → PR `develop` → CI → staging deploy → ekip testi → PR `develop → main` → production deploy.
 - Commit formatı: Conventional Commits (`feat(cases): add transition table`, `fix:`, `test:`, `docs:`, `chore:`).
 - PR şablonu: amaç, değişiklik, test kanıtı, ekran görüntüsü (UI), doküman güncellendi mi, migration var mı.
-- Kritik PR'lar (workflow, auth, agents, migration) çapraz review: yazan dışında farklı sorumluluk alanından biri.
+- Kritik PR'lar (workflow, auth, agents, migration) onaydan önce farklı sorumluluk alanından bir ekip üyesi tarafından da incelenir.
 - Sürüm etiketi: her production release `vX.Y.Z` tag.
 
 ## 4. CI/CD (GitHub Actions)

@@ -19,11 +19,89 @@ Tüm süreç event log'a yazılır ve yönetici dashboard'unda KPI / karar deste
 | AI | Python kural motoru, scikit-learn (TF-IDF + Logistic Regression), opsiyonel sentence-transformers & Ollama |
 | DevOps | Docker Compose, GitHub Actions |
 
-## Ekibe yeni katılanlar
+## Ekip Arkadaşları İçin Hızlı Başlangıç
 
-1. **[docs/ONBOARDING.md](docs/ONBOARDING.md)** — kurulum ve günlük çalışma akışı (adım adım)
-2. **[KOD_KURALLARI.md](KOD_KURALLARI.md)** — bağlayıcı kod kuralları (AI ile yazdırılan kod dahil)
-3. `scripts/check-setup.ps1` (Windows) / `scripts/check-setup.sh` — ortam kontrolü
+Ayrıntılı rehber: **[docs/ONBOARDING.md](docs/ONBOARDING.md)** · Kod kuralları: **[KOD_KURALLARI.md](KOD_KURALLARI.md)**
+
+### En kolay yol: Claude ile kurulum
+
+Repoyu klonladıktan sonra klasörü Claude Code'da açıp şunu yazın:
+
+> `docs/ONBOARDING.md` rehberine göre bilgisayarımı bu proje için hazırla. Önce ortam kontrol
+> scriptini çalıştır, eksikleri tek tek göster ve düzeltmemde bana yardım et.
+
+Claude, repo kökündeki `CLAUDE.md` ve `KOD_KURALLARI.md` dosyalarını otomatik okur; yazdırdığınız
+kod bu kurallara uyar.
+
+### 1. İlk kurulum (bir kez)
+
+Git kimliğini ayarla (commit'lerde görünür):
+
+```bash
+git config --global user.name "Ad Soyad"
+```
+
+```bash
+git config --global user.email "github-e-postan@example.com"
+```
+
+```bash
+git config --global core.autocrlf false
+```
+
+Repoyu **OneDrive dışına** klonla ve klasöre gir:
+
+```bash
+git clone https://github.com/bahadirgokturk/BITIRME_PROJESI.git C:\dev\campusflow
+```
+
+```bash
+cd C:\dev\campusflow
+```
+
+Ortamı kontrol et (Windows / macOS-Linux):
+
+```bash
+powershell -ExecutionPolicy Bypass -File scripts\check-setup.ps1
+```
+
+```bash
+bash scripts/check-setup.sh
+```
+
+> Repoyu varsayılan branch `develop` olmadan önce klonladıysan bir kez `git fetch origin` ve
+> `git checkout develop` çalıştır.
+
+### 2. Her yeni iş için
+
+```bash
+git checkout develop
+```
+
+```bash
+git pull
+```
+
+```bash
+git checkout -b feature/kisa-aciklama
+```
+
+Kodla, test yaz, commit at (ör. `feat(cases): add case creation endpoint`), sonra:
+
+```bash
+git push -u origin feature/kisa-aciklama
+```
+
+GitHub'da **`develop`'a** Pull Request aç ve şablonu doldur. PR'ı **Bahadır onaylar**, onaydan sonra
+**Squash and merge** yapılır. `main` ve `develop`'a doğrudan push yapılamaz.
+
+### 3. Projeyi çalıştırma (FAZ 1 tamamlanınca)
+
+```bash
+docker compose up --build
+```
+
+Frontend: http://localhost:3000 · API dokümanı: http://localhost:8000/docs
 
 ## Dokümantasyon
 
