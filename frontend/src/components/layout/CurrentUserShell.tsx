@@ -13,10 +13,12 @@ export function CurrentUserShell({ children }: { children: ReactNode }) {
   if (isPending) {
     return <p className="p-6 text-sm text-muted-foreground">Yükleniyor…</p>;
   }
-  if (error) {
+  // Arka plan yenilemesi basarisiz olsa da bilinen kullanici gosterilmeye devam eder;
+  // hata yalniz hic veri yokken tam ekran gosterilir
+  if (!user) {
     return (
       <p role="alert" className="p-6 text-sm">
-        Kullanıcı bilgisi alınamadı: {error.message}
+        Kullanıcı bilgisi alınamadı: {error?.message}
       </p>
     );
   }

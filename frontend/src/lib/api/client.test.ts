@@ -21,7 +21,8 @@ describe("apiGet", () => {
     const data = await apiGet<{ status: string }>("/health");
 
     expect(data).toEqual({ status: "ok" });
-    expect(fetchSpy).toHaveBeenCalledWith("http://api.test/api/v1/health", expect.anything());
+    const request = fetchSpy.mock.calls[0]?.[0] as Request;
+    expect(request.url).toBe("http://api.test/api/v1/health");
   });
 
   it("throws ApiError with the backend error envelope", async () => {

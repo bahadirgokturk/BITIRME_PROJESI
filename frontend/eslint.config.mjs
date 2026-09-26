@@ -21,8 +21,6 @@ const eslintConfig = defineConfig([
     "build/**",
     "coverage/**",
     "next-env.d.ts",
-    // MSW tarafindan uretilir (npx msw init)
-    "public/mockServiceWorker.js",
   ]),
 ]);
 
