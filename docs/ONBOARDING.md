@@ -129,6 +129,7 @@ Kurallar:
 | Case hangi durumdan hangisine geçer, kim ne yapabilir? | [WORKFLOW.md](WORKFLOW.md) |
 | Agent'lar nasıl karar veriyor? | [AGENTS.md](AGENTS.md) |
 | Bu hafta ne yapıyoruz? | [PROJECT_PLAN.md](PROJECT_PLAN.md) |
+| Ekranlar nasıl tasarlanır (Figma → kod)? | [UI_GUIDE.md](UI_GUIDE.md) |
 | Kod nasıl yazılır? | [KOD_KURALLARI.md](../KOD_KURALLARI.md), [CONVENTIONS.md](CONVENTIONS.md) |
 
 ## 9. Sık sorunlar
