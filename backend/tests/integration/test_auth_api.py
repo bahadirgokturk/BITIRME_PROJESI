@@ -7,6 +7,7 @@ from httpx import Response
 from sqlalchemy.orm import Session
 
 from app.api.v1.auth import REFRESH_COOKIE_NAME
+from app.core.constants import REFRESH_REUSE_GRACE_SECONDS
 from tests.integration.conftest import FrozenClock
 from tests.integration.factories import DEFAULT_PASSWORD, make_user
 
@@ -151,7 +152,7 @@ def test_refresh_rotates_the_refresh_token(client: TestClient, db_session: Sessi
 
 
 def test_reusing_an_old_refresh_token_revokes_every_session(
-    client: TestClient, db_session: Session
+    client: TestClient, db_session: Session, clock: FrozenClock
 ) -> None:
     # Senaryo: saldirgan eski (calinmis) refresh token'i kullanir. Rotasyondan sonra eski token
     # tekrar gelirse bu calinma belirtisidir: kullanicinin tum oturumlari kapatilir.
@@ -160,12 +161,35 @@ def test_reusing_an_old_refresh_token_revokes_every_session(
     stolen = client.cookies[REFRESH_COOKIE_NAME]
     client.post(REFRESH)
     legit_new = client.cookies[REFRESH_COOKIE_NAME]
+    # Es zamanli istek toleransi gectikten sonra eski token gelirse calinma sayilir
+    clock.advance(timedelta(seconds=REFRESH_REUSE_GRACE_SECONDS + 1))
 
     client.cookies.set(REFRESH_COOKIE_NAME, stolen, path="/api/v1/auth")
     assert client.post(REFRESH).status_code == 401
 
     client.cookies.set(REFRESH_COOKIE_NAME, legit_new, path="/api/v1/auth")
     assert client.post(REFRESH).status_code == 401
+
+
+def test_two_tabs_refreshing_at_once_do_not_log_the_user_out(
+    client: TestClient, db_session: Session, clock: FrozenClock
+) -> None:
+    # Iki sekme ayni refresh token'la neredeyse ayni anda yeniler: biri kazanir, digeri 401 alir;
+    # ama bu calinma sayilmaz, kazanan sekmenin yeni oturumu acik kalir
+    make_user(db_session)
+    _login(client)
+    shared = client.cookies[REFRESH_COOKIE_NAME]
+    winner = client.post(REFRESH)
+    winner_cookie = client.cookies[REFRESH_COOKIE_NAME]
+
+    # Ikinci sekmenin istegi 1 sn sonra ulasir (tolerans icinde)
+    clock.advance(timedelta(seconds=1))
+    client.cookies.set(REFRESH_COOKIE_NAME, shared, path="/api/v1/auth")
+    assert client.post(REFRESH).status_code == 401
+
+    client.cookies.set(REFRESH_COOKIE_NAME, winner_cookie, path="/api/v1/auth")
+    assert client.post(REFRESH).status_code == 200
+    assert client.get(ME, headers=_bearer(winner)).status_code == 200
 
 
 def test_refresh_without_cookie_is_401(client: TestClient) -> None:

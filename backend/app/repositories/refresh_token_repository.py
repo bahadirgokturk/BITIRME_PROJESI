@@ -9,6 +9,8 @@ from app.models import RefreshToken
 def add(session: Session, *, user_id: int, token_hash: str, expires_at: datetime) -> RefreshToken:
     record = RefreshToken(user_id=user_id, token_hash=token_hash, expires_at=expires_at)
     session.add(record)
+    # id rotasyonda eski kayda baglanmak icin hemen gerekir
+    session.flush()
     return record
 
 

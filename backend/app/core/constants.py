@@ -8,3 +8,9 @@ IMPORTANCE_WEIGHT_MAX = 100
 # 200 ust sinir admin lokasyon agacini tek istekte getirebilsin diye
 PAGE_SIZE_DEFAULT = 20
 PAGE_SIZE_MAX = 200
+
+# Rotasyonla yenilenmis refresh token bu sure icinde tekrar gelirse ayni kullanicinin es zamanli
+# istegi (iki sekme) sayilir: yalniz reddedilir, oturumlar kapatilmaz. Sonrasinda gelirse calinma
+# belirtisidir ve tum oturumlar kapatilir. 10 sn: yavas mobil agda bile iki istegi kapsar,
+# saldirganin firsat penceresini de dar tutar.
+REFRESH_REUSE_GRACE_SECONDS = 10
