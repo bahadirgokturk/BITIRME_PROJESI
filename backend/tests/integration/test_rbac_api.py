@@ -48,10 +48,9 @@ def test_non_admin_roles_are_forbidden(
 def test_admin_passes_the_role_check(client: TestClient, db_session: Session) -> None:
     headers = _token_for(client, db_session, UserRole.ADMIN)
 
-    # Is mantigi henuz yok (501); onemli olan rol kontrolunden gecmesi
     response = client.get("/api/v1/admin/users", headers=headers)
 
-    assert response.status_code == 501
+    assert response.status_code == 200
 
 
 def test_role_check_runs_before_input_validation(client: TestClient, db_session: Session) -> None:

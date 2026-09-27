@@ -1,6 +1,6 @@
-"""FAZ 2 API sozlesmesi: semalar yayinda, is mantigi henuz yok (501).
+"""API sozlesmesi: semalar OpenAPI'de yayinda ve girdi is mantigindan once dogrulanir.
 
-Endpoint uygulandikca ilgili satir CONTRACT_STUBS'tan cikarilir ve gercek testleri yazilir.
+Sozlesme-once endpoint'ler (501, NotImplementedYetError) eklenince burada listelenir.
 """
 
 from collections.abc import Iterator
@@ -22,12 +22,6 @@ VALID_USER = {
 }
 VALID_LOCATION = {"kind": "WC", "code": "B-2-WCM", "name": "B Blok 2. Kat Erkek WC"}
 
-CONTRACT_STUBS: list[tuple[str, str, dict[str, object] | None]] = [
-    ("GET", "/api/v1/admin/users", None),
-    ("POST", "/api/v1/admin/users", VALID_USER),
-    ("PATCH", "/api/v1/admin/users/1", {"is_active": False}),
-]
-
 
 @pytest.fixture
 def admin_app(test_app: FastAPI) -> Iterator[FastAPI]:
@@ -36,16 +30,6 @@ def admin_app(test_app: FastAPI) -> Iterator[FastAPI]:
     test_app.dependency_overrides[get_current_user] = lambda: admin
     yield test_app
     test_app.dependency_overrides.clear()
-
-
-@pytest.mark.parametrize(("method", "path", "body"), CONTRACT_STUBS)
-def test_contract_endpoint_is_published_but_not_implemented(
-    admin_app: FastAPI, method: str, path: str, body: dict[str, object] | None
-) -> None:
-    response = TestClient(admin_app).request(method, path, json=body)
-
-    assert response.status_code == 501
-    assert response.json()["error"]["code"] == "NOT_IMPLEMENTED"
 
 
 def test_contract_schemas_are_in_openapi(test_app: FastAPI) -> None:
@@ -81,8 +65,7 @@ def test_user_role_enum_matches_database_enum(test_app: FastAPI) -> None:
 def test_contract_validates_input_before_business_logic(
     admin_app: FastAPI, path: str, body: dict[str, object]
 ) -> None:
-    # Gecersiz girdi 501'e ulasmadan 422 ile reddedilir;
-    # frontend hata gosterimini simdiden test edebilir
+    # Gecersiz girdi servis katmanina ulasmadan 422 ile reddedilir
     response = TestClient(admin_app).post(path, json=body)
 
     assert response.status_code == 422

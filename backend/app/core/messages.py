@@ -10,5 +10,11 @@ INVALID_CREDENTIALS = "E-posta veya parola hatalı."
 TOO_MANY_LOGIN_ATTEMPTS = "Çok fazla hatalı giriş denemesi. Lütfen biraz sonra tekrar deneyin."
 FORBIDDEN = "Bu işlem için yetkiniz yok."
 DUPLICATE_CODE = "Bu kod zaten kullanılıyor."
+DUPLICATE_EMAIL = "Bu e-posta adresi zaten kayıtlı."
+INVALID_USER_ROLE = (
+    "Rol bilgileri tutarsız: bildirim yapanlarda kullanıcı türü, "
+    "personel ve müdürlerde birim zorunludur."
+)
+SELF_LOCKOUT = "Kendi hesabınızı pasifleştiremez ya da yönetici rolünüzü kaldıramazsınız."
 INVALID_PARENT = "Lokasyon kendisinin ya da kendi alt lokasyonunun altına taşınamaz."
 UNAUTHORIZED = "Oturumunuz geçersiz ya da süresi dolmuş. Lütfen yeniden giriş yapın."

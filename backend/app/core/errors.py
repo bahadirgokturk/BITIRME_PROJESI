@@ -41,6 +41,20 @@ class InvalidParentError(DomainError):
     default_message = messages.INVALID_PARENT
 
 
+class InvalidUserRoleError(DomainError):
+    # Rol ile reporter_kind/department_id birbirini tutmuyor (docs/DATABASE.md "users")
+    code = "INVALID_USER_ROLE"
+    status = HTTPStatus.UNPROCESSABLE_ENTITY
+    default_message = messages.INVALID_USER_ROLE
+
+
+class SelfLockoutError(DomainError):
+    # Admin kendi erisimini kaldirirsa kurumda kimse kalmayabilir
+    code = "SELF_LOCKOUT"
+    status = HTTPStatus.CONFLICT
+    default_message = messages.SELF_LOCKOUT
+
+
 class ForbiddenError(DomainError):
     # Rol bu endpoint'e hic erisemez (orn. reporter -> /admin). Kaynak bazli yetkisizlik 404 doner.
     code = "FORBIDDEN"

@@ -101,7 +101,12 @@ Rol kontrolü girdi doğrulamasından önce çalışır. Başka kurumun kaydı `
   Lokasyon `path`'i sunucuda hesaplanır (`KMP/B/B-2`); liste ağaç sırasında (`path`'e göre) döner. Lokasyon
   taşınınca (`parent_id`) tüm alt ağacın `path`'i güncellenir; `parent_id: null` köke taşır; kendi altına
   taşıma → `422 INVALID_PARENT`. Lokasyon kodunda `/` kullanılamaz.
-- ⏳ `/admin/users` hâlâ sözleşme (`501`), sonraki PR.
+- ✅ **`/admin/users`** uygulandı. E-posta küçük harfe çevrilip saklanır ve tüm sistemde tekildir (tekrar →
+  `409 CONFLICT`); parola en az 8 karakter, yanıtta asla dönmez. Rol kuralları (ihlal → `422 INVALID_USER_ROLE`):
+  `REPORTER` → `reporter_kind` zorunlu; diğer rollerde `reporter_kind` boş; `STAFF`/`MANAGER` → `department_id`
+  zorunlu ve aynı kurumdan (başka kurumun departmanı → `404`). Rol değişince eski `reporter_kind` otomatik silinir.
+  `is_active: false` kullanıcının **tüm oturumlarını anında kapatır**; yeniden aktifleştirmek eski oturumu geri
+  getirmez. Admin kendini pasifleştiremez veya ADMIN rolünü kaldıramaz → `409 SELF_LOCKOUT`.
 
 FAZ 2 sözleşmesi yayında: `GET/POST /admin/{users,departments,locations}`, `PATCH /admin/{...}/{id}`
 (liste yanıtı `Page[T]`, `?page=&page_size=` en fazla 200). Diğerleri FAZ 2–4'te eklenir.
