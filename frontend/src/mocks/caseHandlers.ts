@@ -1,5 +1,5 @@
-// FAZ 3 bildirim endpoint'lerinin sahte karsiliklari (backend'de simdilik 501).
-// Backend bir endpoint'i uyguladiginda buradaki handler'i silin (frontend/README.md).
+// FAZ 3 bildirim endpoint'lerinin sahte karsiliklari. Backend'de GERCEKTEN hazir (E3-1); login ekrani
+// access token'i saklayip isteklere ekleyene kadar kalir, o PR'da silinir (frontend/README.md).
 import { http, HttpResponse } from "msw";
 
 import { apiUrl } from "@/lib/api/client";

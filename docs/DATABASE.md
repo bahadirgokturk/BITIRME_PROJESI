@@ -124,7 +124,7 @@ Unique: (organization_id, case_type_id, priority). Eşleşme sırası: tam eşle
 | verification_score | numeric(4,3) NULL | |
 | status | case_status | |
 | assigned_staff_id | FK users NULL | aktif task'ın atanan kişisi (denormalize) |
-| sla_rule_id | FK NULL | |
+| sla_rule_id | FK NULL | FAZ 4 (sla_rules tablosuyla birlikte eklenecek) |
 | parent_case_id | FK cases NULL | MERGED ise ana case |
 | duplicate_count | int default 0 | ana case'e bağlanan bildirim sayısı |
 | needs_human_review | bool | Manager inceleme kuyruğu |

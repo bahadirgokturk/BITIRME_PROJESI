@@ -15,6 +15,7 @@ INVALID_USER_ROLE = (
     "Rol bilgileri tutarsız: bildirim yapanlarda kullanıcı türü, "
     "personel ve müdürlerde birim zorunludur."
 )
+INVALID_TRANSITION = "Bildirim bu durumdan istenen duruma geçirilemez."
 SELF_LOCKOUT = "Kendi hesabınızı pasifleştiremez ya da yönetici rolünüzü kaldıramazsınız."
 INVALID_PARENT = "Lokasyon kendisinin ya da kendi alt lokasyonunun altına taşınamaz."
 UNAUTHORIZED = "Oturumunuz geçersiz ya da süresi dolmuş. Lütfen yeniden giriş yapın."

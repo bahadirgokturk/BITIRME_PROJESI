@@ -33,3 +33,8 @@ LOGIN_LIMITER_PRUNE_THRESHOLD = 10_000
 CASE_DESCRIPTION_MIN_LENGTH = 10
 CASE_DESCRIPTION_MAX_LENGTH = 2000
 CASE_TITLE_MAX_LENGTH = 200
+# Baslik girilmezse aciklamanin ilk 60 karakteri: liste satirina tek satirda sigar
+CASE_TITLE_FROM_DESCRIPTION_LENGTH = 60
+# CASE-000124: 6 hane bir kampuste yillarca yeter (999.999 bildirim)
+CASE_NUMBER_PREFIX = "CASE-"
+CASE_NUMBER_DIGITS = 6

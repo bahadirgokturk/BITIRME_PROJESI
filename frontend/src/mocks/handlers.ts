@@ -43,7 +43,7 @@ const token: Schemas["TokenRead"] = {
 export const handlers = [
   // /auth/*, /admin/* ve /locations backend'de GERCEKTEN hazir (FAZ 2). Bu handler'lar login ekrani
   // access token'i saklayip isteklere ekleyene kadar kalir; o PR'da silinir (frontend/README.md).
-  // /cases/* backend'de henuz 501: caseHandlers.ts
+  // /cases/* da hazir (E3-1); sahteleri caseHandlers.ts'te, ayni kuralla silinir
   http.post<never, Schemas["LoginRequest"]>(
     apiUrl("/auth/login"),
     async ({ request }) => {
