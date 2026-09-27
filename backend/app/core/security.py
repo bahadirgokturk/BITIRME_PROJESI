@@ -46,16 +46,16 @@ def verify_password(password_hash: str, password: str) -> bool:
 
 
 def create_access_token(
-    *, user_id: int, role: str, secret: str, ttl: timedelta, now: datetime
+    claims: AccessTokenClaims, *, secret: str, ttl: timedelta, now: datetime
 ) -> str:
-    claims = {
-        "sub": str(user_id),
-        "role": role,
+    payload = {
+        "sub": str(claims.user_id),
+        "role": claims.role,
         "type": ACCESS_TOKEN_TYPE,
         "iat": now,
         "exp": now + ttl,
     }
-    return jwt.encode(claims, secret, algorithm=JWT_ALGORITHM)
+    return jwt.encode(payload, secret, algorithm=JWT_ALGORITHM)
 
 
 def decode_access_token(token: str, *, secret: str, now: datetime) -> AccessTokenClaims:

@@ -4,6 +4,7 @@ import jwt
 import pytest
 
 from app.core.security import (
+    AccessTokenClaims,
     InvalidTokenError,
     create_access_token,
     decode_access_token,
@@ -50,9 +51,12 @@ def test_garbage_hash_is_rejected_not_crashing() -> None:
 
 
 def _token(**overrides: object) -> str:
-    return create_access_token(
+    claims = AccessTokenClaims(
         user_id=int(overrides.get("user_id", 7)),  # type: ignore[call-overload]
         role=str(overrides.get("role", "REPORTER")),
+    )
+    return create_access_token(
+        claims,
         secret=str(overrides.get("secret", SECRET)),
         ttl=TTL,
         now=NOW,

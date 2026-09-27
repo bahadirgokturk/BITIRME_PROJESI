@@ -52,6 +52,10 @@ select = [
     "BLE",      # BLE001 kor except (kural 1)
     "S",        # guvenlik; S110/S112 try-except-pass (kural 1, 14)
     "ERA",      # yoruma alinmis kod (kural 6)
+    "PLR0913",  # en fazla 4 parametre; fazlasi nesne (kural 2)
+    "PLR0917",  # en fazla 4 konumsal parametre (kural 2)
+    "PLR0915",  # fonksiyon basina en fazla 25 ifade: ~40 satir siniri (kural 2)
+    "RET505", "RET506", "RET507", "RET508",  # return/raise sonrasi else yok: early return (kural 2)
 ]
 
 # Turkce kullanici metinlerinde noktasiz i (ı) mesrudur
@@ -62,13 +66,22 @@ allowed-confusables = ["ı"]
 known-third-party = ["alembic"]
 known-first-party = ["app", "tests"]
 
+[tool.ruff.lint.pylint]
+max-args = 4
+max-positional-args = 4
+max-statements = 25
+
 [tool.ruff.lint.mccabe]
 max-complexity = 8
 
 [tool.ruff.lint.per-file-ignores]
 # Testlerde assert ve sabit beklenen degerler dogaldir
-# Testlerde sabit test anahtarlari (S105/S106) bilinclidir; gercek gizli bilgi degildir
-"tests/**" = ["S101", "PLR2004", "S105", "S106"]
+# Testlerde sabit test anahtarlari (S105/S106) bilinclidir; gercek gizli bilgi degildir.
+# Test fonksiyonlarinin parametreleri pytest fixture'laridir (enjekte edilir), 4 sinirindan muaf
+"tests/**" = ["S101", "PLR2004", "S105", "S106", "PLR0913", "PLR0917"]
+# FastAPI route parametreleri cagirandan gelen arguman degil, framework'un enjekte ettigi
+# bagimliliklardir (Depends, Body, Cookie); 4 parametre kurali route'lara uygulanmaz
+"app/api/v1/**" = ["PLR0913", "PLR0917"]
 "alembic/**" = ["ERA001"]
 # Autogenerate cikti satirlari uzun olabilir
 "alembic/versions/**" = ["E501"]
