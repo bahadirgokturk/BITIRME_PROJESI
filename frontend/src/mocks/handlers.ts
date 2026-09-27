@@ -34,8 +34,9 @@ const token: Schemas["TokenRead"] = {
 };
 
 export const handlers = [
-  // /auth/* backend'de GERCEKTEN hazir (FAZ 2). Bu dort handler, login ekrani access token'i
-  // saklayip isteklere ekleyene kadar kalir; o PR'da silinir (frontend/README.md).
+  // /auth/*, /admin/departments ve /admin/locations backend'de GERCEKTEN hazir (FAZ 2). Bu handler'lar
+  // login ekrani access token'i saklayip isteklere ekleyene kadar kalir; o PR'da silinir
+  // (frontend/README.md). /admin/users backend'de hala 501.
   http.post<never, Schemas["LoginRequest"]>(apiUrl("/auth/login"), async ({ request }) => {
     const { email, password } = await request.json();
     const known = Object.values(USERS).some((user) => user.email === email);

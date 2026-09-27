@@ -34,6 +34,13 @@ class UnauthorizedError(DomainError):
     default_message = messages.UNAUTHORIZED
 
 
+class InvalidParentError(DomainError):
+    # Lokasyon agacinda dongu olusturacak tasima (kendi altina)
+    code = "INVALID_PARENT"
+    status = HTTPStatus.UNPROCESSABLE_ENTITY
+    default_message = messages.INVALID_PARENT
+
+
 class ForbiddenError(DomainError):
     # Rol bu endpoint'e hic erisemez (orn. reporter -> /admin). Kaynak bazli yetkisizlik 404 doner.
     code = "FORBIDDEN"

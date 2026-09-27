@@ -23,7 +23,8 @@ class LocationRead(BaseModel):
 class LocationCreate(BaseModel):
     parent_id: int | None = None
     kind: LocationKind
-    code: str = Field(min_length=1, max_length=50)
+    # "/" path ayiricisidir; kodda kullanilamaz
+    code: str = Field(min_length=1, max_length=50, pattern=r"^[^/]+$")
     name: str = Field(min_length=1, max_length=200)
     importance_weight: int = Field(
         default=DEFAULT_IMPORTANCE_WEIGHT, ge=IMPORTANCE_WEIGHT_MIN, le=IMPORTANCE_WEIGHT_MAX

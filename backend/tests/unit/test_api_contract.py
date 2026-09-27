@@ -26,12 +26,6 @@ CONTRACT_STUBS: list[tuple[str, str, dict[str, object] | None]] = [
     ("GET", "/api/v1/admin/users", None),
     ("POST", "/api/v1/admin/users", VALID_USER),
     ("PATCH", "/api/v1/admin/users/1", {"is_active": False}),
-    ("GET", "/api/v1/admin/departments", None),
-    ("POST", "/api/v1/admin/departments", {"code": "CLEANING", "name": "Temizlik"}),
-    ("PATCH", "/api/v1/admin/departments/1", {"name": "Temizlik Birimi"}),
-    ("GET", "/api/v1/admin/locations", None),
-    ("POST", "/api/v1/admin/locations", VALID_LOCATION),
-    ("PATCH", "/api/v1/admin/locations/1", {"importance_weight": 80}),
 ]
 
 

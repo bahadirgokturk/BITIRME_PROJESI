@@ -96,6 +96,13 @@ Ortak parametreler: `from`, `to`, `department_id?`, `building_id?`
 **Erişim:** tüm `/admin/*` yalnız **ADMIN** (MANAGER dahil diğer roller `403 FORBIDDEN`, giriş yoksa `401`).
 Rol kontrolü girdi doğrulamasından önce çalışır. Başka kurumun kaydı `404` döner (IDOR, `services/authorization.py`).
 
+- ✅ **`/admin/departments`** ve **`/admin/locations`** uygulandı: listele (`Page`), ekle (`201`), güncelle
+  (`PATCH`, yalnız gönderilen alanlar). Aynı kurumda tekrar eden kod → `409 CONFLICT`. Başka kurumun kaydı → `404`.
+  Lokasyon `path`'i sunucuda hesaplanır (`KMP/B/B-2`); liste ağaç sırasında (`path`'e göre) döner. Lokasyon
+  taşınınca (`parent_id`) tüm alt ağacın `path`'i güncellenir; `parent_id: null` köke taşır; kendi altına
+  taşıma → `422 INVALID_PARENT`. Lokasyon kodunda `/` kullanılamaz.
+- ⏳ `/admin/users` hâlâ sözleşme (`501`), sonraki PR.
+
 FAZ 2 sözleşmesi yayında: `GET/POST /admin/{users,departments,locations}`, `PATCH /admin/{...}/{id}`
 (liste yanıtı `Page[T]`, `?page=&page_size=` en fazla 200). Diğerleri FAZ 2–4'te eklenir.
 CRUD: `/admin/users`, `/admin/departments`, `/admin/locations`, `/admin/case-types`, `/admin/sla-rules`,
