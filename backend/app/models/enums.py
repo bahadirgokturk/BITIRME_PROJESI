@@ -25,3 +25,21 @@ class LocationKind(StrEnum):
     CORRIDOR = "CORRIDOR"
     OUTDOOR = "OUTDOOR"
     OTHER = "OTHER"
+
+
+class CaseCategory(StrEnum):
+    CLEANING = "CLEANING"
+    CONSUMABLE = "CONSUMABLE"
+    TECHNICAL = "TECHNICAL"
+    IT = "IT"
+    INFRASTRUCTURE = "INFRASTRUCTURE"
+    SECURITY = "SECURITY"
+    FOOD_SERVICE = "FOOD_SERVICE"
+    OTHER = "OTHER"
+
+
+class Priority(StrEnum):
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+    CRITICAL = "CRITICAL"

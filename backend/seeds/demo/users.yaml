@@ -1,0 +1,14 @@
+# Demo kullanicilari (yalniz --demo). Parola repoda degil: SEED_DEMO_PASSWORD ortam degiskeni.
+# example.com gercek bir e-postaya gitmez (RFC 2606). .test uzantisini e-posta dogrulayici reddeder.
+users:
+  - {email: admin@kampus.example.com, full_name: "Demo Yönetici", role: ADMIN}
+  - {email: mudur.destek@kampus.example.com, full_name: "Destek Hizmetleri Müdürü", role: MANAGER, department: SUPPORT_SERVICES}
+  - {email: mudur.bakim@kampus.example.com, full_name: "Bakım Onarım Müdürü", role: MANAGER, department: MAINTENANCE}
+  - {email: temizlik@kampus.example.com, full_name: "Temizlik Görevlisi", role: STAFF, department: SUPPORT_SERVICES}
+  - {email: guvenlik@kampus.example.com, full_name: "Güvenlik Görevlisi", role: STAFF, department: SUPPORT_SERVICES}
+  - {email: teknisyen@kampus.example.com, full_name: "Bakım Teknisyeni", role: STAFF, department: MAINTENANCE}
+  - {email: bt@kampus.example.com, full_name: "BT Destek Uzmanı", role: STAFF, department: IT_SUPPORT}
+  - {email: yemekhane@kampus.example.com, full_name: "Yemekhane Sorumlusu", role: STAFF, department: NUTRITION}
+  - {email: ogrenci@kampus.example.com, full_name: "Demo Öğrenci", role: REPORTER, reporter_kind: STUDENT}
+  - {email: akademisyen@kampus.example.com, full_name: "Demo Akademisyen", role: REPORTER, reporter_kind: ACADEMIC}
+  - {email: personel@kampus.example.com, full_name: "Demo Personel", role: REPORTER, reporter_kind: PERSONNEL}

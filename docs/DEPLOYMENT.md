@@ -71,6 +71,7 @@ DATABASE_URL=postgresql+psycopg://campusflow:campusflow@db:5432/campusflow
 JWT_SECRET=change-me
 JWT_ACCESS_TTL_MIN=30
 JWT_REFRESH_TTL_DAYS=7
+SEED_DEMO_PASSWORD=                # yalniz seeds.run --demo; production'da --demo reddedilir
 CORS_ORIGINS=http://localhost:3000
 STORAGE_BACKEND=local            # local|s3
 STORAGE_LOCAL_PATH=/app/storage
@@ -162,7 +163,9 @@ cd frontend && npm ci && npm run dev
 
 - Backend testleri konteynerde: `docker compose exec backend pytest`. Integration testleri geliştirme
   DB'sine dokunmaz; aynı sunucuda `<db>_test` veritabanını oluşturup kullanır.
-- Demo seed (`python -m seeds.run --demo`) FAZ 2'de eklenecek.
+- Seed: `docker compose exec backend python -m seeds.run --demo` (kampüs şablonu + demo kullanıcıları,
+  tekrar çalıştırmak güvenli). Ayrıntı ve demo hesapları: [backend/seeds/README.md](../backend/seeds/README.md).
+  `--demo` production'da reddedilir; staging'de `SEED_DEMO_PASSWORD` Render panelinden verilir.
 - Backend Dockerfile'ı şimdilik geliştirme imajıdır; backend ve frontend production imajları staging kurulumunda (E7-3a) yazılır.
 
 > ⚠️ Repo **OneDrive/Dropbox** altında olmamalı: `node_modules` ve Postgres volume'ları senkronizasyonda

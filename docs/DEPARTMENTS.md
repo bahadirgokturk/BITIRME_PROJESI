@@ -5,7 +5,8 @@ Bu doküman, bildirimlerin **hangi birime** gideceğini (Routing Agent) ve hangi
 çıkarılmıştır (Kamu İç Kontrol Standartları gereği birimlerin yayınladığı belgeler). Kaynaklar bölüm 5'te.
 
 > Seed: `backend/seeds/templates/campus/` bu tablodan üretilir. Tablo değişirse seed ve sentetik veri
-> şablonları (`ai/generators/templates/campus.yaml`) aynı PR'da güncellenir.
+> şablonları (`ai/generators/templates/campus.yaml`) aynı PR'da güncellenir. Uyum CI'da test edilir
+> (`scripts/tests/test_departments_sync.py`): tablo ile seed ayrışırsa build kırmızı olur.
 
 ## 1. Kapsam
 
@@ -24,7 +25,7 @@ Teknik. İş fiilen **şube müdürlüğü** düzeyinde yapıldığı için sist
 |---|---|---|---|
 | `SUPPORT_SERVICES` | İdari ve Mali İşler D.B. → **Destek Hizmetleri Şube Müdürlüğü** | Temizlik görevlileri: bina ve bahçe temizliği, tuvaletlerin günlük sabunlu/dezenfektanla yıkanması, katı atık ve geri dönüşüm toplama. Koruma ve güvenlik görevlileri: giriş kaydı, kamera takibi, hırsızlık/yaralanma vb. olaylara müdahale ve tutanak, **bulunan eşyanın emanete alınması**, izinsiz afiş/pankartın toplatılması. Araçların sevk ve bakımı. | Görev alır |
 | `MAINTENANCE` | Yapı İşleri ve Teknik D.B. → **Bakım Onarım ve Peyzaj Şube Müdürlüğü** | Binaların küçük ve büyük onarımları; **ısıtma, soğutma, havalandırma, temiz ve pis su, elektrik**, haberleşme altyapısı tesisatlarının arıza giderme ve bakımı; **asansör**, jeneratör, trafo; kampüs **yeşil alanlarının** bakımı ve sulaması. | Görev alır |
-| `IT_SUPPORT` | Bilgi İşlem D.B. → **Donanım ve Teknik Destek Şube Müdürlüğü** | Kampüse kesintisiz internet erişimi, kampüs ağının kurulumu ve bakımı, bilgisayar ve donanım kurulumu, **birimlerden gelen arızalı donanımların kaydı ve takibi**. | Görev alır |
+| `IT_SUPPORT` | Bilgi İşlem D.B. → **Donanım ve Teknik Destek Şube Müdürlüğü** | Kampüse kesintisiz internet erişimi, kampüs ağının kurulumu ve bakımı, bilgisayar ve donanım kurulumu, **birimlerden gelen arızalı donanımların kaydı ve takibi**; turnike ve kartlı geçiş sistemleri. (Bilgi sistemleri işleri, ör. not düzeltme, fiziksel arıza değildir → `OUT_OF_SCOPE`.) | Görev alır |
 | `NUTRITION` | SKS D.B. → **Beslenme Hizmetleri** | Yemekhaneler, kantin ve kafeteryalar, gıda muayene ve analizleri. | Görev alır |
 | `CIVIL_DEFENSE` | İdari ve Mali İşler D.B. → **Sivil Savunma Birimi** | Yangın, afet ve acil durumlara hazırlık. | **Yalnız bilgilendirilir** (güvenlik açısından kritik bildirimlerde) |
 
@@ -49,7 +50,7 @@ tesisat hem temizlik işidir). `OUT_OF_SCOPE` görev oluşturmaz, yönlendirme m
 | `GREEN_AREA` | Bahçe / yeşil alan | INFRASTRUCTURE | MAINTENANCE | — | L1 | Yeşil alanların bakımı ve sulaması |
 | `WIFI_FAILURE` | İnternet / Wi-Fi sorunu | IT | IT_SUPPORT | — | L2 | Kesintisiz internet erişimi, ağ bakımı |
 | `COMPUTER_FAILURE` | Bilgisayar / donanım arızası | IT | IT_SUPPORT | — | L2 | Arızalı donanım kaydı ve takibi |
-| `PROJECTOR_FAILURE` | Projeksiyon arızası | IT | IT_SUPPORT | MAINTENANCE | L2 | ⚠️ **Teyit bekliyor**: belgede açık değil; ekip "ikisi de bakabilir" dedi. Cihaz BT, güç/elektrik Bakım Onarım |
+| `PROJECTOR_FAILURE` | Projeksiyon arızası | TECHNICAL | MAINTENANCE | IT_SUPPORT | L2 | Ekip kararı: dersliklerdeki projeksiyon Bakım Onarım'da; bağlantı/bilgisayar tarafı için BT bilgilendirilir |
 | `ACCESS_CONTROL_FAILURE` | Turnike / kart okuyucu arızası | IT | IT_SUPPORT | SUPPORT_SERVICES | L2 | Ekip bilgisi: sistem Bilgi İşlem'de; güvenlik yalnız girişte görevli |
 | `CAFETERIA_ISSUE` | Yemekhane / kantin sorunu | FOOD_SERVICE | NUTRITION | — | L2 | SKS Beslenme Hizmetleri |
 | `OTHER` | Diğer | OTHER | — (insan inceler) | — | L2 | Sınıflandırılamayan fiziksel sorunlar → manager inceleme kuyruğu |
@@ -62,7 +63,6 @@ Otonomi seviyeleri: [AGENTS.md](AGENTS.md) bölüm 5. Kategori listesine `FOOD_S
 
 | Soru | Şu anki karar | Nasıl teyit edilir |
 |---|---|---|
-| Projeksiyon arızasını kim giderir? | BT Destek birincil, Bakım Onarım bilgilendirilir | Bilgi İşlem'e kısa e-posta (bidb@) |
 | SLA süreleri | Henüz yok | Her birimin **"Hizmet Envanteri ve Standartları"** sayfasındaki resmi tamamlanma süreleri (FAZ 4, SLA) |
 | Spor salonu, konferans salonu gibi SKS tesislerindeki arızalar | Fiziksel arıza → Bakım Onarım | SKS'ye teyit |
 
@@ -77,4 +77,5 @@ Otonomi seviyeleri: [AGENTS.md](AGENTS.md) bölüm 5. Kategori listesine `FOOD_S
 - Bilgi İşlem — Donanım ve Teknik Destek Şube Müdürlüğü Görev Tanımı: https://bidb.bakircay.edu.tr/?page=16&menu=14
 - SKS — Beslenme Hizmetleri: https://sks.bakircay.edu.tr/?page=1168&menu=1206
 - Ekip teyitleri (27.09.2026): sabun/tuvalet kağıdı dolumu temizlik görevlilerinde; turnike ve kart okuyucu
-  Bilgi İşlem'de.
+  Bilgi İşlem'de; projeksiyon Bakım Onarım'da (Bilgi İşlem'in günlük işi ağ, bilgisayar, turnike ve
+  bilgi sistemleridir).

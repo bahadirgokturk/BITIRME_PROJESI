@@ -78,7 +78,11 @@ docker compose up --build -d
 
 ```bash
 docker compose exec backend alembic upgrade head
+docker compose exec backend python -m seeds.run --demo   # birimler, bildirim tipleri, lokasyonlar, demo hesaplar
 ```
+
+> Eski bir `.env` kullanıyorsan `.env.example`'daki `SEED_DEMO_PASSWORD` satırını kendi `.env`'ine ekle ve
+> `docker compose up -d backend` çalıştır; yoksa `--demo` "SEED_DEMO_PASSWORD" hatası verir.
 
 Frontend **Docker dışında**, doğrudan bilgisayarda çalışır (Docker içinde dosya değişikliklerini göremediği için
 hot reload çalışmıyor). İkinci bir terminalde:
@@ -99,7 +103,8 @@ npm run dev
   kartında iki **yeşil** satır ("Backend çalışıyor", "Veritabanı bağlı"). Frontend rehberi: [frontend/README.md](../frontend/README.md)
 - Backend API dokümanı: http://localhost:8000/docs
 - Testler: `docker compose exec backend pytest` · frontend için `cd frontend` ve `npm test`
-- Demo kullanıcıları seed ile FAZ 2'de gelecek (`backend/seeds/README.md`).
+- Veritabanını doldur: `docker compose exec backend python -m seeds.run --demo`. Demo hesapları (admin, müdür,
+  personel, öğrenci) ve parola: [backend/seeds/README.md](../backend/seeds/README.md).
 
 ## 6. Günlük çalışma akışı
 

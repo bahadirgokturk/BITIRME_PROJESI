@@ -1,0 +1,17 @@
+# Kampus sablonu departmanlari: sube mudurlugu duzeyi.
+# Kaynak ve gerekce: docs/DEPARTMENTS.md bolum 2. Once tabloyu degistirin, sonra bu dosyayi.
+organization:
+  name: "İzmir Bakırçay Üniversitesi"
+  template_code: campus
+
+departments:
+  - code: SUPPORT_SERVICES
+    name: "Destek Hizmetleri Şube Müdürlüğü"
+  - code: MAINTENANCE
+    name: "Bakım Onarım ve Peyzaj Şube Müdürlüğü"
+  - code: IT_SUPPORT
+    name: "Donanım ve Teknik Destek Şube Müdürlüğü"
+  - code: NUTRITION
+    name: "Beslenme Hizmetleri"
+  - code: CIVIL_DEFENSE
+    name: "Sivil Savunma Birimi"

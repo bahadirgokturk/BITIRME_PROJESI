@@ -34,3 +34,9 @@ def add(session: Session, department: Department) -> Department:
     session.add(department)
     session.flush()
     return department
+
+
+def list_all(session: Session, organization_id: int) -> Sequence[Department]:
+    return session.scalars(
+        select(Department).where(Department.organization_id == organization_id)
+    ).all()
