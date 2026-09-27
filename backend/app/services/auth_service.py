@@ -20,6 +20,7 @@ from app.core.config import Settings
 from app.core.constants import REFRESH_REUSE_GRACE_SECONDS
 from app.core.errors import UnauthorizedError
 from app.core.security import (
+    AccessTokenClaims,
     InvalidTokenError,
     create_access_token,
     decode_access_token,
@@ -116,8 +117,7 @@ class AuthService:
             expires_at=refresh_expires_at,
         )
         access = create_access_token(
-            user_id=user.id,
-            role=user.role.value,
+            AccessTokenClaims(user_id=user.id, role=user.role.value),
             secret=self._settings.jwt_secret,
             ttl=access_ttl,
             now=now,

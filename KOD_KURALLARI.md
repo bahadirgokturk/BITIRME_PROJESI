@@ -48,7 +48,11 @@ return classifier.predict(text)
 Her `if`/`try` yeni bir yol açar: 3 if = 8 yol, 5 if = 32 yol. Hatalar test edilmemiş yollarda yaşar.
 
 - İç içe en fazla **2 seviye**. Fonksiyon başına **4'ten fazla** `if/for/try` varsa eksik bir soyutlama vardır.
-- Fonksiyon ~40 satırı geçiyorsa bölünür.
+- **Early return:** koşul sağlanmıyorsa hemen `return`/`raise`; `return`'den sonra `else` yazılmaz.
+- Fonksiyon ~40 satırı, dosya 300 satırı geçiyorsa bölünür.
+- Fonksiyon en fazla **4 parametre** alır; fazlası tek bir nesnede toplanır (Python: dataclass/Pydantic,
+  TS: nesne parametresi). İstisna: FastAPI route'ları ve pytest test fonksiyonları — oradaki parametreler
+  çağıranın geçtiği argüman değil, framework'ün enjekte ettiği bağımlılıklardır.
 
 | Yerine | Bunu kullan |
 |---|---|
@@ -203,7 +207,7 @@ Her kural hangi düzeyde uygulandığını dürüstçe söyler. Güçlüden zay�
 | # | Kural | Uygulama düzeyi (FAZ 1'de kuruldu: `backend/pyproject.toml`, `frontend/eslint.config.mjs`, `ci.yml`) |
 |---|---|---|
 | 1 | Fail fast | Lint: ruff `BLE001` (blind except), `S110`/`S112` (try-except-pass/continue), `E722`; ESLint `no-empty` + review |
-| 2 | Az dallanma | Lint: ruff `C901` (max-complexity 8), `PLR0912` (branches), ESLint `complexity: 8`, `max-depth: 3` |
+| 2 | Az dallanma | Lint: ruff `C901` (max-complexity 8), `PLR0912` (branches), `PLR0913/0917` (4 parametre), `PLR0915` (25 ifade ≈ 40 satır), `RET505-508` (early return); ESLint `complexity: 8`, `max-depth: 3`, `max-params: 4`, `max-lines-per-function: 40`, `max-lines: 300`, `no-else-return` |
 | 3 | İngilizce isim | Review (+ ileride tarama betiği) |
 | 3b | ASCII yorum | CI: `scripts/check_ascii_comments.py` (tüm ASCII dışı karakterler; `§` dahil) |
 | 4 | TDD | Review + CI'da coverage raporu (kritik modüller ≥ %85) |
