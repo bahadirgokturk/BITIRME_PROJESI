@@ -129,6 +129,12 @@ ayağa kaldırabilir, `/health` yeşil, CI her PR'da çalışır.
 | 10 | `ai/` iskeleti + sentetik veri üretici için case type şablon taslağı | C | 11 case type için ≥ 10 şablon cümle |
 | 11 | Anonim veri toplama formu (Google Form) taslağı — KVKK uyumlu, kişisel veri istemez | B/C | Form metni ekipçe onaylandı |
 
+## 4b. Araç Notları (ileride değerlendirilecek)
+
+| Ne | Ne zaman | Not |
+|---|---|---|
+| **Serena** (MCP, sembol bazlı kod gezinme) | FAZ 5–6, agent'lar eklenip kod tabanı büyüyünce | Claude'un büyük kodda fonksiyon/sınıf/referans bulmasını hızlandırır; küçük projede arka plan sunucusunun maliyeti faydasından fazla. Kurulum (kişisel Claude ayarı, repoya bir şey eklenmez): `claude mcp add serena -- uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context ide-assistant --project <repo yolu>` — kurmadan önce Serena'nın güncel kurulum sayfası kontrol edilir. |
+
 ## 5. Riskler
 
 | Risk | Etki | Önlem |

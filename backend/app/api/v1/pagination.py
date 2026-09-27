@@ -1,15 +1,9 @@
-from dataclasses import dataclass
 from typing import Annotated
 
 from fastapi import Query
 
 from app.core.constants import PAGE_SIZE_DEFAULT, PAGE_SIZE_MAX
-
-
-@dataclass(frozen=True)
-class PageParams:
-    page: int
-    page_size: int
+from app.schemas.common import PageParams
 
 
 def page_params(

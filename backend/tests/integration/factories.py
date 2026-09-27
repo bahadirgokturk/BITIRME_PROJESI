@@ -1,5 +1,6 @@
 """Integration testleri icin kucuk veri ureticileri (seed degil; yalniz testte)."""
 
+from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.core.security import hash_password
@@ -37,3 +38,14 @@ def make_user(
     session.add(user)
     session.flush()
     return user
+
+
+def login_headers(
+    client: TestClient, session: Session, *, email: str, role: UserRole = UserRole.ADMIN
+) -> dict[str, str]:
+    """Yeni bir kurumda kullanici olusturur, giris yapar ve Authorization basligini dondurur."""
+    make_user(session, email=email, role=role)
+    response = client.post(
+        "/api/v1/auth/login", json={"email": email, "password": DEFAULT_PASSWORD}
+    )
+    return {"Authorization": f"Bearer {response.json()['access_token']}"}
