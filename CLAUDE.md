@@ -39,6 +39,8 @@ PRs that violate it are rejected. Most-broken rules:
 - Status changes only via `WorkflowService.transition()` using the `ALLOWED_TRANSITIONS` table (`docs/WORKFLOW.md`); every transition writes a `case_events` row in the same transaction.
 - Agents take `AgentContext` (read-only data) and return `AgentResult` (decision, confidence, reasons, model); services persist them to `agent_decisions`.
 - Supervisor is a deterministic decision table, not an LLM.
+- Departments, case types and routing come from `docs/DEPARTMENTS.md` (sourced from the university's official
+  duty descriptions). Change that table first; seeds and `ai/generators/templates/campus.yaml` follow it.
 - Authorization: role dependency on routes + ownership checks in `services/authorization.py`; unauthorized resource access returns **404** (IDOR).
 - Frontend API types are generated from the backend OpenAPI schema — never hand-write them.
 - Frontend screens: use the project skill `.claude/skills/campusflow-screen` (Figma via MCP → screen). The frontend

@@ -42,7 +42,7 @@ erDiagram
 | `user_role` | REPORTER, STAFF, MANAGER, ADMIN |
 | `reporter_kind` | STUDENT, ACADEMIC, PERSONNEL |
 | `location_kind` | CAMPUS, BUILDING, FLOOR, ROOM, WC, CORRIDOR, OUTDOOR, OTHER |
-| `case_category` | CLEANING, CONSUMABLE, TECHNICAL, IT, INFRASTRUCTURE, SECURITY, OTHER |
+| `case_category` | CLEANING, CONSUMABLE, TECHNICAL, IT, INFRASTRUCTURE, SECURITY, FOOD_SERVICE, OTHER |
 | `priority` | LOW, MEDIUM, HIGH, CRITICAL |
 | `case_status` | NEW, ANALYZING, NEEDS_INFO, CLASSIFIED, ASSIGNED, ACCEPTED, IN_PROGRESS, RESOLVED, VERIFICATION, CLOSED, REOPENED, ESCALATED, REJECTED, MERGED |
 | `task_status` | PENDING, ACCEPTED, IN_PROGRESS, COMPLETED, DECLINED, CANCELLED |
@@ -64,7 +64,8 @@ erDiagram
 | created_at | timestamptz | |
 
 ### departments
-id, organization_id FK, code (uniq/org, ör. `CLEANING`), name, is_active, created_at
+id, organization_id FK, code (uniq/org, ör. `SUPPORT_SERVICES`), name, is_active, created_at.
+Kampüs şablonunda şube müdürlüğü düzeyindedir: [DEPARTMENTS.md](DEPARTMENTS.md) bölüm 2.
 
 ### locations
 | Kolon | Tip | Not |
@@ -88,10 +89,11 @@ department_id NULL (STAFF/MANAGER için), is_active, last_login_at, created_at
 | Kolon | Tip | Not |
 |---|---|---|
 | id, organization_id | | |
-| code | varchar(50) | SOAP_EMPTY … OTHER |
+| code | varchar(50) | SOAP_EMPTY … OUT_OF_SCOPE (19 tip, [DEPARTMENTS.md](DEPARTMENTS.md)) |
 | name | varchar(100) | "Sabun Bitti" |
 | category | case_category | |
-| default_department_id | FK | Routing Agent |
+| default_department_id | FK NULL | Routing Agent — birincil birim (görevi alır); OUT_OF_SCOPE/OTHER için NULL |
+| secondary_department_id | FK NULL | Yalnız bilgilendirilen birim (ör. su taşkını → Destek Hizmetleri) |
 | base_priority | priority | Priority Agent başlangıç sinyali |
 | base_severity | smallint | 0–100 |
 | is_safety_related | bool | L3 escalation tetikleyicisi |

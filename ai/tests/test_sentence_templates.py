@@ -9,19 +9,27 @@ from generators.sentence_templates import (
     load_templates,
 )
 
-# docs/AGENTS.md bolum "Autonomy" tablosundaki 11 case type
+# docs/DEPARTMENTS.md bolum 3'teki 19 case type (birim gorev tanimlarindan)
 CAMPUS_CASE_TYPES = {
     "SOAP_EMPTY",
     "TOILET_PAPER_EMPTY",
     "TRASH_FULL",
     "AREA_DIRTY",
-    "PROJECTOR_FAILURE",
-    "AIR_CONDITIONER_FAILURE",
-    "WIFI_FAILURE",
-    "FURNITURE_DAMAGE",
+    "SECURITY_INCIDENT",
+    "LOST_ITEM",
     "ELECTRICAL_FAILURE",
     "WATER_LEAK",
+    "AIR_CONDITIONER_FAILURE",
+    "ELEVATOR_FAILURE",
+    "FURNITURE_DAMAGE",
+    "GREEN_AREA",
+    "WIFI_FAILURE",
+    "COMPUTER_FAILURE",
+    "PROJECTOR_FAILURE",
+    "ACCESS_CONTROL_FAILURE",
+    "CAFETERIA_ISSUE",
     "OTHER",
+    "OUT_OF_SCOPE",
 }
 
 

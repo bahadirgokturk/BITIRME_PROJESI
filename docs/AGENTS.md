@@ -96,7 +96,9 @@ Orchestrator sıralı ve basittir (Python fonksiyonları). LangChain/LangGraph k
   `LogisticRegression(class_weight="balanced")` + `CalibratedClassifierCV` (güvenilir olasılık).
   Karakter n-gram, Türkçe eklemeli yapıya ("sabunluk", "sabunu", "sabunlar") lemmatizer olmadan dayanıklıdır.
 - **Kural katmanı:** Güvenlik sözlüğü eşleşirse (kıvılcım, yangın…) model sonucu ne olursa olsun
-  `ELECTRICAL_FAILURE`/`SECURITY` adayına yükseltilir ve gerekçeye `SAFETY_RULE` eklenir.
+  `ELECTRICAL_FAILURE`/`SECURITY_INCIDENT` adayına yükseltilir ve gerekçeye `SAFETY_RULE` eklenir.
+- **Kapsam dışı:** idari hizmet talepleri (transkript, kayıt, maaş) `OUT_OF_SCOPE` sınıfına düşer; görev
+  oluşturulmaz, kullanıcıya ilgili birim gösterilir ([DEPARTMENTS.md](DEPARTMENTS.md) bölüm 1).
 - **Çıktı:** `case_type_code, category, confidence, top_k[{code, prob}], explanation.top_features[]`
 - **Karar eşiği:** `confidence < policy.min_confidence_auto` → human review.
 - Model dosyası yoksa: anahtar kelime puanlaması (case_types.keywords) → `model="rules@1.0"`.
@@ -142,7 +144,9 @@ UI'da her katkı bir bar olarak gösterilir ("neden HIGH?"). Örnek: sabun bitti
 "prizden kıvılcım çıkıyor" → ≥ 90 (CRITICAL).
 
 ### 4.6 Routing Agent (K1)
-1. Departman: `case_types.default_department_id` (override: kategori bazlı kural).
+1. Departman: `case_types.default_department_id` (birincil; görevi alır). `case_types.secondary_department_id`
+   varsa o birim yalnız bilgilendirilir (ör. su taşkını: Bakım Onarım + Destek Hizmetleri). Eşleşme
+   [DEPARTMENTS.md](DEPARTMENTS.md) bölüm 3'teki tablodur; `OUT_OF_SCOPE` için departman yoktur.
 2. Personel: departmandaki aktif STAFF arasından
    `skor = −açık_task_sayısı·w1 − (farklı_bina ? w2 : 0) + son_30g_aynı_tip_tecrübe·w3` en yüksek olan.
 3. Uygun personel yoksa `assigned_user_id=NULL` → departman havuzu + Supervisor'a sinyal.
@@ -197,9 +201,11 @@ Fotoğrafın AI ile doğrulanması MVP dışı (ileride yerel görsel model ekle
 
 | Seviye | Anlam | Örnek case type'lar |
 |---|---|---|
-| L1_AUTONOMOUS | Agent karar verir ve uygular | SOAP_EMPTY, TOILET_PAPER_EMPTY, TRASH_FULL, AREA_DIRTY |
-| L2_NOTIFY | Agent uygular, manager bilgilendirilir | PROJECTOR_FAILURE, AIR_CONDITIONER_FAILURE, WIFI_FAILURE, FURNITURE_DAMAGE, OTHER |
-| L3_ESCALATE | Agent `ESCALATE` kararı verir, insan karar verir | ELECTRICAL_FAILURE, WATER_LEAK (yüksek şiddet), güvenlik |
+| L1_AUTONOMOUS | Agent karar verir ve uygular | SOAP_EMPTY, TOILET_PAPER_EMPTY, TRASH_FULL, AREA_DIRTY, LOST_ITEM, GREEN_AREA, OUT_OF_SCOPE (yönlendirme) |
+| L2_NOTIFY | Agent uygular, manager bilgilendirilir | AIR_CONDITIONER_FAILURE, ELEVATOR_FAILURE, FURNITURE_DAMAGE, WIFI_FAILURE, COMPUTER_FAILURE, PROJECTOR_FAILURE, ACCESS_CONTROL_FAILURE, CAFETERIA_ISSUE, OTHER |
+| L3_ESCALATE | Agent `ESCALATE` kararı verir, insan karar verir | ELECTRICAL_FAILURE, WATER_LEAK, SECURITY_INCIDENT |
+
+Tam liste, kategoriler ve birim eşleşmesi: [DEPARTMENTS.md](DEPARTMENTS.md) (üniversitenin görev tanımlarından).
 
 `agent_policies` tablosundan okunur; admin panelinden değiştirilebilir (değişiklik `audit_logs`'a yazılır).
 

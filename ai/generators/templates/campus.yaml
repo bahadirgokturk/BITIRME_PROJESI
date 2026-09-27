@@ -1,4 +1,5 @@
 # Kampus sablonu: case type basina sentetik bildirim cumleleri (taslak, FAZ 5'te genisletilecek)
+# Case type listesi ve birim eslesmesi: docs/DEPARTMENTS.md
 # {location} yer tutucusu uretici tarafindan lokasyon adi/takma adi ile doldurulur.
 # Cumleler bilincli olarak farkli uslupta: resmi, gunluk, yazim hatali, kisa.
 case_types:
@@ -132,15 +133,111 @@ case_types:
     - "{location} su sebilinden su sızıyor"
     - "{location} koridorda su birikintisi var, kayma tehlikesi"
 
-  OTHER:
-    - "{location} asansör çalışmıyor"
+  SECURITY_INCIDENT:
+    - "{location} şüpheli bir kişi dolaşıyor"
     - "{location} kapının önüne araç park edilmiş, giriş kapalı"
+    - "{location} duvarlara izinsiz afiş asılmış"
+    - "{location} duvarda uygunsuz yazılar var"
+    - "Otoparkta bir aracın camı kırılmış ({location})"
+    - "{location} kavga çıktı, güvenlik gelsin"
+    - "{location} birisinin çantası çalındı"
+    - "gece {location} kapısı açık kalmış kimse yok"
+    - "{location} kamera çalışmıyor gibi, ışığı yanmıyor"
+    - "{location} yetkisiz kişiler laboratuvara girmiş"
+    - "{location} sahipsiz bir paket duruyor"
+
+  LOST_ITEM:
     - "Kayıp eşya buldum, nereye teslim etmeliyim?"
+    - "{location} birinin cüzdanı unutulmuş"
+    - "{location} telefonumu kaybettim, bulan oldu mu?"
+    - "{location} sahipsiz bir laptop duruyor"
+    - "Öğrenci kartımı {location} düşürmüş olabilirim"
+    - "{location} anahtarlık bulundu"
+    - "{location} şemsiye ve mont unutulmuş"
+    - "kulaklığımı {location} kaybettim"
+    - "{location} bulunmuş bir kimlik kartı var"
+    - "{location} çantamı unuttum, emanete alınmış mı?"
+
+  ELEVATOR_FAILURE:
+    - "{location} asansör çalışmıyor"
+    - "{location} asansör katlar arasında takıldı"
+    - "{location} asansörün kapısı kapanmıyor"
+    - "Asansör çok sarsıntılı çalışıyor ({location})"
+    - "{location} asansör butonları yanmıyor"
+    - "asansor bozuk engelli arkadaşımız çıkamıyor {location}"
+    - "{location} asansörde biri mahsur kaldı"
+    - "{location} asansör sürekli yanlış kata gidiyor"
+    - "{location} asansörden garip sesler geliyor"
+    - "{location} asansörün ışığı yanmıyor"
+
+  GREEN_AREA:
+    - "{location} bahçedeki çimler çok uzamış"
+    - "{location} ağaç dalı kırılmış yola düşmüş"
+    - "{location} çimler sulanmıyor, kurumuş"
+    - "{location} fıskiye bozuk, su fışkırıyor"
+    - "Bahçedeki çalılar yola taşmış ({location})"
+    - "{location} çiçeklikler bakımsız"
+    - "{location} yerde kırık dallar ve yapraklar birikmiş"
+    - "agac devrilmek uzere tehlikeli {location}"
+    - "{location} yeşil alanda su birikintisi oluşmuş"
+    - "{location} bahçe sulama sistemi gece boyu çalışıyor"
+
+  COMPUTER_FAILURE:
+    - "{location} laboratuvardaki bilgisayar açılmıyor"
+    - "{location} bilgisayarlar çok yavaş, ders işlenemiyor"
+    - "{location} yazıcı çalışmıyor"
+    - "Lab bilgisayarında mavi ekran hatası ({location})"
+    - "{location} bilgisayarın klavyesi bozuk"
+    - "bilgisayar internete bağlı ama program açılmıyor {location}"
+    - "{location} monitör görüntü vermiyor"
+    - "{location} öğretim üyesi bilgisayarı sürekli yeniden başlıyor"
+    - "{location} mouse çalışmıyor"
+    - "{location} bilgisayarlarda lisanslı program açılmıyor"
+
+  ACCESS_CONTROL_FAILURE:
+    - "{location} turnike kartı okumuyor"
+    - "{location} kart okuyucu çalışmıyor, kapı açılmıyor"
+    - "Turnike sürekli kırmızı yanıyor ({location})"
+    - "{location} kartlı giriş sistemi bozuk"
+    - "öğrenci kartım turnikede okunmuyor {location}"
+    - "{location} laboratuvar kapısındaki kart okuyucu arızalı"
+    - "{location} turnike takılı kalmış, geçiş yok"
+    - "{location} personel kartı okutunca hata veriyor"
+    - "{location} otopark bariyeri kartı tanımıyor"
+    - "{location} giriş kapısındaki okuyucunun ekranı kapalı"
+
+  CAFETERIA_ISSUE:
+    - "{location} yemekhanede yemek soğuk verildi"
+    - "Kantinde fiyat listesi güncel değil"
+    - "otomat parayı aldı ürün vermedi {location}"
+    - "{location} yemekte saç çıktı, hijyen sorunu var"
+    - "{location} kafeteryada masalar hiç silinmiyor"
+    - "Yemekhane rezervasyon sistemi açılmıyor"
+    - "{location} kantinde son kullanma tarihi geçmiş ürün satılıyor"
+    - "{location} yemekhane kuyruğu çok uzun, düzen yok"
+    - "{location} çay ocağı çalışmıyor"
+    - "{location} yemek porsiyonları çok az"
+
+  OUT_OF_SCOPE:
+    - "Transkriptim hâlâ gelmedi"
+    - "Öğrenci belgesi nasıl alabilirim?"
+    - "ders kaydımda hata var danışmanım onaylamadı"
+    - "Maaşım eksik yatmış"
+    - "Mezuniyet belgemi ne zaman alırım?"
+    - "Burs başvurusu nereden yapılıyor?"
+    - "Sınav notum sisteme yanlış girilmiş"
+    - "Yatay geçiş başvurusu ne zaman?"
+    - "izin dilekçemi nereye vereceğim"
+    - "Harç borcumu nasıl öderim?"
+
+  OTHER:
     - "{location} çok gürültülü inşaat var ders dinlenmiyor"
     - "{location} içeride kuş var, çıkamıyor"
-    - "otomat parayı aldı ürün vermedi {location}"
     - "{location} tabela yanlış, sınıf numarası karışık"
-    - "{location} bahçedeki çimler çok uzamış"
-    - "Kantinde fiyat listesi güncel değil"
-    - "{location} turnike kartı okumuyor"
-    - "{location} duvarda uygunsuz yazılar var"
+    - "{location} tavanda böcek yuvası var"
+    - "{location} kapıdaki yönlendirme levhası düşmüş"
+    - "{location} sınıfta çok fazla yankı var, ses anlaşılmıyor"
+    - "{location} içeride garip bir koku var ama nereden geldiği belli değil"
+    - "{location} engelli rampası çok dik, kullanılamıyor"
+    - "{location} sınıfın sıra sayısı yetmiyor"
+    - "{location} duyuru panosu çok dağınık"
