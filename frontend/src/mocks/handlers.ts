@@ -6,7 +6,14 @@ import { http, HttpResponse } from "msw";
 import { apiUrl } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
 
-import { DEPARTMENTS, LOCATIONS, MOCK_PASSWORD, USERS, type Role } from "./fixtures";
+import { caseHandlers } from "./caseHandlers";
+import {
+  DEPARTMENTS,
+  LOCATIONS,
+  MOCK_PASSWORD,
+  USERS,
+  type Role,
+} from "./fixtures";
 
 type Schemas = components["schemas"];
 
@@ -34,22 +41,36 @@ const token: Schemas["TokenRead"] = {
 };
 
 export const handlers = [
-  // /auth/*, /admin/departments ve /admin/locations backend'de GERCEKTEN hazir (FAZ 2). Bu handler'lar
-  // login ekrani access token'i saklayip isteklere ekleyene kadar kalir; o PR'da silinir
-  // (frontend/README.md). /admin/users backend'de hala 501.
-  http.post<never, Schemas["LoginRequest"]>(apiUrl("/auth/login"), async ({ request }) => {
-    const { email, password } = await request.json();
-    const known = Object.values(USERS).some((user) => user.email === email);
-    if (!known || password !== MOCK_PASSWORD) {
-      return error(401, "UNAUTHORIZED", "E-posta veya parola hatalı.");
-    }
-    return HttpResponse.json(token);
-  }),
+  // /auth/*, /admin/* ve /locations backend'de GERCEKTEN hazir (FAZ 2). Bu handler'lar login ekrani
+  // access token'i saklayip isteklere ekleyene kadar kalir; o PR'da silinir (frontend/README.md).
+  // /cases/* backend'de henuz 501: caseHandlers.ts
+  http.post<never, Schemas["LoginRequest"]>(
+    apiUrl("/auth/login"),
+    async ({ request }) => {
+      const { email, password } = await request.json();
+      const known = Object.values(USERS).some((user) => user.email === email);
+      if (!known || password !== MOCK_PASSWORD) {
+        return error(401, "UNAUTHORIZED", "E-posta veya parola hatalı.");
+      }
+      return HttpResponse.json(token);
+    },
+  ),
   http.post(apiUrl("/auth/refresh"), () => HttpResponse.json(token)),
-  http.post(apiUrl("/auth/logout"), () => new HttpResponse(null, { status: 204 })),
+  http.post(
+    apiUrl("/auth/logout"),
+    () => new HttpResponse(null, { status: 204 }),
+  ),
   http.get(apiUrl("/auth/me"), () => HttpResponse.json(USERS[mockRole()])),
 
-  http.get(apiUrl("/admin/users"), () => HttpResponse.json(page(Object.values(USERS)))),
-  http.get(apiUrl("/admin/departments"), () => HttpResponse.json(page(DEPARTMENTS))),
-  http.get(apiUrl("/admin/locations"), () => HttpResponse.json(page(LOCATIONS))),
+  http.get(apiUrl("/admin/users"), () =>
+    HttpResponse.json(page(Object.values(USERS))),
+  ),
+  http.get(apiUrl("/admin/departments"), () =>
+    HttpResponse.json(page(DEPARTMENTS)),
+  ),
+  http.get(apiUrl("/admin/locations"), () =>
+    HttpResponse.json(page(LOCATIONS)),
+  ),
+
+  ...caseHandlers,
 ];

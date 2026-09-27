@@ -89,6 +89,92 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/locations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Location Options */
+        get: operations["list_location_options_api_v1_locations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Cases */
+        get: operations["list_cases_api_v1_cases_get"];
+        put?: never;
+        /** Create Case */
+        post: operations["create_case_api_v1_cases_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cases/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List My Cases */
+        get: operations["list_my_cases_api_v1_cases_mine_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cases/{case_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Case */
+        get: operations["get_case_api_v1_cases__case_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cases/{case_id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Case Events */
+        get: operations["list_case_events_api_v1_cases__case_id__events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/users": {
         parameters: {
             query?: never;
@@ -198,6 +284,104 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * ActorType
+         * @enum {string}
+         */
+        ActorType: "USER" | "AGENT" | "SYSTEM";
+        /**
+         * CaseCategory
+         * @enum {string}
+         */
+        CaseCategory: "CLEANING" | "CONSUMABLE" | "TECHNICAL" | "IT" | "INFRASTRUCTURE" | "SECURITY" | "FOOD_SERVICE" | "OTHER";
+        /**
+         * CaseCreate
+         * @description Bildirim formu. Tur, birim ve oncelik kullanicidan istenmez; agent'lar belirler.
+         */
+        CaseCreate: {
+            /** Description */
+            description: string;
+            /** Location Id */
+            location_id: number;
+            /** Title */
+            title?: string | null;
+        };
+        /**
+         * CaseEventRead
+         * @description Zaman cizelgesi satiri. Olay tipleri: docs/WORKFLOW.md bolum 3.
+         */
+        CaseEventRead: {
+            /** Id */
+            id: number;
+            /** Event Type */
+            event_type: string;
+            actor_type: components["schemas"]["ActorType"];
+            /** Actor Id */
+            actor_id: number | null;
+            /** Agent Name */
+            agent_name: string | null;
+            from_status: components["schemas"]["CaseStatus"] | null;
+            to_status: components["schemas"]["CaseStatus"] | null;
+            /**
+             * Occurred At
+             * Format: date-time
+             */
+            occurred_at: string;
+            /** Metadata */
+            metadata: {
+                [key: string]: unknown;
+            };
+        };
+        /** CaseRead */
+        CaseRead: {
+            /** Id */
+            id: number;
+            /** Case Number */
+            case_number: string;
+            /** Title */
+            title: string;
+            /** Description */
+            description: string;
+            status: components["schemas"]["CaseStatus"];
+            location: components["schemas"]["LocationSummary"];
+            /** Reporter Id */
+            reporter_id: number;
+            case_type: components["schemas"]["CaseTypeSummary"] | null;
+            category: components["schemas"]["CaseCategory"] | null;
+            department: components["schemas"]["DepartmentSummary"] | null;
+            priority: components["schemas"]["Priority"] | null;
+            /** Needs Human Review */
+            needs_human_review: boolean;
+            /** Reopened Count */
+            reopened_count: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Assigned At */
+            assigned_at: string | null;
+            /** Resolved At */
+            resolved_at: string | null;
+            /** Closed At */
+            closed_at: string | null;
+            /** Due At */
+            due_at: string | null;
+        };
+        /**
+         * CaseStatus
+         * @enum {string}
+         */
+        CaseStatus: "NEW" | "ANALYZING" | "NEEDS_INFO" | "CLASSIFIED" | "ASSIGNED" | "ACCEPTED" | "IN_PROGRESS" | "RESOLVED" | "VERIFICATION" | "CLOSED" | "REOPENED" | "ESCALATED" | "REJECTED" | "MERGED";
+        /** CaseTypeSummary */
+        CaseTypeSummary: {
+            /** Id */
+            id: number;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+        };
         /** DepartmentCreate */
         DepartmentCreate: {
             /** Code */
@@ -215,6 +399,15 @@ export interface components {
             name: string;
             /** Is Active */
             is_active: boolean;
+        };
+        /** DepartmentSummary */
+        DepartmentSummary: {
+            /** Id */
+            id: number;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
         };
         /** DepartmentUpdate */
         DepartmentUpdate: {
@@ -279,6 +472,25 @@ export interface components {
          * @enum {string}
          */
         LocationKind: "CAMPUS" | "BUILDING" | "FLOOR" | "ROOM" | "WC" | "CORRIDOR" | "OUTDOOR" | "OTHER";
+        /**
+         * LocationOption
+         * @description Bildirim formundaki lokasyon secicisi icin; onem agirligi gibi yonetim alanlari yok.
+         */
+        LocationOption: {
+            /** Id */
+            id: number;
+            /** Parent Id */
+            parent_id: number | null;
+            kind: components["schemas"]["LocationKind"];
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /** Path */
+            path: string;
+            /** Aliases */
+            aliases: string[];
+        };
         /** LocationRead */
         LocationRead: {
             /** Id */
@@ -298,6 +510,16 @@ export interface components {
             aliases: string[];
             /** Is Active */
             is_active: boolean;
+        };
+        /** LocationSummary */
+        LocationSummary: {
+            /** Id */
+            id: number;
+            kind: components["schemas"]["LocationKind"];
+            /** Name */
+            name: string;
+            /** Path */
+            path: string;
         };
         /** LocationUpdate */
         LocationUpdate: {
@@ -322,10 +544,28 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** Page[CaseRead] */
+        Page_CaseRead_: {
+            /** Items */
+            items: components["schemas"]["CaseRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+        };
         /** Page[DepartmentRead] */
         Page_DepartmentRead_: {
             /** Items */
             items: components["schemas"]["DepartmentRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+        };
+        /** Page[LocationOption] */
+        Page_LocationOption_: {
+            /** Items */
+            items: components["schemas"]["LocationOption"][];
             /** Total */
             total: number;
             /** Page */
@@ -349,6 +589,11 @@ export interface components {
             /** Page */
             page: number;
         };
+        /**
+         * Priority
+         * @enum {string}
+         */
+        Priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
         /**
          * ReporterKind
          * @enum {string}
@@ -674,6 +919,414 @@ export interface operations {
             };
             /** @description Too Many Requests */
             429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    list_location_options_api_v1_locations_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_LocationOption_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    list_cases_api_v1_cases_get: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["CaseStatus"][] | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_CaseRead_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    create_case_api_v1_cases_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CaseCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    list_my_cases_api_v1_cases_mine_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_CaseRead_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    get_case_api_v1_cases__case_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    list_case_events_api_v1_cases__case_id__events_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseEventRead"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -50,3 +50,16 @@ def move_descendants(session: Session, organization_id: int, old_path: str, new_
         .values(path=new_path + PATH_SEPARATOR + func.substr(Location.path, len(prefix) + 1))
         .execution_options(synchronize_session="fetch")
     )
+
+
+def list_active_page(
+    session: Session, organization_id: int, paging: PageParams
+) -> tuple[Sequence[Location], int]:
+    scope = select(Location).where(
+        Location.organization_id == organization_id, Location.is_active.is_(True)
+    )
+    total = session.scalar(select(func.count()).select_from(scope.subquery())) or 0
+    items = session.scalars(
+        scope.order_by(Location.path).offset(paging.offset).limit(paging.page_size)
+    ).all()
+    return items, total

@@ -62,6 +62,9 @@ Backend her fazın başında endpoint **şemalarını** yayınlar; iş mantığ�
 `501 NOT_IMPLEMENTED` döner. Frontend bu arada **MSW** ile sahte cevap alır:
 
 - `src/mocks/handlers.ts` — hangi endpoint'in sahte olduğu. Burada **olmayan** her istek gerçek backend'e gider.
+- `src/mocks/caseHandlers.ts` + `caseFixtures.ts` — FAZ 3 bildirimleri (`/cases`, `/cases/mine`, `/cases/{id}`,
+  `/cases/{id}/events`, `/locations`). Farklı durumlarda 4 örnek bildirim var; formdan gönderilen yeni bildirim
+  `ANALYZING` durumunda listeye eklenir (sayfa yenilenince silinir). Açıklama 10 karakterden kısaysa `422` döner.
 - `src/mocks/fixtures.ts` — sahte veriler. Tipleri OpenAPI'den gelir; backend şeması değişirse burası
   **derlenmez**, uyumsuzluk hemen görülür.
 - Sahte cevaplar service worker olmadan, doğrudan API istemcisinin içinde üretilir (`src/mocks/transport.ts`);

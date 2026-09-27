@@ -32,10 +32,21 @@ Yanıt: `TokenRead {access_token, token_type: "bearer", expires_in}` (access tok
 | POST | `/auth/logout` | auth | |
 | GET | `/auth/me` | auth | profil + rol |
 
+## Lokasyon seçici — ✅ uygulandı
+`GET /locations`: tüm roller; yalnız kendi kurumunun **aktif** lokasyonları, ağaç sırasında (`path`).
+Yanıt `Page[LocationOption]` (`id, parent_id, kind, code, name, path, aliases`); önem ağırlığı gibi yönetim
+alanları dönmez. Bildirim formu bunu kullanır; yönetim `/admin/locations`'tadır.
+
 ## Cases
+⏳ **FAZ 3 sözleşmesi yayında** (`501`, MSW'de sahte veri): `POST /cases`, `GET /cases` (`?status=` tekrarlanabilir),
+`GET /cases/mine`, `GET /cases/{id}`, `GET /cases/{id}/events`. `POST /cases` gövdesi JSON:
+`{description (10–2000 karakter), location_id, title?}`; tür, birim ve öncelik kullanıcıdan istenmez (agent'lar
+belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanıt `CaseRead`: `case_number`
+(`CASE-000124`), `status`, özet `location`/`case_type`/`department`, zaman damgaları.
+
 | Method | Path | Rol | Açıklama |
 |---|---|---|---|
-| POST | `/cases` | tümü | case oluştur (multipart: foto opsiyonel) → 201 `ANALYZING` |
+| POST | `/cases` | tümü | case oluştur (JSON; foto ayrı istekle) → 201 `ANALYZING` |
 | GET | `/cases` | M/A (tümü), R (kendi), S (kapsam) | filtre: status, category, location_id, department_id, priority, sla_status, from, to, q |
 | GET | `/cases/mine` | R | kendi case'lerim |
 | GET | `/cases/{id}` | kapsam | detay (+ SLA durumu hesaplanmış) |
