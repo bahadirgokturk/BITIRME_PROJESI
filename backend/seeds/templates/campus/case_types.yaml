@@ -1,0 +1,197 @@
+# Bildirim tipleri ve yonlendirme. Kaynak: docs/DEPARTMENTS.md bolum 3 (tablo ile uyum CI'da test edilir).
+# primary: gorevi alan birim (bos = insan inceler / gorev yok); secondary: yalniz bilgilendirilir.
+# autonomy: agent_policies tablosu FAZ 5'te gelince seed'e eklenecek; simdilik tablo uyumu icin tutulur.
+# severity 0-100: baslangic ciddiyeti; guvenlikle ilgili (L3) tipler 70 ve ustu.
+# keywords: kural tabanli siniflandirma icin kucuk harf ifadeler.
+
+case_types:
+  - code: SOAP_EMPTY
+    name: "Sabun bitti"
+    category: CONSUMABLE
+    primary: SUPPORT_SERVICES
+    secondary: null
+    autonomy: L1_AUTONOMOUS
+    priority: LOW
+    severity: 20
+    safety: false
+    keywords: [sabun, sabunluk, el yıkama]
+  - code: TOILET_PAPER_EMPTY
+    name: "Tuvalet kağıdı bitti"
+    category: CONSUMABLE
+    primary: SUPPORT_SERVICES
+    secondary: null
+    autonomy: L1_AUTONOMOUS
+    priority: LOW
+    severity: 20
+    safety: false
+    keywords: [tuvalet kağıdı, peçete, kağıt havlu]
+  - code: TRASH_FULL
+    name: "Çöp dolu"
+    category: CLEANING
+    primary: SUPPORT_SERVICES
+    secondary: null
+    autonomy: L1_AUTONOMOUS
+    priority: LOW
+    severity: 25
+    safety: false
+    keywords: [çöp, çöp kutusu, konteyner, taşıyor]
+  - code: AREA_DIRTY
+    name: "Alan kirli"
+    category: CLEANING
+    primary: SUPPORT_SERVICES
+    secondary: null
+    autonomy: L1_AUTONOMOUS
+    priority: MEDIUM
+    severity: 30
+    safety: false
+    keywords: [kirli, pis, koku, temizlenmemiş, dökülmüş]
+  - code: SECURITY_INCIDENT
+    name: "Güvenlik olayı"
+    category: SECURITY
+    primary: SUPPORT_SERVICES
+    secondary: CIVIL_DEFENSE
+    autonomy: L3_ESCALATE
+    priority: HIGH
+    severity: 75
+    safety: true
+    keywords: [şüpheli, kavga, çalındı, hırsız, güvenlik, kamera]
+  - code: LOST_ITEM
+    name: "Kayıp / bulunan eşya"
+    category: SECURITY
+    primary: SUPPORT_SERVICES
+    secondary: null
+    autonomy: L1_AUTONOMOUS
+    priority: LOW
+    severity: 10
+    safety: false
+    keywords: [kayıp, kaybettim, bulundu, unutulmuş, emanet]
+  - code: ELECTRICAL_FAILURE
+    name: "Elektrik arızası"
+    category: TECHNICAL
+    primary: MAINTENANCE
+    secondary: CIVIL_DEFENSE
+    autonomy: L3_ESCALATE
+    priority: HIGH
+    severity: 80
+    safety: true
+    keywords: [elektrik, priz, kıvılcım, sigorta, kablo, lamba, yanık kokusu]
+  - code: WATER_LEAK
+    name: "Su sızıntısı / taşkın"
+    category: INFRASTRUCTURE
+    primary: MAINTENANCE
+    secondary: SUPPORT_SERVICES
+    autonomy: L3_ESCALATE
+    priority: HIGH
+    severity: 70
+    safety: true
+    keywords: [su akıyor, sızıntı, taşkın, musluk, boru, tavan damlıyor]
+  - code: AIR_CONDITIONER_FAILURE
+    name: "Isıtma / soğutma arızası"
+    category: TECHNICAL
+    primary: MAINTENANCE
+    secondary: null
+    autonomy: L2_NOTIFY
+    priority: MEDIUM
+    severity: 40
+    safety: false
+    keywords: [klima, kalorifer, petek, ısıtma, soğutma, havalandırma]
+  - code: ELEVATOR_FAILURE
+    name: "Asansör arızası"
+    category: TECHNICAL
+    primary: MAINTENANCE
+    secondary: null
+    autonomy: L2_NOTIFY
+    priority: HIGH
+    severity: 60
+    safety: false
+    keywords: [asansör]
+  - code: FURNITURE_DAMAGE
+    name: "Mobilya / kapı / pencere hasarı"
+    category: INFRASTRUCTURE
+    primary: MAINTENANCE
+    secondary: null
+    autonomy: L2_NOTIFY
+    priority: LOW
+    severity: 30
+    safety: false
+    keywords: [sıra, masa, sandalye, kapı, pencere, dolap, kırık]
+  - code: GREEN_AREA
+    name: "Bahçe / yeşil alan"
+    category: INFRASTRUCTURE
+    primary: MAINTENANCE
+    secondary: null
+    autonomy: L1_AUTONOMOUS
+    priority: LOW
+    severity: 15
+    safety: false
+    keywords: [bahçe, çim, ağaç, dal, sulama, fıskiye]
+  - code: WIFI_FAILURE
+    name: "İnternet / Wi-Fi sorunu"
+    category: IT
+    primary: IT_SUPPORT
+    secondary: null
+    autonomy: L2_NOTIFY
+    priority: MEDIUM
+    severity: 40
+    safety: false
+    keywords: [wifi, wi-fi, internet, eduroam, bağlantı]
+  - code: COMPUTER_FAILURE
+    name: "Bilgisayar / donanım arızası"
+    category: IT
+    primary: IT_SUPPORT
+    secondary: null
+    autonomy: L2_NOTIFY
+    priority: MEDIUM
+    severity: 35
+    safety: false
+    keywords: [bilgisayar, yazıcı, monitör, klavye, mouse, mavi ekran]
+  - code: PROJECTOR_FAILURE
+    name: "Projeksiyon arızası"
+    category: TECHNICAL
+    primary: MAINTENANCE
+    secondary: IT_SUPPORT
+    autonomy: L2_NOTIFY
+    priority: MEDIUM
+    severity: 45
+    safety: false
+    keywords: [projeksiyon, projektör, perde, görüntü yok]
+  - code: ACCESS_CONTROL_FAILURE
+    name: "Turnike / kart okuyucu arızası"
+    category: IT
+    primary: IT_SUPPORT
+    secondary: SUPPORT_SERVICES
+    autonomy: L2_NOTIFY
+    priority: MEDIUM
+    severity: 50
+    safety: false
+    keywords: [turnike, kart okuyucu, kartlı giriş, bariyer]
+  - code: CAFETERIA_ISSUE
+    name: "Yemekhane / kantin sorunu"
+    category: FOOD_SERVICE
+    primary: NUTRITION
+    secondary: null
+    autonomy: L2_NOTIFY
+    priority: MEDIUM
+    severity: 40
+    safety: false
+    keywords: [yemekhane, kantin, kafeterya, yemek, otomat, hijyen]
+  - code: OTHER
+    name: "Diğer"
+    category: OTHER
+    primary: null
+    secondary: null
+    autonomy: L2_NOTIFY
+    priority: MEDIUM
+    severity: 30
+    safety: false
+    keywords: []
+  - code: OUT_OF_SCOPE
+    name: "Kapsam dışı talep"
+    category: OTHER
+    primary: null
+    secondary: null
+    autonomy: L1_AUTONOMOUS
+    priority: LOW
+    severity: 0
+    safety: false
+    keywords: [transkript, öğrenci belgesi, ders kaydı, maaş, burs, harç, sınav notu]

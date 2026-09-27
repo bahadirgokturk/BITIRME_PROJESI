@@ -88,6 +88,7 @@ on Windows/macOS bind mounts. `cp .env.example .env` first.
 docker compose up --build -d                           # backend :8000 + postgres :5433 (host)
 cd frontend && npm ci && npm run dev                   # frontend :3000 (env defaults: frontend/.env.development)
 docker compose exec backend alembic upgrade head
+docker compose exec backend python -m seeds.run --demo  # campus template + demo users (idempotent)
 docker compose exec backend pytest                     # integration tests use a separate <db>_test database
 docker compose exec backend sh -c "ruff check . && ruff format --check . && mypy"
 docker compose exec backend alembic revision --autogenerate -m "..."   # then review + write downgrade
@@ -96,5 +97,6 @@ cd frontend && npm run gen:api                         # regenerate API types (b
 python scripts/check_ascii_comments.py backend ai frontend/src scripts
 ```
 
-Seeds (`python -m seeds.run --demo`) arrive in FAZ 2. CI (`.github/workflows/ci.yml`) runs all of the above
+Seeds: `docker compose exec backend python -m seeds.run --demo` (idempotent; demo accounts in `backend/seeds/README.md`,
+`--demo` refused in production). CI (`.github/workflows/ci.yml`) runs all of the above
 plus an OpenAPI drift check (`api-contract` job) on every PR.

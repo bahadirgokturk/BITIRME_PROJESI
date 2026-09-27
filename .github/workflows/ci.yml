@@ -30,7 +30,8 @@ jobs:
           uvx ruff check scripts
           uvx ruff format --check scripts
       - name: Test scripts
-        run: uvx pytest -q scripts/tests
+        # pyyaml: DEPARTMENTS.md <-> seed YAML uyum testi (scripts/tests/test_departments_sync.py)
+        run: uvx --with pyyaml pytest -q scripts/tests
 
   backend:
     runs-on: ubuntu-latest

@@ -1,0 +1,60 @@
+# Ornek kampus agaci (temsili; universitenin gercek bina plani degildir).
+# code kurum icinde tekildir ve "/" icermez; path seed sirasinda hesaplanir (KMP/A/A-1/...).
+# importance 0-100: Priority Agent sinyali. Yogun ve hijyen acisindan kritik alanlar (yemekhane, WC) yuksek.
+
+locations:
+  - code: KMP
+    kind: CAMPUS
+    name: "Merkez Kampüs"
+    importance: 50
+    children:
+      - code: A
+        kind: BUILDING
+        name: "A Blok (Derslikler)"
+        importance: 60
+        aliases: [a blok, derslik binası]
+        children:
+          - code: A-Z
+            kind: FLOOR
+            name: "A Blok Zemin Kat"
+            importance: 60
+            children:
+              - {code: A-Z-WCE, kind: WC, name: "A Blok Zemin Kat Erkek WC", importance: 70, aliases: [zemin erkek tuvalet]}
+              - {code: A-Z-WCK, kind: WC, name: "A Blok Zemin Kat Kadın WC", importance: 70, aliases: [zemin kadın tuvalet]}
+              - {code: A-Z-KOR, kind: CORRIDOR, name: "A Blok Zemin Kat Koridor", importance: 40}
+              - {code: A-Z-TUR, kind: OTHER, name: "A Blok Giriş Turnikeleri", importance: 65, aliases: [a blok giriş, turnike]}
+          - code: A-1
+            kind: FLOOR
+            name: "A Blok 1. Kat"
+            importance: 55
+            children:
+              - {code: A-101, kind: ROOM, name: "A-101 Amfi", importance: 65, aliases: [amfi 1, a101]}
+              - {code: A-102, kind: ROOM, name: "A-102 Derslik", importance: 55, aliases: [a102]}
+              - {code: A-1-LAB, kind: ROOM, name: "A Blok Bilgisayar Laboratuvarı", importance: 60, aliases: [bilgisayar lab, lab 1]}
+              - {code: A-1-WCE, kind: WC, name: "A Blok 1. Kat Erkek WC", importance: 70}
+              - {code: A-1-WCK, kind: WC, name: "A Blok 1. Kat Kadın WC", importance: 70}
+      - code: B
+        kind: BUILDING
+        name: "B Blok (Kütüphane ve İdari)"
+        importance: 55
+        aliases: [b blok, kütüphane]
+        children:
+          - code: B-Z
+            kind: FLOOR
+            name: "B Blok Zemin Kat"
+            importance: 55
+            children:
+              - {code: B-KUT, kind: ROOM, name: "Kütüphane Okuma Salonu", importance: 60, aliases: [okuma salonu]}
+              - {code: B-Z-WC, kind: WC, name: "B Blok Zemin Kat WC", importance: 70}
+              - {code: B-ASN, kind: OTHER, name: "B Blok Asansör", importance: 60, aliases: [asansör]}
+      - code: YMK
+        kind: BUILDING
+        name: "Yemekhane"
+        importance: 80
+        aliases: [yemekhane, kafeterya]
+        children:
+          - {code: YMK-SAL, kind: ROOM, name: "Yemekhane Salonu", importance: 80}
+          - {code: YMK-KNT, kind: ROOM, name: "Kantin", importance: 70, aliases: [kantin]}
+          - {code: YMK-WC, kind: WC, name: "Yemekhane WC", importance: 75}
+      - {code: OTP, kind: OUTDOOR, name: "Otopark", importance: 30, aliases: [otopark, park yeri]}
+      - {code: BHC, kind: OUTDOOR, name: "Kampüs Bahçesi", importance: 25, aliases: [bahçe, çimenlik]}

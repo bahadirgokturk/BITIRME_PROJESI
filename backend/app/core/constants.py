@@ -4,6 +4,10 @@
 IMPORTANCE_WEIGHT_MIN = 0
 IMPORTANCE_WEIGHT_MAX = 100
 
+# Bildirim tipinin baslangic ciddiyeti 0-100; Priority Agent diger sinyallerle birlestirir
+SEVERITY_MIN = 0
+SEVERITY_MAX = 100
+
 # Liste sayfalama (docs/API.md): 20 kayit mobil ekrana sigar;
 # 200 ust sinir admin lokasyon agacini tek istekte getirebilsin diye
 PAGE_SIZE_DEFAULT = 20
