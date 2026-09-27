@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import AliasChoices, BaseModel, Field
 
 from app.core.constants import (
     CASE_DESCRIPTION_MAX_LENGTH,
@@ -78,4 +78,5 @@ class CaseEventRead(BaseModel):
     from_status: CaseStatus | None
     to_status: CaseStatus | None
     occurred_at: datetime
-    metadata: dict[str, Any]
+    # Modelde metadata_json (SQLAlchemy'de 'metadata' ayrilmis bir addir)
+    metadata: dict[str, Any] = Field(validation_alias=AliasChoices("metadata_json", "metadata"))

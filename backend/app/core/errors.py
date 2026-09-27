@@ -48,6 +48,13 @@ class InvalidUserRoleError(DomainError):
     default_message = messages.INVALID_USER_ROLE
 
 
+class InvalidTransitionError(DomainError):
+    # Gecis docs/WORKFLOW.md tablosunda yok (app/services/workflow.py ALLOWED_TRANSITIONS)
+    code = "INVALID_TRANSITION"
+    status = HTTPStatus.CONFLICT
+    default_message = messages.INVALID_TRANSITION
+
+
 class SelfLockoutError(DomainError):
     # Admin kendi erisimini kaldirirsa kurumda kimse kalmayabilir
     code = "SELF_LOCKOUT"

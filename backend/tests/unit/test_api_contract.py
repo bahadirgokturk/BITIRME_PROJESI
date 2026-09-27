@@ -1,6 +1,6 @@
 """API sozlesmesi: semalar OpenAPI'de yayinda ve girdi is mantigindan once dogrulanir.
 
-Sozlesme-once endpoint'ler (501) CONTRACT_STUBS'ta; uygulaninca satir silinir.
+Sozlesme-once (501) endpoint'ler eklenince CONTRACT_STUBS listesiyle burada test edilir.
 """
 
 from collections.abc import Iterator
@@ -23,15 +23,6 @@ VALID_USER = {
 VALID_LOCATION = {"kind": "WC", "code": "B-2-WCM", "name": "B Blok 2. Kat Erkek WC"}
 VALID_CASE = {"description": "B Blok 2. kat erkek tuvaletinde sabun bitmiş.", "location_id": 1}
 
-# FAZ 3 sozlesmesi: sema yayinda, is mantigi sonraki PR'larda (E3-1, E3-2)
-CONTRACT_STUBS: list[tuple[str, str, dict[str, object] | None]] = [
-    ("POST", "/api/v1/cases", VALID_CASE),
-    ("GET", "/api/v1/cases", None),
-    ("GET", "/api/v1/cases/mine", None),
-    ("GET", "/api/v1/cases/1", None),
-    ("GET", "/api/v1/cases/1/events", None),
-]
-
 
 @pytest.fixture
 def admin_app(test_app: FastAPI) -> Iterator[FastAPI]:
@@ -40,16 +31,6 @@ def admin_app(test_app: FastAPI) -> Iterator[FastAPI]:
     test_app.dependency_overrides[get_current_user] = lambda: admin
     yield test_app
     test_app.dependency_overrides.clear()
-
-
-@pytest.mark.parametrize(("method", "path", "body"), CONTRACT_STUBS)
-def test_contract_endpoint_is_published_but_not_implemented(
-    admin_app: FastAPI, method: str, path: str, body: dict[str, object] | None
-) -> None:
-    response = TestClient(admin_app).request(method, path, json=body)
-
-    assert response.status_code == 501
-    assert response.json()["error"]["code"] == "NOT_IMPLEMENTED"
 
 
 def test_contract_schemas_are_in_openapi(test_app: FastAPI) -> None:

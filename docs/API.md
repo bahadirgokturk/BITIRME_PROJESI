@@ -38,8 +38,19 @@ Yanıt `Page[LocationOption]` (`id, parent_id, kind, code, name, path, aliases`)
 alanları dönmez. Bildirim formu bunu kullanır; yönetim `/admin/locations`'tadır.
 
 ## Cases
-⏳ **FAZ 3 sözleşmesi yayında** (`501`, MSW'de sahte veri): `POST /cases`, `GET /cases` (`?status=` tekrarlanabilir),
-`GET /cases/mine`, `GET /cases/{id}`, `GET /cases/{id}/events`. `POST /cases` gövdesi JSON:
+✅ **Uygulandı (E3-1):** `POST /cases`, `GET /cases` (`?status=` tekrarlanabilir, en yeni önce),
+`GET /cases/mine`, `GET /cases/{id}`, `GET /cases/{id}/events`.
+- Yeni bildirim `NEW` olarak kaydedilir ve aynı istekte `ANALYZING`'e geçer; zaman çizelgesinde `CASE_CREATED` +
+  `ANALYSIS_STARTED`. Agent hattı (FAZ 5) gelene kadar `ANALYZING`'de bekler.
+- Numara `CASE-000124` (PostgreSQL sequence, id'den bağımsız). Başlık boşsa açıklamanın ilk 60 karakteri.
+- Başka kurumun ya da pasif lokasyon → `404`.
+- Görme kapsamı (liste ve detay aynı kural): REPORTER kendi bildirimleri; STAFF kendi bildirdiği + kendisine
+  atanan + departmanına yönlendirilen; MANAGER/ADMIN kurumun tümü. Kapsam dışı kayıt → `404`.
+- Zaman çizelgesi: REPORTER yalnız kamuya açık olayları görür (agent kararları, SLA uyarıları gizli) ve
+  `metadata` boş döner.
+- Durum değişiklikleri yalnız `WorkflowService` ile (docs/WORKFLOW.md); tablo dışı geçiş → `409 INVALID_TRANSITION`.
+
+`POST /cases` gövdesi JSON:
 `{description (10–2000 karakter), location_id, title?}`; tür, birim ve öncelik kullanıcıdan istenmez (agent'lar
 belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanıt `CaseRead`: `case_number`
 (`CASE-000124`), `status`, özet `location`/`case_type`/`department`, zaman damgaları.
