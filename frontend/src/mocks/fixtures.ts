@@ -7,10 +7,26 @@ export type Role = Schemas["UserRole"];
 const CREATED_AT = "2026-09-01T09:00:00Z";
 
 export const DEPARTMENTS: Schemas["DepartmentRead"][] = [
-  { id: 1, code: "CLEANING", name: "Temizlik", is_active: true },
-  { id: 2, code: "TECHNICAL", name: "Teknik İşler", is_active: true },
-  { id: 3, code: "IT", name: "Bilgi İşlem", is_active: true },
-  { id: 4, code: "SECURITY", name: "Güvenlik", is_active: true },
+  // Kodlar docs/DEPARTMENTS.md bolum 2 ile ayni (sube mudurlugu duzeyi)
+  {
+    id: 1,
+    code: "SUPPORT_SERVICES",
+    name: "Destek Hizmetleri Şube Müdürlüğü",
+    is_active: true,
+  },
+  {
+    id: 2,
+    code: "MAINTENANCE",
+    name: "Bakım Onarım ve Peyzaj Şube Müdürlüğü",
+    is_active: true,
+  },
+  {
+    id: 3,
+    code: "IT_SUPPORT",
+    name: "Donanım ve Teknik Destek Şube Müdürlüğü",
+    is_active: true,
+  },
+  { id: 4, code: "NUTRITION", name: "Beslenme Hizmetleri", is_active: true },
 ];
 
 export const USERS: Record<Role, Schemas["UserRead"]> = {

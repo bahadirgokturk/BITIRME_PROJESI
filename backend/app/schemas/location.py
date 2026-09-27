@@ -40,3 +40,15 @@ class LocationUpdate(BaseModel):
     )
     aliases: list[str] | None = None
     is_active: bool | None = None
+
+
+class LocationOption(BaseModel):
+    """Bildirim formundaki lokasyon secicisi icin; onem agirligi gibi yonetim alanlari yok."""
+
+    id: int
+    parent_id: int | None
+    kind: LocationKind
+    code: str
+    name: str
+    path: str
+    aliases: list[str]

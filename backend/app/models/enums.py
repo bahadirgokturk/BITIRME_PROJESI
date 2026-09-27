@@ -43,3 +43,27 @@ class Priority(StrEnum):
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
     CRITICAL = "CRITICAL"
+
+
+class CaseStatus(StrEnum):
+    # Gecis kurallari: docs/WORKFLOW.md bolum 1
+    NEW = "NEW"
+    ANALYZING = "ANALYZING"
+    NEEDS_INFO = "NEEDS_INFO"
+    CLASSIFIED = "CLASSIFIED"
+    ASSIGNED = "ASSIGNED"
+    ACCEPTED = "ACCEPTED"
+    IN_PROGRESS = "IN_PROGRESS"
+    RESOLVED = "RESOLVED"
+    VERIFICATION = "VERIFICATION"
+    CLOSED = "CLOSED"
+    REOPENED = "REOPENED"
+    ESCALATED = "ESCALATED"
+    REJECTED = "REJECTED"
+    MERGED = "MERGED"
+
+
+class ActorType(StrEnum):
+    USER = "USER"
+    AGENT = "AGENT"
+    SYSTEM = "SYSTEM"

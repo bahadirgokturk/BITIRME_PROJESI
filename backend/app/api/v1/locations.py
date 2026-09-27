@@ -1,0 +1,33 @@
+"""Bildirim formu icin lokasyon listesi: tum roller, yalniz kendi kurumunun aktif lokasyonlari.
+
+Yonetim (ekle/duzenle) /admin/locations altindadir ve yalniz ADMIN'e aciktir.
+"""
+
+from typing import Annotated
+
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
+from app.api.deps import CurrentUser
+from app.api.v1.pagination import page_params
+from app.api.v1.responses import AUTHENTICATED_RESPONSES
+from app.core.database import get_session
+from app.schemas.common import Page, PageParams
+from app.schemas.location import LocationOption
+from app.services.location_service import LocationService
+
+router = APIRouter(prefix="/locations", tags=["locations"], responses=AUTHENTICATED_RESPONSES)
+
+
+def get_location_service(
+    session: Annotated[Session, Depends(get_session)], user: CurrentUser
+) -> LocationService:
+    return LocationService(session, user)
+
+
+@router.get("")
+def list_location_options(
+    paging: Annotated[PageParams, Depends(page_params)],
+    service: Annotated[LocationService, Depends(get_location_service)],
+) -> Page[LocationOption]:
+    return service.list_options(paging)

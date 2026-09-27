@@ -12,7 +12,7 @@ from app.models import Location, User
 from app.repositories import location_repository
 from app.repositories.location_repository import PATH_SEPARATOR
 from app.schemas.common import Page, PageParams
-from app.schemas.location import LocationCreate, LocationRead, LocationUpdate
+from app.schemas.location import LocationCreate, LocationOption, LocationRead, LocationUpdate
 from app.services.authorization import ensure_same_organization
 
 
@@ -27,6 +27,17 @@ class LocationService:
         )
         return Page(
             items=[LocationRead.model_validate(loc, from_attributes=True) for loc in items],
+            total=total,
+            page=paging.page,
+        )
+
+    def list_options(self, paging: PageParams) -> Page[LocationOption]:
+        """Bildirim formu icin: yalniz aktif lokasyonlar, her rol icin."""
+        items, total = location_repository.list_active_page(
+            self._session, self._actor.organization_id, paging
+        )
+        return Page(
+            items=[LocationOption.model_validate(loc, from_attributes=True) for loc in items],
             total=total,
             page=paging.page,
         )

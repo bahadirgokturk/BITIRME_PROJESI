@@ -27,3 +27,9 @@ LOGIN_MAX_FAILURES_PER_IP = 20
 LOGIN_FAILURE_WINDOW_MINUTES = 15
 # Bellek korumasi: bu kadar anahtar birikince suresi dolanlar temizlenir
 LOGIN_LIMITER_PRUNE_THRESHOLD = 10_000
+
+# Bildirim aciklamasi: 10 karakter "sabun yok" gibi en kisa anlamli cumleyi gecer, bos/tek kelime
+# bildirimleri eler; 2000 karakter uzun bir anlatima yeter, siniflandiriciya asiri metin gitmez
+CASE_DESCRIPTION_MIN_LENGTH = 10
+CASE_DESCRIPTION_MAX_LENGTH = 2000
+CASE_TITLE_MAX_LENGTH = 200
