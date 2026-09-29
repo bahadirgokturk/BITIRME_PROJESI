@@ -52,3 +52,12 @@ MAX_VIDEO_SECONDS = 30
 MAX_VIDEO_MB_DEFAULT = 50
 # Telefon "30 sn" kaydini 30,0x sn olarak yazabilir; yarim saniye pay
 VIDEO_DURATION_TOLERANCE_SECONDS = 0.5
+
+# Bildirim yapan, kapanistan sonra 72 saat icinde "sorun devam ediyor" diyebilir ve puan verebilir
+# (docs/WORKFLOW.md): hafta sonunu kapsar, eski isler suresiz acik kalmaz
+REOPEN_WINDOW_HOURS = 72
+COMMENT_MAX_LENGTH = 2000
+REOPEN_REASON_MAX_LENGTH = 1000
+# Memnuniyet puani 1-5 yildiz (cases.satisfaction_rating CHECK ile ayni)
+RATING_MIN = 1
+RATING_MAX = 5

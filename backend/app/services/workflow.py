@@ -42,10 +42,10 @@ _FIRST_TIME_FIELDS: dict[S, str] = {
     S.ACCEPTED: "accepted_at",
     S.IN_PROGRESS: "started_at",
     S.VERIFICATION: "verified_at",
-    S.CLOSED: "closed_at",
 }
-# Istisna: reopen sonrasi yeniden cozulunce cozum zamani guncellenir (SLA son cozume gore olculur)
-_ALWAYS_UPDATED_FIELDS: dict[S, str] = {S.RESOLVED: "resolved_at"}
+# Istisna: reopen sonrasi yeniden cozum/kapanis zamani guncellenir. SLA son cozume gore olculur;
+# bildirim yapanin 72 saatlik itiraz penceresi son kapanistan baslar
+_ALWAYS_UPDATED_FIELDS: dict[S, str] = {S.RESOLVED: "resolved_at", S.CLOSED: "closed_at"}
 
 
 @dataclass(frozen=True)

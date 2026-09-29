@@ -29,6 +29,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.core.constants import RATING_MAX, RATING_MIN
 from app.models.base import Base, CreatedAtMixin, IdMixin
 from app.models.case_type import CaseType
 from app.models.department import Department
@@ -51,7 +52,8 @@ class Case(IdMixin, CreatedAtMixin, Base):
         Index("ix_cases_department_id_status", "department_id", "status"),
         Index("ix_cases_reporter_id_created_at", "reporter_id", text("created_at DESC")),
         CheckConstraint(
-            "satisfaction_rating IS NULL OR satisfaction_rating BETWEEN 1 AND 5",
+            "satisfaction_rating IS NULL OR "
+            f"satisfaction_rating BETWEEN {RATING_MIN} AND {RATING_MAX}",
             name="satisfaction_rating_range",
         ),
     )

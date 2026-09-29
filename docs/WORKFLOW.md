@@ -45,7 +45,9 @@ stateDiagram-v2
 - Geçişler `backend/app/services/workflow.py` içinde **tek bir tablo** (`ALLOWED_TRANSITIONS: dict[CaseStatus, set[CaseStatus]]`)
   olarak tanımlanır. Tablo dışı geçiş `InvalidTransitionError` → HTTP 409.
 - Her geçiş: ilgili zaman damgası (`assigned_at`…) + `case_events` kaydı aynı transaction'da.
-- Zaman damgaları **ilk** gerçekleşmede yazılır (reopen sonrası `resolved_at` güncellenir, ilk değer event log'da korunur).
+- Zaman damgaları **ilk** gerçekleşmede yazılır. İstisna: reopen sonrası `resolved_at` ve `closed_at` güncellenir
+  (SLA son çözüme göre ölçülür; reporter'ın 72 saatlik itiraz/puan penceresi son kapanıştan başlar). İlk değerler
+  event log'da korunur.
 - `ESCALATED` **durumu** = manager karar kuyruğu (atama öncesi risk). SLA gecikmesi escalation'ı ise
   status'u değiştirmez; `escalation_level` artar + `ESCALATED` event yazılır. Böylece devam eden iş bozulmaz.
 - Terminal durumlar: `CLOSED` (reopen penceresi hariç), `REJECTED`, `MERGED`.

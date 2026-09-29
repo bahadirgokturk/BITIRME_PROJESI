@@ -77,6 +77,16 @@ def test_expired_token_is_rejected() -> None:
         decode_access_token(token, secret=SECRET, now=NOW + TTL + timedelta(seconds=1))
 
 
+def test_validity_follows_the_given_clock_not_the_machine_clock() -> None:
+    # Tum zaman kontrolleri verilen "now"a gore: gercek saatten ileri bir anda uretilen token
+    # ayni anda gecerli sayilir (kutuphane iat'i makine saatine gore "gelecekte" saymamali)
+    future = datetime.now(UTC) + timedelta(days=30)
+    claims = AccessTokenClaims(user_id=7, role="REPORTER")
+    token = create_access_token(claims, secret=SECRET, ttl=TTL, now=future)
+
+    assert decode_access_token(token, secret=SECRET, now=future).user_id == 7
+
+
 def test_token_signed_with_another_secret_is_rejected() -> None:
     token = _token(secret="another-secret-that-is-also-32-characters-long")
 

@@ -27,7 +27,7 @@ function page<T>(items: T[]) {
   return { items, total: items.length, page: 1 };
 }
 
-function findCase(id: string | readonly string[] | undefined) {
+export function findCase(id: string | readonly string[] | undefined) {
   return cases.find((item) => String(item.id) === id);
 }
 

@@ -65,6 +65,8 @@ Backend her fazın başında endpoint **şemalarını** yayınlar; iş mantığ�
 - `src/mocks/caseHandlers.ts` + `caseFixtures.ts` — FAZ 3 bildirimleri (`/cases`, `/cases/mine`, `/cases/{id}`,
   `/cases/{id}/events`, `/locations`). Farklı durumlarda 4 örnek bildirim var; formdan gönderilen yeni bildirim
   `ANALYZING` durumunda listeye eklenir (sayfa yenilenince silinir). Açıklama 10 karakterden kısaysa `422` döner.
+- `src/mocks/interactionHandlers.ts` — yorum (`/cases/{id}/comments`), puan (`/feedback`) ve yeniden açma (`/reopen`).
+  Sahte API her isteği REPORTER sayar; 72 saat penceresini ve rol kurallarını yalnız gerçek backend denetler.
 - `src/mocks/attachmentHandlers.ts` — fotoğraf/video yükleme (`POST /cases/{id}/attachments`, alan adı `file`), listeleme
   ve indirme. JPG/PNG/WEBP ve MP4/MOV dışı `415`; fotoğraf 5 MB, video 50 MB üstü `413` (30 sn sınırını
   yalnız gerçek backend denetler). Fotoğraf Bearer token ister: `<img src>` değil,
