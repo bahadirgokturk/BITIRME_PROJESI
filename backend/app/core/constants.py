@@ -61,3 +61,6 @@ REOPEN_REASON_MAX_LENGTH = 1000
 # Memnuniyet puani 1-5 yildiz (cases.satisfaction_rating CHECK ile ayni)
 RATING_MIN = 1
 RATING_MAX = 5
+
+# Gorev reddi ve tamamlama notu uzunlugu
+TASK_NOTE_MAX_LENGTH = 1000

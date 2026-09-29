@@ -8,6 +8,7 @@ from app.api.v1 import (
     cases,
     health,
     locations,
+    tasks,
 )
 
 api_router = APIRouter()
@@ -17,4 +18,5 @@ api_router.include_router(locations.router)
 api_router.include_router(cases.router)
 api_router.include_router(attachments.router)
 api_router.include_router(case_interactions.router)
+api_router.include_router(tasks.router)
 api_router.include_router(admin.router)

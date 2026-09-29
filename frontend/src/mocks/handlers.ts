@@ -9,6 +9,7 @@ import type { components } from "@/lib/api/types";
 import { attachmentHandlers } from "./attachmentHandlers";
 import { caseHandlers } from "./caseHandlers";
 import { interactionHandlers } from "./interactionHandlers";
+import { taskHandlers } from "./taskHandlers";
 import {
   DEPARTMENTS,
   LOCATIONS,
@@ -76,4 +77,5 @@ export const handlers = [
   ...caseHandlers,
   ...attachmentHandlers,
   ...interactionHandlers,
+  ...taskHandlers,
 ];

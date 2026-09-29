@@ -101,3 +101,58 @@ def test_contract_validates_input_before_business_logic(
 
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "VALIDATION_ERROR"
+
+
+# FAZ 4 sozlesmesi: sema yayinda, is mantigi E4-1/E4-2 PR'larinda (501)
+TASK_STUBS: list[tuple[str, str, dict[str, object] | None]] = [
+    ("GET", "/api/v1/tasks/mine", None),
+    ("GET", "/api/v1/tasks/1", None),
+    ("POST", "/api/v1/tasks/1/accept", None),
+    ("POST", "/api/v1/tasks/1/start", None),
+    ("POST", "/api/v1/tasks/1/decline", {"reason": "Yetki alanım dışında."}),
+    ("POST", "/api/v1/tasks/1/complete", {"completion_note": "Sabunluklar dolduruldu."}),
+    ("POST", "/api/v1/cases/1/assign", {"department_id": 1}),
+]
+
+
+@pytest.mark.parametrize(("method", "path", "body"), TASK_STUBS)
+def test_task_contract_is_published_but_not_implemented(
+    admin_app: FastAPI, method: str, path: str, body: dict[str, object] | None
+) -> None:
+    response = TestClient(admin_app).request(method, path, json=body)
+
+    assert response.status_code == 501
+    assert response.json()["error"]["code"] == "NOT_IMPLEMENTED"
+
+
+def test_task_schemas_are_in_openapi(test_app: FastAPI) -> None:
+    schemas = TestClient(test_app).get("/openapi.json").json()["components"]["schemas"]
+
+    assert {"TaskRead", "TaskStatus", "SlaStatus", "DeclineRequest", "AssignRequest"} <= set(
+        schemas
+    )
+    assert schemas["TaskStatus"]["enum"] == [
+        "PENDING",
+        "ACCEPTED",
+        "IN_PROGRESS",
+        "COMPLETED",
+        "DECLINED",
+        "CANCELLED",
+    ]
+    assert schemas["SlaStatus"]["enum"] == ["ON_TRACK", "AT_RISK", "BREACHED"]
+    assert "sla_status" in schemas["CaseRead"]["properties"]
+
+
+@pytest.mark.parametrize(
+    ("path", "body"),
+    [
+        ("/api/v1/tasks/1/decline", {"reason": ""}),
+        ("/api/v1/cases/1/assign", {}),
+    ],
+)
+def test_task_input_is_validated_before_business_logic(
+    admin_app: FastAPI, path: str, body: dict[str, object]
+) -> None:
+    response = TestClient(admin_app).post(path, json=body)
+
+    assert response.status_code == 422

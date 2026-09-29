@@ -10,8 +10,10 @@ from app.api.deps import CurrentUser
 from app.api.v1.responses import AUTHENTICATED_RESPONSES
 from app.core.clock import Clock, get_clock
 from app.core.database import get_session
+from app.core.errors import NotImplementedYetError
 from app.schemas.case import CaseRead, CommentCreate, CommentRead, FeedbackCreate, ReopenRequest
 from app.schemas.error import ErrorRead
+from app.schemas.task import AssignRequest
 from app.services.case_interaction_service import CaseInteractionService
 
 router = APIRouter(prefix="/cases", tags=["cases"], responses=AUTHENTICATED_RESPONSES)
@@ -47,3 +49,9 @@ def submit_feedback(case_id: int, payload: FeedbackCreate, service: Interactions
 @router.post("/{case_id}/reopen", responses=CONFLICT)
 def reopen_case(case_id: int, payload: ReopenRequest, service: Interactions) -> CaseRead:
     return service.reopen(case_id, payload)
+
+
+@router.post("/{case_id}/assign")
+def assign_case(case_id: int, _payload: AssignRequest, _service: Interactions) -> CaseRead:
+    """Manager atamasi (E4-1): gorev olusturur, case ASSIGNED olur. Sozlesme (501)."""
+    raise NotImplementedYetError()

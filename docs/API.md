@@ -103,22 +103,29 @@ belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanı
 | Method | Path | Açıklama |
 |---|---|---|
 | GET | `/manager/review-queue` | `needs_human_review=true` + `ESCALATED` case'ler |
-| POST | `/cases/{id}/assign` | `{department_id, user_id?}` |
+| POST | `/cases/{id}/assign` | `{department_id, user_id?}` ⏳ sözleşme (501), E4-1 |
 | POST | `/cases/{id}/override` | `{field, corrected_value, reason}` → `decision_feedback` + `DECISION_OVERRIDDEN` |
 | POST | `/cases/{id}/merge` | `{parent_case_id}` |
 | POST | `/cases/{id}/reject` | `{reason}` |
 | POST | `/cases/{id}/reanalyze` | pipeline'ı tekrar çalıştır |
 
 ## Tasks (Staff)
+⏳ **FAZ 4 sözleşmesi yayında** (`501`, MSW'de sahte veri); iş mantığı E4-1, SLA E4-2.
+Yanıt `TaskRead`: görev + bildirim özeti (`case_number`, `title`, `description`, `location`, `priority`) ve
+`due_at` / `sla_status` (`ON_TRACK` | `AT_RISK` | `BREACHED`, kural yoksa `null`). Liste SLA'ya kalan süreye
+göre sıralanır (en acil üstte). `CaseRead` de `sla_status` alanını taşır.
+
 | Method | Path | Açıklama |
 |---|---|---|
-| GET | `/tasks/mine` | atanan görevlerim (status filtresi) |
-| GET | `/tasks/{id}` | detay (+ case özeti, lokasyon) |
-| POST | `/tasks/{id}/accept` | |
-| POST | `/tasks/{id}/decline` | `{reason}` |
-| POST | `/tasks/{id}/start` | |
-| POST | `/tasks/{id}/evidence` | kanıt fotoğrafı |
-| POST | `/tasks/{id}/complete` | `{completion_note}` → Resolution Agent |
+| GET | `/tasks/mine` | atanan görevlerim (`?status=` tekrarlanabilir) |
+| GET | `/tasks/{id}` | detay (+ bildirim özeti, lokasyon) |
+| POST | `/tasks/{id}/accept` | `PENDING` → `ACCEPTED` |
+| POST | `/tasks/{id}/decline` | `{reason}`; `PENDING`/`ACCEPTED` → `DECLINED` |
+| POST | `/tasks/{id}/start` | `ACCEPTED` → `IN_PROGRESS` |
+| POST | `/tasks/{id}/complete` | `{completion_note?}`; `IN_PROGRESS` → `COMPLETED` → Resolution Agent |
+| POST | `/cases/{id}/attachments` | **kanıt fotoğrafı**: personelin yüklediği `EVIDENCE` olarak işaretlenir (ayrı uç yok) |
+
+Manager ataması: `POST /cases/{id}/assign` `{department_id, user_id?}` → görev oluşur, bildirim `ASSIGNED`.
 
 ## Analytics (Manager/Admin)
 Ortak parametreler: `from`, `to`, `department_id?`, `building_id?`
