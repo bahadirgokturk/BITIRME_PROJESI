@@ -1,4 +1,4 @@
-"""Bildirim fotograflari (E3-3). Kurallar: services/attachment_service.py, image_policy.py."""
+"""Bildirim fotograf ve videolari (E3-3). Kurallar: attachment_service ve *_policy modulleri."""
 
 from http import HTTPStatus
 from typing import Annotated, Any
@@ -24,6 +24,7 @@ UPLOAD_ERRORS: dict[int | str, dict[str, Any]] = {
     HTTPStatus.CONFLICT: {"model": ErrorRead},
     HTTPStatus.REQUEST_ENTITY_TOO_LARGE: {"model": ErrorRead},
     HTTPStatus.UNSUPPORTED_MEDIA_TYPE: {"model": ErrorRead},
+    HTTPStatus.UNPROCESSABLE_ENTITY: {"model": ErrorRead},
 }
 
 
@@ -33,22 +34,23 @@ def get_attachment_service(
     storage: Annotated[Storage, Depends(get_storage)],
     settings: Annotated[Settings, Depends(get_app_settings)],
 ) -> AttachmentService:
-    config = UploadConfig(storage=storage, max_bytes=settings.max_upload_mb * BYTES_PER_MB)
+    config = UploadConfig(
+        storage=storage,
+        max_image_bytes=settings.max_upload_mb * BYTES_PER_MB,
+        max_video_bytes=settings.max_video_mb * BYTES_PER_MB,
+    )
     return AttachmentService(session, user, config)
 
 
 Attachments = Annotated[AttachmentService, Depends(get_attachment_service)]
-AppSettings = Annotated[Settings, Depends(get_app_settings)]
 
 
 @router.post(
     "/cases/{case_id}/attachments", status_code=HTTPStatus.CREATED, responses=UPLOAD_ERRORS
 )
-def upload_attachment(
-    case_id: int, file: UploadFile, service: Attachments, settings: AppSettings
-) -> AttachmentRead:
+def upload_attachment(case_id: int, file: UploadFile, service: Attachments) -> AttachmentRead:
     # Siniri bir bayt asacak kadar okunur: buyuk dosya bellege tumuyle alinmadan reddedilir
-    data = file.file.read(settings.max_upload_mb * BYTES_PER_MB + 1)
+    data = file.file.read(service.read_limit)
     return service.upload(case_id, UploadedFile(name=file.filename or "", data=data))
 
 
@@ -60,7 +62,7 @@ def list_attachments(case_id: int, service: Attachments) -> list[AttachmentRead]
 @router.get(
     "/attachments/{attachment_id}",
     response_class=Response,
-    responses={HTTPStatus.OK: {"content": {"image/*": {}}}},
+    responses={HTTPStatus.OK: {"content": {"image/*": {}, "video/*": {}}}},
 )
 def download_attachment(attachment_id: int, service: Attachments) -> Response:
     file = service.download(attachment_id)

@@ -1599,6 +1599,7 @@ export interface operations {
                 };
                 content: {
                     "image/*": unknown;
+                    "video/*": unknown;
                 };
             };
             /** @description Unauthorized */

@@ -46,3 +46,9 @@ BYTES_PER_MB = 1024 * 1024
 MAX_ATTACHMENTS_PER_CASE = 5
 # Kaydedilen dosya adi (original_name) siniri; tam ad yalniz gosterim icin
 ATTACHMENT_NAME_MAX_LENGTH = 255
+
+# Video: 30 sn bir arizayi gostermeye yeter. 1080p telefon videosu ~1-2 MB/sn -> 50 MB
+MAX_VIDEO_SECONDS = 30
+MAX_VIDEO_MB_DEFAULT = 50
+# Telefon "30 sn" kaydini 30,0x sn olarak yazabilir; yarim saniye pay
+VIDEO_DURATION_TOLERANCE_SECONDS = 0.5

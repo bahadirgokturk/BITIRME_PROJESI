@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.core.constants import MAX_ATTACHMENTS_PER_CASE
 from app.models.enums import UserRole
 from tests.integration.factories import bearer, make_location, make_organization, make_user
+from tests.media_samples import mp4
 
 Headers = dict[str, str]
 
@@ -118,3 +119,26 @@ def test_unknown_attachment_is_404(client: TestClient, case_id: int) -> None:
     assert (
         client.get("/api/v1/attachments/999999", headers=_as(client, "ogrenci")).status_code == 404
     )
+
+
+def test_reporter_uploads_a_short_video(client: TestClient, case_id: int) -> None:
+    reporter = _as(client, "ogrenci")
+    files = {"file": ("kaçak.mp4", mp4(seconds=20), "video/mp4")}
+
+    response = client.post(f"/api/v1/cases/{case_id}/attachments", files=files, headers=reporter)
+    download = client.get(f"/api/v1/attachments/{response.json()['id']}", headers=reporter)
+
+    assert response.status_code == 201
+    assert response.json()["mime_type"] == "video/mp4"
+    assert download.headers["content-type"] == "video/mp4"
+
+
+def test_long_video_is_422(client: TestClient, case_id: int) -> None:
+    files = {"file": ("uzun.mp4", mp4(seconds=90), "video/mp4")}
+
+    response = client.post(
+        f"/api/v1/cases/{case_id}/attachments", files=files, headers=_as(client, "ogrenci")
+    )
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "VIDEO_TOO_LONG"
