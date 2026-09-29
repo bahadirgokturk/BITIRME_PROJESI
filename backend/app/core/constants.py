@@ -38,3 +38,11 @@ CASE_TITLE_FROM_DESCRIPTION_LENGTH = 60
 # CASE-000124: 6 hane bir kampuste yillarca yeter (999.999 bildirim)
 CASE_NUMBER_PREFIX = "CASE-"
 CASE_NUMBER_DIGITS = 6
+
+# Fotograf yukleme (docs/ARCHITECTURE.md bolum 9): telefon fotografi sikistirilinca 5 MB'a sigar
+MAX_UPLOAD_MB_DEFAULT = 5
+BYTES_PER_MB = 1024 * 1024
+# Bir bildirime en fazla 5 fotograf: olayi gostermeye yeter, depolama kotuye kullanilamaz
+MAX_ATTACHMENTS_PER_CASE = 5
+# Kaydedilen dosya adi (original_name) siniri; tam ad yalniz gosterim icin
+ATTACHMENT_NAME_MAX_LENGTH = 255

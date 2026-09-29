@@ -6,6 +6,7 @@ import { http, HttpResponse } from "msw";
 import { apiUrl } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
 
+import { attachmentHandlers } from "./attachmentHandlers";
 import { caseHandlers } from "./caseHandlers";
 import {
   DEPARTMENTS,
@@ -73,4 +74,5 @@ export const handlers = [
   ),
 
   ...caseHandlers,
+  ...attachmentHandlers,
 ];

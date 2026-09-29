@@ -88,10 +88,14 @@ def clock() -> FrozenClock:
 
 
 @pytest.fixture
-def client(db_session: Session, clock: FrozenClock, test_db_url: URL) -> Iterator[TestClient]:
+def client(
+    db_session: Session, clock: FrozenClock, test_db_url: URL, tmp_path: Path
+) -> Iterator[TestClient]:
     settings = Settings(
         database_url=test_db_url.render_as_string(hide_password=False),
         jwt_secret=get_settings().jwt_secret,
+        # Yuklenen dosyalar gelistirme klasorune degil, teste ozel gecici klasore yazilir
+        storage_local_path=str(tmp_path),
     )
     app = create_app(settings)
     app.dependency_overrides[get_session] = lambda: db_session

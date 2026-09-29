@@ -15,6 +15,7 @@ from app.models import User
 from app.models.enums import UserRole
 from app.services.auth_service import AuthService
 from app.services.login_rate_limiter import LoginRateLimiter
+from app.storage import Storage
 
 # auto_error=False: token yoksa FastAPI'nin 403'u yerine bizim 401 hata formatimiz doner
 _bearer = HTTPBearer(auto_error=False)
@@ -29,6 +30,12 @@ def get_login_limiter(request: Request) -> LoginRateLimiter:
     # Uygulama basina tek sayac seti (app/main.py)
     limiter: LoginRateLimiter = request.app.state.login_limiter
     return limiter
+
+
+def get_storage(request: Request) -> Storage:
+    # Uygulama basina tek adaptor (app/main.py create_app); testler gecici klasorle degistirir
+    storage: Storage = request.app.state.storage
+    return storage
 
 
 def get_auth_service(

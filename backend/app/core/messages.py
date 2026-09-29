@@ -16,6 +16,9 @@ INVALID_USER_ROLE = (
     "personel ve müdürlerde birim zorunludur."
 )
 INVALID_TRANSITION = "Bildirim bu durumdan istenen duruma geçirilemez."
+UNSUPPORTED_MEDIA_TYPE = "Yalnız JPG, PNG veya WEBP fotoğraf yüklenebilir."
+FILE_TOO_LARGE = "Dosya çok büyük. En fazla {limit_mb} MB yüklenebilir."
+TOO_MANY_ATTACHMENTS = "Bu bildirime en fazla {limit} fotoğraf eklenebilir."
 SELF_LOCKOUT = "Kendi hesabınızı pasifleştiremez ya da yönetici rolünüzü kaldıramazsınız."
 INVALID_PARENT = "Lokasyon kendisinin ya da kendi alt lokasyonunun altına taşınamaz."
 UNAUTHORIZED = "Oturumunuz geçersiz ya da süresi dolmuş. Lütfen yeniden giriş yapın."

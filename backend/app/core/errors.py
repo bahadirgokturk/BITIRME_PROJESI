@@ -55,6 +55,18 @@ class InvalidTransitionError(DomainError):
     default_message = messages.INVALID_TRANSITION
 
 
+class UnsupportedMediaTypeError(DomainError):
+    # Icerik (magic bytes) izinli bir fotograf degil; dosya adina/uzantiya bakilmaz
+    code = "UNSUPPORTED_MEDIA_TYPE"
+    status = HTTPStatus.UNSUPPORTED_MEDIA_TYPE
+    default_message = messages.UNSUPPORTED_MEDIA_TYPE
+
+
+class FileTooLargeError(DomainError):
+    code = "FILE_TOO_LARGE"
+    status = HTTPStatus.REQUEST_ENTITY_TOO_LARGE
+
+
 class SelfLockoutError(DomainError):
     # Admin kendi erisimini kaldirirsa kurumda kimse kalmayabilir
     code = "SELF_LOCKOUT"
