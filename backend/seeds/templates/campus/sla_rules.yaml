@@ -1,0 +1,23 @@
+# SLA hedef sureleri (dakika). Bildirim olusturuldugu andan itibaren olculur.
+# response: gorevin kabul edilmesi, resolution: cozulmesi. warning_pct: bu yuzde gecince "Riskte".
+#
+# KAYNAK: VARSAYIM. Universitenin birim sayfalarindaki "Hizmet Envanteri ve Standartlari" resmi
+# tamamlanma surelerini verir; teyit edilince buradaki degerler degistirilir (docs/DEPARTMENTS.md bolum 4).
+# Mantik: guvenlik riski olan isler (su, elektrik, guvenlik) dakikalar icinde; hijyen ve sarf malzemesi
+# (sabun, kagit, cop) ayni vardiyada; bahce ve kayip esya gibi acil olmayanlar gunler icinde.
+
+defaults:  # case_type yok: o oncelikteki her bildirim
+  - {priority: LOW, response: 240, resolution: 1440}       # 4 sa kabul, 24 sa cozum
+  - {priority: MEDIUM, response: 120, resolution: 480}     # 2 sa, 8 sa (bir mesai gunu)
+  - {priority: HIGH, response: 30, resolution: 240}        # 30 dk, 4 sa
+  - {priority: CRITICAL, response: 15, resolution: 60}     # 15 dk, 1 sa
+
+by_case_type:  # varsayilandan farkli olanlar; oncelik bildirim tipinin baslangic onceligidir
+  - {case_type: SOAP_EMPTY, priority: LOW, response: 60, resolution: 240}
+  - {case_type: TOILET_PAPER_EMPTY, priority: LOW, response: 60, resolution: 240}
+  - {case_type: TRASH_FULL, priority: LOW, response: 60, resolution: 240}
+  - {case_type: SECURITY_INCIDENT, priority: HIGH, response: 10, resolution: 60}
+  - {case_type: ELECTRICAL_FAILURE, priority: HIGH, response: 15, resolution: 120}
+  - {case_type: WATER_LEAK, priority: HIGH, response: 15, resolution: 120}
+  - {case_type: LOST_ITEM, priority: LOW, response: 240, resolution: 2880}
+  - {case_type: GREEN_AREA, priority: LOW, response: 1440, resolution: 10080}

@@ -22,6 +22,7 @@ from app.repositories.case_repository import CaseScope
 from app.schemas.case import CaseCreate, CaseEventRead, CaseRead
 from app.schemas.common import Page, PageParams
 from app.services.authorization import ensure_can_view_case, ensure_same_organization
+from app.services.case_view import case_read
 from app.services.workflow import Transition, WorkflowService
 
 # Bildirim yapanin zaman cizelgesinde gordugu olaylar; agent kararlari, ic yorumlar ve SLA
@@ -107,7 +108,7 @@ class CaseService:
         return self._page(scope, (), paging)
 
     def get(self, case_id: int) -> CaseRead:
-        return CaseRead.model_validate(self._get(case_id), from_attributes=True)
+        return case_read(self._get(case_id), self._clock.now())
 
     def events(self, case_id: int) -> list[CaseEventRead]:
         case = self._get(case_id)
@@ -123,7 +124,7 @@ class CaseService:
     ) -> Page[CaseRead]:
         items, total = case_repository.list_page(self._session, scope, statuses, paging)
         return Page(
-            items=[CaseRead.model_validate(c, from_attributes=True) for c in items],
+            items=[case_read(c, self._clock.now()) for c in items],
             total=total,
             page=paging.page,
         )

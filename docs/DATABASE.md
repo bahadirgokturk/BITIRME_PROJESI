@@ -103,7 +103,8 @@ department_id NULL (STAFF/MANAGER için), is_active, last_login_at, created_at
 ### sla_rules
 id, organization_id, case_type_id NULL (NULL = kategori/default kural), priority,
 response_minutes (kabul hedefi), resolution_minutes, warning_threshold_pct (ör. 75), is_active.
-Unique: (organization_id, case_type_id, priority). Eşleşme sırası: tam eşleşme → case_type NULL + priority.
+Unique: (organization_id, case_type_id, priority), `NULLS NOT DISTINCT` (bir öncelik için tek varsayılan kural).
+Eşleşme sırası: tam eşleşme → case_type NULL + priority. Kampüs değerleri: `backend/seeds/templates/campus/sla_rules.yaml`.
 
 ### cases
 | Kolon | Tip | Not |
@@ -124,7 +125,7 @@ Unique: (organization_id, case_type_id, priority). Eşleşme sırası: tam eşle
 | verification_score | numeric(4,3) NULL | |
 | status | case_status | |
 | assigned_staff_id | FK users NULL | aktif task'ın atanan kişisi (denormalize) |
-| sla_rule_id | FK NULL | FAZ 4 (sla_rules tablosuyla birlikte eklenecek) |
+| sla_rule_id | FK NULL | İlk atamada eşleşen SLA kuralı (E4-2) |
 | parent_case_id | FK cases NULL | MERGED ise ana case |
 | duplicate_count | int default 0 | ana case'e bağlanan bildirim sayısı |
 | needs_human_review | bool | Manager inceleme kuyruğu |

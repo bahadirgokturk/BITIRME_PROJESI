@@ -14,6 +14,7 @@ olay kaydinda metadata.rule = AUTO_CLOSE_RULE yazar. FAZ 5'te bu adim agent'a de
 """
 
 from collections.abc import Sequence
+from datetime import datetime
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -25,6 +26,7 @@ from app.models.enums import ActorType, CaseEventType, CaseStatus, TaskStatus, U
 from app.repositories import (
     case_repository,
     department_repository,
+    sla_repository,
     task_repository,
     user_repository,
 )
@@ -37,6 +39,8 @@ from app.services.authorization import (
     ensure_can_view_task,
     ensure_same_organization,
 )
+from app.services.case_view import case_read
+from app.services.sla import apply_targets, case_sla_status, index_rules
 from app.services.workflow import (
     ACTIVE_TASK_STATUSES,
     Transition,
@@ -79,13 +83,18 @@ class TaskService:
                 created_at=self._clock.now(),
             ),
         )
+        apply_targets(
+            case, index_rules(sla_repository.active_rules(self._session, case.organization_id))
+        )
         case.department_id = data.department_id
         case.assigned_staff_id = data.user_id
         created = self._by_user(CaseEventType.TASK_CREATED, {"task_id": task.id})
         self._move(case, CaseStatus.ASSIGNED, created)
         self._session.commit()
         refreshed = case_repository.get(self._session, case.id)
-        return CaseRead.model_validate(refreshed, from_attributes=True)
+        if refreshed is None:
+            raise NotFoundError()
+        return case_read(refreshed, self._clock.now())
 
     # --- Personel ----------------------------------------------------------------------
 
@@ -98,10 +107,14 @@ class TaskService:
             statuses=list(statuses) or list(ACTIVE_TASK_STATUSES),
         )
         items, total = task_repository.list_queue(self._session, queue, paging)
-        return Page(items=[to_read(task) for task in items], total=total, page=paging.page)
+        return Page(
+            items=[to_read(task, self._clock.now()) for task in items],
+            total=total,
+            page=paging.page,
+        )
 
     def get(self, task_id: int) -> TaskRead:
-        return to_read(self._visible_task(task_id))
+        return to_read(self._visible_task(task_id), self._clock.now())
 
     def accept(self, task_id: int) -> TaskRead:
         task = self._own_task(task_id)
@@ -219,10 +232,10 @@ class TaskService:
         refreshed = task_repository.get(self._session, task.id)
         if refreshed is None:
             raise NotFoundError()
-        return to_read(refreshed)
+        return to_read(refreshed, self._clock.now())
 
 
-def to_read(task: Task) -> TaskRead:
+def to_read(task: Task, now: datetime) -> TaskRead:
     case = task.case
     return TaskRead.model_validate(
         {
@@ -243,8 +256,7 @@ def to_read(task: Task) -> TaskRead:
             "completion_note": task.completion_note,
             "declined_reason": task.declined_reason,
             "due_at": case.due_at,
-            # SLA durumu E4-2'de hesaplanacak
-            "sla_status": None,
+            "sla_status": case_sla_status(case, now),
         },
         from_attributes=True,
     )

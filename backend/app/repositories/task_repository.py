@@ -10,6 +10,7 @@ from app.schemas.common import PageParams
 
 _WITH_SUMMARIES = (
     selectinload(Task.case).selectinload(Case.location),
+    selectinload(Task.case).selectinload(Case.sla_rule),
     selectinload(Task.department),
 )
 

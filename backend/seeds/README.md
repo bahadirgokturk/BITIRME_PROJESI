@@ -20,6 +20,7 @@ docker compose exec backend python -m seeds.run --demo   # + demo kullanıcılar
 | `templates/campus/departments.yaml` | Kurum (İzmir Bakırçay Üniversitesi) + 5 departman (şube müdürlüğü) | [DEPARTMENTS.md](../../docs/DEPARTMENTS.md) §2 |
 | `templates/campus/case_types.yaml` | 19 bildirim tipi: kategori, birincil/ikincil birim, öncelik, ciddiyet, anahtar kelimeler | DEPARTMENTS.md §3 |
 | `templates/campus/locations.yaml` | Örnek kampüs ağacı: 3 bina, katlar, WC, derslik, lab, yemekhane, otopark (**temsili**, gerçek plan değil) | — |
+| `templates/campus/sla_rules.yaml` | SLA hedef süreleri: öncelik başına varsayılan + 8 bildirim tipine özel (**varsayım**, resmi süreler teyit edilince değişir) | DEPARTMENTS.md §4 |
 | `demo/users.yaml` | Her rolden demo kullanıcı (yalnız `--demo`) | — |
 
 **Önce DEPARTMENTS.md değişir, sonra YAML.** Uyumsuzluk CI'da yakalanır (`scripts/tests/test_departments_sync.py`).
@@ -52,4 +53,3 @@ Hepsinin parolası `SEED_DEMO_PASSWORD`. Adresler `example.com` altında: gerçe
 ## Henüz yüklenmeyenler
 
 - Otonomi seviyesi (`autonomy`) YAML'da duruyor; `agent_policies` tablosu FAZ 5'te gelince seed'e eklenecek.
-- SLA kuralları FAZ 4'te, birimlerin "Hizmet Envanteri ve Standartları" sürelerinden.

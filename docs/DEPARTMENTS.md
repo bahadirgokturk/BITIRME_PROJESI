@@ -63,7 +63,7 @@ Otonomi seviyeleri: [AGENTS.md](AGENTS.md) bölüm 5. Kategori listesine `FOOD_S
 
 | Soru | Şu anki karar | Nasıl teyit edilir |
 |---|---|---|
-| SLA süreleri | Henüz yok | Her birimin **"Hizmet Envanteri ve Standartları"** sayfasındaki resmi tamamlanma süreleri (FAZ 4, SLA) |
+| SLA süreleri | **Varsayım** (gerekçeli): `backend/seeds/templates/campus/sla_rules.yaml` | Her birimin **"Hizmet Envanteri ve Standartları"** sayfasındaki resmi tamamlanma süreleri (FAZ 4, SLA) |
 | Spor salonu, konferans salonu gibi SKS tesislerindeki arızalar | Fiziksel arıza → Bakım Onarım | SKS'ye teyit |
 
 ## 5. Kaynaklar (erişim: 27.09.2026)

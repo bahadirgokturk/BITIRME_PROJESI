@@ -34,6 +34,7 @@ _WITH_SUMMARIES = (
     selectinload(Case.location),
     selectinload(Case.case_type),
     selectinload(Case.department),
+    selectinload(Case.sla_rule),
 )
 
 

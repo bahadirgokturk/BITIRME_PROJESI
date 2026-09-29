@@ -26,6 +26,7 @@ from app.schemas.case import (
     ReopenRequest,
 )
 from app.services.authorization import ensure_can_view_case
+from app.services.case_view import case_read
 from app.services.workflow import Transition, WorkflowService
 
 _INTERNAL_NOTE_ROLES = frozenset({UserRole.STAFF, UserRole.MANAGER})
@@ -131,7 +132,9 @@ class CaseInteractionService:
     def _commit_and_read(self, case: Case) -> CaseRead:
         self._session.commit()
         refreshed = case_repository.get(self._session, case.id)
-        return CaseRead.model_validate(refreshed, from_attributes=True)
+        if refreshed is None:
+            raise NotFoundError()
+        return case_read(refreshed, self._clock.now())
 
 
 def _comment_read(comment: Comment) -> CommentRead:
