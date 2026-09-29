@@ -119,3 +119,21 @@ describe("mock attachments API", () => {
     expect(download.headers.get("content-type")).toBe("image/png");
   });
 });
+
+describe("mock attachments API (video)", () => {
+  it("accepts a short phone video", async () => {
+    const form = new FormData();
+    form.append(
+      "file",
+      new File([new Uint8Array([0])], "kacak.mp4", { type: "video/mp4" }),
+    );
+
+    const response = await fetch(apiUrl("/cases/102/attachments"), {
+      method: "POST",
+      body: form,
+    });
+
+    expect(response.status).toBe(201);
+    expect(await response.json()).toMatchObject({ mime_type: "video/mp4" });
+  });
+});

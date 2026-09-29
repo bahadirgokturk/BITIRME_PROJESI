@@ -62,6 +62,16 @@ class UnsupportedMediaTypeError(DomainError):
     default_message = messages.UNSUPPORTED_MEDIA_TYPE
 
 
+class VideoTooLongError(DomainError):
+    code = "VIDEO_TOO_LONG"
+    status = HTTPStatus.UNPROCESSABLE_ENTITY
+
+    def __init__(self, max_seconds: int) -> None:
+        super().__init__(
+            messages.VIDEO_TOO_LONG.format(limit=max_seconds), details={"max_seconds": max_seconds}
+        )
+
+
 class FileTooLargeError(DomainError):
     code = "FILE_TOO_LARGE"
     status = HTTPStatus.REQUEST_ENTITY_TOO_LARGE

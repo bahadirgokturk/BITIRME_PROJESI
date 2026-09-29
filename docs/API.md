@@ -71,13 +71,18 @@ belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanı
 | POST | `/cases/{id}/feedback` | R (sahip) | `{rating, comment}` |
 | POST | `/cases/{id}/reopen` | R (sahip, 72 sa) / M | `{reason}` |
 
-### Fotoğraflar — ✅ uygulandı (E3-3)
+### Fotoğraf ve video — ✅ uygulandı (E3-3)
 - Yetki bildirimi görme kuralıyla aynı (kapsam dışı → `404`); ADMIN yükleyemez (`403`, görev ayrılığı).
   Personelin yüklediği `EVIDENCE` (iş kanıtı), diğerleri `REPORT`.
 - Tür **içerikten** anlaşılır (magic bytes), dosya adına/Content-Type'a bakılmaz: yalnız JPG, PNG, WEBP →
-  aksi `415 UNSUPPORTED_MEDIA_TYPE`. Boyut `MAX_UPLOAD_MB` (varsayılan 5) → aşılırsa `413 FILE_TOO_LARGE`.
+  aksi `415 UNSUPPORTED_MEDIA_TYPE` (video için aşağıya bakın). Boyut `MAX_UPLOAD_MB` (varsayılan 5) → aşılırsa `413 FILE_TOO_LARGE`.
 - Fotoğraf sunucuda yeniden kodlanır: telefon döndürmesi uygulanır, **EXIF (GPS konumu, cihaz) silinir**.
   Sıkıştırma bombası ve bozuk dosya `415`. Bildirim başına en fazla 5 fotoğraf (`409`).
+- **Video:** MP4/MOV (telefon kaydı), en fazla **30 sn** (+0,5 sn pay) → aşılırsa `422 VIDEO_TOO_LONG`,
+  en fazla `MAX_VIDEO_MB` (varsayılan 50) → `413`. Süre dosyanın `moov/mvhd` kutusundan okunur (ffmpeg yok).
+  Konum/üst veri kutuları (`udta`, `meta`, `uuid`) **aynı boyutta boş `free` kutusuna** çevrilir; video yeniden
+  kodlanmaz, dosya oynamaya devam eder. Oynatılabilirlik sunucuda doğrulanmaz (tür içerikten, indirme `nosniff`).
+  Fotoğraf ve videolar aynı 5'lik kotayı paylaşır.
 - Depoda rastgele ad (`<case_id>/<32 hex>.png`); kullanıcının dosya adı yalnız gösterimde, dizin kısımları atılmış.
 - İndirme `X-Content-Type-Options: nosniff`, `Cache-Control: private, no-store` ile döner. Bearer token
   gerektirdiği için `<img src>` ile değil, `fetch` + blob URL ile gösterilir.

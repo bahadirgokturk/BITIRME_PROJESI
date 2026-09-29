@@ -1,4 +1,4 @@
-// Bildirim fotograflarinin sahte karsiliklari (backend'de hazir, E3-3). Login ekrani token'i
+// Bildirim fotograf ve videolarinin sahte karsiliklari (backend'de hazir, E3-3). Login ekrani token'i
 // isteklere ekleyene kadar kalir, o PR'da silinir (frontend/README.md).
 // Not: gercek backend turu dosya icerigiyle anlar ve EXIF'i siler; burada yalniz File.type'a bakilir.
 import { http, HttpResponse } from "msw";
@@ -11,12 +11,15 @@ import { USERS } from "./fixtures";
 type Attachment = components["schemas"]["AttachmentRead"];
 
 // Backend ile ayni kurallar: backend/app/core/constants.py
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_BYTES = 5 * 1024 * 1024;
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const VIDEO_TYPES = ["video/mp4", "video/quicktime"];
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+// Not: 30 sn video siniri burada denetlenemez (sure dosyanin icinde); gercek backend 422 VIDEO_TOO_LONG doner
 const MAX_PER_CASE = 5;
 const FIRST_ID = 900;
 
-// 1x1 seffaf PNG: indirilen her sahte fotograf bu goruntudur
+// 1x1 seffaf PNG: indirilen her sahte dosya (video dahil) bu goruntudur; gercek video icin backend
 const PIXEL_PNG = Uint8Array.from(
   atob(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
@@ -38,18 +41,21 @@ const unsupported = () =>
   error(
     415,
     "UNSUPPORTED_MEDIA_TYPE",
-    "Yalnız JPG, PNG veya WEBP fotoğraf yüklenebilir.",
+    "Yalnız JPG, PNG, WEBP fotoğraf ya da MP4, MOV video yüklenebilir.",
   );
 
 function rejection(file: File, caseId: number) {
-  if (!ALLOWED_TYPES.includes(file.type)) {
+  const isVideo = VIDEO_TYPES.includes(file.type);
+  if (!isVideo && !IMAGE_TYPES.includes(file.type)) {
     return unsupported();
   }
-  if (file.size > MAX_BYTES) {
+  if (file.size > (isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES)) {
     return error(
       413,
       "FILE_TOO_LARGE",
-      "Dosya çok büyük. En fazla 5 MB yüklenebilir.",
+      isVideo
+        ? "Dosya çok büyük. En fazla 50 MB yüklenebilir."
+        : "Dosya çok büyük. En fazla 5 MB yüklenebilir.",
     );
   }
   if (

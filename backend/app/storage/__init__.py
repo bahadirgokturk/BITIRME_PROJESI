@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Protocol
 
 # Anahtarlar sunucuda uretilir: "<case_id>/<rastgele hex>.<uzanti>"; baska bicim reddedilir
-_KEY_PATTERN = re.compile(r"^\d+/[0-9a-f]{32}\.(jpg|png|webp)$")
+_KEY_PATTERN = re.compile(r"^\d+/[0-9a-f]{32}\.(jpg|png|webp|mp4|mov)$")
 
 
 class InvalidStorageKeyError(ValueError):
