@@ -67,7 +67,12 @@ def decode_access_token(token: str, *, secret: str, now: datetime) -> AccessToke
             token,
             secret,
             algorithms=[JWT_ALGORITHM],
-            options={"require": ["sub", "role", "type", "exp"], "verify_exp": False},
+            # exp ve iat kutuphanenin makine saatine gore degil, asagida "now" ile denetlenir
+            options={
+                "require": ["sub", "role", "type", "exp"],
+                "verify_exp": False,
+                "verify_iat": False,
+            },
         )
     except jwt.PyJWTError as error:
         raise InvalidTokenError(str(error)) from error

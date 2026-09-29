@@ -4,6 +4,7 @@ from app.models.attachment import Attachment
 from app.models.base import Base
 from app.models.case import Case, CaseEvent
 from app.models.case_type import CaseType
+from app.models.comment import Comment
 from app.models.department import Department
 from app.models.location import Location
 from app.models.organization import Organization
@@ -16,6 +17,7 @@ __all__ = [
     "Case",
     "CaseEvent",
     "CaseType",
+    "Comment",
     "Department",
     "Location",
     "Organization",

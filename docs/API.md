@@ -64,12 +64,13 @@ belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanı
 | GET | `/cases/{id}/events` | kapsam | zaman çizelgesi (reporter'a filtrelenmiş) |
 | GET | `/cases/{id}/decisions` | M/A | agent kararları + gerekçeler |
 | POST | `/cases/{id}/info` | R (sahip) | NEEDS_INFO iken ek bilgi → yeniden analiz |
-| POST | `/cases/{id}/comments` | kapsam | `{body, is_internal}` |
+| POST | `/cases/{id}/comments` | kapsam (ADMIN hariç) | `{body, is_internal}` ✅ |
+| GET | `/cases/{id}/comments` | kapsam | yorumlar (reporter iç notları görmez) ✅ |
 | POST | `/cases/{id}/attachments` | kapsam (ADMIN hariç) | fotoğraf yükleme (multipart, alan adı `file`) ✅ |
 | GET | `/cases/{id}/attachments` | kapsam | bildirimin fotoğrafları ✅ |
 | GET | `/attachments/{id}` | kapsam | fotoğrafı indirme (yetki kontrollü) ✅ |
-| POST | `/cases/{id}/feedback` | R (sahip) | `{rating, comment}` |
-| POST | `/cases/{id}/reopen` | R (sahip, 72 sa) / M | `{reason}` |
+| POST | `/cases/{id}/feedback` | R (sahip) | `{rating 1–5, comment?}` → `CaseRead` ✅ |
+| POST | `/cases/{id}/reopen` | R (sahip, 72 sa) / M | `{reason}` → `CaseRead` ✅ |
 
 ### Fotoğraf ve video — ✅ uygulandı (E3-3)
 - Yetki bildirimi görme kuralıyla aynı (kapsam dışı → `404`); ADMIN yükleyemez (`403`, görev ayrılığı).
@@ -86,6 +87,17 @@ belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanı
 - Depoda rastgele ad (`<case_id>/<32 hex>.png`); kullanıcının dosya adı yalnız gösterimde, dizin kısımları atılmış.
 - İndirme `X-Content-Type-Options: nosniff`, `Cache-Control: private, no-store` ile döner. Bearer token
   gerektirdiği için `<img src>` ile değil, `fetch` + blob URL ile gösterilir.
+
+### Yorum, puan, yeniden açma — ✅ uygulandı (E3-5)
+Önce bildirimi görme kuralı (yoksa `404`), sonra işlemin rol kuralı (yoksa `403`):
+- **Yorum:** ADMIN dışında bildirimi gören herkes herkese açık yorum yazar. `is_internal: true` (iç not) yalnız
+  STAFF ve MANAGER yazar ve görür; reporter listede iç notları hiç görmez. Yanıtta `author_name`, `author_role`.
+  Zaman çizelgesine `COMMENT_ADDED` yazılır (metin değil, yalnız yorum id'si).
+- **Puan:** yalnız bildirim yapan, `CLOSED` bildirimde, son kapanıştan **72 saat** içinde, **bir kez**
+  (aksi `409`). `FEEDBACK_SUBMITTED` olayı.
+- **Yeniden açma:** bildirim yapan (kapanmışsa son kapanıştan 72 saat içinde → aksi `409 REOPEN_WINDOW_CLOSED`)
+  ya da MANAGER (her zaman). STAFF/ADMIN `403`. Geçiş `WorkflowService` ile (`CLOSED`/`VERIFICATION` →
+  `REOPENED`, aksi `409 INVALID_TRANSITION`), `reopened_count` artar, `CASE_REOPENED` olayı (gerekçe metadata'da).
 
 ## Manager işlemleri
 | Method | Path | Açıklama |

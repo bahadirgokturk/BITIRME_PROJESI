@@ -45,6 +45,7 @@ export const EMPTY_CASE: Omit<
   priority: null,
   needs_human_review: false,
   reopened_count: 0,
+  satisfaction_rating: null,
   created_at: "2026-09-27T08:15:00Z",
   assigned_at: null,
   resolved_at: null,

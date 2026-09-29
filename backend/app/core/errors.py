@@ -77,6 +77,16 @@ class FileTooLargeError(DomainError):
     status = HTTPStatus.REQUEST_ENTITY_TOO_LARGE
 
 
+class ReopenWindowClosedError(DomainError):
+    code = "REOPEN_WINDOW_CLOSED"
+    status = HTTPStatus.CONFLICT
+
+    def __init__(self, hours: int) -> None:
+        super().__init__(
+            messages.REOPEN_WINDOW_CLOSED.format(hours=hours), details={"hours": hours}
+        )
+
+
 class SelfLockoutError(DomainError):
     # Admin kendi erisimini kaldirirsa kurumda kimse kalmayabilir
     code = "SELF_LOCKOUT"

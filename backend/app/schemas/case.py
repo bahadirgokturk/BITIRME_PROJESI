@@ -3,14 +3,25 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import AliasChoices, BaseModel, Field
+from pydantic import AliasChoices, BaseModel, Field, field_validator
 
 from app.core.constants import (
     CASE_DESCRIPTION_MAX_LENGTH,
     CASE_DESCRIPTION_MIN_LENGTH,
     CASE_TITLE_MAX_LENGTH,
+    COMMENT_MAX_LENGTH,
+    RATING_MAX,
+    RATING_MIN,
+    REOPEN_REASON_MAX_LENGTH,
 )
-from app.models.enums import ActorType, CaseCategory, CaseStatus, LocationKind, Priority
+from app.models.enums import (
+    ActorType,
+    CaseCategory,
+    CaseStatus,
+    LocationKind,
+    Priority,
+    UserRole,
+)
 
 
 class CaseCreate(BaseModel):
@@ -59,6 +70,8 @@ class CaseRead(BaseModel):
     priority: Priority | None
     needs_human_review: bool
     reopened_count: int
+    # Kapanista bildirim yapanin verdigi puan (1-5)
+    satisfaction_rating: int | None
     created_at: datetime
     assigned_at: datetime | None
     resolved_at: datetime | None
@@ -80,3 +93,37 @@ class CaseEventRead(BaseModel):
     occurred_at: datetime
     # Modelde metadata_json (SQLAlchemy'de 'metadata' ayrilmis bir addir)
     metadata: dict[str, Any] = Field(validation_alias=AliasChoices("metadata_json", "metadata"))
+
+
+class CommentCreate(BaseModel):
+    body: str = Field(min_length=1, max_length=COMMENT_MAX_LENGTH)
+    # Ic not: yalniz personel ve mudur yazar/gorur; bildirim yapan goremez
+    is_internal: bool = False
+
+    @field_validator("body")
+    @classmethod
+    def _not_blank(cls, value: str) -> str:
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("Yorum boş olamaz.")
+        return stripped
+
+
+class CommentRead(BaseModel):
+    id: int
+    case_id: int
+    body: str
+    is_internal: bool
+    author_id: int
+    author_name: str
+    author_role: UserRole
+    created_at: datetime
+
+
+class FeedbackCreate(BaseModel):
+    rating: int = Field(ge=RATING_MIN, le=RATING_MAX)
+    comment: str | None = Field(default=None, max_length=COMMENT_MAX_LENGTH)
+
+
+class ReopenRequest(BaseModel):
+    reason: str = Field(min_length=1, max_length=REOPEN_REASON_MAX_LENGTH)
