@@ -31,6 +31,10 @@ yerel bir "zekâ yığını" kullanılır:
 
 ## 2. Ortak Agent Sözleşmesi
 
+> **Uygulama durumu:** sözleşme `backend/app/agents/base.py` (✅ E5-1), Türkçe normalizasyon
+> `backend/app/agents/text.py` ve Intake Agent `backend/app/agents/intake.py` (✅ E5-2). Model eğitimi (`ai/`)
+> **aynı** `normalize()` fonksiyonunu kullanmalıdır; aksi halde model çalışma anında farklı metin görür (E5-3).
+
 ```python
 class AgentResult(BaseModel, Generic[TOut]):
     agent_name: str
@@ -88,8 +92,12 @@ Orchestrator sıralı ve basittir (Python fonksiyonları). LangChain/LangGraph k
   "tuvalet"≈"wc"≈"lavabo" eşanlam sözlüğü), yazım hatası toleransı (`rapidfuzz`),
   regex ile lokasyon ipuçları (`B blok`, `2. kat`, `Z-12`, `erkek/kadın wc`),
   aciliyet sözlüğü (`acil, kıvılcım, duman, yanık kokusu, su basıyor, elektrik çarptı, yangın`).
-- **Çıktı:** `normalized_text, problem_phrase, location_hints[], urgency_hints[], entities{}, location_consistency`
+- **Çıktı (v1.0):** `normalized_text, urgency_hints[], location_hints[], location_consistency, is_meaningful, has_photo`.
+  `problem_phrase` / `entities` ve yazım hatası toleransı (`rapidfuzz`) ileride; karakter n-gram modeli ekli ve
+  hatalı yazımları zaten tolere eder.
 - Seçilen lokasyon ile metindeki lokasyon ipucu çelişiyorsa `location_consistency=false` (Verification sinyali).
+  Kontrol: metindeki bina harfi (`b blok`) ve oda kodu (`a101`/`a-101`) seçilen lokasyonun yolunda var mı; ipucu
+  yoksa `null`. Eş anlamlılar yalnız **tam kelime** eşlenir (`wc`/`lavabo` → `tuvalet`).
 
 ### 4.2 Classification Agent (K2 + K1)
 - **Model:** `TfidfVectorizer(analyzer="char_wb", ngram_range=(2,5))` ∪ kelime (1,2)-gram →
