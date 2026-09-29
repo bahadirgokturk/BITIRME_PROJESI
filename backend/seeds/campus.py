@@ -10,12 +10,13 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.core.security import hash_password
-from app.models import CaseType, Department, Location, Organization, User
+from app.models import CaseType, Department, Location, Organization, SlaRule, User
 from app.repositories import (
     case_type_repository,
     department_repository,
     location_repository,
     organization_repository,
+    sla_repository,
     user_repository,
 )
 from app.repositories.location_repository import PATH_SEPARATOR
@@ -27,6 +28,7 @@ from seeds.schema import (
     DepartmentSeed,
     LocationSeed,
     OrganizationSeed,
+    SlaRuleSeed,
     load,
 )
 
@@ -52,6 +54,12 @@ def seed_campus(session: Session, template_dir: Path = CAMPUS_TEMPLATE_DIR) -> O
         _upsert_case_type(session, organization.id, seed, departments)
     for root in template.locations.locations:
         _upsert_location(session, organization.id, None, root)
+    case_types = {
+        seed.code: _case_type_id(session, organization.id, seed.code)
+        for seed in template.case_types.case_types
+    }
+    for rule in template.sla_rules.all:
+        _upsert_sla_rule(session, organization.id, rule, case_types)
     return organization
 
 
@@ -132,6 +140,40 @@ def _upsert_location(
         _assign(location, fields)
     for child in seed.children:
         _upsert_location(session, organization_id, location, child)
+
+
+def _case_type_id(session: Session, organization_id: int, code: str) -> int:
+    case_type = case_type_repository.get_by_code(session, organization_id, code)
+    if case_type is None:
+        raise SeedError(f"Bilinmeyen bildirim tipi: {code}")
+    return case_type.id
+
+
+def _upsert_sla_rule(
+    session: Session, organization_id: int, seed: SlaRuleSeed, case_types: dict[str, int]
+) -> None:
+    if seed.case_type is not None and seed.case_type not in case_types:
+        raise SeedError(f"sla_rules.yaml bilinmeyen bildirim tipi: {seed.case_type}")
+    case_type_id = case_types[seed.case_type] if seed.case_type else None
+    fields = {
+        "response_minutes": seed.response,
+        "resolution_minutes": seed.resolution,
+        "warning_threshold_pct": seed.warning_pct,
+        "is_active": True,
+    }
+    rule = sla_repository.get_rule(session, organization_id, case_type_id, seed.priority)
+    if rule is None:
+        sla_repository.add(
+            session,
+            SlaRule(
+                organization_id=organization_id,
+                case_type_id=case_type_id,
+                priority=seed.priority,
+                **fields,
+            ),
+        )
+        return
+    _assign(rule, fields)
 
 
 def _demo_user(

@@ -35,6 +35,7 @@ from app.models.case_type import CaseType
 from app.models.department import Department
 from app.models.enums import ActorType, CaseCategory, CaseStatus, Priority
 from app.models.location import Location
+from app.models.sla_rule import SlaRule
 
 # case_number icin; id'den bagimsiz olsun ki numara tahmin/siralama bilgisi id'ye baglanmasin
 CASE_NUMBER_SEQUENCE = Sequence("case_number_seq")
@@ -100,6 +101,8 @@ class Case(IdMixin, CreatedAtMixin, Base):
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # SLA (E4-2): ilk atamada eslesen kural ve hedefler; yeniden atama saati sifirlamaz
+    sla_rule_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("sla_rules.id"))
     due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     response_due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
@@ -107,6 +110,7 @@ class Case(IdMixin, CreatedAtMixin, Base):
     location: Mapped[Location] = relationship(lazy="raise")
     case_type: Mapped[CaseType | None] = relationship(lazy="raise")
     department: Mapped[Department | None] = relationship(lazy="raise")
+    sla_rule: Mapped[SlaRule | None] = relationship(lazy="raise")
 
 
 class CaseEvent(IdMixin, Base):

@@ -110,7 +110,12 @@ belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanı
 | POST | `/cases/{id}/reanalyze` | pipeline'ı tekrar çalıştır |
 
 ## Tasks (Staff)
-✅ **Uygulandı (E4-1)**; `due_at` / `sla_status` hesabı E4-2'de (şimdilik `null`).
+✅ **Uygulandı (E4-1, E4-2)**.
+- **SLA (E4-2):** ilk atamada kural eşleşir — önce (bildirim tipi, öncelik), yoksa (varsayılan, öncelik); öncelik
+  yoksa bildirim tipinin başlangıç önceliği, o da yoksa `MEDIUM`. Hedefler **bildirimin oluşturulmasından**
+  ölçülür (`response_due_at`, `due_at`); yeniden atama saati sıfırlamaz. `sla_status` **okuma anında** hesaplanır:
+  süre dolmuşsa `BREACHED`, kuralın eşiği (varsayılan %75) geçmişse `AT_RISK`, değilse `ON_TRACK`; çözülmüş
+  işte karar çözüm anına göre verilir ve değişmez. Kural yoksa `due_at` ve `sla_status` `null`.
 - **Kim görür:** STAFF kendisine atanan görevleri + departmanının **sahipsiz kuyruğunu**; MANAGER/ADMIN kurumdaki
   tüm görevleri (detay). Kapsam dışı → `404`. İşlemleri (kabul/başlat/tamamla/reddet) yalnız STAFF yapar (`403`).
 - `/tasks/mine` filtresiz çağrılınca yalnız aktif görevler (`PENDING`, `ACCEPTED`, `IN_PROGRESS`) döner.

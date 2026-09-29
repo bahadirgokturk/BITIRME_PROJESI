@@ -9,8 +9,10 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.core.constants import (
     IMPORTANCE_WEIGHT_MAX,
     IMPORTANCE_WEIGHT_MIN,
+    PERCENT,
     SEVERITY_MAX,
     SEVERITY_MIN,
+    SLA_WARNING_PCT_DEFAULT,
 )
 from app.models.enums import (
     CaseCategory,
@@ -59,6 +61,23 @@ class CaseTypesFile(_Strict):
     case_types: list[CaseTypeSeed]
 
 
+class SlaRuleSeed(_Strict):
+    case_type: str | None = None
+    priority: Priority
+    response: int = Field(gt=0)
+    resolution: int = Field(gt=0)
+    warning_pct: int = Field(default=SLA_WARNING_PCT_DEFAULT, gt=0, lt=PERCENT)
+
+
+class SlaRulesFile(_Strict):
+    defaults: list[SlaRuleSeed]
+    by_case_type: list[SlaRuleSeed]
+
+    @property
+    def all(self) -> list[SlaRuleSeed]:
+        return [*self.defaults, *self.by_case_type]
+
+
 class LocationSeed(_Strict):
     code: str = Field(pattern=r"^[^/]+$")
     kind: LocationKind
@@ -93,6 +112,7 @@ class CampusTemplate(_Strict):
     departments: DepartmentsFile
     case_types: CaseTypesFile
     locations: LocationsFile
+    sla_rules: SlaRulesFile
 
     @classmethod
     def from_dir(cls, directory: Path) -> Self:
@@ -100,4 +120,5 @@ class CampusTemplate(_Strict):
             departments=load(directory / "departments.yaml", DepartmentsFile),
             case_types=load(directory / "case_types.yaml", CaseTypesFile),
             locations=load(directory / "locations.yaml", LocationsFile),
+            sla_rules=load(directory / "sla_rules.yaml", SlaRulesFile),
         )

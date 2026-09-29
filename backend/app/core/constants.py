@@ -64,3 +64,10 @@ RATING_MAX = 5
 
 # Gorev reddi ve tamamlama notu uzunlugu
 TASK_NOTE_MAX_LENGTH = 1000
+
+PERCENT = 100
+# SLA: kalan surenin %75'i gecince "riskte" (UI_GUIDE bolum 4.1 AT_RISK). Kural kendi esigini tasir;
+# bu yalniz yeni kural icin varsayilan
+SLA_WARNING_PCT_DEFAULT = 75
+# Oncelik henuz belirlenmemisse (Priority Agent FAZ 5) SLA icin kullanilan oncelik: orta
+SLA_FALLBACK_PRIORITY = "MEDIUM"

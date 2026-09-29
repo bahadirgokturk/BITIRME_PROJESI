@@ -4,8 +4,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models import CaseType, Department, Location, Organization, User
-from app.models.enums import UserRole
+from app.models import CaseType, Department, Location, Organization, SlaRule, User
+from app.models.enums import Priority, UserRole
 from seeds.campus import seed_campus, seed_demo_users
 
 DEMO_PASSWORD = "demo-parola-123"
@@ -118,3 +118,30 @@ def test_reseeding_demo_users_does_not_reset_changed_passwords(db_session: Sessi
     created_again = seed_demo_users(db_session, organization, "baska-parola-456")
 
     assert created_again == 0
+
+
+def test_seed_loads_sla_rules_with_type_overrides(db_session: Session) -> None:
+    organization = seed_campus(db_session)
+    rules = db_session.scalars(
+        select(SlaRule).where(SlaRule.organization_id == organization.id)
+    ).all()
+
+    defaults = {r.priority for r in rules if r.case_type_id is None}
+    soap = _case_type(db_session, organization, "SOAP_EMPTY")
+    soap_rules = [r for r in rules if r.case_type_id == soap.id]
+
+    # Her oncelik icin varsayilan kural var; sabun gibi hizli isler kendi kuralini tasir
+    assert defaults == set(Priority)
+    assert len(soap_rules) == 1
+    assert soap_rules[0].resolution_minutes < next(
+        r.resolution_minutes for r in rules if r.case_type_id is None and r.priority is Priority.LOW
+    )
+
+
+def test_reseeding_does_not_duplicate_sla_rules(db_session: Session) -> None:
+    organization = seed_campus(db_session)
+    first = _count(db_session, SlaRule, organization)
+
+    seed_campus(db_session)
+
+    assert _count(db_session, SlaRule, organization) == first
