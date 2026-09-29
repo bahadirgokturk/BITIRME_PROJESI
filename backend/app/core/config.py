@@ -7,6 +7,8 @@ from typing import Annotated
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
+from app.core.constants import MAX_UPLOAD_MB_DEFAULT
+
 # HS256 anahtari en az 256 bit olmali (RFC 7518 bolum 3.2): 32 karakter
 JWT_SECRET_MIN_LENGTH = 32
 # .env.example'daki ornek; yalniz local'de kabul edilir
@@ -31,6 +33,9 @@ class Settings(BaseSettings):
     # (docs/DEPLOYMENT.md bolum 2)
     jwt_access_ttl_min: int = 30
     jwt_refresh_ttl_days: int = 7
+    # Yuklenen dosyalar: local = disk (gelistirme); s3 staging kurulumunda eklenecek (E7-3a)
+    storage_local_path: str = "/app/storage"
+    max_upload_mb: int = Field(default=MAX_UPLOAD_MB_DEFAULT, gt=0)
 
     @field_validator("cors_origins", mode="before")
     @classmethod

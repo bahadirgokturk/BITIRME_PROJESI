@@ -14,6 +14,8 @@ dependencies = [
     "argon2-cffi>=23.1",
     "pyjwt>=2.9",
     "pyyaml>=6.0",
+    "pillow>=11.0",
+    "python-multipart>=0.0.18",
 ]
 
 [dependency-groups]

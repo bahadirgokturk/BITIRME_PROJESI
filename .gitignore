@@ -26,7 +26,8 @@ playwright-report/
 test-results/
 
 # Uploads and local data
-storage/
+/storage/
+/backend/storage/
 ai/data/raw/
 
 # Editors / OS

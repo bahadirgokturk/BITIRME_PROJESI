@@ -1,5 +1,7 @@
 """FastAPI uygulama fabrikasi. Uvicorn: `uvicorn app.main:create_app --factory`."""
 
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -8,6 +10,7 @@ from app.api.v1.router import api_router
 from app.core.config import Settings, get_settings
 from app.core.logging import configure_logging
 from app.services.login_rate_limiter import LoginRateLimiter
+from app.storage import LocalStorage
 
 API_PREFIX = "/api/v1"
 
@@ -20,6 +23,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     # Route'lar ayarlari buradan okur (app/api/deps.py); testler kendi ayarlariyla uygulama kurar
     app.state.settings = settings
     app.state.login_limiter = LoginRateLimiter()
+    app.state.storage = LocalStorage(Path(settings.storage_local_path))
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,

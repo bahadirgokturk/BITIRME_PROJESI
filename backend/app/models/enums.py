@@ -101,3 +101,9 @@ class CaseEventType(StrEnum):
     DECISION_OVERRIDDEN = "DECISION_OVERRIDDEN"
     COMMENT_ADDED = "COMMENT_ADDED"
     FEEDBACK_SUBMITTED = "FEEDBACK_SUBMITTED"
+
+
+class AttachmentKind(StrEnum):
+    # REPORT: bildirim yapanin fotografi; EVIDENCE: personelin is bitti kaniti
+    REPORT = "REPORT"
+    EVIDENCE = "EVIDENCE"

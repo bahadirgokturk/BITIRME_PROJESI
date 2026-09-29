@@ -65,6 +65,9 @@ Backend her fazın başında endpoint **şemalarını** yayınlar; iş mantığ�
 - `src/mocks/caseHandlers.ts` + `caseFixtures.ts` — FAZ 3 bildirimleri (`/cases`, `/cases/mine`, `/cases/{id}`,
   `/cases/{id}/events`, `/locations`). Farklı durumlarda 4 örnek bildirim var; formdan gönderilen yeni bildirim
   `ANALYZING` durumunda listeye eklenir (sayfa yenilenince silinir). Açıklama 10 karakterden kısaysa `422` döner.
+- `src/mocks/attachmentHandlers.ts` — fotoğraf yükleme (`POST /cases/{id}/attachments`, alan adı `file`), listeleme
+  ve indirme. JPG/PNG/WEBP dışı `415`, 5 MB üstü `413`. Fotoğraf Bearer token ister: `<img src>` değil,
+  `fetch` + `URL.createObjectURL` ile gösterilir.
 - `src/mocks/fixtures.ts` — sahte veriler. Tipleri OpenAPI'den gelir; backend şeması değişirse burası
   **derlenmez**, uyumsuzluk hemen görülür.
 - Sahte cevaplar service worker olmadan, doğrudan API istemcisinin içinde üretilir (`src/mocks/transport.ts`);

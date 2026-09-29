@@ -1,5 +1,6 @@
 """Tum modeller burada import edilir; Alembic metadata'yi buradan okur."""
 
+from app.models.attachment import Attachment
 from app.models.base import Base
 from app.models.case import Case, CaseEvent
 from app.models.case_type import CaseType
@@ -10,6 +11,7 @@ from app.models.refresh_token import RefreshToken
 from app.models.user import User
 
 __all__ = [
+    "Attachment",
     "Base",
     "Case",
     "CaseEvent",

@@ -1,0 +1,112 @@
+// Bildirim fotograflarinin sahte karsiliklari (backend'de hazir, E3-3). Login ekrani token'i
+// isteklere ekleyene kadar kalir, o PR'da silinir (frontend/README.md).
+// Not: gercek backend turu dosya icerigiyle anlar ve EXIF'i siler; burada yalniz File.type'a bakilir.
+import { http, HttpResponse } from "msw";
+
+import { apiUrl } from "@/lib/api/client";
+import type { components } from "@/lib/api/types";
+
+import { USERS } from "./fixtures";
+
+type Attachment = components["schemas"]["AttachmentRead"];
+
+// Backend ile ayni kurallar: backend/app/core/constants.py
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_PER_CASE = 5;
+const FIRST_ID = 900;
+
+// 1x1 seffaf PNG: indirilen her sahte fotograf bu goruntudur
+const PIXEL_PNG = Uint8Array.from(
+  atob(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+  ),
+  (char) => char.charCodeAt(0),
+);
+
+// Oturum boyunca yuklenenler; sayfa yenilenince sifirlanir
+const attachments: Attachment[] = [];
+
+function error(status: number, code: string, message: string) {
+  const body: components["schemas"]["ErrorRead"] = {
+    error: { code, message, details: {} },
+  };
+  return HttpResponse.json(body, { status });
+}
+
+const unsupported = () =>
+  error(
+    415,
+    "UNSUPPORTED_MEDIA_TYPE",
+    "Yalnız JPG, PNG veya WEBP fotoğraf yüklenebilir.",
+  );
+
+function rejection(file: File, caseId: number) {
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    return unsupported();
+  }
+  if (file.size > MAX_BYTES) {
+    return error(
+      413,
+      "FILE_TOO_LARGE",
+      "Dosya çok büyük. En fazla 5 MB yüklenebilir.",
+    );
+  }
+  if (
+    attachments.filter((item) => item.case_id === caseId).length >= MAX_PER_CASE
+  ) {
+    return error(
+      409,
+      "CONFLICT",
+      "Bu bildirime en fazla 5 fotoğraf eklenebilir.",
+    );
+  }
+  return null;
+}
+
+export const attachmentHandlers = [
+  http.post(apiUrl("/cases/:id/attachments"), async ({ request, params }) => {
+    const caseId = Number(params.id);
+    const file = (await request.formData()).get("file");
+    // instanceof File kullanilmaz: test ortaminda (jsdom) ve Node icinde farkli File siniflari var
+    if (file === null || typeof file === "string") {
+      return unsupported();
+    }
+    const rejected = rejection(file, caseId);
+    if (rejected) {
+      return rejected;
+    }
+    const id = FIRST_ID + attachments.length;
+    const created: Attachment = {
+      id,
+      case_id: caseId,
+      kind: "REPORT",
+      original_name: file.name,
+      mime_type: file.type,
+      size_bytes: file.size,
+      uploaded_by: USERS.REPORTER.id,
+      created_at: new Date().toISOString(),
+      url: `/api/v1/attachments/${id}`,
+    };
+    attachments.push(created);
+    return HttpResponse.json(created, { status: 201 });
+  }),
+
+  http.get(apiUrl("/cases/:id/attachments"), ({ params }) =>
+    HttpResponse.json(
+      attachments.filter((item) => item.case_id === Number(params.id)),
+    ),
+  ),
+
+  http.get(apiUrl("/attachments/:id"), ({ params }) => {
+    const item = attachments.find(
+      (attachment) => attachment.id === Number(params.id),
+    );
+    if (!item) {
+      return error(404, "NOT_FOUND", "Kayıt bulunamadı.");
+    }
+    return new HttpResponse(PIXEL_PNG, {
+      headers: { "Content-Type": "image/png" },
+    });
+  }),
+];

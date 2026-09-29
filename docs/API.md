@@ -65,10 +65,22 @@ belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanı
 | GET | `/cases/{id}/decisions` | M/A | agent kararları + gerekçeler |
 | POST | `/cases/{id}/info` | R (sahip) | NEEDS_INFO iken ek bilgi → yeniden analiz |
 | POST | `/cases/{id}/comments` | kapsam | `{body, is_internal}` |
-| POST | `/cases/{id}/attachments` | kapsam | dosya yükleme |
-| GET | `/attachments/{id}` | kapsam | dosya indirme (yetki kontrollü) |
+| POST | `/cases/{id}/attachments` | kapsam (ADMIN hariç) | fotoğraf yükleme (multipart, alan adı `file`) ✅ |
+| GET | `/cases/{id}/attachments` | kapsam | bildirimin fotoğrafları ✅ |
+| GET | `/attachments/{id}` | kapsam | fotoğrafı indirme (yetki kontrollü) ✅ |
 | POST | `/cases/{id}/feedback` | R (sahip) | `{rating, comment}` |
 | POST | `/cases/{id}/reopen` | R (sahip, 72 sa) / M | `{reason}` |
+
+### Fotoğraflar — ✅ uygulandı (E3-3)
+- Yetki bildirimi görme kuralıyla aynı (kapsam dışı → `404`); ADMIN yükleyemez (`403`, görev ayrılığı).
+  Personelin yüklediği `EVIDENCE` (iş kanıtı), diğerleri `REPORT`.
+- Tür **içerikten** anlaşılır (magic bytes), dosya adına/Content-Type'a bakılmaz: yalnız JPG, PNG, WEBP →
+  aksi `415 UNSUPPORTED_MEDIA_TYPE`. Boyut `MAX_UPLOAD_MB` (varsayılan 5) → aşılırsa `413 FILE_TOO_LARGE`.
+- Fotoğraf sunucuda yeniden kodlanır: telefon döndürmesi uygulanır, **EXIF (GPS konumu, cihaz) silinir**.
+  Sıkıştırma bombası ve bozuk dosya `415`. Bildirim başına en fazla 5 fotoğraf (`409`).
+- Depoda rastgele ad (`<case_id>/<32 hex>.png`); kullanıcının dosya adı yalnız gösterimde, dizin kısımları atılmış.
+- İndirme `X-Content-Type-Options: nosniff`, `Cache-Control: private, no-store` ile döner. Bearer token
+  gerektirdiği için `<img src>` ile değil, `fetch` + blob URL ile gösterilir.
 
 ## Manager işlemleri
 | Method | Path | Açıklama |
