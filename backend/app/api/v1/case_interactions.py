@@ -6,11 +6,12 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.api.deps import CurrentUser
+from app.api.deps import CurrentUser, require_roles
 from app.api.v1.responses import AUTHENTICATED_RESPONSES
+from app.api.v1.tasks import Tasks
 from app.core.clock import Clock, get_clock
 from app.core.database import get_session
-from app.core.errors import NotImplementedYetError
+from app.models.enums import UserRole
 from app.schemas.case import CaseRead, CommentCreate, CommentRead, FeedbackCreate, ReopenRequest
 from app.schemas.error import ErrorRead
 from app.schemas.task import AssignRequest
@@ -51,7 +52,9 @@ def reopen_case(case_id: int, payload: ReopenRequest, service: Interactions) -> 
     return service.reopen(case_id, payload)
 
 
-@router.post("/{case_id}/assign")
-def assign_case(case_id: int, _payload: AssignRequest, _service: Interactions) -> CaseRead:
-    """Manager atamasi (E4-1): gorev olusturur, case ASSIGNED olur. Sozlesme (501)."""
-    raise NotImplementedYetError()
+@router.post(
+    "/{case_id}/assign", dependencies=[Depends(require_roles(UserRole.MANAGER))], responses=CONFLICT
+)
+def assign_case(case_id: int, payload: AssignRequest, service: Tasks) -> CaseRead:
+    """Manager atamasi (E4-1): gorev olusturur, bildirim ASSIGNED olur."""
+    return service.assign(case_id, payload)

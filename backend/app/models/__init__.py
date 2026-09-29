@@ -9,6 +9,7 @@ from app.models.department import Department
 from app.models.location import Location
 from app.models.organization import Organization
 from app.models.refresh_token import RefreshToken
+from app.models.task import Task
 from app.models.user import User
 
 __all__ = [
@@ -22,5 +23,6 @@ __all__ = [
     "Location",
     "Organization",
     "RefreshToken",
+    "Task",
     "User",
 ]

@@ -64,7 +64,11 @@ def db_session(test_engine: Engine) -> Iterator[Session]:
     # savepoint'e donusur, veri testler arasinda sizmaz (docs/TESTING.md "Kurallar")
     connection = test_engine.connect()
     transaction = connection.begin()
-    session = Session(bind=connection, join_transaction_mode="create_savepoint")
+    # expire_on_commit=False: uygulamanin oturumuyla ayni (app/core/database.py); aksi halde testte
+    # commit sonrasi nesneler tazelenir, uygulamadaki bayat iliski hatalari gizli kalir
+    session = Session(
+        bind=connection, join_transaction_mode="create_savepoint", expire_on_commit=False
+    )
     yield session
     session.close()
     transaction.rollback()

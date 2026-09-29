@@ -15,6 +15,7 @@ from app.core.errors import InvalidTransitionError
 from app.models import Case, CaseEvent
 from app.models.enums import ActorType, CaseEventType
 from app.models.enums import CaseStatus as S
+from app.models.enums import TaskStatus as T
 from app.repositories import case_repository
 
 ALLOWED_TRANSITIONS: dict[S, frozenset[S]] = {
@@ -34,6 +35,17 @@ ALLOWED_TRANSITIONS: dict[S, frozenset[S]] = {
     S.REJECTED: frozenset(),
     S.MERGED: frozenset(),
 }
+
+# Gorev durum makinesi (docs/WORKFLOW.md bolum 2); bildirimle senkronu task_service yapar
+TASK_TRANSITIONS: dict[T, frozenset[T]] = {
+    T.PENDING: frozenset({T.ACCEPTED, T.DECLINED, T.CANCELLED}),
+    T.ACCEPTED: frozenset({T.IN_PROGRESS, T.DECLINED, T.CANCELLED}),
+    T.IN_PROGRESS: frozenset({T.COMPLETED, T.CANCELLED}),
+    T.COMPLETED: frozenset(),
+    T.DECLINED: frozenset(),
+    T.CANCELLED: frozenset(),
+}
+ACTIVE_TASK_STATUSES = frozenset({T.PENDING, T.ACCEPTED, T.IN_PROGRESS})
 
 # Duruma ilk giriste yazilan zaman damgasi; ilk deger korunur, sonraki girisler olay kaydinda kalir
 _FIRST_TIME_FIELDS: dict[S, str] = {
@@ -61,6 +73,11 @@ class Transition:
 
 def ensure_transition_allowed(source: S, target: S) -> None:
     if target not in ALLOWED_TRANSITIONS[source]:
+        raise InvalidTransitionError(details={"from_status": source, "to_status": target})
+
+
+def ensure_task_transition_allowed(source: T, target: T) -> None:
+    if target not in TASK_TRANSITIONS[source]:
         raise InvalidTransitionError(details={"from_status": source, "to_status": target})
 
 

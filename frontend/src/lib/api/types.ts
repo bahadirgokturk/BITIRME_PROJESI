@@ -273,7 +273,7 @@ export interface paths {
         put?: never;
         /**
          * Assign Case
-         * @description Manager atamasi (E4-1): gorev olusturur, case ASSIGNED olur. Sozlesme (501).
+         * @description Manager atamasi (E4-1): gorev olusturur, bildirim ASSIGNED olur.
          */
         post: operations["assign_case_api_v1_cases__case_id__assign_post"];
         delete?: never;
@@ -2290,6 +2290,15 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
