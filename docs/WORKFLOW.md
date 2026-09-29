@@ -55,6 +55,12 @@ stateDiagram-v2
 
 ### Case ↔ Task senkronizasyonu
 
+Uygulama: `backend/app/services/task_service.py`. **Geçici kural (FAZ 5'e kadar):** Resolution Agent yokken
+tamamlanan görev doğrulama beklemeden `RESOLVED → VERIFICATION → CLOSED` olur; olaylar `SYSTEM` aktörüyle ve
+`metadata.rule = "auto_close_until_resolution_agent"` ile yazılır. Agent'lar yokken manager ataması `ANALYZING`
+bildirimi önce `CLASSIFIED` yapar (`ROUTED`, elle yönlendirme). Reddedilen görevde bildirim `ESCALATED` olur
+(manager yeniden atar; otomatik yeniden yönlendirme FAZ 5).
+
 | Task olayı | Task status | Case status |
 |---|---|---|
 | Task oluşturuldu | PENDING | ASSIGNED |

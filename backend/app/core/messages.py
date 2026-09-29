@@ -24,6 +24,7 @@ REOPEN_WINDOW_CLOSED = "Bildirim kapandıktan sonraki {hours} saat içinde yenid
 CASE_NOT_CLOSED = "Yalnız kapanmış bildirim puanlanabilir."
 RATING_WINDOW_CLOSED = "Bildirim kapandıktan sonraki {hours} saat içinde puanlanabilir."
 ALREADY_RATED = "Bu bildirim zaten puanlandı."
+INVALID_ASSIGNEE = "Seçilen kişi bu birimde çalışan aktif bir personel değil."
 SELF_LOCKOUT = "Kendi hesabınızı pasifleştiremez ya da yönetici rolünüzü kaldıramazsınız."
 INVALID_PARENT = "Lokasyon kendisinin ya da kendi alt lokasyonunun altına taşınamaz."
 UNAUTHORIZED = "Oturumunuz geçersiz ya da süresi dolmuş. Lütfen yeniden giriş yapın."

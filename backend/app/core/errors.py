@@ -87,6 +87,13 @@ class ReopenWindowClosedError(DomainError):
         )
 
 
+class InvalidAssigneeError(DomainError):
+    # Atanan kisi o departmanin aktif STAFF'i degil
+    code = "INVALID_ASSIGNEE"
+    status = HTTPStatus.UNPROCESSABLE_ENTITY
+    default_message = messages.INVALID_ASSIGNEE
+
+
 class SelfLockoutError(DomainError):
     # Admin kendi erisimini kaldirirsa kurumda kimse kalmayabilir
     code = "SELF_LOCKOUT"

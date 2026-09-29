@@ -54,8 +54,13 @@ def add_event(session: Session, event: CaseEvent) -> None:
 
 
 def get(session: Session, case_id: int) -> Case | None:
+    # populate_existing: oturumda zaten olan nesnenin iliskileri (department, case_type) de
+    # yeniden yuklenir; aksi halde atama sonrasi eski (bos) departman doner (expire_on_commit=False)
     return session.scalars(
-        select(Case).where(Case.id == case_id).options(*_WITH_SUMMARIES)
+        select(Case)
+        .where(Case.id == case_id)
+        .options(*_WITH_SUMMARIES)
+        .execution_options(populate_existing=True)
     ).one_or_none()
 
 

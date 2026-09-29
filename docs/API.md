@@ -103,14 +103,19 @@ belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanı
 | Method | Path | Açıklama |
 |---|---|---|
 | GET | `/manager/review-queue` | `needs_human_review=true` + `ESCALATED` case'ler |
-| POST | `/cases/{id}/assign` | `{department_id, user_id?}` ⏳ sözleşme (501), E4-1 |
+| POST | `/cases/{id}/assign` | `{department_id, user_id?}` ✅ (E4-1, ayrıntı: Tasks) |
 | POST | `/cases/{id}/override` | `{field, corrected_value, reason}` → `decision_feedback` + `DECISION_OVERRIDDEN` |
 | POST | `/cases/{id}/merge` | `{parent_case_id}` |
 | POST | `/cases/{id}/reject` | `{reason}` |
 | POST | `/cases/{id}/reanalyze` | pipeline'ı tekrar çalıştır |
 
 ## Tasks (Staff)
-⏳ **FAZ 4 sözleşmesi yayında** (`501`, MSW'de sahte veri); iş mantığı E4-1, SLA E4-2.
+✅ **Uygulandı (E4-1)**; `due_at` / `sla_status` hesabı E4-2'de (şimdilik `null`).
+- **Kim görür:** STAFF kendisine atanan görevleri + departmanının **sahipsiz kuyruğunu**; MANAGER/ADMIN kurumdaki
+  tüm görevleri (detay). Kapsam dışı → `404`. İşlemleri (kabul/başlat/tamamla/reddet) yalnız STAFF yapar (`403`).
+- `/tasks/mine` filtresiz çağrılınca yalnız aktif görevler (`PENDING`, `ACCEPTED`, `IN_PROGRESS`) döner.
+- Kuyruktaki görevi **ilk kabul eden üstlenir** (`assigned_user_id` o kişi olur).
+- Yanlış sırada işlem → `409 INVALID_TRANSITION` (tablo: `workflow.py` `TASK_TRANSITIONS`).
 Yanıt `TaskRead`: görev + bildirim özeti (`case_number`, `title`, `description`, `location`, `priority`) ve
 `due_at` / `sla_status` (`ON_TRACK` | `AT_RISK` | `BREACHED`, kural yoksa `null`). Liste SLA'ya kalan süreye
 göre sıralanır (en acil üstte). `CaseRead` de `sla_status` alanını taşır.
@@ -126,6 +131,9 @@ göre sıralanır (en acil üstte). `CaseRead` de `sla_status` alanını taşır
 | POST | `/cases/{id}/attachments` | **kanıt fotoğrafı**: personelin yüklediği `EVIDENCE` olarak işaretlenir (ayrı uç yok) |
 
 Manager ataması: `POST /cases/{id}/assign` `{department_id, user_id?}` → görev oluşur, bildirim `ASSIGNED`.
+Yalnız MANAGER (rol kontrolü doğrulamadan önce, diğerleri `403`). Departman başka kurumun ya da pasif → `404`;
+seçilen kişi o departmanın aktif STAFF'ı değilse `422 INVALID_ASSIGNEE`. Aktif görev varsa `CANCELLED` olur
+(`TASK_REASSIGNED`), yenisi açılır. Bildirim `ANALYZING` ise önce `CLASSIFIED` olur (`ROUTED`, elle yönlendirme).
 
 ## Analytics (Manager/Admin)
 Ortak parametreler: `from`, `to`, `department_id?`, `building_id?`
