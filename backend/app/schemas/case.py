@@ -20,6 +20,7 @@ from app.models.enums import (
     CaseStatus,
     LocationKind,
     Priority,
+    SlaStatus,
     UserRole,
 )
 
@@ -76,8 +77,9 @@ class CaseRead(BaseModel):
     assigned_at: datetime | None
     resolved_at: datetime | None
     closed_at: datetime | None
-    # SLA cozum hedefi (FAZ 4)
+    # SLA cozum hedefi ve okuma aninda hesaplanan durumu (FAZ 4, E4-2)
     due_at: datetime | None
+    sla_status: SlaStatus | None = None
 
 
 class CaseEventRead(BaseModel):

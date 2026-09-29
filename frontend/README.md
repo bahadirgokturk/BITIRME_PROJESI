@@ -67,6 +67,9 @@ Backend her fazın başında endpoint **şemalarını** yayınlar; iş mantığ�
   `ANALYZING` durumunda listeye eklenir (sayfa yenilenince silinir). Açıklama 10 karakterden kısaysa `422` döner.
 - `src/mocks/interactionHandlers.ts` — yorum (`/cases/{id}/comments`), puan (`/feedback`) ve yeniden açma (`/reopen`).
   Sahte API her isteği REPORTER sayar; 72 saat penceresini ve rol kurallarını yalnız gerçek backend denetler.
+- `src/mocks/taskHandlers.ts` + `taskFixtures.ts` — personel görevleri (`/tasks/mine`, `/tasks/{id}`, `accept`, `start`,
+  `complete`, `decline`). Farklı SLA durumlarında 4 görev; yanlış sırada işlem `409`. Personel menüsü için
+  `.env.local`'de `NEXT_PUBLIC_MOCK_ROLE=STAFF`.
 - `src/mocks/attachmentHandlers.ts` — fotoğraf/video yükleme (`POST /cases/{id}/attachments`, alan adı `file`), listeleme
   ve indirme. JPG/PNG/WEBP ve MP4/MOV dışı `415`; fotoğraf 5 MB, video 50 MB üstü `413` (30 sn sınırını
   yalnız gerçek backend denetler). Fotoğraf Bearer token ister: `<img src>` değil,

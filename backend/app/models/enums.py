@@ -107,3 +107,20 @@ class AttachmentKind(StrEnum):
     # REPORT: bildirim yapanin fotografi; EVIDENCE: personelin is bitti kaniti
     REPORT = "REPORT"
     EVIDENCE = "EVIDENCE"
+
+
+class TaskStatus(StrEnum):
+    # Gecisler: docs/WORKFLOW.md bolum 2; case ile senkron bolum 1 tablosu
+    PENDING = "PENDING"
+    ACCEPTED = "ACCEPTED"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+    DECLINED = "DECLINED"
+    CANCELLED = "CANCELLED"
+
+
+class SlaStatus(StrEnum):
+    # DB'de saklanmaz; okuma aninda due_at ile simdiki zamandan hesaplanir (ARCHITECTURE bolum 6)
+    ON_TRACK = "ON_TRACK"
+    AT_RISK = "AT_RISK"
+    BREACHED = "BREACHED"
