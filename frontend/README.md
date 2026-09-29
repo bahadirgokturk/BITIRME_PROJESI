@@ -87,19 +87,29 @@ Ayarlar `frontend/.env.development` içinde; kendine özel değişiklik için `f
 Sahte girişte tüm kullanıcıların parolası `demo1234`; e-postalar `src/mocks/fixtures.ts` içinde.
 `.env` dosyası değiştikten sonra `npm run dev`'i durdurup yeniden başlat.
 
-**Backend bir endpoint'i gerçekten uyguladığında** (PR açıklamasında yazar): ilgili handler'ı
-`handlers.ts`'ten sil → ekran artık gerçek backend'le çalışır. Başka değişiklik gerekmez.
+**Durum (FAZ 3):** backend'deki bütün endpoint'ler artık gerçek; sahte API **çevrimdışı çalışma modu** olarak
+kalıyor (backend/Docker açmadan ekran geliştirmek ve testler için). Sahte cevapların şekli gerçek API ile aynı
+tutulur; backend şeması değişince `npm run gen:api` + fixture düzeltmesi yeterli.
 
-**İstisna — giriş (`/auth/*`) ve admin (`/admin/departments`, `/admin/locations`):** backend hazır, ama bu
-endpoint'ler giriş (access token) istediği için sahte handler'lar login ekranı gerçek API'ye bağlanana kadar
-kalır. Login ekranını bağlarken (E2-1 ekranı):
-- `POST /auth/login` → dönen `access_token`'ı **yalnız bellekte** tut (React state/context); `localStorage`'a
-  **yazma** (XSS ile çalınabilir).
-- Her istekte `Authorization: Bearer <token>` gönder; `401` gelirse bir kez `POST /auth/refresh` dene,
-  o da `401` ise login'e yönlendir.
-- Refresh token'a hiç dokunma: tarayıcı onu httpOnly cookie olarak kendisi tutar. Bunun için `/auth/*`
-  isteklerinde `credentials: "include"` gerekir.
-- Bitince `handlers.ts`'teki `/auth/*`, `/admin/departments` ve `/admin/locations` handler'larını sil.
+### Gerçek backend ile çalışmak (giriş dahil)
+
+1. Repo kökünde: `docker compose up -d` ve bir kez `docker compose exec backend python -m seeds.run --demo`.
+2. `frontend/.env.local` dosyası oluştur ve içine `NEXT_PUBLIC_API_MOCKING=disabled` yaz; `npm run dev`'i yeniden başlat.
+3. http://localhost:3000 → giriş ekranı. Demo hesaplar ve parola: [backend/seeds/README.md](../backend/seeds/README.md)
+   (örnek: `ogrenci@kampus.example.com`, `mudur.destek@kampus.example.com`). Menü hesabın rolüne göre gelir.
+4. Sahte API'ye dönmek için `.env.local`'deki satırı sil (ya da `enabled` yap) ve dev'i yeniden başlat.
+
+### Oturum nasıl çalışıyor (`src/lib/api/`)
+
+- `session.ts` — `login()`, `logout()`. Access token **yalnız bellekte** (`tokenStore.ts`); `localStorage`'a
+  yazılmaz (XSS ile çalınamasın). Sayfa yenilenince bellek boşalır.
+- `client.ts` — her isteğe `Authorization: Bearer` ekler. `401` gelirse backend'in HttpOnly refresh çereziyle
+  **bir kez** `POST /auth/refresh` yapar ve isteği tekrarlar; o da `401` ise oturum biter. Aynı anda gelen
+  401'ler **tek** yenilemeyi bekler (aynı çerez iki kez kullanılırsa backend bunu çalınma sayabilir).
+  `/auth/login`, `/auth/refresh`, `/auth/logout` için yenileme denenmez; `/auth/me` için denenir (sayfa
+  yenilenince ilk istek odur).
+- `CurrentUserShell` — oturum yoksa `/login`'e yönlendirir. `LogoutButton` — çıkışta sorgu önbelleğini de siler.
+- Ekranlarda veri için `apiGet` / `apiPost` kullan; token'la hiç uğraşma.
 
 ## Yeni bir ekran eklemek (örnek: `/admin/departments`)
 
@@ -117,6 +127,6 @@ kalır. Login ekranını bağlarken (E2-1 ekranı):
 
 | Sorun | Çözüm |
 |---|---|
-| "Kullanıcı bilgisi alınamadı: Bu özellik henüz hazır değil" | Sahte API kapalı ve backend bu endpoint'i henüz uygulamadı (501); mock'u aç |
+| Sürekli giriş ekranına dönüyor | Sahte API kapalıyken backend çalışmıyor ya da seed yapılmamış: `docker compose up -d` + seed |
 | "Backend'e ulaşılamıyor" | Repo kökünde `docker compose up -d` çalıştır |
 | Tip hatası: alan bulunamadı | Backend şeması değişmiş: `npm run gen:api`, sonra `fixtures.ts`'i düzelt |

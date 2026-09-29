@@ -1,5 +1,4 @@
-// Yorum, puan ve yeniden acmanin sahte karsiliklari (backend'de hazir, E3-5). Login ekrani token'i
-// isteklere ekleyene kadar kalir, o PR'da silinir (frontend/README.md).
+// Yorum, puan ve yeniden acmanin sahte karsiliklari (cevrimdisi mod; gercek API E3-5).
 // Sahte API her istegi REPORTER yapmis sayar; 72 saat penceresi ve rol kurallarini gercek backend denetler.
 import { http, HttpResponse } from "msw";
 

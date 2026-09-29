@@ -1,5 +1,4 @@
-// FAZ 3 bildirim endpoint'lerinin sahte karsiliklari. Backend'de GERCEKTEN hazir (E3-1); login ekrani
-// access token'i saklayip isteklere ekleyene kadar kalir, o PR'da silinir (frontend/README.md).
+// FAZ 3 bildirim endpoint'lerinin sahte karsiliklari (cevrimdisi mod; gercek API E3-1).
 import { http, HttpResponse } from "msw";
 
 import { apiUrl } from "@/lib/api/client";

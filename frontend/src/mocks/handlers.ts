@@ -1,5 +1,5 @@
-// Backend'de henuz uygulanmamis (501) endpoint'lerin sahte karsiliklari.
-// Kural: backend bir endpoint'i gercekten uyguladiginda buradaki handler'i silin.
+// Sahte API: backend acmadan (cevrimdisi) ekran gelistirmek ve testler icin (frontend/README.md).
+// Cevaplar gercek API ile ayni sekilde tutulur; NEXT_PUBLIC_API_MOCKING=disabled iken hic yuklenmez.
 // Burada olmayan her istek (ornegin /health) gercek backend'e gider.
 import { http, HttpResponse } from "msw";
 
@@ -43,9 +43,8 @@ const token: Schemas["TokenRead"] = {
 };
 
 export const handlers = [
-  // /auth/*, /admin/* ve /locations backend'de GERCEKTEN hazir (FAZ 2). Bu handler'lar login ekrani
-  // access token'i saklayip isteklere ekleyene kadar kalir; o PR'da silinir (frontend/README.md).
-  // /cases/* da hazir (E3-1); sahteleri caseHandlers.ts'te, ayni kuralla silinir
+  // Sahte giris: fixture e-postalari icin ortak parola; /auth/me NEXT_PUBLIC_MOCK_ROLE rolunu doner.
+  // Bildirimler caseHandlers.ts, dosyalar attachmentHandlers.ts, yorum/puan interactionHandlers.ts'te.
   http.post<never, Schemas["LoginRequest"]>(
     apiUrl("/auth/login"),
     async ({ request }) => {
