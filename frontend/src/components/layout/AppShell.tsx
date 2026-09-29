@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { LogoutButton } from "@/components/auth/LogoutButton";
 import { navigationFor, type Role } from "@/lib/navigation";
 
 interface AppShellProps {
@@ -26,6 +27,9 @@ export function AppShell({ role, userName, children }: AppShellProps) {
             ))}
           </ul>
         </nav>
+        <div className="mt-4">
+          <LogoutButton />
+        </div>
       </aside>
       <main className="flex-1 p-6">{children}</main>
     </div>

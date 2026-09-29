@@ -1,5 +1,4 @@
-// Bildirim fotograf ve videolarinin sahte karsiliklari (backend'de hazir, E3-3). Login ekrani token'i
-// isteklere ekleyene kadar kalir, o PR'da silinir (frontend/README.md).
+// Bildirim fotograf ve videolarinin sahte karsiliklari (cevrimdisi mod; gercek API E3-3).
 // Not: gercek backend turu dosya icerigiyle anlar ve EXIF'i siler; burada yalniz File.type'a bakilir.
 import { http, HttpResponse } from "msw";
 
