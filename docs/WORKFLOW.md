@@ -12,7 +12,7 @@ stateDiagram-v2
     ANALYZING --> ESCALATED : L3 / ESCALATE
     ANALYZING --> REJECTED : spam / geçersiz
     NEEDS_INFO --> ANALYZING : reporter bilgi ekledi
-    NEEDS_INFO --> REJECTED : 48 saat yanıt yok
+    NEEDS_INFO --> REJECTED : 48 saat yanıt yok (henüz uygulanmadı)
     CLASSIFIED --> ASSIGNED : task oluşturuldu
     CLASSIFIED --> ESCALATED
     CLASSIFIED --> MERGED
@@ -107,6 +107,8 @@ SLA_WARNING, SLA_BREACHED, ESCALATED, DECISION_OVERRIDDEN, COMMENT_ADDED, FEEDBA
 | Task listeleme | ❌ | 🔸 kendi | ✅ | ✅ (salt okuma) |
 | Task kabul/başlat/tamamla/reddet | ❌ | 🔸 kendi | ❌ | ❌ |
 | Case (yeniden) atama | ❌ | ❌ | ✅ | ❌ |
+| Ek bilgi isteme (`request-info`) | ❌ | ❌ | ✅ | ❌ |
+| Ek bilgiyi yanıtlama (`info`) | 🔸 kendi | ❌ | ❌ | ❌ |
 | Agent kararını düzeltme (override) | ❌ | ❌ | ✅ | ❌ |
 | Human review kuyruğu | ❌ | ❌ | ✅ | ❌ |
 | Escalated case kararı | ❌ | ❌ | ✅ | ❌ |

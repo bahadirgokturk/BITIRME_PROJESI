@@ -34,7 +34,7 @@ function CaseDetailView({ item }: { item: CaseRead }) {
       <header className="space-y-3">
         <p className="text-xs text-muted-foreground">{item.case_number}</p>
         <PageTitle>{item.title}</PageTitle>
-        <CaseStatusView view={reporterView(item.status)} />
+        <CaseStatusView view={reporterView(item.status, item.info_request)} />
       </header>
       <div className="grid items-start gap-8 md:grid-cols-[1fr_20rem]">
         <dl className="space-y-4 rounded-xl border p-6">

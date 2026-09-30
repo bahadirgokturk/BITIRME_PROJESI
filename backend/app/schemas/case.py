@@ -73,6 +73,8 @@ class CaseRead(BaseModel):
     reopened_count: int
     # Kapanista bildirim yapanin verdigi puan (1-5)
     satisfaction_rating: int | None
+    # NEEDS_INFO iken bildirim yapana sorulan soru; diger durumlarda null
+    info_request: str | None
     created_at: datetime
     assigned_at: datetime | None
     resolved_at: datetime | None
@@ -97,18 +99,35 @@ class CaseEventRead(BaseModel):
     metadata: dict[str, Any] = Field(validation_alias=AliasChoices("metadata_json", "metadata"))
 
 
+def _not_blank(value: str) -> str:
+    stripped = value.strip()
+    if not stripped:
+        raise ValueError("Metin boş olamaz.")
+    return stripped
+
+
 class CommentCreate(BaseModel):
     body: str = Field(min_length=1, max_length=COMMENT_MAX_LENGTH)
     # Ic not: yalniz personel ve mudur yazar/gorur; bildirim yapan goremez
     is_internal: bool = False
 
-    @field_validator("body")
-    @classmethod
-    def _not_blank(cls, value: str) -> str:
-        stripped = value.strip()
-        if not stripped:
-            raise ValueError("Yorum boş olamaz.")
-        return stripped
+    _strip_body = field_validator("body")(_not_blank)
+
+
+class InfoRequestCreate(BaseModel):
+    """Manager bildirim yapana soru sorar (ANALYZING -> NEEDS_INFO)."""
+
+    question: str = Field(min_length=1, max_length=COMMENT_MAX_LENGTH)
+
+    _strip_question = field_validator("question")(_not_blank)
+
+
+class InfoReplyCreate(BaseModel):
+    """Bildirim yapanin yaniti; herkese acik yorum olarak da kaydedilir."""
+
+    body: str = Field(min_length=1, max_length=COMMENT_MAX_LENGTH)
+
+    _strip_body = field_validator("body")(_not_blank)
 
 
 class CommentRead(BaseModel):

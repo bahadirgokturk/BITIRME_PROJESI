@@ -55,4 +55,17 @@ describe("mock comments / feedback / reopen API", () => {
       reopened_count: 1,
     });
   });
+
+  it("answers the question and sends the case back to analysis", async () => {
+    const response = await post("/cases/104/info", { body: "Kapıya yakın tarafta." });
+    const comments = await (await fetch(apiUrl("/cases/104/comments"))).json();
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ status: "ANALYZING", info_request: null });
+    expect(comments.at(-1)).toMatchObject({ body: "Kapıya yakın tarafta." });
+  });
+
+  it("does not accept an answer when nothing was asked (409)", async () => {
+    expect((await post("/cases/101/info", { body: "Ek bilgi" })).status).toBe(409);
+  });
 });

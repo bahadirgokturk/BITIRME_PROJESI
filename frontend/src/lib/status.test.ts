@@ -44,4 +44,10 @@ describe("reporterView", () => {
     expect(view.kind).toBe("notice");
     expect(view.kind === "notice" && view.message).toContain(text);
   });
+
+  it("shows the question asked to the reporter when there is one", () => {
+    const view = reporterView("NEEDS_INFO", "Hangi katta?");
+
+    expect(view).toEqual({ kind: "notice", message: "Ek bilgi gerekiyor: Hangi katta?" });
+  });
 });

@@ -199,21 +199,26 @@ def test_login_is_required(client: TestClient) -> None:
 def test_reporter_timeline_hides_internal_agent_events(
     client: TestClient, db_session: Session, campus: Campus
 ) -> None:
-    # Agent gerekcesi/karar ayrintisi yalniz yetkililere; bildirim yapan sade zaman cizelgesi gorur
+    # Agent gerekcesi/karar ayrintisi yalniz yetkililere; bildirim yapan sade zaman cizelgesi gorur.
+    # "Incelendi" (AI_CLASSIFIED) adimi gorunur ama ayrintisi (metadata) bos doner
     created = _create(client, campus)
-    db_session.add(
-        CaseEvent(
-            case_id=created["id"],
-            event_type=CaseEventType.AI_CLASSIFIED,
-            actor_type=ActorType.AGENT,
-            agent_name="classification",
-            metadata_json={"confidence": 0.91},
+    for event_type in (CaseEventType.AI_CLASSIFIED, CaseEventType.VERIFICATION_SCORED):
+        db_session.add(
+            CaseEvent(
+                case_id=created["id"],
+                event_type=event_type,
+                actor_type=ActorType.AGENT,
+                agent_name="classification",
+                metadata_json={"confidence": 0.91},
+            )
         )
-    )
     db_session.flush()
 
     reporter_view = client.get(f"{URL}/{created['id']}/events", headers=campus.reporter).json()
     manager_view = client.get(f"{URL}/{created['id']}/events", headers=campus.manager).json()
 
-    assert "AI_CLASSIFIED" not in [e["event_type"] for e in reporter_view]
+    reporter_types = [e["event_type"] for e in reporter_view]
+    assert "AI_CLASSIFIED" in reporter_types
+    assert "VERIFICATION_SCORED" not in reporter_types
+    assert all(e["metadata"] == {} for e in reporter_view)
     assert manager_view[-1]["metadata"] == {"confidence": 0.91}

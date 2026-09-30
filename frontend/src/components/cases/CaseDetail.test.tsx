@@ -63,6 +63,16 @@ describe("CaseDetail", () => {
     expect(screen.getByText(/Ek bilgi gerekiyor/)).toBeInTheDocument();
   });
 
+  it("shows the question asked to the reporter and the plain timeline steps", async () => {
+    renderDetail("104");
+
+    expect(await screen.findByText(/Kokuyu en çok amfinin hangi tarafında/)).toBeInTheDocument();
+    const timeline = await screen.findByRole("list", { name: "Zaman çizelgesi" });
+    expect(within(timeline).getByText("Sizden ek bilgi istendi")).toBeInTheDocument();
+    // Bilinmeyen olay kalmadi: mock zaman cizelgesi backend'in reporter'a gosterdigi olaylarla ayni
+    expect(within(timeline).queryByText("Bildiriminiz güncellendi")).not.toBeInTheDocument();
+  });
+
   it("shows the same not-found screen for a missing or foreign case", async () => {
     renderDetail("999");
 

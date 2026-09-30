@@ -16,8 +16,10 @@ const progress = (step: ProgressStep): ReporterView => ({ kind: "progress", step
 const notice = (message: string): ReporterView => ({ kind: "notice", message });
 
 // Record her durumu kapsamak zorunda: backend'e yeni durum eklenirse bu tablo derlenmez.
-// REOPENED ve ESCALATED UI_GUIDE'da tanimli degil. Varsayim (ekiple dogrulanacak): yeniden acilan
-// bildirim bastan ele alinir, yoneticiye iletilen bildirim bir birimin elindedir.
+// REOPENED -> Alindi (bastan ele alinir), ESCALATED -> Yonlendirildi (mudurun karar kuyrugu);
+// ekiple kesinlesti, gerekceler docs/UI_GUIDE.md bolum 4.1.
+const NEEDS_INFO_PREFIX = "Ek bilgi gerekiyor";
+
 const REPORTER_VIEWS: Record<CaseStatus, ReporterView> = {
   NEW: progress("Alındı"),
   ANALYZING: progress("Alındı"),
@@ -30,12 +32,16 @@ const REPORTER_VIEWS: Record<CaseStatus, ReporterView> = {
   RESOLVED: progress("Çözüldü"),
   VERIFICATION: progress("Çözüldü"),
   CLOSED: progress("Çözüldü"),
-  NEEDS_INFO: notice("Ek bilgi gerekiyor: Sorunu ve konumu biraz daha netleştirebilir misiniz?"),
+  NEEDS_INFO: notice(`${NEEDS_INFO_PREFIX}: Sorunu ve konumu biraz daha netleştirebilir misiniz?`),
   MERGED: notice("Aynı sorun zaten bildirilmiş, bildiriminiz oraya eklendi."),
   REJECTED: notice("Bildiriminiz reddedildi."),
 };
 
-export function reporterView(status: CaseStatus): ReporterView {
+// Soru CaseRead.info_request'ten gelir; yoksa genel metin gosterilir
+export function reporterView(status: CaseStatus, infoRequest: string | null = null): ReporterView {
+  if (status === "NEEDS_INFO" && infoRequest) {
+    return notice(`${NEEDS_INFO_PREFIX}: ${infoRequest}`);
+  }
   return REPORTER_VIEWS[status];
 }
 

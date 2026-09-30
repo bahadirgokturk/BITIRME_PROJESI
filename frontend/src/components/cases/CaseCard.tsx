@@ -24,7 +24,7 @@ export function CaseCard({ item }: { item: CaseRead }) {
         {` · ${item.case_number}`}
       </p>
       <div className="mt-4">
-        <CaseStatusView view={reporterView(item.status)} />
+        <CaseStatusView view={reporterView(item.status, item.info_request)} />
       </div>
     </Link>
   );

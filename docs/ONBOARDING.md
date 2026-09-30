@@ -10,7 +10,7 @@ katkı yapabilirsin. Süre: ~30 dk (Docker indirme hariç).
 | Git | 2.40+ | Kod | git-scm.com |
 | Docker Desktop | güncel | Frontend + backend + Postgres'i tek komutla çalıştırmak | docker.com (Windows'ta WSL2 backend'i seç) |
 | VS Code | güncel | Editör (önerilen eklentiler repo açılınca otomatik önerilir) | code.visualstudio.com |
-| Node.js | 20 LTS | Frontend'i Docker dışında çalıştırmak / editör desteği | nodejs.org |
+| Node.js | 22 LTS (`frontend/.nvmrc`; 20.9+ çalışır, 25+ desteklenmez) | Frontend'i Docker dışında çalıştırmak / editör desteği | nodejs.org |
 | Python + uv | 3.12 | Backend/AI'ı Docker dışında çalıştırmak / editör desteği | python.org, `pip install uv` |
 
 > Günlük geliştirme için **Git + Docker Desktop yeterli**. Node ve Python editörde otomatik tamamlama,

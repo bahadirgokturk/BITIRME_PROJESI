@@ -5,6 +5,8 @@ Once bildirimi gorme kurali (yoksa 404), sonra islemin rol kurali (yoksa 403):
 - Ic not: yalniz STAFF ve MANAGER yazar ve gorur.
 - Puan: yalniz bildirim yapan, kapanmis bildirimde, kapanistan 72 saat icinde, bir kez.
 - Yeniden acma: bildirim yapan (kapanmissa 72 saat icinde) ya da MANAGER (her zaman).
+- Ek bilgi: MANAGER soru sorar (ANALYZING -> NEEDS_INFO), yalniz bildirim yapan yanitlar
+  (NEEDS_INFO -> ANALYZING). Yanit herkese acik yorum olarak da kaydedilir.
 """
 
 from datetime import timedelta
@@ -23,11 +25,13 @@ from app.schemas.case import (
     CommentCreate,
     CommentRead,
     FeedbackCreate,
+    InfoReplyCreate,
+    InfoRequestCreate,
     ReopenRequest,
 )
 from app.services.authorization import ensure_can_view_case
 from app.services.case_view import case_read
-from app.services.workflow import Transition, WorkflowService
+from app.services.workflow import Transition, WorkflowService, ensure_transition_allowed
 
 _INTERNAL_NOTE_ROLES = frozenset({UserRole.STAFF, UserRole.MANAGER})
 _REOPEN_WINDOW = timedelta(hours=REOPEN_WINDOW_HOURS)
@@ -108,6 +112,43 @@ class CaseInteractionService:
             metadata={"reason": data.reason},
         )
         self._workflow.transition(case, CaseStatus.REOPENED, reopened)
+        return self._commit_and_read(case)
+
+    def request_info(self, case_id: int, data: InfoRequestCreate) -> CaseRead:
+        """Rol kontrolu route'ta (yalniz MANAGER); Supervisor agent'i da ayni gecisi kullanacak."""
+        case = self._visible_case(case_id)
+        requested = Transition(
+            event_type=CaseEventType.INFO_REQUESTED,
+            actor_type=ActorType.USER,
+            actor_id=self._actor.id,
+            metadata={"question": data.question},
+        )
+        self._workflow.transition(case, CaseStatus.NEEDS_INFO, requested)
+        case.info_request = data.question
+        return self._commit_and_read(case)
+
+    def provide_info(self, case_id: int, data: InfoReplyCreate) -> CaseRead:
+        case = self._owned_case(case_id)
+        # Yorum yazilmadan once: soru yoksa yanit da kaydedilmez
+        ensure_transition_allowed(case.status, CaseStatus.ANALYZING)
+        comment = comment_repository.add(
+            self._session,
+            Comment(
+                case_id=case.id,
+                author_id=self._actor.id,
+                body=data.body,
+                is_internal=False,
+                created_at=self._clock.now(),
+            ),
+        )
+        provided = Transition(
+            event_type=CaseEventType.INFO_PROVIDED,
+            actor_type=ActorType.USER,
+            actor_id=self._actor.id,
+            metadata={"comment_id": comment.id},
+        )
+        self._workflow.transition(case, CaseStatus.ANALYZING, provided)
+        case.info_request = None
         return self._commit_and_read(case)
 
     def _within_window(self, case: Case) -> bool:
