@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { Providers } from "./providers";
@@ -17,7 +17,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "CampusFlow AI",
   description: "Kampüs olay, görev ve karar destek platformu",
+  // iPhone'da "Ana Ekrana Ekle" ile tam ekran acilir; saat/pil cubugu beyaz zeminde koyu yazi
+  appleWebApp: { capable: true, title: "CampusFlow", statusBarStyle: "default" },
 };
+
+// Telefonun durum cubugu uygulamanin beyaz ust cubuguyla ayni renkte (Figma: PWA ayarlari)
+export const viewport: Viewport = { themeColor: "#ffffff" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

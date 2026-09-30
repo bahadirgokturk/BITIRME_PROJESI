@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { PageTitle } from "@/components/layout/PageTitle";
+import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { ErrorState } from "@/components/states/ErrorState";
 import { buttonVariants } from "@/components/ui/button";
 import { useMyCases } from "@/hooks/useCases";
@@ -77,6 +78,8 @@ export function MyCasesList() {
   const isEmpty = query.isSuccess && query.data.items.length === 0;
   return (
     <div className="mx-auto w-full max-w-5xl space-y-8">
+      {/* Uygulama yukleme daveti ilk bildirimden sonra gosterilir (Figma: /my-cases - yukleme daveti) */}
+      <InstallPrompt hasCases={query.isSuccess && !isEmpty} />
       <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <PageTitle>Bildirimlerim</PageTitle>
         {isEmpty ? null : <ReportLink />}

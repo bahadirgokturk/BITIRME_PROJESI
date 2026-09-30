@@ -159,6 +159,7 @@ Pipeline FastAPI `BackgroundTasks` ile çalışır (tüm modeller yerel, toplam 
 | ADR-6 | Tek rol / kullanıcı (enum) | RBAC basit ve test edilebilir; çoklu rol gerekmiyor |
 | ADR-7 | Frontend tipleri OpenAPI şemasından üretilir | FE/BE sözleşme uyumsuzluğunu önler |
 | ADR-8 | Celery/Redis yerine BackgroundTasks + APScheduler | İhtiyaç kanıtlanmadan altyapı eklenmez |
+| ADR-9 | Mobil uygulama yerine PWA (Next `app/manifest.ts` + simgeler); v1'de service worker yok | Tek kod tabanı, mağaza yok. Veri anlık olmalı ve oturum bilgisi önbelleğe girmemeli; MSW'nin service worker'ıyla çakışma riski yok. Telefona kurulum HTTPS ister (staging). Push bildirimleri ileride backend ile birlikte, service worker o zaman eklenir |
 
 ## 9. Güvenlik Özeti
 
