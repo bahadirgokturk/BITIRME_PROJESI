@@ -89,9 +89,10 @@ export function CaseDetail({ caseId }: { caseId: string }) {
   const query = useCase(caseId);
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6">
+      {/* Telefonda geri butonu ust cubukta (MobileAppBar, Tur=Geri) */}
       <Link
         href="/my-cases"
-        className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium hover:underline"
+        className="hidden min-h-11 items-center gap-1.5 text-sm font-medium hover:underline md:inline-flex"
       >
         <ArrowLeft aria-hidden className="size-4" />
         Bildirimlerim

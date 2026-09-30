@@ -9,9 +9,11 @@ export const ROLES: readonly Role[] = ["REPORTER", "STAFF", "MANAGER", "ADMIN"];
 export interface NavItem {
   href: string;
   label: string;
+  // Bu ogeyi de secili gosteren alt sayfalar (ornek: bildirim detayi listenin altindadir)
+  subPaths?: readonly string[];
 }
 
-const REPORT: NavItem = { href: "/report", label: "Bildirim Yap" };
+const REPORT: NavItem = { href: "/report", label: "Bildirim yap" };
 const MANAGEMENT_VIEWS: NavItem[] = [
   { href: "/manager/dashboard", label: "Dashboard" },
   { href: "/manager/analytics", label: "Analitik" },
@@ -19,7 +21,7 @@ const MANAGEMENT_VIEWS: NavItem[] = [
 ];
 
 const NAVIGATION: Record<Role, NavItem[]> = {
-  REPORTER: [REPORT, { href: "/my-cases", label: "Bildirimlerim" }],
+  REPORTER: [REPORT, { href: "/my-cases", label: "Bildirimlerim", subPaths: ["/cases"] }],
   STAFF: [REPORT, { href: "/staff/tasks", label: "Görevlerim" }],
   MANAGER: [REPORT, ...MANAGEMENT_VIEWS, { href: "/manager/cases", label: "Case'ler" }],
   ADMIN: [REPORT, ...MANAGEMENT_VIEWS, { href: "/admin", label: "Yönetim" }],
@@ -27,4 +29,16 @@ const NAVIGATION: Record<Role, NavItem[]> = {
 
 export function navigationFor(role: Role): NavItem[] {
   return NAVIGATION[role];
+}
+
+function isUnder(pathname: string, base: string): boolean {
+  return pathname === base || pathname.startsWith(`${base}/`);
+}
+
+// Menude secili gosterilecek ogenin adresi; hicbiri eslesmezse null
+export function activeNavHref(role: Role, pathname: string): string | null {
+  const match = NAVIGATION[role].find((item) =>
+    [item.href, ...(item.subPaths ?? [])].some((base) => isUnder(pathname, base)),
+  );
+  return match?.href ?? null;
 }

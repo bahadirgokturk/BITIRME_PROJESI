@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { navigationFor, ROLES } from "./navigation";
+import { activeNavHref, navigationFor, ROLES } from "./navigation";
 
 describe("navigationFor", () => {
   it("gives every role a non-empty menu", () => {
@@ -28,5 +28,27 @@ describe("navigationFor", () => {
 
     expect(managerHrefs.some((href) => href.startsWith("/admin"))).toBe(false);
     expect(navigationFor("ADMIN").some((item) => item.href.startsWith("/admin"))).toBe(true);
+  });
+});
+
+describe("activeNavHref", () => {
+  it("marks the exact page", () => {
+    expect(activeNavHref("REPORTER", "/my-cases")).toBe("/my-cases");
+    expect(activeNavHref("REPORTER", "/report")).toBe("/report");
+  });
+
+  it("keeps the list item active on its sub pages (bildirim detayi)", () => {
+    expect(activeNavHref("REPORTER", "/cases/101")).toBe("/my-cases");
+  });
+
+  it("does not match a page that only shares a prefix", () => {
+    expect(activeNavHref("REPORTER", "/my-cases-old")).toBeNull();
+    expect(activeNavHref("REPORTER", "/")).toBeNull();
+  });
+});
+
+describe("menu labels", () => {
+  it("uses sentence case for the report item (UI_GUIDE)", () => {
+    expect(navigationFor("REPORTER")[0]?.label).toBe("Bildirim yap");
   });
 });

@@ -1,37 +1,47 @@
-import Link from "next/link";
+"use client";
+
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { LogoutButton } from "@/components/auth/LogoutButton";
-import { navigationFor, type Role } from "@/lib/navigation";
+import { LogoWordmark } from "@/components/brand/Logo";
+import { activeNavHref, navigationFor, type Role } from "@/lib/navigation";
+import { mobileBarFor } from "@/lib/shell";
+
+import { MobileAppBar } from "./MobileAppBar";
+import { NavLinks } from "./NavLinks";
 
 interface AppShellProps {
   role: Role;
   userName: string;
+  userDetail: string;
   children: ReactNode;
 }
 
-export function AppShell({ role, userName, children }: AppShellProps) {
+// Masaustunde sol kenar cubugu, telefonda ust cubuk + sol panel (Figma: AppSidebar, MobileAppBar)
+export function AppShell({ role, userName, userDetail, children }: AppShellProps) {
+  const pathname = usePathname();
+  const items = navigationFor(role);
+  const activeHref = activeNavHref(role, pathname);
   return (
     <div className="flex min-h-full flex-1 flex-col md:flex-row">
-      <aside className="border-b bg-muted/40 p-4 md:w-56 md:border-r md:border-b-0">
-        <p className="font-semibold">CampusFlow AI</p>
-        <p className="mb-4 text-xs text-muted-foreground">{userName}</p>
-        <nav aria-label="Ana menü">
-          <ul className="flex flex-wrap gap-2 md:flex-col">
-            {navigationFor(role).map((item) => (
-              <li key={item.href}>
-                <Link href={item.href} className="text-sm hover:underline">
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        <div className="mt-4">
-          <LogoutButton />
+      <MobileAppBar
+        bar={mobileBarFor(pathname)}
+        items={items}
+        activeHref={activeHref}
+        user={{ name: userName, detail: userDetail }}
+      />
+      <aside className="hidden border-r bg-muted p-4 md:sticky md:top-0 md:flex md:h-dvh md:w-56 md:flex-col md:gap-4">
+        <div className="space-y-2">
+          <LogoWordmark />
+          <p className="text-xs text-muted-foreground">{userName}</p>
         </div>
+        <div className="flex-1">
+          <NavLinks items={items} activeHref={activeHref} size="desktop" />
+        </div>
+        <LogoutButton size="desktop" />
       </aside>
-      <main className="flex-1 p-6">{children}</main>
+      <main className="flex-1 p-4 md:px-8 md:py-10">{children}</main>
     </div>
   );
 }

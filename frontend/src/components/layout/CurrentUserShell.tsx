@@ -5,6 +5,7 @@ import { useEffect, type ReactNode } from "react";
 
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ApiError } from "@/lib/api/client";
+import { userDetail } from "@/lib/shell";
 
 import { AppShell } from "./AppShell";
 
@@ -34,7 +35,7 @@ export function CurrentUserShell({ children }: { children: ReactNode }) {
     );
   }
   return (
-    <AppShell role={user.role} userName={user.full_name}>
+    <AppShell role={user.role} userName={user.full_name} userDetail={userDetail(user)}>
       {children}
     </AppShell>
   );

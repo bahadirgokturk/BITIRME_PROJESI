@@ -72,8 +72,18 @@ Figma değişkenleri (Variables) **koddaki CSS değişkenleriyle aynı adla** ta
 | `chart-1 … chart-5` | `--chart-1 … --chart-5` | Grafik serileri |
 | `radius` | `--radius` (0.625rem = 10 px) | Köşe yuvarlaklığı |
 
-- **Marka rengi:** Şu an shadcn'in nötr (siyah-gri) teması var. Ekip bir marka rengi seçerse yalnız
-  `primary` (ve gerekirse `chart-*`) değişir; açık ve koyu tema için ikişer değer verilir.
+- **Marka rengi (kesinleşti):** İzmir Bakırçay Üniversitesi renklerinden.
+  | Token | Açık tema | Koyu tema | Kullanım |
+  |---|---|---|---|
+  | `primary`, `ring` | turkuaz `#00818D` (beyaz yazı 4.64:1) | `#00A5B5` (koyu yazı 6.65:1) | Ana buton, bağlantı, odak halkası, ilerleme çubuğu |
+  | `brand-accent` | turuncu `#FF8901` | aynı | **Yalnız süsleme:** başlık altı çizgi, seçili menü çizgisi, logodaki F. Metin, buton ya da durum rengi olarak kullanılmaz |
+
+  Diğer token'lar shadcn nötr temasında kalır. Logo: `public/brand/logo-art.svg` + `components/brand/Logo.tsx`
+  (Figma: 02 Components > Logo/Simge, Logo/Yatay).
+- **Uygulama kabuğu:** Masaüstünde sol kenar çubuğu (logo, kullanıcı, menü, çıkış). Telefonda üstte sabit çubuk:
+  ana sayfalarda menü butonu + logo (menü soldan açılan panel, shadcn Sheet), alt sayfalarda (ör. `/cases/[id]`)
+  geri butonu + başlık. Hangi sayfada hangi çubuğun çıkacağı `lib/shell.ts`, seçili menü öğesi `lib/navigation.ts`.
+  Alt sekme çubuğu bilinçli olarak kullanılmıyor.
 - **Tipografi:** Geist (kodda yüklü, Türkçe karakter destekli). Ölçek: 12 · 14 (gövde) · 16 · 20 · 24 · 30 px.
   Mobilde gövde metni en az 14 px, form alanları 16 px (iOS'ta otomatik zoom'u önler).
 - **Boşluk:** Tailwind 4 px ızgarası (4, 8, 12, 16, 24, 32, 48). Figma'da auto-layout boşlukları bu değerlerden seçilir.

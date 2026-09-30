@@ -8,12 +8,11 @@ const BAR_CLASS: Record<StepState, string> = {
   todo: "bg-border",
 };
 
-// Telefonda 4 etiket yan yana sigmiyor (375 px): yalniz aktif adim yazilir, digerleri ekran
-// okuyucuya kalir
+// 375 px'te de 4 etiket yan yana yazilir (Figma: /my-cases - mobil, 12 px etiketler sigiyor)
 const LABEL_CLASS: Record<StepState, string> = {
-  done: "text-foreground max-sm:sr-only",
-  current: "font-semibold whitespace-nowrap text-foreground",
-  todo: "text-muted-foreground max-sm:sr-only",
+  done: "text-foreground",
+  current: "font-semibold text-foreground",
+  todo: "text-muted-foreground",
 };
 
 // Durum yalniz renkle degil metinle de anlatilir: aktif adim kalin ve aria-current (UI_GUIDE bolum 8)
@@ -25,7 +24,7 @@ function CaseProgress({ step }: { step: ProgressStep }) {
         return (
           <li key={label} aria-current={state === "current" ? "step" : undefined} className="space-y-1.5">
             <span aria-hidden className={cn("block h-1 rounded-full", BAR_CLASS[state])} />
-            <span className={cn("block text-xs", LABEL_CLASS[state])}>{label}</span>
+            <span className={cn("block text-xs whitespace-nowrap", LABEL_CLASS[state])}>{label}</span>
           </li>
         );
       })}

@@ -1,13 +1,20 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { LogOutIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { logout } from "@/lib/api/session";
 
-export function LogoutButton() {
+// Menu ogeleriyle ayni yukseklik: masaustu 40 px, telefon paneli 44 px (Figma: MobileMenuSheet)
+const SIZE_CLASS = {
+  desktop: "h-10 text-sm",
+  mobile: "h-11 text-[15px]",
+} as const;
+
+export function LogoutButton({ size }: { size: keyof typeof SIZE_CLASS }) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [pending, setPending] = useState(false);
@@ -25,11 +32,12 @@ export function LogoutButton() {
 
   return (
     <Button
-      variant="outline"
-      size="sm"
+      variant="ghost"
       onClick={handleClick}
       disabled={pending}
+      className={`w-full justify-start gap-2.5 px-3 font-normal ${SIZE_CLASS[size]}`}
     >
+      <LogOutIcon aria-hidden className="size-5" />
       Çıkış yap
     </Button>
   );

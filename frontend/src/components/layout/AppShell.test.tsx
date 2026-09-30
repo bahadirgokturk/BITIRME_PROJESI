@@ -13,12 +13,17 @@ import { server } from "@/mocks/node";
 import { AppShell } from "./AppShell";
 
 const replace = vi.fn();
-vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
+let pathname = "/staff/tasks";
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace }),
+  usePathname: () => pathname,
+}));
 
-function renderShell(children: ReactNode) {
+function renderShell(children: ReactNode, path = "/staff/tasks") {
+  pathname = path;
   render(
     <QueryClientProvider client={createQueryClient()}>
-      <AppShell role="STAFF" userName="Mehmet Demir">
+      <AppShell role="STAFF" userName="Mehmet Demir" userDetail="Personel">
         {children}
       </AppShell>
     </QueryClientProvider>,
@@ -38,6 +43,34 @@ describe("AppShell", () => {
     ).not.toBeInTheDocument();
     expect(screen.getByText("içerik")).toBeInTheDocument();
     expect(screen.getByText("Mehmet Demir")).toBeInTheDocument();
+  });
+
+  it("highlights the current page in the menu", () => {
+    renderShell(<p>içerik</p>);
+
+    const nav = screen.getByRole("navigation", { name: "Ana menü" });
+    expect(within(nav).getByRole("link", { name: "Görevlerim" })).toHaveAttribute("aria-current", "page");
+    expect(within(nav).getByRole("link", { name: "Bildirim yap" })).not.toHaveAttribute("aria-current");
+  });
+
+  it("opens the mobile menu panel with the same items and logout", async () => {
+    renderShell(<p>içerik</p>);
+
+    await userEvent.setup().click(screen.getByRole("button", { name: "Menüyü aç" }));
+
+    const panel = await screen.findByRole("dialog", { name: "Menü" });
+    expect(within(panel).getByRole("link", { name: "Görevlerim" })).toHaveAttribute("aria-current", "page");
+    expect(within(panel).getByText("Personel")).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: "Çıkış yap" })).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: "Menüyü kapat" })).toBeInTheDocument();
+  });
+
+  it("shows a back bar instead of the menu on a detail page", () => {
+    renderShell(<p>içerik</p>, "/cases/101");
+
+    expect(screen.getByRole("link", { name: "Geri" })).toHaveAttribute("href", "/my-cases");
+    expect(screen.getByText("Bildirim")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Menüyü aç" })).not.toBeInTheDocument();
   });
 
   it("logs out: forgets the token and goes to the login page", async () => {
