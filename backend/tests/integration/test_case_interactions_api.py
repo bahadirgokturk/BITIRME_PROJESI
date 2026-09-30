@@ -287,3 +287,86 @@ def test_window_restarts_when_a_reopened_case_closes_again(
     world.relogin(client)
 
     assert _reopen(client, world, world.reporter)[0] == 200
+
+
+# --- Ek bilgi isteme ve yanitlama ---------------------------------------------------------
+
+QUESTION = "Hangi kattaki tuvalet? Kadın mı erkek mi?"
+
+
+def _request_info(client: TestClient, world: World, headers: Headers) -> int:
+    return client.post(
+        f"/api/v1/cases/{world.case_id}/request-info",
+        json={"question": QUESTION},
+        headers=headers,
+    ).status_code
+
+
+def _answer(client: TestClient, world: World, headers: Headers) -> tuple[int, dict[str, object]]:
+    response = client.post(
+        f"/api/v1/cases/{world.case_id}/info",
+        json={"body": "2. kat erkek tuvaleti."},
+        headers=headers,
+    )
+    return response.status_code, response.json()
+
+
+def test_manager_question_reaches_the_reporter(client: TestClient, world: World) -> None:
+    assert _request_info(client, world, world.manager) == 200
+
+    case = client.get(f"/api/v1/cases/{world.case_id}", headers=world.reporter).json()
+
+    assert case["status"] == "NEEDS_INFO"
+    assert case["info_request"] == QUESTION
+
+
+def test_only_the_manager_asks_for_info(client: TestClient, world: World) -> None:
+    assert _request_info(client, world, world.reporter) == 403
+    assert _request_info(client, world, world.staff) == 403
+    assert _request_info(client, world, world.admin) == 403
+
+
+def test_info_is_requested_only_during_analysis(
+    client: TestClient, db_session: Session, clock: FrozenClock, world: World
+) -> None:
+    _close(db_session, clock, world.case_id)
+
+    assert _request_info(client, world, world.manager) == 409
+
+
+def test_reporter_answer_restarts_the_analysis(client: TestClient, world: World) -> None:
+    _request_info(client, world, world.manager)
+
+    status, case = _answer(client, world, world.reporter)
+
+    assert status == 200
+    assert case["status"] == "ANALYZING"
+    assert case["info_request"] is None
+    comments = client.get(f"/api/v1/cases/{world.case_id}/comments", headers=world.manager).json()
+    assert [c["body"] for c in comments] == ["2. kat erkek tuvaleti."]
+    events = client.get(f"/api/v1/cases/{world.case_id}/events", headers=world.reporter).json()
+    assert [e["event_type"] for e in events][-2:] == ["INFO_REQUESTED", "INFO_PROVIDED"]
+
+
+def test_only_the_reporter_answers(client: TestClient, world: World) -> None:
+    _request_info(client, world, world.manager)
+
+    assert _answer(client, world, world.manager)[0] == 403
+    assert _answer(client, world, world.stranger)[0] == 404
+
+
+def test_answer_without_a_question_is_409(client: TestClient, world: World) -> None:
+    assert _answer(client, world, world.reporter)[0] == 409
+
+    # Reddedilen yanit yorum olarak da kalmamali
+    comments = client.get(f"/api/v1/cases/{world.case_id}/comments", headers=world.manager).json()
+    assert comments == []
+
+
+def test_blank_question_or_answer_is_422(client: TestClient, world: World) -> None:
+    url = f"/api/v1/cases/{world.case_id}"
+    asked = client.post(f"{url}/request-info", json={"question": " "}, headers=world.manager)
+    _request_info(client, world, world.manager)
+    answered = client.post(f"{url}/info", json={"body": " "}, headers=world.reporter)
+
+    assert (asked.status_code, answered.status_code) == (422, 422)

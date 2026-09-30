@@ -3,6 +3,8 @@
 const LABELS: Readonly<Record<string, string | undefined>> = {
   CASE_CREATED: "Bildiriminiz alındı",
   ANALYSIS_STARTED: "Bildiriminiz inceleniyor",
+  AI_CLASSIFIED: "Bildiriminiz incelendi",
+  ROUTED: "Sorumlu birim belirlendi",
   INFO_REQUESTED: "Sizden ek bilgi istendi",
   INFO_PROVIDED: "Ek bilgi gönderildi",
   CASE_MERGED: "Aynı sorun zaten bildirilmiş, bildiriminiz oraya eklendi",

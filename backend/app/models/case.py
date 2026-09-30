@@ -91,6 +91,8 @@ class Case(IdMixin, CreatedAtMixin, Base):
     reopened_count: Mapped[int] = mapped_column(Integer, server_default="0")
     satisfaction_rating: Mapped[int | None] = mapped_column(SmallInteger)
     satisfaction_comment: Mapped[str | None] = mapped_column(Text)
+    # NEEDS_INFO iken bildirim yapana sorulan soru; yanitlaninca bosalir (gecmisi case_events'te)
+    info_request: Mapped[str | None] = mapped_column(Text)
     # Demo verisini ayirt etmek icin
     is_seed: Mapped[bool] = mapped_column(Boolean, server_default=false())
 

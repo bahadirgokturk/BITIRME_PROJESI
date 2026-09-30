@@ -46,8 +46,10 @@ alanları dönmez. Bildirim formu bunu kullanır; yönetim `/admin/locations`'ta
 - Başka kurumun ya da pasif lokasyon → `404`.
 - Görme kapsamı (liste ve detay aynı kural): REPORTER kendi bildirimleri; STAFF kendi bildirdiği + kendisine
   atanan + departmanına yönlendirilen; MANAGER/ADMIN kurumun tümü. Kapsam dışı kayıt → `404`.
-- Zaman çizelgesi: REPORTER yalnız kamuya açık olayları görür (agent kararları, SLA uyarıları gizli) ve
-  `metadata` boş döner.
+- Zaman çizelgesi: REPORTER yalnız kamuya açık olayları görür ve `metadata` boş döner. Görünenler:
+  `CASE_CREATED, ANALYSIS_STARTED, AI_CLASSIFIED ("incelendi"), ROUTED ("birime yönlendirildi"), INFO_REQUESTED,
+  INFO_PROVIDED, CASE_MERGED, TASK_CREATED, WORK_STARTED, WORK_COMPLETED, CASE_CLOSED, CASE_REOPENED,
+  CASE_REJECTED, FEEDBACK_SUBMITTED`. Diğer agent kararları, SLA uyarıları ve yorum olayları gizli.
 - Durum değişiklikleri yalnız `WorkflowService` ile (docs/WORKFLOW.md); tablo dışı geçiş → `409 INVALID_TRANSITION`.
 
 `POST /cases` gövdesi JSON:
@@ -63,7 +65,7 @@ belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanı
 | GET | `/cases/{id}` | kapsam | detay (+ SLA durumu hesaplanmış) |
 | GET | `/cases/{id}/events` | kapsam | zaman çizelgesi (reporter'a filtrelenmiş) |
 | GET | `/cases/{id}/decisions` | M/A | agent kararları + gerekçeler |
-| POST | `/cases/{id}/info` | R (sahip) | NEEDS_INFO iken ek bilgi → yeniden analiz |
+| POST | `/cases/{id}/info` | R (sahip) | NEEDS_INFO iken `{body}` → `ANALYZING`, yanıt herkese açık yorum olarak da eklenir ✅ |
 | POST | `/cases/{id}/comments` | kapsam (ADMIN hariç) | `{body, is_internal}` ✅ |
 | GET | `/cases/{id}/comments` | kapsam | yorumlar (reporter iç notları görmez) ✅ |
 | POST | `/cases/{id}/attachments` | kapsam (ADMIN hariç) | fotoğraf yükleme (multipart, alan adı `file`) ✅ |
@@ -104,6 +106,7 @@ belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanı
 |---|---|---|
 | GET | `/manager/review-queue` | `needs_human_review=true` + `ESCALATED` case'ler |
 | POST | `/cases/{id}/assign` | `{department_id, user_id?}` ✅ (E4-1, ayrıntı: Tasks) |
+| POST | `/cases/{id}/request-info` | `{question}` ✅: `ANALYZING` → `NEEDS_INFO`, `INFO_REQUESTED` (soru metadata'da), soru `CaseRead.info_request`'te; başka durumda `409` |
 | POST | `/cases/{id}/override` | `{field, corrected_value, reason}` → `decision_feedback` + `DECISION_OVERRIDDEN` |
 | POST | `/cases/{id}/merge` | `{parent_case_id}` |
 | POST | `/cases/{id}/reject` | `{reason}` |

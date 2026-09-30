@@ -6,6 +6,8 @@ describe("timelineLabel", () => {
   it.each([
     ["CASE_CREATED", "Bildiriminiz alındı"],
     ["ANALYSIS_STARTED", "Bildiriminiz inceleniyor"],
+    ["AI_CLASSIFIED", "Bildiriminiz incelendi"],
+    ["ROUTED", "Sorumlu birim belirlendi"],
     ["TASK_CREATED", "İlgili birime yönlendirildi"],
     ["WORK_STARTED", "Görevli çalışmaya başladı"],
     ["WORK_COMPLETED", "Görevli işi tamamladı"],

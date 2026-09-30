@@ -102,10 +102,20 @@ Renkler öneridir; ekip değiştirebilir ama tabloyu ve kodu birlikte günceller
 | REJECTED | Reddedildi | gri (üstü çizili değil, ikonlu) |
 | MERGED | Birleştirildi | gri |
 
-**Reporter için sadeleştirilmiş ilerleme** (öneri): 14 durum yerine 4 adımlı bir ilerleme çubuğu —
-**Alındı** (NEW, ANALYZING, CLASSIFIED) → **Yönlendirildi** (ASSIGNED, ACCEPTED) → **Çalışılıyor** (IN_PROGRESS)
-→ **Çözüldü** (RESOLVED, VERIFICATION, CLOSED). NEEDS_INFO, REJECTED ve MERGED ayrı bilgi kutusuyla anlatılır
-("Konumu netleştirebilir misiniz?", "Aynı sorun zaten bildirilmiş, oraya eklendi").
+**Reporter için sadeleştirilmiş ilerleme** (kesinleşti, kod: `REPORTER_VIEWS` in `frontend/src/lib/status.ts`):
+14 durum yerine 4 adımlı bir ilerleme çubuğu. Her durum tam olarak bir satıra düşer:
+
+| Reporter adımı | `case_status` | Neden |
+|---|---|---|
+| **Alındı** | NEW, ANALYZING, CLASSIFIED, REOPENED | Yeniden açılan bildirim baştan ele alınır |
+| **Yönlendirildi** | ASSIGNED, ACCEPTED, ESCALATED | ESCALATED = müdürün karar kuyruğu (ör. personel reddetti); reporter için iş hâlâ yönlendirme aşamasında, geri gitmiş gibi gösterilmez |
+| **Çalışılıyor** | IN_PROGRESS | |
+| **Çözüldü** | RESOLVED, VERIFICATION, CLOSED | |
+| (bilgi kutusu) | NEEDS_INFO, REJECTED, MERGED | Adım yerine açıklama |
+
+NEEDS_INFO kutusu **sorulan soruyu** `CaseRead.info_request` alanından gösterir ve altında yanıt kutusu olur
+(`POST /cases/{id}/info`, `{body}`); yanıt gönderilince bildirim yeniden `ANALYZING` (Alındı) olur. REJECTED ve
+MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi").
 
 | `priority` | Etiket | Renk | | SLA durumu | Etiket | Renk |
 |---|---|---|---|---|---|---|

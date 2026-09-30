@@ -136,6 +136,7 @@ Eşleşme sırası: tam eşleşme → case_type NULL + priority. Kampüs değerl
 | reopened_count | int default 0 | |
 | satisfaction_rating | smallint NULL | 1–5, reporter geri bildirimi |
 | satisfaction_comment | text NULL | |
+| info_request | text NULL | NEEDS_INFO iken reporter'a sorulan soru; yanıtlanınca boşalır (geçmişi `case_events`'te) |
 | is_seed | bool default false | demo verisini ayırt etmek için |
 
 Index'ler: `(organization_id, status)`, `(location_id, case_type_id, created_at)` (recurring + duplicate),

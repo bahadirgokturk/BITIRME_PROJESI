@@ -31,6 +31,9 @@ REPORTER_VISIBLE_EVENTS = frozenset(
     {
         CaseEventType.CASE_CREATED,
         CaseEventType.ANALYSIS_STARTED,
+        # "Incelendi" ve "birime yonlendirildi": adim gorunur, karar ayrintisi (metadata) gizli
+        CaseEventType.AI_CLASSIFIED,
+        CaseEventType.ROUTED,
         CaseEventType.INFO_REQUESTED,
         CaseEventType.INFO_PROVIDED,
         CaseEventType.CASE_MERGED,

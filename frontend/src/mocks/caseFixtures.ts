@@ -46,6 +46,7 @@ export const EMPTY_CASE: Omit<
   needs_human_review: false,
   reopened_count: 0,
   satisfaction_rating: null,
+  info_request: null,
   created_at: "2026-09-27T08:15:00Z",
   assigned_at: null,
   resolved_at: null,
@@ -115,6 +116,8 @@ export const CASES: Schemas["CaseRead"][] = [
       "B201 amfide yanık kokusu gibi bir koku var, nereden geldiği belli değil.",
     location: AMFI,
     status: "NEEDS_INFO",
+    info_request:
+      "Kokuyu en çok amfinin hangi tarafında hissediyorsunuz? Prizlerin yakınında mı?",
     needs_human_review: true,
     created_at: "2026-09-27T09:30:00Z",
   },
@@ -138,26 +141,52 @@ function event(
   };
 }
 
-// Reporter'a gosterilen zaman cizelgesi (backend reporter icin ic olaylari filtreler)
-export function timelineFor(item: Schemas["CaseRead"]): Event[] {
-  const created = event(item.id * 10, {
-    event_type: "CASE_CREATED",
-    actor_type: "USER",
-    actor_id: item.reporter_id,
-    to_status: "NEW",
-    occurred_at: item.created_at,
-  });
-  if (!item.case_type) {
-    return [created];
+// Analizden sonraki ilk adim: soru sorulduysa INFO_REQUESTED, tur belirlendiyse AI_CLASSIFIED
+function afterAnalysis(item: Schemas["CaseRead"], id: number): Event[] {
+  if (item.status === "NEEDS_INFO") {
+    return [
+      event(id, {
+        event_type: "INFO_REQUESTED",
+        actor_type: "USER",
+        from_status: "ANALYZING",
+        to_status: "NEEDS_INFO",
+        occurred_at: item.created_at,
+      }),
+    ];
   }
-  const classified = event(item.id * 10 + 1, {
-    event_type: "AI_CLASSIFIED",
-    actor_type: "AGENT",
-    agent_name: "classification",
-    from_status: "ANALYZING",
-    to_status: "CLASSIFIED",
-    occurred_at: item.created_at,
-    metadata: { case_type: item.case_type.code },
-  });
-  return [created, classified];
+  if (!item.case_type) {
+    return [];
+  }
+  return [
+    event(id, {
+      event_type: "AI_CLASSIFIED",
+      actor_type: "AGENT",
+      agent_name: "classification",
+      from_status: "ANALYZING",
+      to_status: "CLASSIFIED",
+      occurred_at: item.created_at,
+    }),
+  ];
+}
+
+// Reporter'a gosterilen zaman cizelgesi: backend ile ayni olaylar (REPORTER_VISIBLE_EVENTS),
+// metadata reporter'a hep bos doner (backend/app/services/case_service.py)
+export function timelineFor(item: Schemas["CaseRead"]): Event[] {
+  const base = item.id * 10;
+  return [
+    event(base, {
+      event_type: "CASE_CREATED",
+      actor_type: "USER",
+      actor_id: item.reporter_id,
+      to_status: "NEW",
+      occurred_at: item.created_at,
+    }),
+    event(base + 1, {
+      event_type: "ANALYSIS_STARTED",
+      from_status: "NEW",
+      to_status: "ANALYZING",
+      occurred_at: item.created_at,
+    }),
+    ...afterAnalysis(item, base + 2),
+  ];
 }
