@@ -14,6 +14,7 @@ export type MobileBar =
 // dogrudan acilmis olabilir ve tarayici gecmisi bos olabilir.
 const BACK_BARS: readonly { prefix: string; bar: MobileBar }[] = [
   { prefix: "/cases/", bar: { kind: "back", title: "Bildirim", backHref: "/my-cases" } },
+  { prefix: "/staff/tasks/", bar: { kind: "back", title: "Görev", backHref: "/staff/tasks" } },
 ];
 
 export function mobileBarFor(pathname: string): MobileBar {

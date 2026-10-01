@@ -38,6 +38,9 @@
   --color-brand-accent: var(--brand-accent);
   --color-brand-accent-strong: var(--brand-accent-strong);
   --color-primary-strong: var(--primary-strong);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -58,6 +61,11 @@
   --brand-accent: oklch(0.746 0.181 56.865);
   --brand-accent-strong: oklch(0.645 0.166 52.049);
   --primary-strong: oklch(0.443 0.076 206.051);
+  /* Durum renkleri (SLA ve oncelik rozetleri): yesil #15803D, sari-turuncu #B45309, mavi #2563EB.
+     Acik zeminde metin olarak WCAG AA; "gecikti/kritik" icin --destructive kullanilir */
+  --success: oklch(0.527 0.154 150.069);
+  --warning: oklch(0.555 0.163 48.998);
+  --info: oklch(0.546 0.245 262.881);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -97,6 +105,10 @@
   --brand-accent-strong: oklch(0.645 0.166 52.049);
   /* Koyu zeminde "koyu turkuaz" ayirt edilsin diye acik temanin ana turkuazi kullanilir */
   --primary-strong: oklch(0.551 0.094 206.232);
+  /* Koyu zeminde okunabilsin diye durum renklerinin acik tonlari */
+  --success: oklch(0.792 0.209 151.711);
+  --warning: oklch(0.828 0.189 84.429);
+  --info: oklch(0.707 0.165 254.624);
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);

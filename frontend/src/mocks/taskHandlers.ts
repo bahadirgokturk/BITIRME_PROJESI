@@ -21,6 +21,9 @@ const ALLOWED: Record<string, { from: TaskStatus[]; to: TaskStatus; stamp?: keyo
   decline: { from: ["PENDING", "ACCEPTED"], to: "DECLINED" },
 };
 
+// Filtre verilmezse backend yalniz yapilacak isleri dondurur (ACTIVE_TASK_STATUSES)
+const ACTIVE: TaskStatus[] = ["PENDING", "ACCEPTED", "IN_PROGRESS"];
+
 function error(status: number, code: string, message: string) {
   const body: Schemas["ErrorRead"] = { error: { code, message, details: {} } };
   return HttpResponse.json(body, { status });
@@ -42,9 +45,10 @@ async function note(request: Request): Promise<Partial<Task>> {
 
 export const taskHandlers = [
   http.get(apiUrl("/tasks/mine"), ({ request }) => {
-    const statuses = new URL(request.url).searchParams.getAll("status");
+    const requested = new URL(request.url).searchParams.getAll("status");
+    const statuses: string[] = requested.length ? requested : ACTIVE;
     const items = tasks
-      .filter((task) => !statuses.length || statuses.includes(task.status))
+      .filter((task) => statuses.includes(task.status))
       .sort(byUrgency);
     return HttpResponse.json({ items, total: items.length, page: 1 });
   }),

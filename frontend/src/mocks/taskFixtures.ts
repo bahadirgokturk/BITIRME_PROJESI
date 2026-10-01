@@ -10,12 +10,16 @@ const SUPPORT = { id: 1, code: "SUPPORT_SERVICES", name: "Destek Hizmetleri Şub
 const WC = { id: 4, kind: "WC", name: "B Blok 2. Kat Erkek WC", path: "KMP/B/B-2/B-2-WCM" } as const;
 const AMFI = { id: 5, kind: "ROOM", name: "B201 Amfi", path: "KMP/B/B-2/B-201" } as const;
 
+// Zamanlar "simdi"ye gore: ekranda kalan sure ve gecikme her gun ayni gorunur
+const MS_PER_MINUTE = 60_000;
+const fromNow = (minutes: number) => new Date(Date.now() + minutes * MS_PER_MINUTE).toISOString();
+
 const BASE: Omit<Task, "id" | "case_id" | "case_number" | "title" | "description" | "location"> = {
   status: "PENDING",
   department: SUPPORT,
   assigned_user_id: USERS.STAFF.id,
   priority: "LOW",
-  created_at: "2026-09-27T08:16:00Z",
+  created_at: fromNow(-198),
   accepted_at: null,
   started_at: null,
   completed_at: null,
@@ -34,7 +38,7 @@ export const TASKS: Task[] = [
     title: "Tuvalette sabun bitmiş",
     description: "B Blok 2. kat erkek tuvaletinde sabunluklar boş.",
     location: WC,
-    due_at: "2026-09-27T12:16:00Z",
+    due_at: fromNow(42),
     sla_status: "AT_RISK",
   },
   {
@@ -45,7 +49,7 @@ export const TASKS: Task[] = [
     title: "Amfide çöp kutusu taşmış",
     description: "B201 amfinin arkasındaki çöp kutusu taşmış.",
     location: AMFI,
-    due_at: "2026-09-27T16:00:00Z",
+    due_at: fromNow(192),
     sla_status: "ON_TRACK",
   },
   {
@@ -58,9 +62,9 @@ export const TASKS: Task[] = [
     location: WC,
     status: "IN_PROGRESS",
     priority: "HIGH",
-    accepted_at: "2026-09-27T07:05:00Z",
-    started_at: "2026-09-27T07:10:00Z",
-    due_at: "2026-09-27T07:30:00Z",
+    accepted_at: fromNow(-50),
+    started_at: fromNow(-45),
+    due_at: fromNow(-25),
     sla_status: "BREACHED",
   },
   {
@@ -72,6 +76,6 @@ export const TASKS: Task[] = [
     description: "B201 amfinin yanındaki lavaboda kâğıt havlu kalmamış.",
     location: AMFI,
     status: "ACCEPTED",
-    accepted_at: "2026-09-27T09:00:00Z",
+    accepted_at: fromNow(-60),
   },
 ];
