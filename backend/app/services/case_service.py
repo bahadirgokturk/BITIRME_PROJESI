@@ -47,6 +47,10 @@ REPORTER_VISIBLE_EVENTS = frozenset(
     }
 )
 
+# Kisaltilmis basligin sonunda kalmamasi gereken karakterler
+_TITLE_TRAILING = " ,;:.-"
+_ELLIPSIS = "…"
+
 _ANALYSIS_STARTED = Transition(
     event_type=CaseEventType.ANALYSIS_STARTED, actor_type=ActorType.SYSTEM
 )
@@ -67,7 +71,14 @@ def scope_for(user: User) -> CaseScope:
 
 
 def title_from(description: str) -> str:
-    return description.strip()[:CASE_TITLE_FROM_DESCRIPTION_LENGTH].rstrip()
+    """Bos baslik icin aciklamanin basi; kelime ortasindan kesilmez, kisaltilinca ... eklenir."""
+    text = " ".join(description.split())
+    if len(text) <= CASE_TITLE_FROM_DESCRIPTION_LENGTH:
+        return text
+    # Bir sonraki karakter de alinir: tam sinirda bosluk varsa son kelime butun kalir
+    window = text[: CASE_TITLE_FROM_DESCRIPTION_LENGTH + 1]
+    head = window.rsplit(" ", 1)[0] if " " in window else text[:CASE_TITLE_FROM_DESCRIPTION_LENGTH]
+    return head.rstrip(_TITLE_TRAILING) + _ELLIPSIS
 
 
 class CaseService:

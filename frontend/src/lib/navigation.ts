@@ -42,3 +42,16 @@ export function activeNavHref(role: Role, pathname: string): string | null {
   );
   return match?.href ?? null;
 }
+
+// Giristen sonra acilan sayfa. Ekrani henuz yapilmamis rollerde null: gecici ana sayfa gosterilir
+// (menu adresleri 404 verir). Ekran gelince buraya eklenir.
+const HOME_PATHS: Record<Role, string | null> = {
+  REPORTER: "/my-cases",
+  STAFF: null,
+  MANAGER: null,
+  ADMIN: null,
+};
+
+export function homePathFor(role: Role): string | null {
+  return HOME_PATHS[role];
+}

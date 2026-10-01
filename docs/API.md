@@ -42,7 +42,7 @@ alanları dönmez. Bildirim formu bunu kullanır; yönetim `/admin/locations`'ta
 `GET /cases/mine`, `GET /cases/{id}`, `GET /cases/{id}/events`.
 - Yeni bildirim `NEW` olarak kaydedilir ve aynı istekte `ANALYZING`'e geçer; zaman çizelgesinde `CASE_CREATED` +
   `ANALYSIS_STARTED`. Agent hattı (FAZ 5) gelene kadar `ANALYZING`'de bekler.
-- Numara `CASE-000124` (PostgreSQL sequence, id'den bağımsız). Başlık boşsa açıklamanın ilk 60 karakteri.
+- Numara `CASE-000124` (PostgreSQL sequence, id'den bağımsız). Başlık boşsa açıklamanın ilk 60 karakteri; kelime ortasından kesilmez, kısaltılınca sonuna `…` eklenir.
 - Başka kurumun ya da pasif lokasyon → `404`.
 - Görme kapsamı (liste ve detay aynı kural): REPORTER kendi bildirimleri; STAFF kendi bildirdiği + kendisine
   atanan + departmanına yönlendirilen; MANAGER/ADMIN kurumun tümü. Kapsam dışı kayıt → `404`.

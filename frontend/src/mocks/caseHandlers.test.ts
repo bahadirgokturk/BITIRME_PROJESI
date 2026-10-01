@@ -34,6 +34,15 @@ describe("mock cases API", () => {
     expect(mine.items.map((c: { id: number }) => c.id)).toContain(created.id);
   });
 
+  it("cuts a long default title at a word boundary like the backend", async () => {
+    const response = await postCase({
+      description: "Sınıfta yanık kokusu gibi garip bir koku var, nereden geldiği belli değil.",
+      location_id: 4,
+    });
+
+    expect((await response.json()).title).toBe("Sınıfta yanık kokusu gibi garip bir koku var, nereden…");
+  });
+
   it("rejects a too-short description like the backend (422)", async () => {
     const response = await postCase({ description: "kısa", location_id: 4 });
 

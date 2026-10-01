@@ -26,6 +26,20 @@ function page<T>(items: T[]) {
   return { items, total: items.length, page: 1 };
 }
 
+// Backend ile ayni kural (backend/app/services/case_service.py title_from): kelime ortasindan kesilmez
+const TITLE_TRAILING = /[\s,;:.-]+$/;
+
+function titleFrom(description: string): string {
+  const text = description.trim().split(/\s+/).join(" ");
+  if (text.length <= TITLE_FROM_DESCRIPTION_LENGTH) {
+    return text;
+  }
+  const window = text.slice(0, TITLE_FROM_DESCRIPTION_LENGTH + 1);
+  const space = window.lastIndexOf(" ");
+  const head = space > 0 ? window.slice(0, space) : text.slice(0, TITLE_FROM_DESCRIPTION_LENGTH);
+  return `${head.replace(TITLE_TRAILING, "")}…`;
+}
+
 export function findCase(id: string | readonly string[] | undefined) {
   return cases.find((item) => String(item.id) === id);
 }
@@ -39,8 +53,7 @@ function newCase(
     ...EMPTY_CASE,
     id,
     case_number: `CASE-${String(id).padStart(CASE_NUMBER_DIGITS, "0")}`,
-    title:
-      body.title ?? body.description.slice(0, TITLE_FROM_DESCRIPTION_LENGTH),
+    title: body.title ?? titleFrom(body.description),
     description: body.description,
     location: {
       id: location.id,

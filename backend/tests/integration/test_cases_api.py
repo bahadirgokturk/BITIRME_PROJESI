@@ -78,7 +78,8 @@ def test_new_case_starts_analysis_with_a_case_number(client: TestClient, campus:
 def test_title_defaults_to_the_start_of_the_description(client: TestClient, campus: Campus) -> None:
     created = _create(client, campus)
 
-    assert DESCRIPTION.startswith(str(created["title"]))
+    # Uzun aciklama kelime sinirinda kisaltilir ve sonuna ... konur (tests/unit/test_case_title.py)
+    assert DESCRIPTION.startswith(str(created["title"]).removesuffix("…"))
     assert 0 < len(str(created["title"])) <= len(DESCRIPTION)
 
 
