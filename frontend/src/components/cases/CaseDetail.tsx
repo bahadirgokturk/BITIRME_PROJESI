@@ -25,7 +25,7 @@ function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="mt-1">{value}</dd>
+      <dd className="mt-0.5 text-sm">{value}</dd>
     </div>
   );
 }
@@ -33,9 +33,11 @@ function Field({ label, value }: { label: string; value: string }) {
 function CaseDetailView({ item }: { item: CaseRead }) {
   return (
     <>
-      <header className="space-y-3">
-        <p className="text-xs text-muted-foreground">{item.case_number}</p>
-        <PageTitle>{item.title}</PageTitle>
+      <header className="space-y-4">
+        <div className="space-y-1.5">
+          <p className="text-xs text-muted-foreground">{item.case_number}</p>
+          <PageTitle size="md">{item.title}</PageTitle>
+        </div>
         {/* Ek bilgi bekleyen bildirimde soru + yanit kutusu, digerlerinde ilerleme ya da bilgi notu */}
         {item.status === "NEEDS_INFO" ? (
           <InfoReplyForm item={item} />
@@ -44,15 +46,13 @@ function CaseDetailView({ item }: { item: CaseRead }) {
         )}
       </header>
       <CaseFeedback item={item} />
-      <div className="grid items-start gap-8 md:grid-cols-[1fr_20rem]">
-        <dl className="space-y-4 rounded-xl border p-6">
-          <Field label="Açıklama" value={item.description} />
-          <Field label="Konum" value={item.location.name} />
-          <Field label="Birim" value={item.department?.name ?? "Henüz belirlenmedi"} />
-          <Field label="Bildirim tarihi" value={formatDateTime(item.created_at)} />
-        </dl>
-        <CaseTimeline caseId={String(item.id)} />
-      </div>
+      <dl className="space-y-3 rounded-lg border bg-card p-4">
+        <Field label="Açıklama" value={item.description} />
+        <Field label="Konum" value={item.location.name} />
+        <Field label="Birim" value={item.department?.name ?? "Henüz belirlenmedi"} />
+        <Field label="Bildirim tarihi" value={formatDateTime(item.created_at)} />
+      </dl>
+      <CaseTimeline caseId={String(item.id)} />
     </>
   );
 }
@@ -96,7 +96,7 @@ function CaseDetailBody({ query }: { query: CaseQuery }) {
 export function CaseDetail({ caseId }: { caseId: string }) {
   const query = useCase(caseId);
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-6">
+    <div className="mx-auto w-full max-w-[720px] space-y-4">
       {/* Telefonda geri butonu ust cubukta (MobileAppBar, Tur=Geri) */}
       <Link
         href="/my-cases"

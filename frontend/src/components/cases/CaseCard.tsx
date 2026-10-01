@@ -7,7 +7,7 @@ import { reporterView } from "@/lib/status";
 
 import { CaseStatusView } from "./CaseStatusView";
 
-const CARD_CLASS = "block rounded-xl border bg-card p-5";
+const CARD_CLASS = "block rounded-lg border bg-card p-4";
 
 export function CaseCard({ item }: { item: CaseRead }) {
   return (
@@ -23,7 +23,7 @@ export function CaseCard({ item }: { item: CaseRead }) {
         </time>
         {` · ${item.case_number}`}
       </p>
-      <div className="mt-4">
+      <div className="mt-3">
         <CaseStatusView view={reporterView(item.status, item.info_request)} />
       </div>
     </Link>
