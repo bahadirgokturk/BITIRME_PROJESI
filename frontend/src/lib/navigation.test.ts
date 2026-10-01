@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { activeNavHref, navigationFor, ROLES } from "./navigation";
+import { activeNavHref, homePathFor, navigationFor, ROLES } from "./navigation";
 
 describe("navigationFor", () => {
   it("gives every role a non-empty menu", () => {
@@ -50,5 +50,17 @@ describe("activeNavHref", () => {
 describe("menu labels", () => {
   it("uses sentence case for the report item (UI_GUIDE)", () => {
     expect(navigationFor("REPORTER")[0]?.label).toBe("Bildirim yap");
+  });
+});
+
+describe("homePathFor", () => {
+  it("opens the reporter's cases after login", () => {
+    expect(homePathFor("REPORTER")).toBe("/my-cases");
+  });
+
+  it("has no landing page yet for roles whose screens are not built", () => {
+    expect(homePathFor("STAFF")).toBeNull();
+    expect(homePathFor("MANAGER")).toBeNull();
+    expect(homePathFor("ADMIN")).toBeNull();
   });
 });
