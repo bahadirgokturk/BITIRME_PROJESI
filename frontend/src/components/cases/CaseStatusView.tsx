@@ -40,7 +40,7 @@ function CaseProgress({ step }: { step: ProgressStep }) {
 
 export function CaseStatusView({ view }: { view: ReporterView }) {
   if (view.kind === "notice") {
-    return <p className="rounded-lg bg-muted px-4 py-3 text-sm">{view.message}</p>;
+    return <p className="rounded-md bg-muted p-3 text-sm">{view.message}</p>;
   }
   return <CaseProgress step={view.step} />;
 }

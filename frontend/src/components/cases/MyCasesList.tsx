@@ -17,7 +17,7 @@ type MyCasesQuery = ReturnType<typeof useMyCases>;
 
 function ReportLink() {
   return (
-    <Link href="/report" className={buttonVariants({ className: "h-11 w-full px-4 md:w-auto" })}>
+    <Link href="/report" className={buttonVariants({ className: "h-12 w-full px-4 md:w-auto" })}>
       Bildirim yap
     </Link>
   );
@@ -40,7 +40,7 @@ function EmptyState() {
 function MyCasesBody({ query }: { query: MyCasesQuery }) {
   if (query.isPending) {
     return (
-      <ul aria-label="Bildirimler yükleniyor" aria-busy="true" className="grid gap-4 md:grid-cols-2">
+      <ul aria-label="Bildirimler yükleniyor" aria-busy="true" className="grid gap-3">
         {SKELETON_KEYS.map((key) => (
           <li key={key}>
             <CaseCardSkeleton />
@@ -62,7 +62,7 @@ function MyCasesBody({ query }: { query: MyCasesQuery }) {
     return <EmptyState />;
   }
   return (
-    <ul className="grid gap-4 md:grid-cols-2">
+    <ul className="grid gap-3">
       {query.data.items.map((item) => (
         <li key={item.id}>
           <CaseCard item={item} />
@@ -77,10 +77,10 @@ export function MyCasesList() {
   // Bos durumda buton ortadaki metnin altinda; ustte ikinci kez gosterilmez
   const isEmpty = query.isSuccess && query.data.items.length === 0;
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-8">
+    <div className="mx-auto w-full max-w-[720px] space-y-4 md:space-y-6">
       {/* Uygulama yukleme daveti ilk bildirimden sonra gosterilir (Figma: /my-cases - yukleme daveti) */}
       <InstallPrompt hasCases={query.isSuccess && !isEmpty} />
-      <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <PageTitle>Bildirimlerim</PageTitle>
         {isEmpty ? null : <ReportLink />}
       </header>
