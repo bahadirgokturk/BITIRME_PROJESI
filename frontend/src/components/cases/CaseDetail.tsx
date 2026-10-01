@@ -12,8 +12,10 @@ import { ApiError } from "@/lib/api/client";
 import { formatDateTime } from "@/lib/dates";
 import { reporterView } from "@/lib/status";
 
+import { CaseFeedback } from "./CaseFeedback";
 import { CaseStatusView } from "./CaseStatusView";
 import { CaseTimeline } from "./CaseTimeline";
+import { InfoReplyForm } from "./InfoReplyForm";
 
 const NOT_FOUND = 404;
 
@@ -34,8 +36,14 @@ function CaseDetailView({ item }: { item: CaseRead }) {
       <header className="space-y-3">
         <p className="text-xs text-muted-foreground">{item.case_number}</p>
         <PageTitle>{item.title}</PageTitle>
-        <CaseStatusView view={reporterView(item.status, item.info_request)} />
+        {/* Ek bilgi bekleyen bildirimde soru + yanit kutusu, digerlerinde ilerleme ya da bilgi notu */}
+        {item.status === "NEEDS_INFO" ? (
+          <InfoReplyForm item={item} />
+        ) : (
+          <CaseStatusView view={reporterView(item.status, item.info_request)} />
+        )}
       </header>
+      <CaseFeedback item={item} />
       <div className="grid items-start gap-8 md:grid-cols-[1fr_20rem]">
         <dl className="space-y-4 rounded-xl border p-6">
           <Field label="Açıklama" value={item.description} />

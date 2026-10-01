@@ -2,11 +2,14 @@ import { cn } from "cn";
 
 import { PROGRESS_STEPS, stepState, type ProgressStep, type ReporterView, type StepState } from "@/lib/status";
 
-const BAR_CLASS: Record<StepState, string> = {
-  done: "bg-primary",
-  current: "bg-primary",
-  todo: "bg-border",
+// Renk yolculugu: yolda turuncu, cozuldukce turkuaz (Figma: ReporterProgress, docs/UI_GUIDE.md bolum 4.1)
+const STEP_COLOR: Record<ProgressStep, string> = {
+  Alındı: "bg-brand-accent",
+  Yönlendirildi: "bg-brand-accent",
+  Çalışılıyor: "bg-linear-to-r from-brand-accent to-primary",
+  Çözüldü: "bg-primary",
 };
+const TODO_COLOR = "bg-border";
 
 // 375 px'te de 4 etiket yan yana yazilir (Figma: /my-cases - mobil, 12 px etiketler sigiyor)
 const LABEL_CLASS: Record<StepState, string> = {
@@ -23,7 +26,10 @@ function CaseProgress({ step }: { step: ProgressStep }) {
         const state = stepState(label, step);
         return (
           <li key={label} aria-current={state === "current" ? "step" : undefined} className="space-y-1.5">
-            <span aria-hidden className={cn("block h-1 rounded-full", BAR_CLASS[state])} />
+            <span
+              aria-hidden
+              className={cn("block h-1 rounded-full", state === "todo" ? TODO_COLOR : STEP_COLOR[label])}
+            />
             <span className={cn("block text-xs whitespace-nowrap", LABEL_CLASS[state])}>{label}</span>
           </li>
         );

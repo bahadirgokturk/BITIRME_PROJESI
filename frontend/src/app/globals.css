@@ -36,6 +36,8 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
   --color-brand-accent: var(--brand-accent);
+  --color-brand-accent-strong: var(--brand-accent-strong);
+  --color-primary-strong: var(--primary-strong);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -50,9 +52,12 @@
 }
 
 :root {
-  /* Marka renkleri (docs/UI_GUIDE.md bolum 4): turkuaz #00818D (beyaz yazi 4.64:1, WCAG AA),
-     turuncu #FF8901 yalniz susleme cizgileri icin; metin ya da durum rengi olarak kullanilmaz */
+  /* Marka renkleri (docs/UI_GUIDE.md bolum 4): turkuaz #00818D (beyaz yazi 4.64:1, WCAG AA) ve
+     turuncu #FF8901. Turuncu susleme cizgilerinde ve "renk yolculugu"nda (ilerleme cubugu, puan
+     yildizlari) kullanilir; metin rengi olarak kullanilmaz. Koyu tonlar: #D96A00 ve #005F68 */
   --brand-accent: oklch(0.746 0.181 56.865);
+  --brand-accent-strong: oklch(0.645 0.166 52.049);
+  --primary-strong: oklch(0.443 0.076 206.051);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -89,6 +94,9 @@
 
 .dark {
   --brand-accent: oklch(0.746 0.181 56.865);
+  --brand-accent-strong: oklch(0.645 0.166 52.049);
+  /* Koyu zeminde "koyu turkuaz" ayirt edilsin diye acik temanin ana turkuazi kullanilir */
+  --primary-strong: oklch(0.551 0.094 206.232);
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
