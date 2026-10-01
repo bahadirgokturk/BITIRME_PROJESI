@@ -5,6 +5,7 @@ description = "CampusFlow AI: sentetik veri uretici, model egitimi ve degerlendi
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "pyyaml>=6.0",
+    "scikit-learn>=1.6",
 ]
 
 [dependency-groups]
@@ -25,7 +26,14 @@ addopts = "-ra --strict-markers"
 [tool.mypy]
 python_version = "3.12"
 strict = true
-files = ["generators"]
+files = ["generators", "training"]
+# training/normalization.py backend'deki normalize()'i yukler (egitim ve calisma ani ayni metin)
+mypy_path = "../backend"
+
+[[tool.mypy.overrides]]
+# scikit-learn ve joblib tip bilgisi yayinlamiyor
+module = ["sklearn.*", "joblib"]
+ignore_missing_imports = true
 
 [tool.ruff]
 # Lint kurallari backend ile ayni (KOD_KURALLARI kural kunyesi)
