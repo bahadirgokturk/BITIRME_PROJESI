@@ -69,6 +69,13 @@ function rejection(file: File, caseId: number) {
   return null;
 }
 
+// Gercek backend turu yukleyenin rolunden belirler (personel -> EVIDENCE). Sahte modda rol tektir;
+// personel ekranindan (/staff/...) yuklenen dosya kanit sayilir.
+function uploadKind(): Attachment["kind"] {
+  const onStaffScreen = typeof location !== "undefined" && location.pathname.startsWith("/staff/");
+  return onStaffScreen ? "EVIDENCE" : "REPORT";
+}
+
 export const attachmentHandlers = [
   http.post(apiUrl("/cases/:id/attachments"), async ({ request, params }) => {
     const caseId = Number(params.id);
@@ -85,7 +92,7 @@ export const attachmentHandlers = [
     const created: Attachment = {
       id,
       case_id: caseId,
-      kind: "REPORT",
+      kind: uploadKind(),
       original_name: file.name,
       mime_type: file.type,
       size_bytes: file.size,

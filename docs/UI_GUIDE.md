@@ -171,6 +171,15 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
 - Liste sıralaması: SLA'ya kalan süre (en acil üstte). Kartta **konum** en büyük metin, sonra iş tanımı ve kalan süre.
 - Ana eylem butonu duruma göre tek ve büyük: **Kabul et** → **Başlat** → **Tamamla**. Dokunma alanı en az 44×44 px.
 - Tamamla: not (isteğe bağlı) + kanıt fotoğrafı. Reddetme (decline) ikincil buton ve gerekçe ister.
+- Kartta ve detayda üç rozet: durum (renk yolculuğu: beklerken turuncu, çalışırken geçişli, bitince turkuaz nokta),
+  öncelik ve SLA'ya kalan süre ("42 dk kaldı" / "25 dk gecikti"; yeşil `--success`, sarı `--warning`, kırmızı
+  `--destructive`, her zaman ikon + metinle). Biten görevde süre rozeti ve eylem yoktur; sonuç kartı gösterilir.
+  Kurallar: `lib/tasks.ts`.
+- Kanıt fotoğrafı (isteğe bağlı, birden fazla): telefonun dosya seçicisi kamerayla çekmeyi ya da galeriden seçmeyi
+  sunar. JPG/PNG/WEBP, her biri en fazla 5 MB, en çok 5 dosya (bildirenin dosyalarıyla ortak sınır, asıl denetim
+  backend'de); gönderilmeden önce denetlenir. Önce fotoğraflar sırayla yüklenir (`POST /cases/{id}/attachments`,
+  backend personelin dosyasını `EVIDENCE` olarak kaydeder), sonra görev tamamlanır; yükleme başarısızsa görev
+  tamamlanmaz. Tamamlanan görevin sonuç kartında kanıt fotoğrafları küçük görsel olarak gösterilir.
 
 ### 5.4 Manager
 

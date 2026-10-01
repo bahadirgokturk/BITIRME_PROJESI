@@ -112,17 +112,30 @@ export function refreshAccessToken(): Promise<boolean> {
   return refreshInFlight;
 }
 
-export async function apiRequest<T>(
-  path: string,
-  init: RequestInit = {},
-): Promise<T> {
+async function send(path: string, init: RequestInit): Promise<Response> {
   const response = await transport(buildRequest(path, init));
   const canRefresh =
     response.status === UNAUTHORIZED && !NO_REFRESH_PATHS.has(path);
   if (canRefresh && (await refreshAccessToken())) {
-    return parse<T>(await transport(buildRequest(path, init)));
+    return transport(buildRequest(path, init));
   }
-  return parse<T>(response);
+  return response;
+}
+
+export async function apiRequest<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
+  return parse<T>(await send(path, init));
+}
+
+// Dosya indirme (ornek: ek fotograf): basarili yanit JSON degil, ham icerik; hata yine ApiError
+export async function apiGetBlob(path: string): Promise<Blob> {
+  const response = await send(path, { headers: { Accept: "*/*" } });
+  if (!response.ok) {
+    return parse<never>(response);
+  }
+  return response.blob();
 }
 
 export function apiGet<T>(path: string, init: RequestInit = {}): Promise<T> {
