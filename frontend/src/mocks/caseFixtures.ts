@@ -8,6 +8,11 @@ type Schemas = components["schemas"];
 
 const REPORTER_ID = USERS.REPORTER.id;
 
+// Puan ve yeniden acma kutulari son kapanistan sonraki 72 saatte gorunur: ornek bildirim "az once kapanmis" olur
+const MS_PER_HOUR = 3_600_000;
+const CLOSED_HOURS_AGO = 2;
+const RECENTLY_CLOSED_AT = new Date(Date.now() - CLOSED_HOURS_AGO * MS_PER_HOUR).toISOString();
+
 const WC = {
   id: 4,
   kind: "WC",
@@ -105,7 +110,7 @@ export const CASES: Schemas["CaseRead"][] = [
     created_at: "2026-09-25T14:00:00Z",
     assigned_at: "2026-09-25T14:01:00Z",
     resolved_at: "2026-09-25T14:40:00Z",
-    closed_at: "2026-09-25T14:45:00Z",
+    closed_at: RECENTLY_CLOSED_AT,
   },
   {
     ...EMPTY_CASE,

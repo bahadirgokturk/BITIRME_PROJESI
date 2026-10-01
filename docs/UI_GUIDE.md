@@ -76,7 +76,14 @@ Figma değişkenleri (Variables) **koddaki CSS değişkenleriyle aynı adla** ta
   | Token | Açık tema | Koyu tema | Kullanım |
   |---|---|---|---|
   | `primary`, `ring` | turkuaz `#00818D` (beyaz yazı 4.64:1) | `#00A5B5` (koyu yazı 6.65:1) | Ana buton, bağlantı, odak halkası, ilerleme çubuğu |
-  | `brand-accent` | turuncu `#FF8901` | aynı | **Yalnız süsleme:** başlık altı çizgi, seçili menü çizgisi, logodaki F. Metin, buton ya da durum rengi olarak kullanılmaz |
+  | `brand-accent` | turuncu `#FF8901` | aynı | Süsleme (başlık altı çizgi, seçili menü çizgisi, logodaki F) ve **renk yolculuğu** (aşağıda). Metin ya da buton rengi olarak kullanılmaz |
+  | `brand-accent-strong` | koyu turuncu `#D96A00` | aynı | Renk yolculuğunun en başı (1. yıldız) |
+  | `primary-strong` | koyu turkuaz `#005F68` | `#00818D` | Renk yolculuğunun en sonu (5. yıldız) |
+
+  **Renk yolculuğu:** turuncu "yolda", turkuaz "çözüldü" demektir; soldan sağa turuncudan turkuaza geçilir.
+  İlerleme çubuğu: Alındı ve Yönlendirildi turuncu, Çalışılıyor turuncudan turkuaza geçişli, Çözüldü turkuaz.
+  Puan yıldızları: 1. koyu turuncu, 2. turuncu, 3. geçişli, 4. turkuaz, 5. koyu turkuaz. Bilgi yalnız renkle
+  verilmez: aktif adım kalın yazılır, puan sözle de gösterilir ("4 / 5 · İyi").
 
   Diğer token'lar shadcn nötr temasında kalır. Logo: `public/brand/logo-art.svg` + `components/brand/Logo.tsx`
   (Figma: 02 Components > Logo/Simge, Logo/Yatay).
@@ -154,7 +161,10 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
 - Liste kartı: kısa metin, konum, tarih, **4 adımlı ilerleme** (bölüm 4.1).
 - Detay: zaman çizelgesi reporter'a sade dilde ("Temizlik birimine yönlendirildi", "Görevli çalışmaya başladı").
   Agent adları, güven skorları, iç notlar reporter'a **gösterilmez**.
-- Kapanıştan sonra 1–5 yıldız geri bildirim ve 72 saat içinde "Sorun devam ediyor" (reopen).
+- Ek bilgi istenen bildirimde (NEEDS_INFO) ilerleme çubuğu yerine soru + yanıt kutusu gösterilir.
+- Kapanıştan sonraki 72 saat içinde puan kartı: 1–5 yıldız + isteğe bağlı yorum (bir kez) ve aynı kartta
+  "Sorun devam ediyor" (reopen; gerekçe zorunlu). Telefonda alttan açılan panel, masaüstünde ortada pencere.
+  72 saat geçince kart gösterilmez; puan verildiyse yalnız verilen puan görünür. Kurallar: `lib/caseActions.ts`.
 
 ### 5.3 Staff — `/staff/tasks`, `/staff/tasks/[id]`
 
