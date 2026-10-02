@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
 import { createQueryClient } from "@/lib/queryClient";
+import { CASES } from "@/mocks/caseFixtures";
 import { server } from "@/mocks/node";
 
 import { MyCasesList } from "./MyCasesList";
@@ -15,6 +16,31 @@ function renderList() {
     <QueryClientProvider client={createQueryClient()}>
       <MyCasesList />
     </QueryClientProvider>,
+  );
+}
+
+// 25 bildirimi backend gibi sayfalara boler; secilen sayfa hata donebilir
+function servePaged({ failPage }: { failPage?: number } = {}) {
+  const items = Array.from({ length: 25 }, (_, i) => ({
+    ...CASES[0],
+    id: 1000 + i,
+    case_number: `CASE-${String(1000 + i).padStart(6, "0")}`,
+    title: `Bildirim ${i + 1}`,
+  }));
+  server.use(
+    http.get(apiUrl("/cases/mine"), ({ request }) => {
+      const params = new URL(request.url).searchParams;
+      const number = Number(params.get("page") ?? "1");
+      const size = Number(params.get("page_size") ?? "20");
+      if (number === failPage) {
+        return HttpResponse.json(
+          { error: { code: "INTERNAL", message: "Beklenmeyen bir hata oluştu.", details: {} } },
+          { status: 500 },
+        );
+      }
+      const slice = items.slice((number - 1) * size, number * size);
+      return HttpResponse.json({ items: slice, total: items.length, page: number });
+    }),
   );
 }
 
@@ -83,5 +109,37 @@ describe("MyCasesList", () => {
     await userEvent.click(within(alert).getByRole("button", { name: "Tekrar dene" }));
 
     expect(await screen.findByRole("link", { name: /Tuvalette sabun bitmiş/ })).toBeInTheDocument();
+  });
+
+  it("does not offer more when every case is already shown", async () => {
+    renderList();
+
+    await screen.findByRole("link", { name: /Tuvalette sabun bitmiş/ });
+    expect(screen.queryByRole("button", { name: "Daha fazla göster" })).not.toBeInTheDocument();
+  });
+
+  it("loads the next page with Daha fazla göster", async () => {
+    servePaged();
+    renderList();
+
+    expect(await screen.findByRole("link", { name: /Bildirim 20\b/ })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Bildirim 21\b/ })).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Daha fazla göster" }));
+
+    expect(await screen.findByRole("link", { name: /Bildirim 25\b/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Daha fazla göster" })).not.toBeInTheDocument();
+  });
+
+  it("keeps the loaded cases and offers a retry when the next page fails", async () => {
+    servePaged({ failPage: 2 });
+    renderList();
+
+    await userEvent.click(await screen.findByRole("button", { name: "Daha fazla göster" }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("Beklenmeyen bir hata oluştu.");
+    expect(within(alert).getByRole("button", { name: "Tekrar dene" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Bildirim 1\b/ })).toBeInTheDocument();
   });
 });

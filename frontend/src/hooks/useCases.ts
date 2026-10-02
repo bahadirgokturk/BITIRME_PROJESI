@@ -1,17 +1,25 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
 import { apiGet } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
+import { nextPage } from "@/lib/pagination";
 
 export type CaseRead = components["schemas"]["CaseRead"];
 export type CaseEventRead = components["schemas"]["CaseEventRead"];
 type CasePage = components["schemas"]["Page_CaseRead_"];
 
-// Bildirim yapanin kendi bildirimleri (docs/API.md "Cases")
+// Backend varsayilani ile ayni (backend/app/core/constants.py PAGE_SIZE_DEFAULT)
+const MY_CASES_PAGE_SIZE = 20;
+
+// Bildirim yapanin kendi bildirimleri, sayfa sayfa (docs/API.md "Cases"); data tum yuklenen kayitlar
 export function useMyCases() {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ["cases", "mine"],
-    queryFn: () => apiGet<CasePage>("/cases/mine"),
+    queryFn: ({ pageParam }) =>
+      apiGet<CasePage>(`/cases/mine?page=${pageParam}&page_size=${MY_CASES_PAGE_SIZE}`),
+    initialPageParam: 1,
+    getNextPageParam: nextPage,
+    select: (data) => data.pages.flatMap((page) => page.items),
   });
 }
 
