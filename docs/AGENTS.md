@@ -146,6 +146,10 @@ Ağırlıklı skor (0..1), her sinyal gerekçeye yazılır:
 
 Başlangıç 0.40. `verification_level`: LOW (<0.4) / MEDIUM / HIGH (≥0.7).
 
+✅ **Uygulandı (E5-7):** `backend/app/agents/verification.py`. Bildirim yapanın geçmişi: en az 3 bildirimi
+varsa değerlendirilir; reddedilen oranı ≤ %10 → +0.10, ≥ %50 → −0.20, arası etkisiz. Skor [0, 1]
+aralığına kırpılır ve 2 ondalığa yuvarlanır. Sayılar (tekrar, geçmiş) girdi olarak gelir; agent DB'ye dokunmaz.
+
 ### 4.5 Priority Agent (K1)
 `impact_score = clamp(Σ sinyal katkıları, 0, 100)`:
 
@@ -180,6 +184,12 @@ Yarım puanlar yukarı yuvarlanır (lokasyon 70 → 10,5 → 11). Örnekler: tek
 2. Personel: departmandaki aktif STAFF arasından
    `skor = −açık_task_sayısı·w1 − (farklı_bina ? w2 : 0) + son_30g_aynı_tip_tecrübe·w3` en yüksek olan.
 3. Uygun personel yoksa `assigned_user_id=NULL` → departman havuzu + Supervisor'a sinyal.
+
+✅ **Uygulandı (E5-7):** `backend/app/agents/routing.py`. Ağırlıklar (varsayım, gerçek veriyle ayarlanacak):
+w1 = 1 (açık görev başına), w2 = 0,5 (başka binada; aktif görevi yoksa binası bilinmez, ceza yok),
+w3 = 0,2 (son 30 günde aynı türde iş başına, en fazla 5 iş → tecrübe en fazla 1 görevlik yükü dengeler).
+5 ve üstü açık görevi olan personel aday değildir. Eşitlikte küçük kullanıcı id'si. Kararlar:
+`ASSIGN_STAFF | ROUTE_TO_POOL | NO_DEPARTMENT`; gerekçede en iyi 3 aday ve puanları.
 
 ### 4.7 Supervisor Agent (K1 — deterministik karar tablosu)
 Sırayla değerlendirilir, ilk eşleşen kural kazanır:
