@@ -64,6 +64,7 @@ def test_safety_words_override_a_harmless_prediction() -> None:
 
     assert result.decision == "ELECTRICAL_FAILURE"
     assert result.output.safety_override is True
+    assert result.output.safety_term == "kivilcim"
     assert result.confidence == pytest.approx(0.15)
     assert "SAFETY_RULE" in {r.code for r in result.reasons}
 
@@ -73,6 +74,8 @@ def test_safety_rule_keeps_a_prediction_that_is_already_safety_related() -> None
 
     assert result.decision == "SECURITY_INCIDENT"
     assert result.output.safety_override is False
+    # Karar degismese de ifade raporlanir: Priority ve Supervisor bunu guvenlik sinyali sayar
+    assert result.output.safety_term == "duman"
 
 
 def test_keyword_rules_are_used_when_the_model_is_missing() -> None:
@@ -116,3 +119,7 @@ def test_safety_rules_point_to_safety_related_seed_types() -> None:
     safety_types = {ct["code"] for ct in seed["case_types"] if ct["safety"]}
 
     assert {code for _, code in SAFETY_RULES} <= safety_types
+
+
+def test_no_safety_term_in_an_ordinary_report() -> None:
+    assert _run("sabun bitmiş", FakeModel([0.05, 0.05, 0.05, 0.85])).output.safety_term is None

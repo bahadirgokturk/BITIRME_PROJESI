@@ -124,3 +124,18 @@ class SlaStatus(StrEnum):
     ON_TRACK = "ON_TRACK"
     AT_RISK = "AT_RISK"
     BREACHED = "BREACHED"
+
+
+class AutonomyLevel(StrEnum):
+    """Agent'in ne kadar kendi karar verecegi (docs/AGENTS.md bolum 5)."""
+
+    L1_AUTONOMOUS = "L1_AUTONOMOUS"  # karar verir ve uygular
+    L2_NOTIFY = "L2_NOTIFY"  # uygular, manager bilgilendirilir
+    L3_ESCALATE = "L3_ESCALATE"  # insan karar verir
+
+
+class PolicyScope(StrEnum):
+    """agent_policies satirinin kapsami: tek bir bildirim tipi ya da bir kategori."""
+
+    CASE_TYPE = "CASE_TYPE"
+    CATEGORY = "CATEGORY"

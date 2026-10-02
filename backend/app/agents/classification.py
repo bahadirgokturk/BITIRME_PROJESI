@@ -68,6 +68,8 @@ class ClassificationOutput(BaseModel):
     # Secilen turun metinde gecen anahtar kelimeleri (aciklama icin)
     matched_keywords: list[str]
     safety_override: bool
+    # Metindeki guvenlik ifadesi (karar degismese de): Priority ve Supervisor icin sinyal
+    safety_term: str | None
 
 
 @dataclass(frozen=True)
@@ -106,7 +108,8 @@ class ClassificationAgent:
         else:
             candidates = _model_candidates(self._model, raw, known)
             model = f"{ML_MODEL_PREFIX}@{self._model.version}"
-        chosen, override_reason = _apply_safety(text, candidates)
+        rule = _safety_rule(text)
+        chosen, override_reason = _apply_safety(rule, candidates)
         reasons = _base_reasons(candidates, from_model=self._model is not None)
         if override_reason:
             reasons.append(override_reason)
@@ -117,6 +120,7 @@ class ClassificationAgent:
             top_k=candidates[:TOP_K],
             matched_keywords=_matched(text, case_type.keywords) if case_type else [],
             safety_override=override_reason is not None,
+            safety_term=rule[0] if rule else None,
         )
         return _Decision(output=output, confidence=chosen.probability, reasons=reasons, model=model)
 
@@ -151,9 +155,15 @@ def _matched(text: str, keywords: list[str]) -> list[str]:
     return [keyword for keyword in keywords if f" {normalize(keyword)}" in padded]
 
 
-def _apply_safety(text: str, candidates: list[Candidate]) -> tuple[Candidate, Reason | None]:
+def _safety_rule(text: str) -> tuple[str, str] | None:
+    """Metinde gecen ilk guvenlik ifadesi ve hedef turu."""
+    return next(((t, c) for t, c in SAFETY_RULES if re.search(rf"\b{t}", text)), None)
+
+
+def _apply_safety(
+    rule: tuple[str, str] | None, candidates: list[Candidate]
+) -> tuple[Candidate, Reason | None]:
     chosen = candidates[0]
-    rule = next(((t, c) for t, c in SAFETY_RULES if re.search(rf"\b{t}", text)), None)
     if rule is None or chosen.code in _SAFETY_CODES:
         return chosen, None
     term, code = rule

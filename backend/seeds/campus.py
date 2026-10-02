@@ -4,14 +4,18 @@ yoksa eklenir. Sablonda olmayan kayitlara (admin'in ekledikleri) dokunulmaz.
 Fonksiyonlar commit etmez; islemi cagiran (seeds/run.py) tek transaction'da bitirir.
 """
 
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
 from sqlalchemy.orm import Session
 
+from app.core.constants import MIN_CONFIDENCE_AUTO_DEFAULT
 from app.core.security import hash_password
-from app.models import CaseType, Department, Location, Organization, SlaRule, User
+from app.models import AgentPolicy, CaseType, Department, Location, Organization, SlaRule, User
+from app.models.enums import AutonomyLevel, PolicyScope
 from app.repositories import (
+    agent_policy_repository,
     case_type_repository,
     department_repository,
     location_repository,
@@ -60,6 +64,8 @@ def seed_campus(session: Session, template_dir: Path = CAMPUS_TEMPLATE_DIR) -> O
     }
     for rule in template.sla_rules.all:
         _upsert_sla_rule(session, organization.id, rule, case_types)
+    for seed in template.case_types.case_types:
+        _upsert_policy(session, organization.id, case_types[seed.code], seed.autonomy)
     return organization
 
 
@@ -174,6 +180,31 @@ def _upsert_sla_rule(
         )
         return
     _assign(rule, fields)
+
+
+def _upsert_policy(
+    session: Session, organization_id: int, case_type_id: int, autonomy: AutonomyLevel
+) -> None:
+    fields = {
+        "autonomy_level": autonomy,
+        "min_confidence_auto": Decimal(MIN_CONFIDENCE_AUTO_DEFAULT),
+        # L2: agent uygular, manager bilgilendirilir (docs/AGENTS.md bolum 5)
+        "notify_manager": autonomy is AutonomyLevel.L2_NOTIFY,
+        "is_active": True,
+    }
+    policy = agent_policy_repository.get_for_case_type(session, organization_id, case_type_id)
+    if policy is None:
+        agent_policy_repository.add(
+            session,
+            AgentPolicy(
+                organization_id=organization_id,
+                scope=PolicyScope.CASE_TYPE,
+                case_type_id=case_type_id,
+                **fields,
+            ),
+        )
+        return
+    _assign(policy, fields)
 
 
 def _demo_user(

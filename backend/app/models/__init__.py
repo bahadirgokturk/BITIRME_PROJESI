@@ -1,5 +1,7 @@
 """Tum modeller burada import edilir; Alembic metadata'yi buradan okur."""
 
+from app.models.agent_decision import AgentDecision
+from app.models.agent_policy import AgentPolicy
 from app.models.attachment import Attachment
 from app.models.base import Base
 from app.models.case import Case, CaseEvent
@@ -14,6 +16,8 @@ from app.models.task import Task
 from app.models.user import User
 
 __all__ = [
+    "AgentDecision",
+    "AgentPolicy",
     "Attachment",
     "Base",
     "Case",

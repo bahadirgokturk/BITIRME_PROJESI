@@ -71,3 +71,7 @@ PERCENT = 100
 SLA_WARNING_PCT_DEFAULT = 75
 # Oncelik henuz belirlenmemisse (Priority Agent FAZ 5) SLA icin kullanilan oncelik: orta
 SLA_FALLBACK_PRIORITY = "MEDIUM"
+
+# Agent otonomisi (docs/AGENTS.md bolum 5): siniflandirma guveni bunun altindaysa manager inceler.
+# Kalibre modelde 0.70 ~ "10 tahminin 7'si dogru"; seed varsayilani, admin tip bazinda degistirir
+MIN_CONFIDENCE_AUTO_DEFAULT = "0.70"

@@ -199,9 +199,17 @@ Sırayla değerlendirilir, ilk eşleşen kural kazanır:
 | 1 | Metin geçersiz/boş veya verification < 0.2 | `REQUEST_MORE_INFO` |
 | 2 | duplicate_probability ≥ 0.80 | `MERGE_WITH_EXISTING_CASE` |
 | 3 | Policy L3 **veya** priority = CRITICAL **veya** güvenlik kuralı | `ESCALATE` |
-| 4 | classification confidence < min_confidence_auto **veya** 0.60 ≤ dup < 0.80 | `SEND_TO_HUMAN_REVIEW` |
-| 5 | Routing personel buldu | `AUTO_ASSIGN` (L2 ise manager'a bildirim) |
-| 6 | Personel yok | `CREATE_TASK` (departman havuzu) |
+| 4 | Tür `OUT_OF_SCOPE` (idari talep: transkript, maaş…) | `REJECT_OUT_OF_SCOPE` |
+| 5 | classification confidence < min_confidence_auto (bilinmiyorsa da) **veya** 0.60 ≤ dup < 0.80 **veya** Routing birim bulamadı (OTHER) | `SEND_TO_HUMAN_REVIEW` |
+| 6 | Routing personel buldu | `AUTO_ASSIGN` (L2 ise manager'a bildirim) |
+| 7 | Personel yok | `CREATE_TASK` (departman havuzu; L2 ise manager'a bildirim) |
+
+✅ **Uygulandı (E5-8a):** `backend/app/agents/supervisor.py` (saf karar tablosu; uygulamayı orchestrator
+yapar). Sınırlar güvenli tarafa aittir: doğrulama tam 0.20 yeterli, güven tam `min_confidence_auto` yeterli,
+benzerlik 0.60'ın altı yok sayılır. `ESCALATE` ve `SEND_TO_HUMAN_REVIEW` → `needs_human_review`.
+Kural 4 spec'e eklendi (kapsam dışı taleplerin gidecek birimi yok). `safety_term` Classification çıktısından
+gelir: model zaten güvenlik türü seçtiyse karar değişmez ama ifade yine raporlanır.
+Politika: `agent_policies` (tür başına bir satır, seed'den; `min_confidence_auto` varsayılanı 0.70).
 
 Çıktı gerekçesi, tetiklenen kuralı ve diğer agent'ların hangi değerlerinin kullanıldığını içerir.
 

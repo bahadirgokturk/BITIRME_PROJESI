@@ -15,6 +15,7 @@ from app.core.constants import (
     SLA_WARNING_PCT_DEFAULT,
 )
 from app.models.enums import (
+    AutonomyLevel,
     CaseCategory,
     LocationKind,
     Priority,
@@ -49,8 +50,8 @@ class CaseTypeSeed(_Strict):
     category: CaseCategory
     primary: str | None
     secondary: str | None
-    # agent_policies tablosu FAZ 5'te; simdilik yalniz DEPARTMENTS.md uyum testi okur
-    autonomy: str
+    # agent_policies satirina yazilir (docs/AGENTS.md bolum 5)
+    autonomy: AutonomyLevel
     priority: Priority
     severity: int = Field(ge=SEVERITY_MIN, le=SEVERITY_MAX)
     safety: bool

@@ -4,8 +4,16 @@ from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models import CaseType, Department, Location, Organization, SlaRule, User
-from app.models.enums import Priority, UserRole
+from app.models import (
+    AgentPolicy,
+    CaseType,
+    Department,
+    Location,
+    Organization,
+    SlaRule,
+    User,
+)
+from app.models.enums import AutonomyLevel, PolicyScope, Priority, UserRole
 from seeds.campus import seed_campus, seed_demo_users
 
 DEMO_PASSWORD = "demo-parola-123"
@@ -145,3 +153,38 @@ def test_reseeding_does_not_duplicate_sla_rules(db_session: Session) -> None:
     seed_campus(db_session)
 
     assert _count(db_session, SlaRule, organization) == first
+
+
+def _policy(session: Session, organization: Organization, code: str) -> AgentPolicy:
+    case_type = _case_type(session, organization, code)
+    return session.scalars(
+        select(AgentPolicy).where(AgentPolicy.case_type_id == case_type.id)
+    ).one()
+
+
+def test_seed_creates_an_autonomy_policy_per_case_type(db_session: Session) -> None:
+    organization = seed_campus(db_session)
+
+    soap = _policy(db_session, organization, "SOAP_EMPTY")
+    projector = _policy(db_session, organization, "PROJECTOR_FAILURE")
+    electrical = _policy(db_session, organization, "ELECTRICAL_FAILURE")
+
+    assert _count(db_session, AgentPolicy, organization) == 19
+    assert (soap.scope, soap.autonomy_level) == (PolicyScope.CASE_TYPE, AutonomyLevel.L1_AUTONOMOUS)
+    # L2: agent uygular, manager bilgilendirilir
+    assert (projector.autonomy_level, projector.notify_manager) == (AutonomyLevel.L2_NOTIFY, True)
+    assert electrical.autonomy_level is AutonomyLevel.L3_ESCALATE
+    assert float(soap.min_confidence_auto) == 0.7
+
+
+def test_reseed_keeps_one_policy_per_case_type_and_restores_it(db_session: Session) -> None:
+    organization = seed_campus(db_session)
+    soap = _policy(db_session, organization, "SOAP_EMPTY")
+    soap.autonomy_level = AutonomyLevel.L3_ESCALATE
+
+    seed_campus(db_session)
+
+    assert _count(db_session, AgentPolicy, organization) == 19
+    assert _policy(db_session, organization, "SOAP_EMPTY").autonomy_level is (
+        AutonomyLevel.L1_AUTONOMOUS
+    )
