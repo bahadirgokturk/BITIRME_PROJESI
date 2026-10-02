@@ -67,8 +67,9 @@ def write_artifacts(model: Pipeline, report: dict[str, Any], out_dir: Path, *, s
         "classes": [str(code) for code in model.classes_],
         "evaluation": {"data": EVALUATION_DATA, **report},
     }
+    # Windows'ta da LF: dosya repoda, her makinede ayni cikmali
     (out_dir / "metrics.json").write_text(
-        json.dumps(metrics, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        json.dumps(metrics, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n"
     )
 
 

@@ -36,7 +36,7 @@ def main() -> None:
     print(f"n={result['n']} | accuracy {result['accuracy']} | macro-F1 {result['macro_f1']}")
     if args.out:
         args.out.write_text(
-            json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+            json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n"
         )
 
 
