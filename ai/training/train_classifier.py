@@ -13,6 +13,7 @@ Kullanim (ai/ klasorunde):
 
 import argparse
 import json
+import shutil
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
@@ -30,6 +31,7 @@ from generators.synthesize import (
     write_csv,
 )
 from training.classifier import build_pipeline, cross_validate, latency_ms
+from training.report import write_report
 
 MODEL_NAME = "classification"
 MODEL_VERSION = "1.0"
@@ -39,6 +41,10 @@ DEFAULT_PER_TYPE = 160
 DEFAULT_SEED = 42
 # Gecikme olcumu icin ornek sayisi (tek tek tahmin)
 LATENCY_SAMPLE_SIZE = 200
+# joblib sikistirma seviyesi: 3 boyutu belirgin kucultur, yukleme suresi pratikte degismez
+MODEL_COMPRESSION = 3
+# Backend'in yukledigi dosyalar (backend/ml_models/classifier/<surum>/)
+PUBLISHED_FILES = ("model.joblib", "metrics.json")
 
 
 def _fit(samples: Sequence[Sample], seed: int) -> Pipeline:
@@ -56,7 +62,7 @@ def train(samples: Sequence[Sample], *, seed: int) -> tuple[Pipeline, dict[str, 
 
 def write_artifacts(model: Pipeline, report: dict[str, Any], out_dir: Path, *, seed: int) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
-    joblib.dump(model, out_dir / "model.joblib")
+    joblib.dump(model, out_dir / "model.joblib", compress=MODEL_COMPRESSION)
     metrics = {
         "model": MODEL_NAME,
         "version": MODEL_VERSION,
@@ -71,6 +77,14 @@ def write_artifacts(model: Pipeline, report: dict[str, Any], out_dir: Path, *, s
     (out_dir / "metrics.json").write_text(
         json.dumps(metrics, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n"
     )
+    write_report(metrics, out_dir / "report.html")
+
+
+def publish(out_dir: Path, target: Path) -> None:
+    """Modeli backend'in yukledigi klasore kopyalar (ornek: ../backend/ml_models/classifier/v1)."""
+    target.mkdir(parents=True, exist_ok=True)
+    for name in PUBLISHED_FILES:
+        shutil.copyfile(out_dir / name, target / name)
 
 
 def main() -> None:
@@ -79,6 +93,7 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
     parser.add_argument("--data-out", type=Path, default=Path("data/synthetic/campus.csv"))
     parser.add_argument("--out", type=Path, default=Path("models/classifier/v1"))
+    parser.add_argument("--publish", type=Path, help="Modeli backend klasorune de kopyala")
     args = parser.parse_args()
     templates = load_templates(CAMPUS_TEMPLATES_PATH)
     locations = load_location_phrases(CAMPUS_LOCATIONS_PATH)
@@ -86,6 +101,8 @@ def main() -> None:
     write_csv(samples, args.data_out)
     model, report = train(samples, seed=args.seed)
     write_artifacts(model, report, args.out, seed=args.seed)
+    if args.publish:
+        publish(args.out, args.publish)
     summary = f"accuracy {report['accuracy']} | macro-F1 {report['macro_f1']}"
     print(f"{len(samples)} ornek | {summary} -> {args.out}")
 

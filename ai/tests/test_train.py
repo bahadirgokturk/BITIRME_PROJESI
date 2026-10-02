@@ -7,7 +7,7 @@ import joblib
 from generators.sentence_templates import CAMPUS_TEMPLATES_PATH, load_templates
 from generators.synthesize import CAMPUS_LOCATIONS_PATH, generate, load_location_phrases
 from training.evaluate_model import evaluate_file
-from training.train_classifier import train, write_artifacts
+from training.train_classifier import publish, train, write_artifacts
 
 SAMPLES = generate(
     load_templates(CAMPUS_TEMPLATES_PATH),
@@ -24,6 +24,7 @@ def test_training_writes_the_model_and_its_metrics(tmp_path: Path) -> None:
 
     metrics = json.loads((tmp_path / "metrics.json").read_text(encoding="utf-8"))
     assert (tmp_path / "model.joblib").exists()
+    assert (tmp_path / "report.html").exists()
     assert metrics["sklearn_version"]
     assert metrics["seed"] == 5
     # Sentetik sonuc gercek basari gibi sunulmasin (docs/AGENTS.md 6.3)
@@ -58,3 +59,14 @@ def test_a_saved_model_is_scored_on_a_labeled_file(tmp_path: Path) -> None:
 
     assert result["n"] == 2
     assert result["accuracy"] == 1.0
+
+
+def test_publish_copies_the_model_where_the_backend_loads_it(tmp_path: Path) -> None:
+    model, report = train(SAMPLES, seed=5)
+    out, backend_dir = tmp_path / "out", tmp_path / "backend"
+    write_artifacts(model, report, out, seed=5)
+
+    publish(out, backend_dir)
+
+    assert (backend_dir / "model.joblib").read_bytes() == (out / "model.joblib").read_bytes()
+    assert (backend_dir / "metrics.json").exists()

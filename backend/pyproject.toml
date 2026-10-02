@@ -16,6 +16,7 @@ dependencies = [
     "pyyaml>=6.0",
     "pillow>=11.0",
     "python-multipart>=0.0.18",
+    "scikit-learn==1.9.1",
 ]
 
 [dependency-groups]
@@ -40,6 +41,11 @@ python_version = "3.12"
 strict = true
 plugins = ["pydantic.mypy"]
 files = ["app", "seeds"]
+
+[[tool.mypy.overrides]]
+# scikit-learn ve joblib tip bilgisi yayinlamiyor (egitilmis model: app/agents/model_store.py)
+module = ["sklearn.*", "joblib"]
+ignore_missing_imports = true
 
 [tool.ruff]
 line-length = 100

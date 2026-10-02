@@ -7,14 +7,15 @@ Backend'den bağımsız Python projesi (`uv`, Python 3.12). Ayrıntılar: [docs/
 | `generators/` | Sentetik Türkçe bildirim üretici: `templates/campus.yaml` (case type başına şablon cümleler) × lokasyonlar (backend kampüs seed'inden) × gürültü (günlük ifade, küçük harf, harf hatası) |
 | `training/` | `classifier.py` (model + ölçüm), `train_classifier.py` (eğit), `evaluate_model.py` (etiketli gerçek veriyle ölç) |
 | `data/` | `raw/` (gitignore, ham form verisi), `synthetic/` (yeniden üretilir, gitignore), `labeled/` (anonim, etiketli) |
-| `models/` | `classifier/v1/metrics.json` repoda; `model.joblib` komutla yeniden üretilir (gitignore) |
+| `models/` | `classifier/v1/metrics.json` ve `report.html` (grafikli eğitim raporu, tarayıcıda açılır) repoda; `model.joblib` yeniden üretilir (gitignore). Backend'in kullandığı kopya: `backend/ml_models/classifier/v1/` |
 | `notebooks/` | EDA ve akademik raporlama |
 
 ```bash
 cd ai
 uv sync
 uv run pytest
-uv run python -m training.train_classifier --out models/classifier/v1     # veri üret + eğit + ölç
+uv run python -m training.train_classifier --out models/classifier/v1     # veri üret + eğit + ölç + report.html
+uv run python -m training.train_classifier --publish ../backend/ml_models/classifier/v1   # backend'e de kopyala
 uv run python -m training.evaluate_model --model models/classifier/v1/model.joblib --data data/labeled/real.csv
 ```
 
