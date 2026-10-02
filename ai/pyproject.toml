@@ -43,4 +43,6 @@ extend = "../backend/pyproject.toml"
 known-first-party = ["generators", "training", "tests"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101", "PLR2004"]
+# Sentetik veri tohumlu random ile uretilir (tekrarlanabilirlik); kriptografik kullanim yok
+"generators/**" = ["S311"]
+"tests/**" = ["S101", "PLR2004", "S311"]

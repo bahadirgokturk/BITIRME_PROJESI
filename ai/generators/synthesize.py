@@ -1,10 +1,12 @@
 """Sentetik bildirim uretici (E5-3, docs/AGENTS.md bolum 6).
 
-Her case type icin sablon cumle x lokasyon ifadesi x gurultu (gunluk ifade, kucuk harf, harf hatasi).
+Her case type icin sablon cumle x lokasyon ifadesi x gurultu (gunluk ifade, kucuk harf,
+harf hatasi).
 Lokasyonlar backend kampus seed'inden okunur: modelin gordugu yerler uygulamadakilerle ayni olsun.
 Uretim tohumla (seed) tekrarlanabilir; her ornek sablon kimligini tasir (sablon bazli test ayrimi).
 
-Kullanim: uv run python -m generators.synthesize --per-type 160 --seed 42 --out data/synthetic/campus.csv
+Kullanim:
+    uv run python -m generators.synthesize --per-type 160 --seed 42 --out data/synthetic/campus.csv
 """
 
 import argparse
@@ -20,7 +22,12 @@ import yaml
 from generators.sentence_templates import CAMPUS_TEMPLATES_PATH, load_templates
 
 CAMPUS_LOCATIONS_PATH = (
-    Path(__file__).resolve().parents[2] / "backend" / "seeds" / "templates" / "campus" / "locations.yaml"
+    Path(__file__).resolve().parents[2]
+    / "backend"
+    / "seeds"
+    / "templates"
+    / "campus"
+    / "locations.yaml"
 )
 # Kampus kokunun adi ("Merkez Kampus") bildirimde yer olarak kullanilmaz. OTHER turundeki yerler
 # ekipman adi tasir ("Asansor", "Turnikeler"): baska turdeki cumleye girince etiketi bulandirir
@@ -95,7 +102,9 @@ def add_typo(text: str, rng: random.Random) -> str:
 def _noisy(sentence: str, rng: random.Random) -> str:
     text = sentence
     if rng.random() < FILLER_PROBABILITY:
-        text = " ".join(part for part in (rng.choice(PREFIXES), sentence, rng.choice(SUFFIXES)) if part)
+        text = " ".join(
+            part for part in (rng.choice(PREFIXES), sentence, rng.choice(SUFFIXES)) if part
+        )
     if rng.random() < LOWERCASE_PROBABILITY:
         text = turkish_lower(text)
     if rng.random() < TYPO_PROBABILITY:
@@ -119,7 +128,9 @@ class _Generator:
             text = _noisy(sentence, self.rng)
             seen.setdefault(text, Sample(text=text, label=code, template_id=f"{code}#{index}"))
         if len(seen) < self.per_type:
-            raise GenerationError(f"{code}: {self.per_type} benzersiz ornek uretilemedi ({len(seen)})")
+            raise GenerationError(
+                f"{code}: {self.per_type} benzersiz ornek uretilemedi ({len(seen)})"
+            )
         return list(seen.values())
 
 
@@ -149,7 +160,10 @@ def main() -> None:
     args = parser.parse_args()
     templates = load_templates(CAMPUS_TEMPLATES_PATH)
     samples = generate(
-        templates, load_location_phrases(CAMPUS_LOCATIONS_PATH), per_type=args.per_type, seed=args.seed
+        templates,
+        load_location_phrases(CAMPUS_LOCATIONS_PATH),
+        per_type=args.per_type,
+        seed=args.seed,
     )
     write_csv(samples, args.out)
     print(f"{len(samples)} ornek -> {args.out}")

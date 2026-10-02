@@ -6,7 +6,7 @@ from sklearn.pipeline import Pipeline
 
 from generators.sentence_templates import CAMPUS_TEMPLATES_PATH, load_templates
 from generators.synthesize import CAMPUS_LOCATIONS_PATH, Sample, generate, load_location_phrases
-from training.classifier import build_pipeline, evaluate, split_by_template
+from training.classifier import build_pipeline, cross_validate, evaluate, split_by_template
 from training.normalization import normalize
 
 TEMPLATES = load_templates(CAMPUS_TEMPLATES_PATH)
@@ -89,3 +89,15 @@ def test_saved_model_predicts_the_same_after_loading(
 
     texts = [s.text for s in test[:20]]
     assert list(loaded.predict(texts)) == list(pipeline.predict(texts))
+
+
+def test_cross_validation_tests_every_template_on_unseen_data() -> None:
+    small = generate(TEMPLATES, load_location_phrases(CAMPUS_LOCATIONS_PATH), per_type=15, seed=3)
+
+    report = cross_validate(small, seed=SEED)
+
+    assert report["n"] == len(small)
+    assert [fold["n"] for fold in report["folds"]] and sum(f["n"] for f in report["folds"]) == len(
+        small
+    )
+    assert 0.0 <= report["accuracy_std"] <= 1.0

@@ -3,7 +3,9 @@
 CSV sutunlari: text,label (label = case type kodu, docs/DEPARTMENTS.md). Google Form verisi ekipce
 etiketlenip ai/data/labeled/ altina konur; sonuc tezdeki "gercek veri" basarisidir.
 
-Kullanim: uv run python -m training.evaluate_model --model models/classifier/v1/model.joblib --data data/labeled/real.csv
+Kullanim:
+    uv run python -m training.evaluate_model \
+        --model models/classifier/v1/model.joblib --data data/labeled/real.csv
 """
 
 import argparse
@@ -33,7 +35,9 @@ def main() -> None:
     result = evaluate_file(joblib.load(args.model), args.data)
     print(f"n={result['n']} | accuracy {result['accuracy']} | macro-F1 {result['macro_f1']}")
     if args.out:
-        args.out.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        args.out.write_text(
+            json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
 
 
 if __name__ == "__main__":

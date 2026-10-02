@@ -1,12 +1,14 @@
 """Classification modeli egitimi (E5-3).
 
 1. Sentetik veri tohumla uretilir (generators/synthesize.py) ve CSV olarak kaydedilir.
-2. Olcum: her turden sablonlarin ~%20'si teste ayrilir, model kalanla egitilir (sablon bazli ayrim).
+2. Olcum: sablon bazli 5 katli capraz dogrulama; her ornek sablonunu gormemis modelle test edilir.
 3. Teslim edilen model butun veriyle yeniden egitilir; metrics.json olcumu ve surumleri kaydeder.
 
-Bu olcum sentetik veridedir. Gercek basari Google Form verisiyle olculur: training/evaluate_model.py.
+Bu olcum sentetik veridedir. Gercek basari Google Form verisiyle olculur
+(training/evaluate_model.py).
 
-Kullanim (ai/ klasorunde): uv run python -m training.train_classifier --out models/classifier/v1
+Kullanim (ai/ klasorunde):
+    uv run python -m training.train_classifier --out models/classifier/v1
 """
 
 import argparse
@@ -20,15 +22,23 @@ import sklearn
 from sklearn.pipeline import Pipeline
 
 from generators.sentence_templates import CAMPUS_TEMPLATES_PATH, load_templates
-from generators.synthesize import CAMPUS_LOCATIONS_PATH, Sample, generate, load_location_phrases, write_csv
-from training.classifier import build_pipeline, evaluate, split_by_template
+from generators.synthesize import (
+    CAMPUS_LOCATIONS_PATH,
+    Sample,
+    generate,
+    load_location_phrases,
+    write_csv,
+)
+from training.classifier import build_pipeline, cross_validate, latency_ms
 
 MODEL_NAME = "classification"
 MODEL_VERSION = "1.0"
 ALGORITHM = "tfidf(char_wb 2-5 + word 1-2) + logistic_regression(balanced) + sigmoid calibration"
-EVALUATION_DATA = "synthetic-template-holdout"
+EVALUATION_DATA = "synthetic-template-cv"
 DEFAULT_PER_TYPE = 160
 DEFAULT_SEED = 42
+# Gecikme olcumu icin ornek sayisi (tek tek tahmin)
+LATENCY_SAMPLE_SIZE = 200
 
 
 def _fit(samples: Sequence[Sample], seed: int) -> Pipeline:
@@ -38,10 +48,10 @@ def _fit(samples: Sequence[Sample], seed: int) -> Pipeline:
 
 
 def train(samples: Sequence[Sample], *, seed: int) -> tuple[Pipeline, dict[str, Any]]:
-    train_set, test_set = split_by_template(samples, seed=seed)
-    holdout_model = _fit(train_set, seed)
-    report = evaluate(holdout_model, [s.text for s in test_set], [s.label for s in test_set])
-    return _fit(samples, seed), report
+    report = cross_validate(samples, seed=seed)
+    model = _fit(samples, seed)
+    texts = [s.text for s in samples[:LATENCY_SAMPLE_SIZE]]
+    return model, {**report, "latency_ms": latency_ms(model, texts)}
 
 
 def write_artifacts(model: Pipeline, report: dict[str, Any], out_dir: Path, *, seed: int) -> None:
@@ -75,7 +85,8 @@ def main() -> None:
     write_csv(samples, args.data_out)
     model, report = train(samples, seed=args.seed)
     write_artifacts(model, report, args.out, seed=args.seed)
-    print(f"{len(samples)} ornek | accuracy {report['accuracy']} | macro-F1 {report['macro_f1']} -> {args.out}")
+    summary = f"accuracy {report['accuracy']} | macro-F1 {report['macro_f1']}"
+    print(f"{len(samples)} ornek | {summary} -> {args.out}")
 
 
 if __name__ == "__main__":

@@ -33,7 +33,8 @@ yerel bir "zekâ yığını" kullanılır:
 
 > **Uygulama durumu:** sözleşme `backend/app/agents/base.py` (✅ E5-1), Türkçe normalizasyon
 > `backend/app/agents/text.py` ve Intake Agent `backend/app/agents/intake.py` (✅ E5-2). Model eğitimi (`ai/`)
-> **aynı** `normalize()` fonksiyonunu kullanmalıdır; aksi halde model çalışma anında farklı metin görür (E5-3).
+> **aynı** `normalize()` fonksiyonunu kullanır: `ai/training/normalization.py` backend'deki fonksiyonu doğrudan
+> yükler, model onu adıyla saklar (✅ E5-3). Normalizasyon değişirse model yeniden eğitilir.
 
 ```python
 class AgentResult(BaseModel, Generic[TOut]):
@@ -226,6 +227,15 @@ Tam liste, kategoriler ve birim eşleşmesi: [DEPARTMENTS.md](DEPARTMENTS.md) (�
    metin bildirim toplanır, ekip tarafından 2 kişi bağımsız etiketler (Cohen's kappa raporlanır).
 3. **Değerlendirme dürüstlüğü:** Test seti **yalnızca gerçek veriden** oluşur (sentetik veri ile test
    etmek başarıyı şişirir). Eğitim: sentetik + gerçeğin eğitim kısmı.
+   **Uygulandı (E5-3):** `ai/generators/synthesize.py` (19 tür × 160 = 3.040 örnek, tohumlu), `ai/training/`.
+   Sentetik ölçüm **şablon bazlı 5 katlı çapraz doğrulama** ile yapılır: bir şablonun bütün örnekleri aynı
+   parçadadır, model test cümlesinin şablonunu hiç görmez (rastgele bölme aynı cümleyi farklı lokasyonla iki
+   tarafa koyar, sonucu şişirir). Model v1 (`ai/models/classifier/v1/metrics.json`): accuracy **0,82 ± 0,03**,
+   macro-F1 **0,82 ± 0,03**, tek tahmin p50 ≈ 15 ms. En zayıf türler OTHER, ELECTRICAL_FAILURE,
+   SECURITY_INCIDENT (karışanlar: güvenlik ↔ kayıp eşya, bahçe ↔ su). İlk denemede her anahtar kelime tek
+   şablonda geçtiği için sonuç 0,63'tü; şimdi her seed anahtar kelimesi türünün en az 3 şablonunda geçer
+   (testle korunur). **Bu sayılar sentetik veridedir**; gerçek başarı Google Form verisiyle
+   `training/evaluate_model.py` ile ölçülür.
 4. **Karşılaştırmalı deney (tez için):** (a) yalnız kural, (b) TF-IDF+LR, (c) embedding+LR →
    accuracy, macro-F1, confusion matrix, gecikme (ms). Sonuçlar `ai/models/.../metrics.json` ve `ml_models`.
 5. **Yeniden eğitim döngüsü:** `decision_feedback` → `scripts/export_feedback.py` → eğitim → yeni versiyon;

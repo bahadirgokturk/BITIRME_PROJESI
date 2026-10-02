@@ -1,7 +1,9 @@
-# Kampus sablonu: case type basina sentetik bildirim cumleleri (taslak, FAZ 5'te genisletilecek)
+# Kampus sablonu: case type basina sentetik bildirim cumleleri (E5-3)
 # Case type listesi ve birim eslesmesi: docs/DEPARTMENTS.md
 # {location} yer tutucusu uretici tarafindan lokasyon adi/takma adi ile doldurulur.
 # Cumleler bilincli olarak farkli uslupta: resmi, gunluk, yazim hatali, kisa.
+# Her seed anahtar kelimesi (backend case_types.yaml) turunun en az 3 sablonunda gecer: sablon bazli
+# testte bir sablon ayrilsa da model kelimeyi digerlerinden ogrenir (tests/test_sentence_templates.py).
 case_types:
   SOAP_EMPTY:
     - "{location} sabun bitmiş"
@@ -15,6 +17,9 @@ case_types:
     - "{location} sabun yok ellerimizi yıkayamıyoruz"
     - "sabunluk calismiyor sanirim bos {location}"
     - "{location} köpük sabun haznesi boşalmış"
+    - "{location} sabunluklar boşalmış, el yıkama imkanı yok"
+    - "el yıkamak mümkün değil sabunluk bomboş {location}"
+    - "{location} el yıkama alanında sabun kalmamış"
 
   TOILET_PAPER_EMPTY:
     - "{location} tuvalet kağıdı bitmiş"
@@ -28,6 +33,10 @@ case_types:
     - "WC'de kağıt kalmamış"
     - "{location} tuvalet kağıdı aparatı bomboş"
     - "tuvalette kağıt yok lütfen koyun"
+    - "{location} kağıt havlu bitmiş, eller kurulanamıyor"
+    - "{location} peçete kalmamış"
+    - "lavabodaki kağıt havlu makinesi boş {location}"
+    - "{location} peçete ve kağıt havlu yenilenmemiş"
 
   TRASH_FULL:
     - "{location} çöp kutusu taşmış"
@@ -41,6 +50,10 @@ case_types:
     - "Çöpler günlerdir alınmamış, {location}"
     - "{location} çöp kovası dolmuş kapağı kapanmıyor"
     - "çöp taşıyor"
+    - "{location} çöp konteyneri dolmuş, kapak kapanmıyor"
+    - "{location} konteynerin etrafı çöp torbası dolu"
+    - "konteyner taşıyor koku yapıyor {location}"
+    - "{location} çöp kutusu yine dolu"
 
   AREA_DIRTY:
     - "{location} yerler çok kirli"
@@ -54,6 +67,11 @@ case_types:
     - "{location} merdivenlerde toz ve çöp birikmiş"
     - "yerler islak ve camurlu kayan olabilir {location}"
     - "{location} aynalar ve lavabolar çok kirli"
+    - "{location} sabahtan beri temizlenmemiş, her yer pis"
+    - "{location} yere çay dökülmüş, kimse temizlememiş"
+    - "{location} yerlere yemek dökülmüş, kötü koku var"
+    - "temizlenmemiş tuvaletten ağır koku geliyor {location}"
+    - "{location} dökülmüş içecekler yüzünden zemin temizlenmemiş"
 
   PROJECTOR_FAILURE:
     - "{location} projeksiyon açılmıyor"
@@ -67,6 +85,10 @@ case_types:
     - "{location} projektör sinyal yok uyarısı veriyor"
     - "Ders başladı ama projeksiyon hâlâ çalışmıyor, {location}"
     - "{location} projektör fanı çok ses yapıyor sonra kapanıyor"
+    - "{location} projeksiyon perdesi yırtılmış"
+    - "{location} projektör açılıyor ama görüntü yok"
+    - "{location} perde aşağı inmiyor, projeksiyon görüntü yok diyor"
+    - "görüntü yok, projeksiyon hdmi'yi algılamıyor {location}"
 
   AIR_CONDITIONER_FAILURE:
     - "{location} klima çalışmıyor"
@@ -80,6 +102,13 @@ case_types:
     - "{location} klimadan tıkırtı sesi geliyor"
     - "{location} ısıtma sistemi arızalı, çok soğuk"
     - "klima bozuk"
+    - "{location} kalorifer petekleri ısınmıyor"
+    - "{location} petekler soğuk, ısıtma çalışmıyor"
+    - "{location} havalandırma bozuk, soğutma yok"
+    - "{location} klimanın soğutma modu çalışmıyor"
+    - "kalorifer yanmıyor petek buz gibi {location}"
+    - "{location} ısıtma ve havalandırma sistemi kapalı, hava çok ağır"
+    - "{location} soğutma yetersiz sınıf çok sıcak"
 
   WIFI_FAILURE:
     - "{location} internet yok"
@@ -93,6 +122,10 @@ case_types:
     - "{location} Wi-Fi şifre kabul etmiyor"
     - "Online sınav sırasında internet gitti, {location}"
     - "{location} ağ sinyali hiç yok"
+    - "{location} eduroam bağlantısı kopuyor"
+    - "eduroam şifremi kabul etmiyor {location}"
+    - "{location} internet bağlantısı yok"
+    - "{location} wifi bağlantı hatası veriyor"
 
   FURNITURE_DAMAGE:
     - "{location} sıra kırılmış"
@@ -106,6 +139,13 @@ case_types:
     - "{location} tuvalet kabin kapısının kilidi bozuk"
     - "{location} rafın vidaları çıkmış, sallanıyor"
     - "sandalye kırık birisi düşebilir"
+    - "{location} sıraların çoğu kırık, oturacak yer yok"
+    - "{location} masa ve sandalye kırılmış"
+    - "{location} pencere camı çatlamış, pencere kapanmıyor"
+    - "{location} sıra ve masa sallanıyor"
+    - "{location} dolap kapısı kırık, kilitlenmiyor"
+    - "{location} pencere menteşesi kopmuş"
+    - "dolap rafı çökmüş {location}"
 
   ELECTRICAL_FAILURE:
     - "{location} elektrik yok"
@@ -119,6 +159,11 @@ case_types:
     - "Prize dokununca elektrik çarptı, {location}"
     - "{location} tavandaki floresan patladı"
     - "{location} acil çıkış aydınlatması çalışmıyor"
+    - "{location} sigorta attı, lambalar söndü"
+    - "{location} kablodan kıvılcım çıkıyor, yanık kokusu var"
+    - "prizin yanındaki kablo erimiş, yanık kokusu geliyor {location}"
+    - "{location} lamba patladı, sigorta da atıyor"
+    - "{location} anahtara basınca kıvılcım çıkıyor"
 
   WATER_LEAK:
     - "{location} su sızıntısı var"
@@ -132,6 +177,14 @@ case_types:
     - "{location} yağmur suyu içeri giriyor"
     - "{location} su sebilinden su sızıyor"
     - "{location} koridorda su birikintisi var, kayma tehlikesi"
+    - "{location} musluktan sürekli su akıyor"
+    - "{location} borudan sızıntı var, su akıyor"
+    - "{location} taşkın oldu, bodrum su altında"
+    - "{location} lavabo taşkın yaptı, musluk bozuk"
+    - "{location} tavan damlıyor, kovalar konuldu"
+    - "tavan damlıyor yağmur yağınca {location}"
+    - "{location} boru patladı, taşkın var, tavan damlıyor"
+    - "{location} lavabonun altında sızıntı var"
 
   SECURITY_INCIDENT:
     - "{location} şüpheli bir kişi dolaşıyor"
@@ -145,6 +198,13 @@ case_types:
     - "{location} kamera çalışmıyor gibi, ışığı yanmıyor"
     - "{location} yetkisiz kişiler laboratuvara girmiş"
     - "{location} sahipsiz bir paket duruyor"
+    - "{location} şüpheli biri bisikletleri kurcalıyor, güvenlik gelsin"
+    - "{location} hırsızlık oldu, laptopum çalındı"
+    - "{location} kavga var, güvenlik görevlisi lazım"
+    - "{location} kameraya rağmen hırsız girmiş"
+    - "şüpheli paket var kamera da çalışmıyor {location}"
+    - "{location} hırsız girmiş, eşyalar çalındı"
+    - "otoparkta kavga çıktı {location} güvenliğe haber verin"
 
   LOST_ITEM:
     - "Kayıp eşya buldum, nereye teslim etmeliyim?"
@@ -157,6 +217,10 @@ case_types:
     - "kulaklığımı {location} kaybettim"
     - "{location} bulunmuş bir kimlik kartı var"
     - "{location} çantamı unuttum, emanete alınmış mı?"
+    - "{location} kayıp bir cüzdan bulundu, emanete bırakılabilir mi?"
+    - "{location} kayıp eşya bürosu nerede, defterimi kaybettim"
+    - "{location} bir saat bulundu, sahibi arıyor olabilir"
+    - "{location} unutulmuş bir şarj aleti emanete verildi mi?"
 
   ELEVATOR_FAILURE:
     - "{location} asansör çalışmıyor"
@@ -181,6 +245,10 @@ case_types:
     - "agac devrilmek uzere tehlikeli {location}"
     - "{location} yeşil alanda su birikintisi oluşmuş"
     - "{location} bahçe sulama sistemi gece boyu çalışıyor"
+    - "{location} çimenlik sulama yapılmadığı için sararmış"
+    - "{location} fıskiye çalışmıyor, ağaçlar kuruyor"
+    - "{location} fırtınada büyük bir dal kopmuş, sulama hortumu ezilmiş"
+    - "{location} bahçedeki fıskiye kırık, su boşa gidiyor"
 
   COMPUTER_FAILURE:
     - "{location} laboratuvardaki bilgisayar açılmıyor"
@@ -193,6 +261,13 @@ case_types:
     - "{location} öğretim üyesi bilgisayarı sürekli yeniden başlıyor"
     - "{location} mouse çalışmıyor"
     - "{location} bilgisayarlarda lisanslı program açılmıyor"
+    - "{location} yazıcı kağıt sıkıştırıyor"
+    - "{location} yazıcı çıktı vermiyor, toner bitmiş"
+    - "{location} monitör titriyor, klavye de çalışmıyor"
+    - "{location} bilgisayar mavi ekran verdi, mouse tepki vermiyor"
+    - "monitör kararıyor bilgisayar donuyor {location}"
+    - "{location} klavyenin tuşları basmıyor, mouse da kırık"
+    - "lab bilgisayarı sürekli mavi ekran veriyor {location}"
 
   ACCESS_CONTROL_FAILURE:
     - "{location} turnike kartı okumuyor"
@@ -205,6 +280,11 @@ case_types:
     - "{location} personel kartı okutunca hata veriyor"
     - "{location} otopark bariyeri kartı tanımıyor"
     - "{location} giriş kapısındaki okuyucunun ekranı kapalı"
+    - "{location} kart okuyucu öğrenci kartını görmüyor"
+    - "{location} kartlı giriş çalışmıyor, girişte kuyruk var"
+    - "kartlı giriş sistemi beni tanımıyor {location}"
+    - "{location} bariyer kalkmıyor, araçlar bekliyor"
+    - "{location} otopark bariyeri kart okutunca açılmıyor"
 
   CAFETERIA_ISSUE:
     - "{location} yemekhanede yemek soğuk verildi"
@@ -217,6 +297,13 @@ case_types:
     - "{location} yemekhane kuyruğu çok uzun, düzen yok"
     - "{location} çay ocağı çalışmıyor"
     - "{location} yemek porsiyonları çok az"
+    - "{location} kantinde sıcak yemek kalmamış"
+    - "{location} kafeteryada çay bitmiş"
+    - "kafeterya çok geç açılıyor {location}"
+    - "{location} otomat bozuk, para yutuyor"
+    - "otomattan çikolata düşmüyor {location}"
+    - "{location} yemekhanede hijyen kurallarına uyulmuyor"
+    - "{location} mutfakta hijyen sorunu var, yemekler açıkta bekliyor"
 
   OUT_OF_SCOPE:
     - "Transkriptim hâlâ gelmedi"
@@ -229,6 +316,20 @@ case_types:
     - "Yatay geçiş başvurusu ne zaman?"
     - "izin dilekçemi nereye vereceğim"
     - "Harç borcumu nasıl öderim?"
+    - "Transkript talebim onaylanmadı"
+    - "e-devletten transkript alamıyorum"
+    - "Öğrenci belgesi çıktısı alamıyorum"
+    - "acil öğrenci belgesi lazım nereden alacağım"
+    - "Ders kaydı ekranında dersler görünmüyor"
+    - "ders kaydı ne zaman bitiyor"
+    - "Maaş bordromu göremiyorum"
+    - "bu ay maaş yatmadı"
+    - "Burs ödemem gecikti"
+    - "KYK burs başvurusu sonucu çıktı mı"
+    - "Harç ücreti iadesi nasıl yapılıyor"
+    - "harç dekontunu nereye yükleyeceğim"
+    - "Sınav notu itirazı nasıl yapılır"
+    - "vize sınav notu hâlâ açıklanmadı"
 
   OTHER:
     - "{location} çok gürültülü inşaat var ders dinlenmiyor"

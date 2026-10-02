@@ -51,7 +51,7 @@ def test_placeholders_are_filled_and_samples_remember_their_template() -> None:
 
     for sample in samples:
         assert "{" not in sample.text
-        # Sablon kimligi sablon bazli train/test ayrimi icin gerekli (ayni cumle iki tarafa dusmesin)
+        # Sablon kimligi sablon bazli ayrim icin gerekli (ayni cumle iki tarafa dusmesin)
         code, index = sample.template_id.split("#")
         assert code == sample.label
         assert 0 <= int(index) < len(TEMPLATES[code])
