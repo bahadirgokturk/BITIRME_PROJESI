@@ -265,6 +265,19 @@ Politika: `agent_policies` (tür başına bir satır, seed'den; `min_confidence_
 
 İdempotent: aynı uyarı aynı case için bir kez üretilir (event varlığı kontrolü).
 
+✅ **Uygulandı (E5-10):** `backend/app/agents/monitoring.py` (saf karar tablosu) + `services/monitoring_service.py`.
+- **SLA:** durum `services/sla.py`'deki okuma anı hesabından (`AT_RISK`/`BREACHED`, kuralın uyarı yüzdesiyle).
+  Uyarı → `SLA_WARNING`; aşım → `SLA_BREACHED` + `ESCALATED` olayı, `escalation_level += 1`, durum değişmez. Aşımda
+  geç uyarı üretilmez. Çözülmüş/kapalı bildirimler izlenmez.
+- **Kabul edilmeyen görev** (`ASSIGNED`, `response_due_at` geçti) → `REASSIGN_RECOMMENDED`; öneri Routing Agent'ın
+  aynı birimden, şu anki personel hariç seçtiği kişi (`suggested_user_id`, yoksa boş). Her atama için bir kez.
+- **ANALYZING ≥ 5 dk** → agent hattı yeniden çalışır. Hat kapalıysa (`AGENTS_ENABLED=false`) izlenmez (manager bekler).
+- **NEEDS_INFO ≥ 48 sa** → `REJECTED` (`CASE_REJECTED`, aktör monitoring).
+- Eylem üreten her kontrol `agent_decisions`'a yazılır (`agent_name=monitoring`); eylemsiz turlar yazılmaz.
+- **Zamanlayıcı:** uygulama içi asyncio döngüsü (`MONITORING_ENABLED`, `MONITORING_INTERVAL_SECONDS=300`); tur
+  oturum seviyesi Postgres advisory lock ile tek sunucuda çalışır. Veritabanı hatası döngüyü durdurmaz.
+- Staff/manager'a **bildirim** (e-posta, uygulama içi) FAZ 6 bildirim tablosuyla; şimdilik olay kaydında.
+
 ### 4.9 Resolution Agent (K1)
 Girdi: completion_note, kanıt fotoğrafı var mı, çalışma süresi, case type.
 - Not çok kısa (< 10 karakter) ve fotoğraf yok → `needs_more_evidence`

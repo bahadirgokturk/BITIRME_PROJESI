@@ -20,7 +20,7 @@ flowchart LR
         AG -.opsiyonel.-> OLL[Ollama<br/>yerel LLM]
         SVC --> AN[analytics/<br/>KPI hesaplama]
         AN --> SUM[Analytics Agent<br/>özet üretimi]
-        SCH[APScheduler<br/>Monitoring tick] --> ORCH
+        SCH[Uygulama içi döngü<br/>Monitoring tick] --> ORCH
     end
     DB[(PostgreSQL)]
     FS[(Dosya deposu<br/>local / S3-uyumlu)]
@@ -134,7 +134,7 @@ Pipeline FastAPI `BackgroundTasks` ile çalışır (tüm modeller yerel, toplam 
 
 ## 6. Zamanlanmış İşler
 
-- **APScheduler** (in-process), Monitoring Agent'ı 5 dakikada bir çalıştırır.
+- **Uygulama içi asyncio döngüsü** (FastAPI lifespan), Monitoring Agent'ı 5 dakikada bir çalıştırır (`MONITORING_INTERVAL_SECONDS`). Birden fazla sunucuda turu Postgres advisory lock alan tek sunucu yapar. APScheduler planlanmıştı; tek periyodik iş için bağımlılık eklemeye gerek görülmedi (ADR-8).
 - Çoklu instance durumunda çift çalışmayı `pg_try_advisory_lock` engeller.
 - Ücretsiz hosting'te uygulama uyuyabildiği için SLA durumu **okuma anında da** hesaplanır
   (`due_at` ile şimdiki zaman karşılaştırması); scheduler sadece event/bildirim üretir.
@@ -158,7 +158,7 @@ Pipeline FastAPI `BackgroundTasks` ile çalışır (tüm modeller yerel, toplam 
 | ADR-5 | Event log birincil kaynak, `cases` üzerindeki zaman damgaları türetilmiş | Process mining ve KPI tutarlılığı |
 | ADR-6 | Tek rol / kullanıcı (enum) | RBAC basit ve test edilebilir; çoklu rol gerekmiyor |
 | ADR-7 | Frontend tipleri OpenAPI şemasından üretilir | FE/BE sözleşme uyumsuzluğunu önler |
-| ADR-8 | Celery/Redis yerine BackgroundTasks + APScheduler | İhtiyaç kanıtlanmadan altyapı eklenmez |
+| ADR-8 | Celery/Redis yerine BackgroundTasks + uygulama içi periyodik döngü (E5-10; APScheduler bile gerekmedi) | İhtiyaç kanıtlanmadan altyapı eklenmez |
 | ADR-9 | Mobil uygulama yerine PWA (Next `app/manifest.ts` + simgeler); v1'de service worker yok | Tek kod tabanı, mağaza yok. Veri anlık olmalı ve oturum bilgisi önbelleğe girmemeli; MSW'nin service worker'ıyla çakışma riski yok. Telefona kurulum HTTPS ister (staging). Push bildirimleri ileride backend ile birlikte, service worker o zaman eklenir |
 
 ## 9. Güvenlik Özeti

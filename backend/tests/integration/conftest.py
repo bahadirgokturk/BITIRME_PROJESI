@@ -103,6 +103,8 @@ def _make_client(
         storage_local_path=str(tmp_path),
         # Agent hatti varsayilan kapali: testler manager atamasini dogrudan dener
         agents_enabled=agents,
+        # Izleme turunu testler dogrudan cagirir; arka plan dongusu calismaz
+        monitoring_enabled=False,
     )
     app = create_app(settings)
     app.dependency_overrides[get_session] = lambda: db_session
