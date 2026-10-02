@@ -111,6 +111,17 @@ Orchestrator sıralı ve basittir (Python fonksiyonları). LangChain/LangGraph k
 - **Çıktı:** `case_type_code, category, confidence, top_k[{code, prob}], explanation.top_features[]`
 - **Karar eşiği:** `confidence < policy.min_confidence_auto` → human review.
 - Model dosyası yoksa: anahtar kelime puanlaması (case_types.keywords) → `model="rules@1.0"`.
+- ✅ **Uygulandı (E5-4):** `backend/app/agents/classification.py` + `model_store.py`.
+  - Model `backend/ml_models/classifier/v1/` (ai'de `--publish` ile kopyalanır, ~4 MB sıkıştırılmış).
+  - Yüklenmezse (dosya yok **ya da** scikit-learn sürümü `metrics.json`'dakinden farklı) kural tabanına
+    düşülür. Farklı sürümle kaydedilmiş pickle sessizce yanlış sonuç verebilir; bu yüzden hiç yüklenmez.
+    Backend ve ai aynı sürümü sabitler (`scikit-learn==1.9.1`).
+  - Yalnız girdideki (kurumun aktif) türler arasından seçilir. Güvenlik kuralı (`SAFETY_RULES`: kıvılcım,
+    elektrik çarptı, yanık kokusu → ELECTRICAL_FAILURE; yangın, duman, patlama, gaz kokusu →
+    SECURITY_INCIDENT; su basıyor → WATER_LEAK) model zaten güvenlik türü seçmediyse kararı değiştirir.
+  - Çıktı: `case_type_code, category, top_k (3), matched_keywords, safety_override`; gerekçe kodları
+    `MODEL_PREDICTION | RULE_MATCH | NO_KEYWORD_MATCH | SAFETY_RULE`.
+  - Henüz bildirim akışına bağlı değil: Supervisor ve orchestrator ile birlikte bağlanacak (E5-8).
 
 ### 4.3 Duplicate Agent (K2 + K1)
 1. **Aday üretimi (servis):** aynı organizasyon, terminal olmayan, son 24 saat, aynı bina (path prefix).

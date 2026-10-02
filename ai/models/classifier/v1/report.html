@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Model Eğitim Raporu</title>
+<style>
+:root{color-scheme:light;
+ --bg:#fcfcfb;--card:#ffffff;--border:#e6e5e1;--text:#0b0b0b;--text2:#52514e;--muted:#8a8984;
+ --s1:#2a78d6;--s2:#eb6834;--grid:#ecebe7;--accent:#00818D;
+ --q0:#f3f6fb;--q1:#cde2fb;--q2:#9ec5f4;--q3:#6da7ec;--q4:#3987e5;--q5:#256abf;--q6:#184f95;--q7:#0d366b;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --bg:#141413;--card:#1a1a19;--border:#2e2e2b;--text:#ffffff;--text2:#c3c2b7;--muted:#8f8e86;
+ --s1:#3987e5;--s2:#d95926;--grid:#2a2a27;--accent:#00A5B5;
+ --q0:#1f1f1d;--q1:#104281;--q2:#184f95;--q3:#1c5cab;--q4:#256abf;--q5:#3987e5;--q6:#6da7ec;--q7:#b7d3f6;}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --bg:#141413;--card:#1a1a19;--border:#2e2e2b;--text:#ffffff;--text2:#c3c2b7;--muted:#8f8e86;
+ --s1:#3987e5;--s2:#d95926;--grid:#2a2a27;--accent:#00A5B5;
+ --q0:#1f1f1d;--q1:#104281;--q2:#184f95;--q3:#1c5cab;--q4:#256abf;--q5:#3987e5;--q6:#6da7ec;--q7:#b7d3f6;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:980px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:16px;margin:0 0 4px}
+.sub{color:var(--text2);margin:0 0 20px}
+.note{color:var(--text2);font-size:13px;margin:0 0 12px}
+.badge{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid var(--border);color:var(--text2);margin-left:6px;vertical-align:middle}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px}
+.tile .k{font-size:12px;color:var(--text2)}.tile .v{font-size:28px;font-weight:600;letter-spacing:-.02em}
+.tile .d{font-size:12px;color:var(--muted)}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;counter-reset:s}
+.step{border:1px solid var(--border);border-radius:8px;padding:10px;position:relative}
+.step b{display:block;font-size:13px;margin-bottom:2px}.step span{font-size:12px;color:var(--text2)}
+.step::before{counter-increment:s;content:counter(s);position:absolute;top:8px;right:10px;font-size:12px;color:var(--muted)}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--text2);margin:4px 0 8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+svg text{fill:var(--text2);font-size:11px}
+.tip{position:fixed;pointer-events:none;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;box-shadow:0 4px 16px rgba(0,0,0,.15);display:none;z-index:10;max-width:260px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:right;padding:5px 8px;border-bottom:1px solid var(--border)}
+th:first-child,td:first-child{text-align:left}th{color:var(--text2);font-weight:500}
+code{background:var(--grid);padding:1px 5px;border-radius:4px;font-size:12px}
+details summary{cursor:pointer;color:var(--text2);font-size:13px;margin-top:8px}
+.conf li{margin:2px 0}
+</style></head><body><main>
+<h1>Sınıflandırma modeli v1 <span class="badge">sentetik veri</span></h1>
+<p class="sub">Öğrencinin yazdığı metinden bildirim türünü (19 tür) tahmin eden model. Sayılar, modelin eğitimde <b>hiç görmediği şablonlar</b> üzerinde ölçüldü.</p>
+
+<div class="tiles" id="tiles"></div>
+
+<div class="card">
+<h2>Model nasıl eğitiliyor?</h2>
+<p class="note">Tek komut: <code>uv run python -m training.train_classifier</code> (ai/ klasöründe, yaklaşık 30 sn)</p>
+<div class="steps">
+<div class="step"><b>Şablon cümleler</b><span>Her tür için ~16 elle yazılmış cümle (campus.yaml)</span></div>
+<div class="step"><b>Sentetik veri</b><span>Cümle × kampüs lokasyonu × gürültü (“hocam”, küçük harf, harf hatası) → <span id="nsamples"></span> örnek</span></div>
+<div class="step"><b>Normalizasyon</b><span>Backend'in normalize() fonksiyonu: Türkçe küçük harf, ASCII, eş anlamlılar (wc→tuvalet)</span></div>
+<div class="step"><b>Özellikler</b><span>TF-IDF: 2–5 harflik parçalar + kelimeler</span></div>
+<div class="step"><b>Model</b><span>Logistic Regression + güven kalibrasyonu</span></div>
+<div class="step"><b>Ölçüm</b><span>Şablonlar 5 parçaya bölünür; her parça, onu hiç görmemiş modelle test edilir</span></div>
+</div>
+</div>
+
+<div class="card">
+<h2>Parça bazlı sonuçlar (5 katlı çapraz doğrulama)</h2>
+<p class="note">Parçalar arası fark küçükse sonuç şansa bağlı değildir.</p>
+<div class="legend"><span><i style="background:var(--s1)"></i>Doğruluk</span><span><i style="background:var(--s2)"></i>Macro-F1</span></div>
+<div id="folds"></div>
+</div>
+
+<div class="card">
+<h2>Tür bazında başarı (F1)</h2>
+<p class="note">F1: hem doğru yakalama hem yanlış alarm vermeme. 1,0 = kusursuz. Üzerine gelince ayrıntı görünür.</p>
+<div id="perclass"></div>
+<details><summary>Tablo olarak göster</summary><div class="scroll"><table id="pctable"></table></div></details>
+</div>
+
+<div class="card">
+<h2>Karışıklık matrisi</h2>
+<p class="note">Satır: gerçek tür, sütun: modelin tahmini. Köşegen ne kadar koyuysa o kadar iyi; köşegen dışındaki koyu kareler karıştırılan türlerdir. Değerler satır yüzdesidir.</p>
+<div class="scroll" id="cm"></div>
+<h2 style="margin-top:12px">En çok karıştırılanlar</h2>
+<ul class="conf" id="conf"></ul>
+</div>
+
+<div class="card">
+<h2>Önemli not</h2>
+<p class="note" style="margin:0">Bu sonuçlar <b>sentetik</b> (bizim ürettiğimiz) veride. Asıl başarı, Google Form ile toplanan gerçek bildirimler etiketlenince <code>uv run python -m training.evaluate_model --model models/classifier/v1/model.joblib --data data/labeled/real.csv</code> ile ölçülecek. Model sürümü <span id="ver"></span>, scikit-learn <span id="skl"></span>, tohum <span id="seed"></span>.</p>
+</div>
+</main>
+<div class="tip" id="tip"></div>
+<script id="data" type="application/json">{"metrics": {"model": "classification", "version": "1.0", "algorithm": "tfidf(char_wb 2-5 + word 1-2) + logistic_regression(balanced) + sigmoid calibration", "sklearn_version": "1.9.1", "seed": 42, "classes": ["ACCESS_CONTROL_FAILURE", "AIR_CONDITIONER_FAILURE", "AREA_DIRTY", "CAFETERIA_ISSUE", "COMPUTER_FAILURE", "ELECTRICAL_FAILURE", "ELEVATOR_FAILURE", "FURNITURE_DAMAGE", "GREEN_AREA", "LOST_ITEM", "OTHER", "OUT_OF_SCOPE", "PROJECTOR_FAILURE", "SECURITY_INCIDENT", "SOAP_EMPTY", "TOILET_PAPER_EMPTY", "TRASH_FULL", "WATER_LEAK", "WIFI_FAILURE"], "evaluation": {"data": "synthetic-template-cv", "n": 3040, "accuracy": 0.8207, "macro_f1": 0.8153, "per_class": {"ACCESS_CONTROL_FAILURE": {"precision": 0.7538, "recall": 0.9375, "f1": 0.8357, "support": 160}, "AIR_CONDITIONER_FAILURE": {"precision": 0.7512, "recall": 0.9437, "f1": 0.8366, "support": 160}, "AREA_DIRTY": {"precision": 0.803, "recall": 0.6625, "f1": 0.726, "support": 160}, "CAFETERIA_ISSUE": {"precision": 0.6981, "recall": 0.6937, "f1": 0.6959, "support": 160}, "COMPUTER_FAILURE": {"precision": 0.775, "recall": 0.9688, "f1": 0.8611, "support": 160}, "ELECTRICAL_FAILURE": {"precision": 0.7111, "recall": 0.6, "f1": 0.6508, "support": 160}, "ELEVATOR_FAILURE": {"precision": 0.8743, "recall": 0.9563, "f1": 0.9134, "support": 160}, "FURNITURE_DAMAGE": {"precision": 0.6531, "recall": 0.8, "f1": 0.7191, "support": 160}, "GREEN_AREA": {"precision": 0.8571, "recall": 0.6375, "f1": 0.7312, "support": 160}, "LOST_ITEM": {"precision": 0.8939, "recall": 0.7375, "f1": 0.8082, "support": 160}, "OTHER": {"precision": 0.7315, "recall": 0.4938, "f1": 0.5896, "support": 160}, "OUT_OF_SCOPE": {"precision": 0.8696, "recall": 1.0, "f1": 0.9302, "support": 160}, "PROJECTOR_FAILURE": {"precision": 1.0, "recall": 1.0, "f1": 1.0, "support": 160}, "SECURITY_INCIDENT": {"precision": 0.7705, "recall": 0.5875, "f1": 0.6667, "support": 160}, "SOAP_EMPTY": {"precision": 0.9937, "recall": 0.9875, "f1": 0.9906, "support": 160}, "TOILET_PAPER_EMPTY": {"precision": 0.9357, "recall": 1.0, "f1": 0.9668, "support": 160}, "TRASH_FULL": {"precision": 0.9119, "recall": 0.9062, "f1": 0.9091, "support": 160}, "WATER_LEAK": {"precision": 0.7474, "recall": 0.9062, "f1": 0.8192, "support": 160}, "WIFI_FAILURE": {"precision": 0.9185, "recall": 0.775, "f1": 0.8407, "support": 160}}, "confusion_matrix": {"labels": ["ACCESS_CONTROL_FAILURE", "AIR_CONDITIONER_FAILURE", "AREA_DIRTY", "CAFETERIA_ISSUE", "COMPUTER_FAILURE", "ELECTRICAL_FAILURE", "ELEVATOR_FAILURE", "FURNITURE_DAMAGE", "GREEN_AREA", "LOST_ITEM", "OTHER", "OUT_OF_SCOPE", "PROJECTOR_FAILURE", "SECURITY_INCIDENT", "SOAP_EMPTY", "TOILET_PAPER_EMPTY", "TRASH_FULL", "WATER_LEAK", "WIFI_FAILURE"], "matrix": [[150, 0, 0, 6, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], [0, 151, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0], [0, 0, 106, 12, 0, 0, 0, 12, 0, 0, 12, 2, 0, 3, 0, 0, 12, 1, 0], [8, 13, 1, 111, 5, 10, 0, 1, 0, 0, 3, 0, 0, 2, 0, 3, 0, 2, 1], [0, 2, 0, 1, 155, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0], [0, 12, 0, 8, 12, 96, 7, 0, 7, 0, 0, 1, 0, 1, 0, 0, 0, 9, 7], [0, 0, 0, 0, 0, 0, 153, 4, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0], [3, 1, 0, 2, 6, 3, 0, 128, 1, 0, 3, 0, 0, 1, 1, 3, 1, 6, 1], [1, 1, 6, 1, 2, 10, 0, 16, 102, 0, 0, 0, 0, 5, 0, 0, 0, 15, 1], [10, 0, 2, 0, 0, 0, 0, 0, 0, 118, 0, 17, 0, 13, 0, 0, 0, 0, 0], [0, 12, 3, 11, 3, 3, 14, 17, 5, 0, 79, 3, 0, 0, 0, 0, 1, 9, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 160, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 160, 0, 0, 0, 0, 0, 0], [16, 9, 0, 1, 4, 0, 1, 17, 0, 14, 3, 0, 0, 94, 0, 0, 0, 1, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 158, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 160, 0, 0, 0], [0, 0, 12, 0, 2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 145, 0, 0], [3, 0, 1, 0, 1, 0, 0, 1, 3, 0, 6, 0, 0, 0, 0, 0, 0, 145, 0], [8, 0, 0, 4, 8, 12, 0, 0, 0, 0, 0, 1, 0, 0, 0, 3, 0, 0, 124]]}, "folds": [{"n": 607, "accuracy": 0.8287, "macro_f1": 0.8186}, {"n": 609, "accuracy": 0.7865, "macro_f1": 0.7826}, {"n": 605, "accuracy": 0.7917, "macro_f1": 0.7834}, {"n": 610, "accuracy": 0.823, "macro_f1": 0.8094}, {"n": 609, "accuracy": 0.8736, "macro_f1": 0.8716}], "accuracy_std": 0.0312, "macro_f1_std": 0.0325, "latency_ms": {"p50": 14.754, "p95": 23.929}}}, "names": {"SOAP_EMPTY": "Sabun bitti", "TOILET_PAPER_EMPTY": "Tuvalet kağıdı bitti", "TRASH_FULL": "Çöp dolu", "AREA_DIRTY": "Alan kirli", "SECURITY_INCIDENT": "Güvenlik olayı", "LOST_ITEM": "Kayıp / bulunan eşya", "ELECTRICAL_FAILURE": "Elektrik arızası", "WATER_LEAK": "Su sızıntısı / taşkın", "AIR_CONDITIONER_FAILURE": "Isıtma / soğutma arızası", "ELEVATOR_FAILURE": "Asansör arızası", "FURNITURE_DAMAGE": "Mobilya / kapı / pencere hasarı", "GREEN_AREA": "Bahçe / yeşil alan", "WIFI_FAILURE": "İnternet / Wi-Fi sorunu", "COMPUTER_FAILURE": "Bilgisayar / donanım arızası", "PROJECTOR_FAILURE": "Projeksiyon arızası", "ACCESS_CONTROL_FAILURE": "Turnike / kart okuyucu arızası", "CAFETERIA_ISSUE": "Yemekhane / kantin sorunu", "OTHER": "Diğer", "OUT_OF_SCOPE": "Kapsam dışı talep"}}</script>
+<script>
+const {metrics:M,names:N}=JSON.parse(document.getElementById('data').textContent);
+const E=M.evaluation, nm=c=>N[c]||c, pct=v=>(v*100).toLocaleString('tr-TR',{maximumFractionDigits:1})+'%';
+const num=(v,d=3)=>v.toLocaleString('tr-TR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const tip=document.getElementById('tip');
+function show(e,h){tip.innerHTML=h;tip.style.display='block';const x=Math.min(e.clientX+14,innerWidth-270);tip.style.left=x+'px';tip.style.top=(e.clientY+14)+'px'}
+function hide(){tip.style.display='none'}
+const NS='http://www.w3.org/2000/svg';
+function el(t,a,p){const n=document.createElementNS(NS,t);for(const k in a)n.setAttribute(k,a[k]);if(p)p.appendChild(n);return n}
+
+// Kutucuklar
+const tiles=[['Doğruluk',pct(E.accuracy),'± '+pct(E.accuracy_std)+' (5 parça)'],
+ ['Macro-F1',num(E.macro_f1),'± '+num(E.macro_f1_std)+' · 19 türün ortalaması'],
+ ['Test edilen örnek',E.n.toLocaleString('tr-TR'),'her örnek bir kez, şablonu görülmeden'],
+ ['Tahmin süresi',num(E.latency_ms.p50,1)+' ms','bildirim başına (p95: '+num(E.latency_ms.p95,1)+' ms)']];
+document.getElementById('tiles').innerHTML=tiles.map(([k,v,d])=>`<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
+document.getElementById('nsamples').textContent=E.n.toLocaleString('tr-TR');
+document.getElementById('ver').textContent=M.version;document.getElementById('skl').textContent=M.sklearn_version;document.getElementById('seed').textContent=M.seed;
+
+// Parca grafigi (gruplu cubuk, tek eksen 0-1)
+(function(){const W=600,H=200,L=36,B=24,T=10,gw=(W-L)/E.folds.length,bw=Math.min(28,gw/3);
+const s=el('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%',role:'img','aria-label':'Parça bazlı doğruluk ve macro-F1'},document.getElementById('folds'));
+const y=v=>T+(H-T-B)*(1-v);
+for(const g of [0,.25,.5,.75,1]){el('line',{x1:L,x2:W,y1:y(g),y2:y(g),stroke:'var(--grid)'},s);el('text',{x:L-6,y:y(g)+4,'text-anchor':'end'},s).textContent=g.toLocaleString('tr-TR')}
+E.folds.forEach((f,i)=>{const cx=L+gw*i+gw/2;
+ [['accuracy','var(--s1)',-1],['macro_f1','var(--s2)',1]].forEach(([k,c,side])=>{const x=cx+(side<0?-bw-1:1),h=y(0)-y(f[k]);
+  const r=el('rect',{x,y:y(f[k]),width:bw,height:h,fill:c,rx:3},s);
+  el('text',{x:x+bw/2,y:y(f[k])-4,'text-anchor':'middle'},s).textContent=num(f[k],2);
+  const hit=el('rect',{x:x-3,y:T,width:bw+6,height:H-T-B,fill:'transparent'},s);
+  hit.addEventListener('mousemove',e=>show(e,`<b>Parça ${i+1}</b><br>Doğruluk: ${pct(f.accuracy)}<br>Macro-F1: ${num(f.macro_f1)}<br>Test örneği: ${f.n}`));hit.addEventListener('mouseleave',hide)});
+ el('text',{x:cx,y:H-6,'text-anchor':'middle'},s).textContent='Parça '+(i+1)});
+})();
+
+// Tur bazinda F1 (yatay cubuk, sirali)
+(function(){const rows=Object.entries(E.per_class).sort((a,b)=>b[1].f1-a[1].f1);const RH=22,L=210,R=48,W=600,H=rows.length*RH+20;
+const s=el('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%',role:'img','aria-label':'Tür bazında F1'},document.getElementById('perclass'));
+const x=v=>L+(W-L-R)*v;
+for(const g of [0,.5,1]){el('line',{x1:x(g),x2:x(g),y1:0,y2:H-18,stroke:'var(--grid)'},s);el('text',{x:x(g),y:H-4,'text-anchor':'middle'},s).textContent=g.toLocaleString('tr-TR')}
+rows.forEach(([c,v],i)=>{const yy=i*RH+4;
+ el('text',{x:L-8,y:yy+12,'text-anchor':'end'},s).textContent=nm(c);
+ el('rect',{x:L,y:yy+2,width:Math.max(2,x(v.f1)-L),height:RH-8,fill:'var(--s1)',rx:3},s);
+ el('text',{x:x(v.f1)+6,y:yy+12},s).textContent=num(v.f1,2);
+ const hit=el('rect',{x:0,y:yy,width:W,height:RH,fill:'transparent'},s);
+ hit.addEventListener('mousemove',e=>show(e,`<b>${nm(c)}</b> <span style="color:var(--muted)">${c}</span><br>F1: ${num(v.f1)}<br>Kesinlik (precision): ${pct(v.precision)}<br>Yakalama (recall): ${pct(v.recall)}<br>Örnek: ${v.support}`));hit.addEventListener('mouseleave',hide)});
+document.getElementById('pctable').innerHTML='<tr><th>Tür</th><th>F1</th><th>Kesinlik</th><th>Yakalama</th><th>Örnek</th></tr>'+rows.map(([c,v])=>`<tr><td>${nm(c)}</td><td>${num(v.f1)}</td><td>${pct(v.precision)}</td><td>${pct(v.recall)}</td><td>${v.support}</td></tr>`).join('');
+})();
+
+// Karisiklik matrisi (satir yuzdesi, tek renk ramp)
+(function(){const lab=E.confusion_matrix.labels,m=E.confusion_matrix.matrix,n=lab.length,C=24,L=210,T=190,W=L+C*n+4,H=T+C*n+4;
+const steps=['--q0','--q1','--q2','--q3','--q4','--q5','--q6','--q7'];
+const s=el('svg',{viewBox:`0 0 ${W} ${H}`,width:Math.max(W,560),role:'img','aria-label':'Karışıklık matrisi'},document.getElementById('cm'));
+lab.forEach((c,i)=>{el('text',{x:L-6,y:T+C*i+C/2+4,'text-anchor':'end'},s).textContent=nm(c);
+ const t=el('text',{x:0,y:0,'text-anchor':'start',transform:`translate(${L+C*i+C/2+4},${T-6}) rotate(-60)`},s);t.textContent=nm(c)});
+const conf=[];
+m.forEach((row,i)=>{const tot=row.reduce((a,b)=>a+b,0)||1;row.forEach((v,j)=>{const p=v/tot;
+ const k=p===0?0:Math.min(7,1+Math.floor(p*7));
+ el('rect',{x:L+C*j+1,y:T+C*i+1,width:C-2,height:C-2,rx:3,fill:`var(${steps[k]})`},s);
+ if(i===j)el('rect',{x:L+C*j+1,y:T+C*i+1,width:C-2,height:C-2,rx:3,fill:'none',stroke:'var(--accent)','stroke-width':1.5},s);
+ const hit=el('rect',{x:L+C*j,y:T+C*i,width:C,height:C,fill:'transparent'},s);
+ hit.addEventListener('mousemove',e=>show(e,`Gerçek: <b>${nm(lab[i])}</b><br>Tahmin: <b>${nm(lab[j])}</b><br>${v} örnek (${pct(p)})`));hit.addEventListener('mouseleave',hide);
+ if(i!==j&&v>0)conf.push([v,p,i,j])})});
+conf.sort((a,b)=>b[0]-a[0]);
+document.getElementById('conf').innerHTML=conf.slice(0,6).map(([v,p,i,j])=>`<li><b>${nm(lab[i])}</b> → ${nm(lab[j])} sanıldı: ${v} örnek (${pct(p)})</li>`).join('');
+})();
+</script></body></html>
