@@ -7,16 +7,16 @@ MANAGER/ADMIN tum kurum. Yetkisiz kayit 404 doner (IDOR).
 from http import HTTPStatus
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.api.deps import CurrentUser
+from app.api.deps import Analysis, CurrentUser, require_roles
 from app.api.v1.pagination import page_params
 from app.api.v1.responses import AUTHENTICATED_RESPONSES
 from app.core.clock import Clock, get_clock
 from app.core.database import get_session
-from app.models.enums import CaseStatus
-from app.schemas.case import CaseCreate, CaseEventRead, CaseRead
+from app.models.enums import CaseStatus, UserRole
+from app.schemas.case import AgentDecisionRead, CaseCreate, CaseEventRead, CaseRead
 from app.schemas.common import Page, PageParams
 from app.services.case_service import CaseService
 
@@ -36,8 +36,14 @@ Cases = Annotated[CaseService, Depends(get_case_service)]
 
 
 @router.post("", status_code=HTTPStatus.CREATED)
-def create_case(payload: CaseCreate, service: Cases) -> CaseRead:
-    return service.create(payload)
+def create_case(
+    payload: CaseCreate, service: Cases, background: BackgroundTasks, analysis: Analysis
+) -> CaseRead:
+    """Yanit ANALYZING doner; agent hatti yanittan sonra calisir (docs/AGENTS.md bolum 3)."""
+    created = service.create(payload)
+    if analysis is not None:
+        analysis.schedule(background, created.id)
+    return created
 
 
 @router.get("")
@@ -63,3 +69,12 @@ def get_case(case_id: int, service: Cases) -> CaseRead:
 @router.get("/{case_id}/events")
 def list_case_events(case_id: int, service: Cases) -> list[CaseEventRead]:
     return service.events(case_id)
+
+
+@router.get(
+    "/{case_id}/decisions",
+    dependencies=[Depends(require_roles(UserRole.MANAGER, UserRole.ADMIN))],
+)
+def list_case_decisions(case_id: int, service: Cases) -> list[AgentDecisionRead]:
+    """Agent kararlari gerekceleriyle (E5-8b); kosu sirasiyla."""
+    return service.decisions(case_id)

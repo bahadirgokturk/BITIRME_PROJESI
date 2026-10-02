@@ -85,6 +85,23 @@ flowchart TD
 
 Orchestrator sıralı ve basittir (Python fonksiyonları). LangChain/LangGraph kullanılmaz.
 
+✅ **Uygulandı (E5-8b):** `backend/app/services/analysis_service.py`.
+- `POST /cases` yanıtı `ANALYZING` döner; hat yanıttan sonra (`BackgroundTasks`, kendi DB oturumuyla) çalışır:
+  Intake → Classification → Verification → Priority → Routing → Supervisor. Duplicate (E5-6) henüz yok
+  (benzerlik 0 verilir). Her karar aynı `run_id` ile `agent_decisions`'a yazılır.
+- Kararın uygulanması: `AUTO_ASSIGN`/`CREATE_TASK` → `CLASSIFIED` (AI_CLASSIFIED) + `ROUTED` + görev ve SLA
+  (`TaskOpener`, manager atamasıyla ortak) → `ASSIGNED`; `ESCALATE` → `ESCALATED`; `SEND_TO_HUMAN_REVIEW` →
+  `CLASSIFIED` + `needs_human_review`; `REJECT_OUT_OF_SCOPE` → `REJECTED`; `REQUEST_MORE_INFO` → `NEEDS_INFO`
+  (soru `info_request`'e yazılır). Her koşu `SUPERVISOR_DECIDED` olayı bırakır.
+- Bildirim yapan ek bilgi verince (`POST /cases/{id}/info`) hat yeniden çalışır; yanıt açıklamaya eklenir.
+  Agent aynı bildirim için **bir kez** soru sorar; ikinci kez anlaşılmazsa manager'a gider (sonsuz soru döngüsü yok).
+- Bildirim bu arada `ANALYZING` dışına çıktıysa (manager el koydu) hat hiçbir şey yapmaz.
+- Fotoğraf bildirimden sonra ayrı istekle yüklendiği için analiz anında `has_photo=false` (Verification'ın
+  fotoğraf sinyali ileride yeniden analizle kullanılacak). L2 "manager'a bildirim" henüz yalnız kararda
+  (`notify_manager`); bildirim tablosu FAZ 6.
+- **Acil durum anahtarı:** `AGENTS_ENABLED=false` → hat çalışmaz, bildirim manager'ı bekler (FAZ 4 davranışı).
+- Kararlar: `GET /cases/{id}/decisions` (MANAGER, ADMIN).
+
 ## 4. Agent'lar
 
 ### 4.1 Intake Agent (K1, opsiyonel K3)

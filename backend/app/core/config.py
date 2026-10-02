@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     storage_local_path: str = "/app/storage"
     max_upload_mb: int = Field(default=MAX_UPLOAD_MB_DEFAULT, gt=0)
     max_video_mb: int = Field(default=MAX_VIDEO_MB_DEFAULT, gt=0)
+    # Agent hatti (E5-8b): kapaliysa bildirim ANALYZING'de kalir, manager elle atar
+    # (acil durum anahtari: AGENTS_ENABLED=false)
+    agents_enabled: bool = True
 
     @field_validator("cors_origins", mode="before")
     @classmethod
