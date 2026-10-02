@@ -21,6 +21,12 @@ class Environment(StrEnum):
     PRODUCTION = "production"
 
 
+class LlmProvider(StrEnum):
+    # none: sistem LLM'siz tam calisir (varsayilan, docs/AGENTS.md); ollama: yerel model
+    NONE = "none"
+    OLLAMA = "ollama"
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
@@ -37,6 +43,10 @@ class Settings(BaseSettings):
     storage_local_path: str = "/app/storage"
     max_upload_mb: int = Field(default=MAX_UPLOAD_MB_DEFAULT, gt=0)
     max_video_mb: int = Field(default=MAX_VIDEO_MB_DEFAULT, gt=0)
+    # Opsiyonel yerel LLM: yalniz yonetim ozetini akicilastirir (E5-12); ucretli API yok
+    llm_provider: LlmProvider = LlmProvider.NONE
+    ollama_url: str = "http://localhost:11434"
+    ollama_model: str = "qwen2.5:3b"
     # Agent hatti (E5-8b): kapaliysa bildirim ANALYZING'de kalir, manager elle atar
     # (acil durum anahtari: AGENTS_ENABLED=false)
     agents_enabled: bool = True
