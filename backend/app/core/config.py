@@ -40,6 +40,10 @@ class Settings(BaseSettings):
     # Agent hatti (E5-8b): kapaliysa bildirim ANALYZING'de kalir, manager elle atar
     # (acil durum anahtari: AGENTS_ENABLED=false)
     agents_enabled: bool = True
+    # Monitoring Agent (E5-10): uygulama icinde periyodik izleme; testlerde kapali
+    monitoring_enabled: bool = True
+    # 5 dk: SLA'lar dakika (en kisa 10 dk kabul) olcegindedir (AGENTS.md 4.8)
+    monitoring_interval_seconds: int = Field(default=300, ge=1)
 
     @field_validator("cors_origins", mode="before")
     @classmethod

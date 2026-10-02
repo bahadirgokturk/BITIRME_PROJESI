@@ -99,6 +99,8 @@ class CaseEventType(StrEnum):
     CASE_REJECTED = "CASE_REJECTED"
     SLA_WARNING = "SLA_WARNING"
     SLA_BREACHED = "SLA_BREACHED"
+    # Monitoring: kabul edilmeyen gorev icin baska personel onerisi (E5-10)
+    REASSIGN_RECOMMENDED = "REASSIGN_RECOMMENDED"
     ESCALATED = "ESCALATED"
     DECISION_OVERRIDDEN = "DECISION_OVERRIDDEN"
     COMMENT_ADDED = "COMMENT_ADDED"
