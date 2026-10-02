@@ -23,6 +23,11 @@ describe("navigationFor", () => {
     expect(rolesWithTasks).toEqual(["STAFF"]);
   });
 
+  it("gives managers the review queue (docs/UI_GUIDE.md bolum 5.4)", () => {
+    expect(navigationFor("MANAGER").map((item) => item.href)).toContain("/manager/review-queue");
+    expect(navigationFor("REPORTER").map((item) => item.href)).not.toContain("/manager/review-queue");
+  });
+
   it("keeps admin screens away from managers (gorev ayriligi)", () => {
     const managerHrefs = navigationFor("MANAGER").map((item) => item.href);
 

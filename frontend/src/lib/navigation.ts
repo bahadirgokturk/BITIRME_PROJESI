@@ -14,16 +14,24 @@ export interface NavItem {
 }
 
 const REPORT: NavItem = { href: "/report", label: "Bildirim yap" };
-const MANAGEMENT_VIEWS: NavItem[] = [
-  { href: "/manager/dashboard", label: "Dashboard" },
+const DASHBOARD: NavItem = { href: "/manager/dashboard", label: "Dashboard" };
+const INSIGHTS: NavItem[] = [
   { href: "/manager/analytics", label: "Analitik" },
   { href: "/manager/agents", label: "Agent'lar" },
 ];
+const MANAGEMENT_VIEWS: NavItem[] = [DASHBOARD, ...INSIGHTS];
 
 const NAVIGATION: Record<Role, NavItem[]> = {
   REPORTER: [REPORT, { href: "/my-cases", label: "Bildirimlerim", subPaths: ["/cases"] }],
   STAFF: [REPORT, { href: "/staff/tasks", label: "Görevlerim" }],
-  MANAGER: [REPORT, ...MANAGEMENT_VIEWS, { href: "/manager/cases", label: "Case'ler" }],
+  // Inceleme kuyrugu yalniz MANAGER'da: AI'in emin olamadigi bildirimlere birim muduru karar verir (UI_GUIDE 5.4)
+  MANAGER: [
+    REPORT,
+    DASHBOARD,
+    { href: "/manager/review-queue", label: "İnceleme kuyruğu" },
+    ...INSIGHTS,
+    { href: "/manager/cases", label: "Case'ler" },
+  ],
   ADMIN: [REPORT, ...MANAGEMENT_VIEWS, { href: "/admin", label: "Yönetim" }],
 };
 
