@@ -14,6 +14,7 @@ olay kaydinda metadata.rule = AUTO_CLOSE_RULE yazar. FAZ 5'te bu adim agent'a de
 """
 
 from collections.abc import Sequence
+from dataclasses import dataclass, replace
 from datetime import datetime
 from typing import Any
 
@@ -51,6 +52,47 @@ from app.services.workflow import (
 AUTO_CLOSE_RULE = "auto_close_until_resolution_agent"
 
 
+@dataclass(frozen=True)
+class Assignment:
+    department_id: int
+    # None: birimin havuzuna (ilk kabul eden alir)
+    user_id: int | None
+
+
+class TaskOpener:
+    """Gorev olusturur ve bildirimi ASSIGNED yapar; manager atamasi ve agent hatti ortak kullanir.
+
+    SLA hedefleri ilk atamada yazilir (app/services/sla.py). Olayi kimin yaptigi `actor` sablonundan
+    gelir (manager ya da Routing Agent).
+    """
+
+    def __init__(self, session: Session, workflow: WorkflowService, clock: Clock) -> None:
+        self._session = session
+        self._workflow = workflow
+        self._clock = clock
+
+    def open(self, case: Case, assignment: Assignment, actor: Transition) -> Task:
+        task = task_repository.add(
+            self._session,
+            Task(
+                case_id=case.id,
+                department_id=assignment.department_id,
+                assigned_user_id=assignment.user_id,
+                title=case.title,
+                status=TaskStatus.PENDING,
+                created_at=self._clock.now(),
+            ),
+        )
+        rules = sla_repository.active_rules(self._session, case.organization_id)
+        apply_targets(case, index_rules(rules))
+        case.department_id = assignment.department_id
+        case.assigned_staff_id = assignment.user_id
+        metadata = {**actor.metadata, "task_id": task.id}
+        created = replace(actor, event_type=CaseEventType.TASK_CREATED, metadata=metadata)
+        self._workflow.transition(case, CaseStatus.ASSIGNED, created)
+        return task
+
+
 class TaskService:
     def __init__(self, session: Session, actor: User, clock: Clock) -> None:
         self._session = session
@@ -72,24 +114,9 @@ class TaskService:
             routed = self._by_user(CaseEventType.ROUTED, {"manual": True})
             self._move(case, CaseStatus.CLASSIFIED, routed)
         self._cancel_active_task(case)
-        task = task_repository.add(
-            self._session,
-            Task(
-                case_id=case.id,
-                department_id=data.department_id,
-                assigned_user_id=data.user_id,
-                title=case.title,
-                status=TaskStatus.PENDING,
-                created_at=self._clock.now(),
-            ),
-        )
-        apply_targets(
-            case, index_rules(sla_repository.active_rules(self._session, case.organization_id))
-        )
-        case.department_id = data.department_id
-        case.assigned_staff_id = data.user_id
-        created = self._by_user(CaseEventType.TASK_CREATED, {"task_id": task.id})
-        self._move(case, CaseStatus.ASSIGNED, created)
+        opener = TaskOpener(self._session, self._workflow, self._clock)
+        assignment = Assignment(department_id=data.department_id, user_id=data.user_id)
+        opener.open(case, assignment, self._by_user(CaseEventType.TASK_CREATED, {}))
         self._session.commit()
         refreshed = case_repository.get(self._session, case.id)
         if refreshed is None:

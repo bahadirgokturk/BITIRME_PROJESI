@@ -116,7 +116,10 @@ export interface paths {
         /** List Cases */
         get: operations["list_cases_api_v1_cases_get"];
         put?: never;
-        /** Create Case */
+        /**
+         * Create Case
+         * @description Yanit ANALYZING doner; agent hatti yanittan sonra calisir (docs/AGENTS.md bolum 3).
+         */
         post: operations["create_case_api_v1_cases_post"];
         delete?: never;
         options?: never;
@@ -167,6 +170,26 @@ export interface paths {
         };
         /** List Case Events */
         get: operations["list_case_events_api_v1_cases__case_id__events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cases/{case_id}/decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Case Decisions
+         * @description Agent kararlari gerekceleriyle (E5-8b); kosu sirasiyla.
+         */
+        get: operations["list_case_decisions_api_v1_cases__case_id__decisions_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -293,7 +316,8 @@ export interface paths {
         put?: never;
         /**
          * Provide Info
-         * @description Bildirim yapanin yaniti: NEEDS_INFO -> ANALYZING, yanit yorum olarak da eklenir.
+         * @description Bildirim yapanin yaniti: NEEDS_INFO -> ANALYZING, yorum olarak da eklenir; agent'lar yeniden
+         *     calisir (yanit aciklamaya eklenerek).
          */
         post: operations["provide_info_api_v1_cases__case_id__info_post"];
         delete?: never;
@@ -538,6 +562,42 @@ export interface components {
          * @enum {string}
          */
         ActorType: "USER" | "AGENT" | "SYSTEM";
+        /**
+         * AgentDecisionRead
+         * @description Agent karari (docs/DATABASE.md "agent_decisions"); yalniz manager ve admin gorur.
+         */
+        AgentDecisionRead: {
+            /** Id */
+            id: number;
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /** Agent Name */
+            agent_name: string;
+            /** Decision */
+            decision: string;
+            /** Confidence */
+            confidence: number | null;
+            /** Reasons */
+            reasons: {
+                [key: string]: unknown;
+            }[];
+            /** Output */
+            output: {
+                [key: string]: unknown;
+            };
+            /** Model */
+            model: string;
+            /** Latency Ms */
+            latency_ms: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
         /**
          * AssignRequest
          * @description Manager atamasi: departman zorunlu; kisi secilmezse departmanin kuyruguna duser.
@@ -1724,6 +1784,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CaseEventRead"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    list_case_decisions_api_v1_cases__case_id__decisions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentDecisionRead"][];
                 };
             };
             /** @description Unauthorized */

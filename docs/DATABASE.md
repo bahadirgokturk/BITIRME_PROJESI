@@ -166,6 +166,9 @@ MVP kuralı: bir case'in aynı anda en fazla **1 aktif** task'ı olur (partial u
 | latency_ms | int |
 | created_at | |
 
+✅ E5-8a: tablo ve `repositories/agent_decision_repository.py` (`record`, `list_for_case`). Kayıt append-only;
+`created_at` uygulama saatinden (Clock) yazılır.
+
 ### decision_feedback
 id, decision_id FK, case_id, user_id (manager), field (`case_type`, `priority`, `department`, `duplicate`),
 original_value, corrected_value, reason, created_at.
@@ -174,6 +177,8 @@ original_value, corrected_value, reason, created_at.
 ### agent_policies
 id, organization_id, scope (`CATEGORY`/`CASE_TYPE`), category NULL, case_type_id NULL,
 autonomy_level, min_confidence_auto numeric (ör. 0.70), notify_manager bool, is_active.
+✅ E5-8a: kapsam ile hedef tutarlılığı CHECK ile (CASE_TYPE → case_type_id, CATEGORY → category), aynı kapsam
+için tek satır (NULL'lar eşit sayılır). Kampüs seed'i tür başına bir CASE_TYPE satırı yazar (L2 → notify_manager).
 
 ### ml_models
 id, organization_id, name (`classifier`), version, algorithm, metrics_json (accuracy, macro_f1,

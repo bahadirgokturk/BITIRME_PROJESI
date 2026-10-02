@@ -1,4 +1,5 @@
 from collections.abc import Iterator
+from contextlib import nullcontext
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -10,6 +11,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import URL, Engine, make_url
 from sqlalchemy.orm import Session
 
+from app.api.deps import get_analysis_sessions
 from app.core.clock import get_clock
 from app.core.config import Settings, get_settings
 from app.core.database import get_session
@@ -91,19 +93,37 @@ def clock() -> FrozenClock:
     return FrozenClock(datetime(2026, 9, 26, 12, 0, tzinfo=UTC))
 
 
-@pytest.fixture
-def client(
-    db_session: Session, clock: FrozenClock, test_db_url: URL, tmp_path: Path
+def _make_client(
+    db_session: Session, clock: FrozenClock, test_db_url: URL, tmp_path: Path, *, agents: bool
 ) -> Iterator[TestClient]:
     settings = Settings(
         database_url=test_db_url.render_as_string(hide_password=False),
         jwt_secret=get_settings().jwt_secret,
         # Yuklenen dosyalar gelistirme klasorune degil, teste ozel gecici klasore yazilir
         storage_local_path=str(tmp_path),
+        # Agent hatti varsayilan kapali: testler manager atamasini dogrudan dener
+        agents_enabled=agents,
     )
     app = create_app(settings)
     app.dependency_overrides[get_session] = lambda: db_session
     app.dependency_overrides[get_clock] = lambda: clock
+    # Arka plandaki agent hatti da testin transaction'ini kullanir (geri alinir)
+    app.dependency_overrides[get_analysis_sessions] = lambda: lambda: nullcontext(db_session)
     # Cookie'ler "Secure" olmadan da gonderilsin diye https taban adresi
     with TestClient(app, base_url="https://testserver") as test_client:
         yield test_client
+
+
+@pytest.fixture
+def client(
+    db_session: Session, clock: FrozenClock, test_db_url: URL, tmp_path: Path
+) -> Iterator[TestClient]:
+    yield from _make_client(db_session, clock, test_db_url, tmp_path, agents=False)
+
+
+@pytest.fixture
+def agent_client(
+    db_session: Session, clock: FrozenClock, test_db_url: URL, tmp_path: Path
+) -> Iterator[TestClient]:
+    """Agent hatti acik istemci (E5-8b): bildirim olusunca agent'lar calisir."""
+    yield from _make_client(db_session, clock, test_db_url, tmp_path, agents=True)

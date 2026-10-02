@@ -1,5 +1,6 @@
 """Bildirim (case) sozlesmesi, FAZ 3 (docs/API.md "Cases", docs/DATABASE.md "cases")."""
 
+import uuid
 from datetime import datetime
 from typing import Any
 
@@ -148,3 +149,18 @@ class FeedbackCreate(BaseModel):
 
 class ReopenRequest(BaseModel):
     reason: str = Field(min_length=1, max_length=REOPEN_REASON_MAX_LENGTH)
+
+
+class AgentDecisionRead(BaseModel):
+    """Agent karari (docs/DATABASE.md "agent_decisions"); yalniz manager ve admin gorur."""
+
+    id: int
+    run_id: uuid.UUID
+    agent_name: str
+    decision: str
+    confidence: float | None
+    reasons: list[dict[str, Any]] = Field(validation_alias=AliasChoices("reason_json", "reasons"))
+    output: dict[str, Any] = Field(validation_alias=AliasChoices("output_json", "output"))
+    model: str
+    latency_ms: int
+    created_at: datetime

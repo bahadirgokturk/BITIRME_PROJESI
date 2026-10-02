@@ -3,10 +3,10 @@
 from http import HTTPStatus
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends
 from sqlalchemy.orm import Session
 
-from app.api.deps import CurrentUser, require_roles
+from app.api.deps import Analysis, CurrentUser, require_roles
 from app.api.v1.responses import AUTHENTICATED_RESPONSES
 from app.api.v1.tasks import Tasks
 from app.core.clock import Clock, get_clock
@@ -71,9 +71,19 @@ def request_info(case_id: int, payload: InfoRequestCreate, service: Interactions
 
 
 @router.post("/{case_id}/info", responses=CONFLICT)
-def provide_info(case_id: int, payload: InfoReplyCreate, service: Interactions) -> CaseRead:
-    """Bildirim yapanin yaniti: NEEDS_INFO -> ANALYZING, yanit yorum olarak da eklenir."""
-    return service.provide_info(case_id, payload)
+def provide_info(
+    case_id: int,
+    payload: InfoReplyCreate,
+    service: Interactions,
+    background: BackgroundTasks,
+    analysis: Analysis,
+) -> CaseRead:
+    """Bildirim yapanin yaniti: NEEDS_INFO -> ANALYZING, yorum olarak da eklenir; agent'lar yeniden
+    calisir (yanit aciklamaya eklenerek)."""
+    updated = service.provide_info(case_id, payload)
+    if analysis is not None:
+        analysis.schedule(background, updated.id)
+    return updated
 
 
 @router.post(

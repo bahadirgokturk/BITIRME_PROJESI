@@ -85,6 +85,23 @@ flowchart TD
 
 Orchestrator sıralı ve basittir (Python fonksiyonları). LangChain/LangGraph kullanılmaz.
 
+✅ **Uygulandı (E5-8b):** `backend/app/services/analysis_service.py`.
+- `POST /cases` yanıtı `ANALYZING` döner; hat yanıttan sonra (`BackgroundTasks`, kendi DB oturumuyla) çalışır:
+  Intake → Classification → Verification → Priority → Routing → Supervisor. Duplicate (E5-6) henüz yok
+  (benzerlik 0 verilir). Her karar aynı `run_id` ile `agent_decisions`'a yazılır.
+- Kararın uygulanması: `AUTO_ASSIGN`/`CREATE_TASK` → `CLASSIFIED` (AI_CLASSIFIED) + `ROUTED` + görev ve SLA
+  (`TaskOpener`, manager atamasıyla ortak) → `ASSIGNED`; `ESCALATE` → `ESCALATED`; `SEND_TO_HUMAN_REVIEW` →
+  `CLASSIFIED` + `needs_human_review`; `REJECT_OUT_OF_SCOPE` → `REJECTED`; `REQUEST_MORE_INFO` → `NEEDS_INFO`
+  (soru `info_request`'e yazılır). Her koşu `SUPERVISOR_DECIDED` olayı bırakır.
+- Bildirim yapan ek bilgi verince (`POST /cases/{id}/info`) hat yeniden çalışır; yanıt açıklamaya eklenir.
+  Agent aynı bildirim için **bir kez** soru sorar; ikinci kez anlaşılmazsa manager'a gider (sonsuz soru döngüsü yok).
+- Bildirim bu arada `ANALYZING` dışına çıktıysa (manager el koydu) hat hiçbir şey yapmaz.
+- Fotoğraf bildirimden sonra ayrı istekle yüklendiği için analiz anında `has_photo=false` (Verification'ın
+  fotoğraf sinyali ileride yeniden analizle kullanılacak). L2 "manager'a bildirim" henüz yalnız kararda
+  (`notify_manager`); bildirim tablosu FAZ 6.
+- **Acil durum anahtarı:** `AGENTS_ENABLED=false` → hat çalışmaz, bildirim manager'ı bekler (FAZ 4 davranışı).
+- Kararlar: `GET /cases/{id}/decisions` (MANAGER, ADMIN).
+
 ## 4. Agent'lar
 
 ### 4.1 Intake Agent (K1, opsiyonel K3)
@@ -199,9 +216,17 @@ Sırayla değerlendirilir, ilk eşleşen kural kazanır:
 | 1 | Metin geçersiz/boş veya verification < 0.2 | `REQUEST_MORE_INFO` |
 | 2 | duplicate_probability ≥ 0.80 | `MERGE_WITH_EXISTING_CASE` |
 | 3 | Policy L3 **veya** priority = CRITICAL **veya** güvenlik kuralı | `ESCALATE` |
-| 4 | classification confidence < min_confidence_auto **veya** 0.60 ≤ dup < 0.80 | `SEND_TO_HUMAN_REVIEW` |
-| 5 | Routing personel buldu | `AUTO_ASSIGN` (L2 ise manager'a bildirim) |
-| 6 | Personel yok | `CREATE_TASK` (departman havuzu) |
+| 4 | Tür `OUT_OF_SCOPE` (idari talep: transkript, maaş…) | `REJECT_OUT_OF_SCOPE` |
+| 5 | classification confidence < min_confidence_auto (bilinmiyorsa da) **veya** 0.60 ≤ dup < 0.80 **veya** Routing birim bulamadı (OTHER) | `SEND_TO_HUMAN_REVIEW` |
+| 6 | Routing personel buldu | `AUTO_ASSIGN` (L2 ise manager'a bildirim) |
+| 7 | Personel yok | `CREATE_TASK` (departman havuzu; L2 ise manager'a bildirim) |
+
+✅ **Uygulandı (E5-8a):** `backend/app/agents/supervisor.py` (saf karar tablosu; uygulamayı orchestrator
+yapar). Sınırlar güvenli tarafa aittir: doğrulama tam 0.20 yeterli, güven tam `min_confidence_auto` yeterli,
+benzerlik 0.60'ın altı yok sayılır. `ESCALATE` ve `SEND_TO_HUMAN_REVIEW` → `needs_human_review`.
+Kural 4 spec'e eklendi (kapsam dışı taleplerin gidecek birimi yok). `safety_term` Classification çıktısından
+gelir: model zaten güvenlik türü seçtiyse karar değişmez ama ifade yine raporlanır.
+Politika: `agent_policies` (tür başına bir satır, seed'den; `min_confidence_auto` varsayılanı 0.70).
 
 Çıktı gerekçesi, tetiklenen kuralı ve diğer agent'ların hangi değerlerinin kullanıldığını içerir.
 

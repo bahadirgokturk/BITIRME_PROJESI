@@ -9,10 +9,11 @@ from sqlalchemy.orm import Session
 
 from app.core.clock import Clock, get_clock
 from app.core.config import Settings
-from app.core.database import get_session
+from app.core.database import get_session, get_session_factory
 from app.core.errors import ForbiddenError, UnauthorizedError
 from app.models import User
 from app.models.enums import UserRole
+from app.services.analysis_service import AnalysisLauncher, SessionScope
 from app.services.auth_service import AuthService
 from app.services.login_rate_limiter import LoginRateLimiter
 from app.storage import Storage
@@ -36,6 +37,23 @@ def get_storage(request: Request) -> Storage:
     # Uygulama basina tek adaptor (app/main.py create_app); testler gecici klasorle degistirir
     storage: Storage = request.app.state.storage
     return storage
+
+
+def get_analysis_sessions() -> SessionScope:
+    """Agent hatti yanittan sonra calisir; istegin oturumu kapanmistir, kendi oturumunu acar."""
+    return get_session_factory()
+
+
+def get_analysis_launcher(
+    settings: Annotated[Settings, Depends(get_app_settings)],
+    sessions: Annotated[SessionScope, Depends(get_analysis_sessions)],
+    clock: Annotated[Clock, Depends(get_clock)],
+) -> AnalysisLauncher | None:
+    # Kapaliysa (AGENTS_ENABLED=false) bildirim ANALYZING'de manager'i bekler
+    return AnalysisLauncher(sessions, clock) if settings.agents_enabled else None
+
+
+Analysis = Annotated[AnalysisLauncher | None, Depends(get_analysis_launcher)]
 
 
 def get_auth_service(

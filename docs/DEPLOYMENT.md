@@ -81,6 +81,7 @@ STORAGE_KEY=
 STORAGE_SECRET=
 MAX_UPLOAD_MB=5                  # fotograf
 MAX_VIDEO_MB=50                  # 30 sn video
+AGENTS_ENABLED=true              # false: agent hatti kapali, bildirim manager'i bekler (acil durum anahtari)
 AI_MODE=ml                       # rules|ml|ml_llm
 CLASSIFIER_MODEL_PATH=/app/models/campus/classifier.joblib
 EMBEDDINGS_ENABLED=false
