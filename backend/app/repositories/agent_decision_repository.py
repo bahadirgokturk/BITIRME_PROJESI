@@ -5,7 +5,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.agents.base import AgentResult
@@ -44,6 +44,15 @@ def record(
     session.add(decision)
     session.flush()
     return decision
+
+
+def count(session: Session, case_id: int, agent_name: str, decision: str) -> int:
+    statement = select(func.count()).where(
+        AgentDecision.case_id == case_id,
+        AgentDecision.agent_name == agent_name,
+        AgentDecision.decision == decision,
+    )
+    return session.scalar(statement) or 0
 
 
 def list_for_case(session: Session, case_id: int) -> Sequence[AgentDecision]:

@@ -273,6 +273,18 @@ Girdi: completion_note, kanıt fotoğrafı var mı, çalışma süresi, case typ
 - Aksi halde `resolved` → VERIFICATION → CLOSED
 Fotoğrafın AI ile doğrulanması MVP dışı (ileride yerel görsel model eklenebilir).
 
+✅ **Uygulandı (E5-11):** `backend/app/agents/resolution.py` + `services/resolution_service.py` (görev tamamlanınca
+eşzamanlı çalışır; kural tabanlı, hızlı).
+- Sıra: notta olumsuz ifade (`yapılamadı, giderilemedi, onarılamadı, çözülemedi, parça yok, malzeme yok, tedarik`…,
+  normalize metinde tam kelime) → `REOPEN` (fotoğraf olsa da). Sonra **kanıt fotoğrafı** (o görevin personelinin
+  eklediği `EVIDENCE`) varsa → `RESOLVED`; fotoğraf kısa notu ve kısa süreyi telafi eder. Yoksa not < 10 karakter
+  ya da süre alt sınırın altındaysa → `NEEDS_MORE_EVIDENCE`.
+- Süre alt sınırı (varsayım, gerçek veriyle ayarlanacak): varsayılan 2 dk; asansör 10, elektrik ve klima 5 dk.
+  Süre = görevin başlatılmasından tamamlanmaya.
+- Kanıt **bir kez** istenir; ikinci kez yetersizse manager karar verir (sonsuz döngü yok).
+- `REOPEN` → `REOPENED` (`reopened_count` artar) → `ESCALATED`; personel ataması kalkar.
+- Kararlar `agent_decisions`'a (`agent_name=resolution`); manager kapatırsa `decision_feedback` (`field=resolution`).
+
 ### 4.10 Analytics Summary Agent (K1 şablon + opsiyonel K3)
 - Backend KPI JSON'unu hesaplar; agent **SQL üretmez, DB'ye erişmez**.
 - **Varsayılan:** Şablon tabanlı doğal dil üretimi (NLG). Her cümle bir veri alanına bağlıdır:

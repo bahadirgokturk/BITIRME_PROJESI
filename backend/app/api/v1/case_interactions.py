@@ -14,6 +14,7 @@ from app.core.database import get_session
 from app.models.enums import UserRole
 from app.schemas.case import (
     CaseRead,
+    CloseRequest,
     CommentCreate,
     CommentRead,
     FeedbackCreate,
@@ -120,6 +121,12 @@ def override_decision(case_id: int, payload: OverrideRequest, service: Reviews) 
 def reject_case(case_id: int, payload: RejectRequest, service: Reviews) -> CaseRead:
     """Gecersiz/spam bildirimi reddet; atanmis bildirim reddedilemez (409)."""
     return service.reject(case_id, payload)
+
+
+@router.post("/{case_id}/close", dependencies=MANAGER_ONLY, responses=CONFLICT)
+def close_case(case_id: int, payload: CloseRequest, service: Reviews) -> CaseRead:
+    """Tamamlanan isi dogrula ve kapat (VERIFICATION -> CLOSED); baska durumda 409."""
+    return service.close(case_id, payload)
 
 
 @router.post("/{case_id}/merge", dependencies=MANAGER_ONLY, responses=CONFLICT)

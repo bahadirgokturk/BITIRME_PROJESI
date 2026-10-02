@@ -191,6 +191,14 @@ class RejectRequest(BaseModel):
     _strip_reason = field_validator("reason")(_not_blank)
 
 
+class CloseRequest(BaseModel):
+    """Manager tamamlanan isi dogrular (VERIFICATION -> CLOSED, E5-11)."""
+
+    reason: str = Field(min_length=1, max_length=REOPEN_REASON_MAX_LENGTH)
+
+    _strip_reason = field_validator("reason")(_not_blank)
+
+
 class MergeRequest(BaseModel):
     """Manager bildirimi ayni sorunun ana bildirimine baglar (E5-6); duzeltme verisi olur."""
 
@@ -210,7 +218,8 @@ class ReviewItemRead(BaseModel):
     """Inceleme kuyrugu satiri: AI onerisi (case icinde), guven ve neden buraya dustugu."""
 
     case: CaseRead
-    # Supervisor kurali: RULE_3_ESCALATE, RULE_5_SEND_TO_HUMAN_REVIEW; personel reddettiyse bos
+    # Supervisor kurali (RULE_3_ESCALATE...) ya da Resolution gerekcesi (NOTE_TOO_SHORT, NOT_DONE);
+    # personel reddettiyse ya da agent kapaliyken bos
     reason_code: str | None
     reason: str | None
     # Siniflandirma guveni (0-1)

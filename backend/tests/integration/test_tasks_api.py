@@ -145,6 +145,15 @@ def test_full_flow_closes_the_case_and_reporter_can_rate(client: TestClient, wor
     assert _act(client, staff, task["id"], "start") == 200
     assert _case(client, world)["status"] == "IN_PROGRESS"
     assert _act(client, staff, task["id"], "complete", completion_note="Dolduruldu.") == 200
+    # Agent hatti kapali: dogrulamayi manager yapar (E5-11)
+    waiting = _case(client, world)
+    assert (waiting["status"], waiting["needs_human_review"]) == ("VERIFICATION", True)
+    closed = client.post(
+        f"/api/v1/cases/{world.case_id}/close",
+        json={"reason": "Kontrol edildi."},
+        headers=world["mudur"],
+    )
+    assert closed.status_code == 200
 
     case = _case(client, world)
     assert case["status"] == "CLOSED"
