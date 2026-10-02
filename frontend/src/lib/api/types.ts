@@ -346,6 +346,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/cases/{case_id}/override": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Override Decision
+         * @description Agent kararini duzelt (tur, oncelik, birim); gerekce zorunlu, decision_feedback'e yazilir.
+         */
+        post: operations["override_decision_api_v1_cases__case_id__override_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cases/{case_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reject Case
+         * @description Gecersiz/spam bildirimi reddet; atanmis bildirim reddedilemez (409).
+         */
+        post: operations["reject_case_api_v1_cases__case_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tasks/mine": {
         parameters: {
             query?: never;
@@ -442,6 +482,26 @@ export interface paths {
         put?: never;
         /** Complete Task */
         post: operations["complete_task_api_v1_tasks__task_id__complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/manager/review-queue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Review Queue
+         * @description Agent'in yukselttigi (ESCALATED) ya da emin olamadigi bildirimler; en kritik once.
+         */
+        get: operations["review_queue_api_v1_manager_review_queue_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -968,6 +1028,23 @@ export interface components {
             /** Password */
             password: string;
         };
+        /**
+         * OverrideField
+         * @description Manager'in duzeltebildigi agent ciktilari (POST /cases/{id}/override).
+         * @enum {string}
+         */
+        OverrideField: "case_type" | "priority" | "department";
+        /**
+         * OverrideRequest
+         * @description Manager agent kararini duzeltir (E5-9); gerekce zorunlu, yeniden egitim verisi olur.
+         */
+        OverrideRequest: {
+            field: components["schemas"]["OverrideField"];
+            /** Corrected Value */
+            corrected_value: string;
+            /** Reason */
+            reason: string;
+        };
         /** Page[CaseRead] */
         Page_CaseRead_: {
             /** Items */
@@ -1004,6 +1081,15 @@ export interface components {
             /** Page */
             page: number;
         };
+        /** Page[ReviewItemRead] */
+        Page_ReviewItemRead_: {
+            /** Items */
+            items: components["schemas"]["ReviewItemRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+        };
         /** Page[TaskRead] */
         Page_TaskRead_: {
             /** Items */
@@ -1027,6 +1113,11 @@ export interface components {
          * @enum {string}
          */
         Priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+        /** RejectRequest */
+        RejectRequest: {
+            /** Reason */
+            reason: string;
+        };
         /** ReopenRequest */
         ReopenRequest: {
             /** Reason */
@@ -1037,6 +1128,19 @@ export interface components {
          * @enum {string}
          */
         ReporterKind: "STUDENT" | "ACADEMIC" | "PERSONNEL";
+        /**
+         * ReviewItemRead
+         * @description Inceleme kuyrugu satiri: AI onerisi (case icinde), guven ve neden buraya dustugu.
+         */
+        ReviewItemRead: {
+            case: components["schemas"]["CaseRead"];
+            /** Reason Code */
+            reason_code: string | null;
+            /** Reason */
+            reason: string | null;
+            /** Confidence */
+            confidence: number | null;
+        };
         /**
          * SlaStatus
          * @enum {string}
@@ -2671,6 +2775,157 @@ export interface operations {
             };
         };
     };
+    override_decision_api_v1_cases__case_id__override_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OverrideRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    reject_case_api_v1_cases__case_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
     list_my_tasks_api_v1_tasks_mine_get: {
         parameters: {
             query?: {
@@ -3034,6 +3289,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TaskRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    review_queue_api_v1_manager_review_queue_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_ReviewItemRead_"];
                 };
             };
             /** @description Unauthorized */

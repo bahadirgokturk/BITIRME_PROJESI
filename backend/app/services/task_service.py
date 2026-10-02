@@ -117,6 +117,8 @@ class TaskService:
         opener = TaskOpener(self._session, self._workflow, self._clock)
         assignment = Assignment(department_id=data.department_id, user_id=data.user_id)
         opener.open(case, assignment, self._by_user(CaseEventType.TASK_CREATED, {}))
+        # Manager karar verdi: inceleme kuyrugundan cikar (E5-9)
+        case.needs_human_review = False
         self._session.commit()
         refreshed = case_repository.get(self._session, case.id)
         if refreshed is None:

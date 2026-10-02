@@ -7,6 +7,7 @@ from app.models.base import Base
 from app.models.case import Case, CaseEvent
 from app.models.case_type import CaseType
 from app.models.comment import Comment
+from app.models.decision_feedback import DecisionFeedback
 from app.models.department import Department
 from app.models.location import Location
 from app.models.organization import Organization
@@ -24,6 +25,7 @@ __all__ = [
     "CaseEvent",
     "CaseType",
     "Comment",
+    "DecisionFeedback",
     "Department",
     "Location",
     "Organization",

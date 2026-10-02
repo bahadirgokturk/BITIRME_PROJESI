@@ -19,11 +19,14 @@ from app.schemas.case import (
     FeedbackCreate,
     InfoReplyCreate,
     InfoRequestCreate,
+    OverrideRequest,
+    RejectRequest,
     ReopenRequest,
 )
 from app.schemas.error import ErrorRead
 from app.schemas.task import AssignRequest
 from app.services.case_interaction_service import CaseInteractionService
+from app.services.review_service import ReviewService
 
 router = APIRouter(prefix="/cases", tags=["cases"], responses=AUTHENTICATED_RESPONSES)
 CONFLICT: dict[int | str, dict[str, Any]] = {HTTPStatus.CONFLICT: {"model": ErrorRead}}
@@ -92,3 +95,27 @@ def provide_info(
 def assign_case(case_id: int, payload: AssignRequest, service: Tasks) -> CaseRead:
     """Manager atamasi (E4-1): gorev olusturur, bildirim ASSIGNED olur."""
     return service.assign(case_id, payload)
+
+
+def get_review_service(
+    session: Annotated[Session, Depends(get_session)],
+    user: CurrentUser,
+    clock: Annotated[Clock, Depends(get_clock)],
+) -> ReviewService:
+    return ReviewService(session, user, clock)
+
+
+Reviews = Annotated[ReviewService, Depends(get_review_service)]
+MANAGER_ONLY = [Depends(require_roles(UserRole.MANAGER))]
+
+
+@router.post("/{case_id}/override", dependencies=MANAGER_ONLY)
+def override_decision(case_id: int, payload: OverrideRequest, service: Reviews) -> CaseRead:
+    """Agent kararini duzelt (tur, oncelik, birim); gerekce zorunlu, decision_feedback'e yazilir."""
+    return service.override(case_id, payload)
+
+
+@router.post("/{case_id}/reject", dependencies=MANAGER_ONLY, responses=CONFLICT)
+def reject_case(case_id: int, payload: RejectRequest, service: Reviews) -> CaseRead:
+    """Gecersiz/spam bildirimi reddet; atanmis bildirim reddedilemez (409)."""
+    return service.reject(case_id, payload)

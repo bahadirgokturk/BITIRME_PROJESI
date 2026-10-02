@@ -104,12 +104,12 @@ belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanı
 ## Manager işlemleri
 | Method | Path | Açıklama |
 |---|---|---|
-| GET | `/manager/review-queue` | `needs_human_review=true` + `ESCALATED` case'ler |
+| GET | `/manager/review-queue` | `ESCALATED` + (`CLASSIFIED` ve `needs_human_review`) ✅ E5-9: en kritik ve en eski önce; satır `{case, reason_code, reason, confidence}` (Supervisor gerekçesi; personel reddettiyse boş) |
 | POST | `/cases/{id}/assign` | `{department_id, user_id?}` ✅ (E4-1, ayrıntı: Tasks) |
 | POST | `/cases/{id}/request-info` | `{question}` ✅: `ANALYZING` → `NEEDS_INFO`, `INFO_REQUESTED` (soru metadata'da), soru `CaseRead.info_request`'te; başka durumda `409` |
-| POST | `/cases/{id}/override` | `{field, corrected_value, reason}` → `decision_feedback` + `DECISION_OVERRIDDEN` |
+| POST | `/cases/{id}/override` | `{field, corrected_value, reason}` → `decision_feedback` + `DECISION_OVERRIDDEN` ✅ E5-9: `field` = `case_type` (tür kodu, kategori de değişir) \| `priority` \| `department` (birim kodu); bilinmeyen değer `422 INVALID_OVERRIDE_VALUE`; gerekçe zorunlu; düzeltme ilgili agent'ın son kararına bağlanır; reporter bu olayı görmez |
 | POST | `/cases/{id}/merge` | `{parent_case_id}` |
-| POST | `/cases/{id}/reject` | `{reason}` |
+| POST | `/cases/{id}/reject` | `{reason}` ✅ E5-9: `REJECTED`, kuyruktan çıkar; atanmış bildirim `409` |
 | POST | `/cases/{id}/reanalyze` | pipeline'ı tekrar çalıştır |
 
 ## Tasks (Staff)
