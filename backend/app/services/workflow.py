@@ -41,7 +41,8 @@ TASK_TRANSITIONS: dict[T, frozenset[T]] = {
     T.PENDING: frozenset({T.ACCEPTED, T.DECLINED, T.CANCELLED}),
     T.ACCEPTED: frozenset({T.IN_PROGRESS, T.DECLINED, T.CANCELLED}),
     T.IN_PROGRESS: frozenset({T.COMPLETED, T.CANCELLED}),
-    T.COMPLETED: frozenset(),
+    # Resolution Agent kanit yetersiz dedi: is personele geri doner (E5-11)
+    T.COMPLETED: frozenset({T.IN_PROGRESS}),
     T.DECLINED: frozenset(),
     T.CANCELLED: frozenset(),
 }

@@ -8,10 +8,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.api.deps import CurrentUser
+from app.api.deps import CurrentUser, get_app_settings
 from app.api.v1.pagination import page_params
 from app.api.v1.responses import AUTHENTICATED_RESPONSES
 from app.core.clock import Clock, get_clock
+from app.core.config import Settings
 from app.core.database import get_session
 from app.models.enums import TaskStatus
 from app.schemas.common import Page, PageParams
@@ -26,8 +27,9 @@ def get_task_service(
     session: Annotated[Session, Depends(get_session)],
     user: CurrentUser,
     clock: Annotated[Clock, Depends(get_clock)],
+    settings: Annotated[Settings, Depends(get_app_settings)],
 ) -> TaskService:
-    return TaskService(session, user, clock)
+    return TaskService(session, user, clock, settings.agents_enabled)
 
 
 Tasks = Annotated[TaskService, Depends(get_task_service)]

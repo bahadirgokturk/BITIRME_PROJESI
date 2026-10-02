@@ -24,6 +24,7 @@ from app.repositories import (
 from app.schemas.case import (
     CaseRead,
     CaseRef,
+    CloseRequest,
     MergeRequest,
     OverrideRequest,
     RejectRequest,
@@ -44,6 +45,9 @@ _AGENT_OF: dict[OverrideField, str] = {
 # Birlestirme duzeltmesinin alan adi ve kaynagi (OverrideField degil: durum degisir)
 DUPLICATE_FIELD = "duplicate"
 DUPLICATE_AGENT = "duplicate"
+# Dogrulama duzeltmesi: Resolution Agent'in karari -> manager kapatti
+RESOLUTION_FIELD = "resolution"
+CLOSED_VALUE = "RESOLVED"
 
 
 @dataclass(frozen=True)
@@ -112,6 +116,29 @@ class ReviewService:
         )
         return self._commit_and_read(case)
 
+    def close(self, case_id: int, data: CloseRequest) -> CaseRead:
+        case = self._visible_case(case_id)
+        closed = self._by_user(CaseEventType.CASE_CLOSED, {"reason": data.reason})
+        self._workflow.transition(case, CaseStatus.CLOSED, closed)
+        case.needs_human_review = False
+        decision = review_repository.latest_decision(
+            self._session, case.id, review_repository.RESOLUTION
+        )
+        if decision is not None:
+            self._session.add(
+                DecisionFeedback(
+                    decision_id=decision.id,
+                    case_id=case.id,
+                    user_id=self._actor.id,
+                    field=RESOLUTION_FIELD,
+                    original_value=decision.decision,
+                    corrected_value=CLOSED_VALUE,
+                    reason=data.reason,
+                    created_at=self._clock.now(),
+                )
+            )
+        return self._commit_and_read(case)
+
     def reject(self, case_id: int, data: RejectRequest) -> CaseRead:
         case = self._visible_case(case_id)
         rejected = self._by_user(CaseEventType.CASE_REJECTED, {"reason": data.reason})
@@ -148,9 +175,7 @@ class ReviewService:
     # --- Yardimcilar --------------------------------------------------------------------
 
     def _item(self, case: Case) -> ReviewItemRead:
-        decision = review_repository.latest_decision(
-            self._session, case.id, review_repository.SUPERVISOR
-        )
+        decision = review_repository.latest_explanation(self._session, case.id)
         reason = decision.reason_json[0] if decision and decision.reason_json else None
         confidence = case.confidence_score
         duplicate = review_repository.latest_decision(self._session, case.id, DUPLICATE_AGENT)

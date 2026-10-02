@@ -55,9 +55,13 @@ stateDiagram-v2
 
 ### Case ↔ Task senkronizasyonu
 
-Uygulama: `backend/app/services/task_service.py`. **Geçici kural (FAZ 5'e kadar):** Resolution Agent yokken
-tamamlanan görev doğrulama beklemeden `RESOLVED → VERIFICATION → CLOSED` olur; olaylar `SYSTEM` aktörüyle ve
-`metadata.rule = "auto_close_until_resolution_agent"` ile yazılır. Agent hattı (E5-8b) bildirimi kendisi sınıflandırıp
+Uygulama: `backend/app/services/task_service.py`. ✅ **E5-11:** tamamlanan görevi Resolution Agent doğrular
+(`services/resolution_service.py`, [AGENTS.md](AGENTS.md) 4.9); FAZ 4'teki geçici otomatik kapatma kaldırıldı.
+`RESOLVED → VERIFICATION` sonrası: `RESOLVED` → `CLOSED`; kanıt yetersiz → görev ve bildirim `IN_PROGRESS`'e döner
+(`EVIDENCE_REQUESTED`, eksik metadata'da), ikinci kez yetersizse `VERIFICATION` + `needs_human_review` (manager
+`POST /cases/{id}/close` ile kapatır ya da yeniden açar); notta "yapılamadı" → `REOPENED → ESCALATED` (personel
+ataması kalkar, manager yeniden atar). Agent hattı kapalıysa (`AGENTS_ENABLED=false`) bildirim `VERIFICATION` +
+`needs_human_review` ile manager'ı bekler. Agent hattı (E5-8b) bildirimi kendisi sınıflandırıp
 atar (docs/AGENTS.md bölüm 3); hat kapalıysa (`AGENTS_ENABLED=false`) ya da manager el koyarsa, manager ataması
 `ANALYZING` bildirimi önce `CLASSIFIED` yapar (`ROUTED`, elle yönlendirme). Reddedilen görevde bildirim `ESCALATED`
 olur (manager yeniden atar; otomatik yeniden yönlendirme ileride).
@@ -67,7 +71,8 @@ olur (manager yeniden atar; otomatik yeniden yönlendirme ileride).
 | Task oluşturuldu | PENDING | ASSIGNED |
 | Staff kabul etti | ACCEPTED | ACCEPTED |
 | Staff başladı | IN_PROGRESS | IN_PROGRESS |
-| Staff tamamladı | COMPLETED | RESOLVED → (Resolution Agent) VERIFICATION → CLOSED |
+| Staff tamamladı | COMPLETED | RESOLVED → VERIFICATION → (Resolution Agent) CLOSED / IN_PROGRESS / ESCALATED |
+| Kanıt yetersiz (Resolution) | IN_PROGRESS | IN_PROGRESS |
 | Staff reddetti | DECLINED | ASSIGNED (yeni task) veya ESCALATED |
 | Case merge/reject | CANCELLED | MERGED / REJECTED |
 
@@ -78,6 +83,7 @@ PENDING → ACCEPTED → IN_PROGRESS → COMPLETED
 PENDING → DECLINED | CANCELLED
 ACCEPTED → DECLINED | CANCELLED
 IN_PROGRESS → CANCELLED
+COMPLETED → IN_PROGRESS   (Resolution Agent kanıt istedi, E5-11)
 ```
 
 ## 3. Event Tipleri
@@ -85,7 +91,7 @@ IN_PROGRESS → CANCELLED
 `CASE_CREATED, ANALYSIS_STARTED, AI_CLASSIFIED, DUPLICATE_CHECKED, VERIFICATION_SCORED,
 PRIORITY_CALCULATED, ROUTED, SUPERVISOR_DECIDED, HUMAN_REVIEW_REQUESTED, INFO_REQUESTED, INFO_PROVIDED,
 CASE_MERGED, TASK_CREATED, TASK_ACCEPTED, TASK_DECLINED, TASK_REASSIGNED, WORK_STARTED, WORK_COMPLETED,
-EVIDENCE_UPLOADED, RESOLUTION_EVALUATED, RESOLUTION_VERIFIED, CASE_CLOSED, CASE_REOPENED, CASE_REJECTED,
+EVIDENCE_UPLOADED, RESOLUTION_EVALUATED, EVIDENCE_REQUESTED, RESOLUTION_VERIFIED, CASE_CLOSED, CASE_REOPENED, CASE_REJECTED,
 SLA_WARNING, SLA_BREACHED, ESCALATED, DECISION_OVERRIDDEN, COMMENT_ADDED, FEEDBACK_SUBMITTED`
 
 `metadata_json` örneği (`PRIORITY_CALCULATED`):

@@ -5,12 +5,12 @@
 | atama       | PENDING        | ASSIGNED (ANALYZING ise once CLASSIFIED)    |
 | kabul       | ACCEPTED       | ACCEPTED                                    |
 | baslat      | IN_PROGRESS    | IN_PROGRESS                                 |
-| tamamla     | COMPLETED      | RESOLVED -> VERIFICATION -> CLOSED (gecici) |
+| tamamla     | COMPLETED      | RESOLVED -> VERIFICATION -> Resolution      |
 | reddet      | DECLINED       | ESCALATED (manager karar kuyrugu)           |
 | yeniden ata | onceki CANCELLED | ASSIGNED                                  |
 
-Gecici kural: Resolution Agent (FAZ 5) gelene kadar tamamlanan gorev dogrulama beklemeden kapanir;
-olay kaydinda metadata.rule = AUTO_CLOSE_RULE yazar. FAZ 5'te bu adim agent'a devredilir.
+Tamamlanan isi Resolution Agent dogrular (E5-11, services/resolution_service.py); agent hatti
+kapaliysa bildirim VERIFICATION'da manager'i bekler.
 """
 
 from collections.abc import Sequence
@@ -41,6 +41,7 @@ from app.services.authorization import (
     ensure_same_organization,
 )
 from app.services.case_view import case_read
+from app.services.resolution_service import ResolutionService
 from app.services.sla import apply_targets, case_sla_status, index_rules
 from app.services.workflow import (
     ACTIVE_TASK_STATUSES,
@@ -48,8 +49,6 @@ from app.services.workflow import (
     WorkflowService,
     ensure_task_transition_allowed,
 )
-
-AUTO_CLOSE_RULE = "auto_close_until_resolution_agent"
 
 
 @dataclass(frozen=True)
@@ -94,11 +93,15 @@ class TaskOpener:
 
 
 class TaskService:
-    def __init__(self, session: Session, actor: User, clock: Clock) -> None:
+    def __init__(
+        self, session: Session, actor: User, clock: Clock, agents_enabled: bool = False
+    ) -> None:
         self._session = session
         self._actor = actor
         self._clock = clock
         self._workflow = WorkflowService(session, clock)
+        # Kapaliysa tamamlanan isi Resolution Agent degil manager dogrular
+        self._agents_enabled = agents_enabled
 
     # --- Manager atamasi ---------------------------------------------------------------
 
@@ -172,7 +175,11 @@ class TaskService:
         case = task.case
         completed = self._by_user(CaseEventType.WORK_COMPLETED, {"task_id": task.id})
         self._move(case, CaseStatus.RESOLVED, completed)
-        self._auto_close(case)
+        resolution = ResolutionService(self._session, self._workflow, self._clock)
+        if self._agents_enabled:
+            resolution.evaluate(case, task)
+        else:
+            resolution.hold_for_manager(case)
         return self._commit(task)
 
     def decline(self, task_id: int, data: DeclineRequest) -> TaskRead:
@@ -187,16 +194,6 @@ class TaskService:
         return self._commit(task)
 
     # --- Yardimcilar ---------------------------------------------------------------------
-
-    def _auto_close(self, case: Case) -> None:
-        for target, event in (
-            (CaseStatus.VERIFICATION, CaseEventType.RESOLUTION_EVALUATED),
-            (CaseStatus.CLOSED, CaseEventType.CASE_CLOSED),
-        ):
-            system = Transition(
-                event_type=event, actor_type=ActorType.SYSTEM, metadata={"rule": AUTO_CLOSE_RULE}
-            )
-            self._move(case, target, system)
 
     def _cancel_active_task(self, case: Case) -> None:
         active = task_repository.active_for_case(self._session, case.id, list(ACTIVE_TASK_STATUSES))

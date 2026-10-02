@@ -173,7 +173,7 @@ MVP kuralı: bir case'in aynı anda en fazla **1 aktif** task'ı olur (partial u
 id, decision_id FK, case_id, user_id (manager), field (`case_type`, `priority`, `department`, `duplicate`),
 original_value, corrected_value, reason, created_at.
 ✅ E5-9: değerler kod olarak saklanır (`SOAP_EMPTY`, `HIGH`, `SUPPORT_SERVICES`); `decision_id` agent hattı kapalıyken
-yapılan düzeltmede boştur. ✅ E5-6: `duplicate` = manager birleştirmesi; değerler bildirim numarası (agent'ın önerdiği ana bildirim → manager'ın seçtiği), Duplicate Agent kararına bağlı.
+yapılan düzeltmede boştur. ✅ E5-6: `duplicate` = manager birleştirmesi; değerler bildirim numarası (agent'ın önerdiği ana bildirim → manager'ın seçtiği), Duplicate Agent kararına bağlı. ✅ E5-11: `resolution` = manager doğrulayıp kapattı (`NEEDS_MORE_EVIDENCE`/`REOPEN` → `RESOLVED`).
 → *Decision override rate* ve modelin yeniden eğitimi için **etiketli veri kaynağı**.
 
 ### agent_policies

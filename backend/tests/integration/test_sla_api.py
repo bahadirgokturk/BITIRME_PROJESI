@@ -193,6 +193,9 @@ def test_finished_in_time_stays_on_track(
     for action, body in (("accept", None), ("start", None), ("complete", {})):
         url = f"/api/v1/tasks/{task['id']}/{action}"
         assert client.post(url, json=body, headers=headers["temizlik"]).status_code == 200
+    # Agent hatti kapali: dogrulamayi manager yapar (E5-11)
+    close = f"/api/v1/cases/{task['case_id']}/close"
+    assert client.post(close, json={"reason": "r"}, headers=headers["mudur"]).status_code == 200
 
     clock.advance(timedelta(days=10))
     case, _ = _read(client, world)
