@@ -7,12 +7,12 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.models import Case, CaseEvent, CaseType, Comment, Location, Task, User
 from app.models.enums import ActorType, CaseEventType, CaseStatus, TaskStatus, UserRole
-from app.services.workflow import ACTIVE_TASK_STATUSES
+from app.services.workflow import ACTIVE_TASK_STATUSES, MERGE_PARENT_STATUSES
 
 PATH_SEPARATOR = "/"
 # Materialized path: KMP/B/B-2/B-2-WCM -> ikinci parca bina kodu (Intake ile ayni kural)
@@ -30,6 +30,29 @@ class StaffFacts:
 def building_code(path: str) -> str | None:
     segments = path.split(PATH_SEPARATOR)
     return segments[BUILDING_SEGMENT] if len(segments) > BUILDING_SEGMENT else None
+
+
+def duplicate_candidates(session: Session, case: Case, since: datetime) -> Sequence[Case]:
+    """Ayni sorunun daha once bildirilmis olabilecegi acik bildirimler (AGENTS.md 4.3):
+    ayni kurum, ayni bina, `since` sonrasi, siniflandirilmis ve sorunu hala acik."""
+    building = PATH_SEPARATOR.join(case.location.path.split(PATH_SEPARATOR)[: BUILDING_SEGMENT + 1])
+    return session.scalars(
+        select(Case)
+        .join(Location, Case.location_id == Location.id)
+        .where(
+            Case.organization_id == case.organization_id,
+            Case.id != case.id,
+            Case.status.in_(MERGE_PARENT_STATUSES),
+            Case.case_type_id.is_not(None),
+            Case.created_at >= since,
+            or_(
+                Location.path == building,
+                Location.path.startswith(building + PATH_SEPARATOR, autoescape=True),
+            ),
+        )
+        .options(selectinload(Case.location), selectinload(Case.case_type))
+        .order_by(Case.created_at, Case.id)
+    ).all()
 
 
 def active_case_types(session: Session, organization_id: int) -> Sequence[CaseType]:

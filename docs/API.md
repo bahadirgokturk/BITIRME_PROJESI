@@ -104,11 +104,11 @@ belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanı
 ## Manager işlemleri
 | Method | Path | Açıklama |
 |---|---|---|
-| GET | `/manager/review-queue` | `ESCALATED` + (`CLASSIFIED` ve `needs_human_review`) ✅ E5-9: en kritik ve en eski önce; satır `{case, reason_code, reason, confidence}` (Supervisor gerekçesi; personel reddettiyse boş) |
+| GET | `/manager/review-queue` | `ESCALATED` + (`CLASSIFIED` ve `needs_human_review`) ✅ E5-9: en kritik ve en eski önce; satır `{case, reason_code, reason, confidence, possible_duplicate_of}` (Supervisor gerekçesi; personel reddettiyse boş). E5-6: `possible_duplicate_of` = Duplicate Agent'ın "aynı sorun olabilir" dediği bildirim `{id, case_number, title}` |
 | POST | `/cases/{id}/assign` | `{department_id, user_id?}` ✅ (E4-1, ayrıntı: Tasks) |
 | POST | `/cases/{id}/request-info` | `{question}` ✅: `ANALYZING` → `NEEDS_INFO`, `INFO_REQUESTED` (soru metadata'da), soru `CaseRead.info_request`'te; başka durumda `409` |
 | POST | `/cases/{id}/override` | `{field, corrected_value, reason}` → `decision_feedback` + `DECISION_OVERRIDDEN` ✅ E5-9: `field` = `case_type` (tür kodu, kategori de değişir) \| `priority` \| `department` (birim kodu); bilinmeyen değer `422 INVALID_OVERRIDE_VALUE`; gerekçe zorunlu; düzeltme ilgili agent'ın son kararına bağlanır; reporter bu olayı görmez |
-| POST | `/cases/{id}/merge` | `{parent_case_id}` |
+| POST | `/cases/{id}/merge` | `{parent_case_id, reason}` ✅ E5-6: bildirim `MERGED` olur, ana bildirimin `duplicate_count`'u artar (bağlı bildirim + ona daha önce bağlananlar), iki bildirime de `CASE_MERGED` olayı; `decision_feedback`'e `field=duplicate` (agent önerisi → manager kararı, bildirim numarasıyla). Ana bildirim kendisi ya da sorunu kapanmış/bağlanmış ise `409 INVALID_MERGE_TARGET`; atanmış bildirim `409 INVALID_TRANSITION` |
 | POST | `/cases/{id}/reject` | `{reason}` ✅ E5-9: `REJECTED`, kuyruktan çıkar; atanmış bildirim `409` |
 | POST | `/cases/{id}/reanalyze` | pipeline'ı tekrar çalıştır |
 

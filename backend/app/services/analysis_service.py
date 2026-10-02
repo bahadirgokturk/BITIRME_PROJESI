@@ -1,9 +1,10 @@
 """Agent hatti / orchestrator (E5-8b, docs/AGENTS.md bolum 3).
 
 Bildirim olusunca (ve bildirim yapan ek bilgi verince) yanittan sonra calisir:
-Intake -> Classification -> Verification -> Priority -> Routing -> Supervisor. Her agent karari
-girdisiyle agent_decisions'a yazilir; Supervisor'in karari burada uygulanir (durum gecisleri yalniz
-WorkflowService ile). Agent'lar DB'ye dokunmaz: gerekli sayilari bu servis okur.
+Intake -> Classification -> Duplicate -> Verification -> Priority -> Routing -> Supervisor.
+Her agent karari girdisiyle agent_decisions'a yazilir; Supervisor'in karari burada uygulanir
+(durum gecisleri yalniz WorkflowService ile). Agent'lar DB'ye dokunmaz: gerekli sayilari bu
+servis okur.
 """
 
 import logging
@@ -25,6 +26,12 @@ from app.agents.classification import (
     ClassificationInput,
     ClassificationOutput,
 )
+from app.agents.duplicate import (
+    DuplicateAgent,
+    DuplicateCandidate,
+    DuplicateInput,
+    DuplicateOutput,
+)
 from app.agents.intake import IntakeAgent, IntakeInput, IntakeOutput, LocationInfo
 from app.agents.model_store import get_classifier
 from app.agents.priority import PriorityAgent, PriorityInput, PriorityOutput
@@ -42,6 +49,7 @@ from app.models import Case, CaseType
 from app.models.enums import ActorType, AutonomyLevel, CaseEventType, CaseStatus
 from app.repositories import agent_policy_repository, analysis_repository, case_repository
 from app.repositories.agent_decision_repository import CONFIDENCE_DIGITS, DecisionRun, record
+from app.services.merge import CaseMerger
 from app.services.task_service import Assignment, TaskOpener
 from app.services.workflow import Transition, WorkflowService
 
@@ -49,6 +57,8 @@ SessionScope = Callable[[], AbstractContextManager[Session]]
 
 # Son 30 gun: ayni yerde benzer bildirim ve personelin ayni turdeki tecrubesi (AGENTS.md 4.5, 4.6)
 LOOKBACK = timedelta(days=30)
+# Tekrar adaylari: ayni sorunun bu sureden eski bildirimi ayri olay sayilir (AGENTS.md 4.3)
+DUPLICATE_WINDOW = timedelta(hours=24)
 # Bildirim yapana gosterilen soru (Supervisor kural 1)
 AGENT_INFO_QUESTION = (
     "Sorunu ve yerini biraz daha ayrıntılı yazabilir misiniz? Örneğin hangi katta, hangi odada, "
@@ -64,6 +74,7 @@ logger = logging.getLogger(__name__)
 class _Outcome:
     case_type: CaseType
     classification: AgentResult[ClassificationOutput]
+    duplicate: AgentResult[DuplicateOutput]
     verification: AgentResult[VerificationOutput]
     priority: AgentResult[PriorityOutput]
     routing: AgentResult[RoutingOutput]
@@ -116,28 +127,43 @@ class AnalysisService:
             _classification_input(case, description, case_types),
         )
         case_type = next(ct for ct in case_types if ct.code == classification.decision)
+        duplicate = recorder.run(
+            DuplicateAgent(), self._duplicate_input(case, description, case_type)
+        )
+        findings = _Findings(intake.output, classification, duplicate.output)
         verification = recorder.run(
-            VerificationAgent(), self._verification_input(case, case_type, intake.output)
+            VerificationAgent(), self._verification_input(case, case_type, findings)
         )
-        priority = recorder.run(
-            PriorityAgent(),
-            self._priority_input(case, case_type, intake.output, classification.output),
-        )
+        priority = recorder.run(PriorityAgent(), self._priority_input(case, case_type, findings))
         routing = recorder.run(RoutingAgent(), self._routing_input(case, case_type))
-        signals = _Signals(intake.output, classification, verification.output, priority.output)
+        signals = _Signals(findings, verification.output, priority.output)
         supervisor = recorder.run(
             SupervisorAgent(), self._supervisor_input(case_type, signals, routing.decision)
         )
-        return _Outcome(case_type, classification, verification, priority, routing, supervisor)
+        return _Outcome(
+            case_type, classification, duplicate, verification, priority, routing, supervisor
+        )
+
+    def _duplicate_input(self, case: Case, description: str, case_type: CaseType) -> DuplicateInput:
+        since = self._clock.now() - DUPLICATE_WINDOW
+        candidates = analysis_repository.duplicate_candidates(self._session, case, since)
+        return DuplicateInput(
+            text=description,
+            case_type_code=case_type.code,
+            location_id=case.location_id,
+            location_path=case.location.path,
+            reported_at=case.created_at,
+            candidates=[_candidate(c) for c in candidates],
+        )
 
     def _verification_input(
-        self, case: Case, case_type: CaseType, intake: IntakeOutput
+        self, case: Case, case_type: CaseType, findings: "_Findings"
     ) -> VerificationInput:
         total, rejected = analysis_repository.reporter_history(self._session, case)
+        intake = findings.intake
         return VerificationInput(
             has_photo=intake.has_photo,
-            # Duplicate Agent (E5-6) gelene kadar 0
-            duplicate_count=0,
+            duplicate_count=findings.duplicate.duplicate_count,
             location_consistency=intake.location_consistency,
             reporter_case_count=total,
             reporter_rejected_count=rejected,
@@ -148,21 +174,18 @@ class AnalysisService:
         )
 
     def _priority_input(
-        self,
-        case: Case,
-        case_type: CaseType,
-        intake: IntakeOutput,
-        classification: ClassificationOutput,
+        self, case: Case, case_type: CaseType, findings: "_Findings"
     ) -> PriorityInput:
         since = self._clock.now() - LOOKBACK
+        intake = findings.intake
         return PriorityInput(
             base_severity=case_type.base_severity,
             base_priority=case_type.base_priority,
             is_safety_related=case_type.is_safety_related,
-            safety_signal=classification.safety_term is not None,
+            safety_signal=findings.classification.output.safety_term is not None,
             urgency_hints=intake.urgency_hints,
             location_importance=case.location.importance_weight,
-            duplicate_count=0,
+            duplicate_count=findings.duplicate.duplicate_count,
             recent_similar_count=analysis_repository.recent_similar_count(
                 self._session, case, case_type.id, since
             ),
@@ -192,18 +215,18 @@ class AnalysisService:
             self._session, case_type.organization_id, case_type.id
         )
         return SupervisorInput(
-            is_meaningful=signals.intake.is_meaningful,
+            is_meaningful=signals.findings.intake.is_meaningful,
             verification_score=signals.verification.score,
-            duplicate_probability=0.0,
+            duplicate_probability=signals.findings.duplicate.duplicate_probability,
             case_type_code=case_type.code,
             # Politika yoksa en temkinli varsayilan: uygula ama manager'a bildir
             autonomy=policy.autonomy_level if policy else AutonomyLevel.L2_NOTIFY,
             min_confidence_auto=float(
                 policy.min_confidence_auto if policy else Decimal(MIN_CONFIDENCE_AUTO_DEFAULT)
             ),
-            classification_confidence=signals.classification.confidence,
+            classification_confidence=signals.findings.classification.confidence,
             priority=signals.priority.priority,
-            safety_term=signals.classification.output.safety_term,
+            safety_term=signals.findings.classification.output.safety_term,
             routing_decision=routing_decision,
         )
 
@@ -255,6 +278,15 @@ class AnalysisService:
         rejected = _agent(CaseEventType.CASE_REJECTED, "supervisor", {"reason": "OUT_OF_SCOPE"})
         self._workflow.transition(case, CaseStatus.REJECTED, rejected)
 
+    def _merge(self, case: Case, outcome: _Outcome) -> None:
+        parent_id = outcome.duplicate.output.possible_parent_case_id
+        parent = case_repository.get(self._session, parent_id) if parent_id else None
+        if parent is None:
+            raise ValueError(f"Bildirim {case.id}: birlestirilecek ana bildirim yok")
+        score = outcome.duplicate.output.duplicate_probability
+        by = _agent(CaseEventType.CASE_MERGED, "duplicate", {"score": score})
+        CaseMerger(self._workflow, self._clock).merge(case, parent, by)
+
     def _human_review(self, case: Case, outcome: _Outcome) -> None:
         # Gerekce: dusuk guven, olasi tekrar, birimsiz tur ya da ikinci kez anlasilmayan metin
         case.needs_human_review = True
@@ -288,9 +320,17 @@ class AnalysisService:
 
 
 @dataclass(frozen=True)
-class _Signals:
+class _Findings:
+    """Verification ve Priority'den once bilinenler."""
+
     intake: IntakeOutput
     classification: AgentResult[ClassificationOutput]
+    duplicate: DuplicateOutput
+
+
+@dataclass(frozen=True)
+class _Signals:
+    findings: _Findings
     verification: VerificationOutput
     priority: PriorityOutput
 
@@ -299,8 +339,7 @@ _APPLY: dict[SupervisorDecision, Callable[[AnalysisService, Case, _Outcome], Non
     SupervisorDecision.ESCALATE: AnalysisService._escalate,
     SupervisorDecision.REJECT_OUT_OF_SCOPE: AnalysisService._reject,
     SupervisorDecision.SEND_TO_HUMAN_REVIEW: AnalysisService._human_review,
-    # Duplicate Agent (E5-6) gelene kadar birlestirme karari cikmaz; cikarsa manager karar verir
-    SupervisorDecision.MERGE_WITH_EXISTING_CASE: AnalysisService._human_review,
+    SupervisorDecision.MERGE_WITH_EXISTING_CASE: AnalysisService._merge,
     SupervisorDecision.AUTO_ASSIGN: AnalysisService._open_task,
     SupervisorDecision.CREATE_TASK: AnalysisService._open_task,
 }
@@ -318,6 +357,21 @@ def _rule(outcome: _Outcome) -> int:
 
 def _score(value: float | None) -> Decimal | None:
     return None if value is None else round(Decimal(value), CONFIDENCE_DIGITS)
+
+
+def _candidate(case: Case) -> DuplicateCandidate:
+    case_type = case.case_type
+    if case_type is None:
+        raise ValueError(f"Aday bildirim {case.id} siniflandirilmamis")
+    return DuplicateCandidate(
+        case_id=case.id,
+        text=case.description,
+        case_type_code=case_type.code,
+        location_id=case.location_id,
+        location_path=case.location.path,
+        created_at=case.created_at,
+        duplicate_count=case.duplicate_count,
+    )
 
 
 def _intake_input(case: Case, description: str) -> IntakeInput:

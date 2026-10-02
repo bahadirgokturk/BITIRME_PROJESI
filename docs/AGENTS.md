@@ -87,12 +87,14 @@ Orchestrator sıralı ve basittir (Python fonksiyonları). LangChain/LangGraph k
 
 ✅ **Uygulandı (E5-8b):** `backend/app/services/analysis_service.py`.
 - `POST /cases` yanıtı `ANALYZING` döner; hat yanıttan sonra (`BackgroundTasks`, kendi DB oturumuyla) çalışır:
-  Intake → Classification → Verification → Priority → Routing → Supervisor. Duplicate (E5-6) henüz yok
-  (benzerlik 0 verilir). Her karar aynı `run_id` ile `agent_decisions`'a yazılır.
+  Intake → Classification → Duplicate → Verification → Priority → Routing → Supervisor. Duplicate
+  Classification'dan sonra çalışır (tür eşleşmesi skorun parçası). Her karar aynı `run_id` ile
+  `agent_decisions`'a yazılır.
 - Kararın uygulanması: `AUTO_ASSIGN`/`CREATE_TASK` → `CLASSIFIED` (AI_CLASSIFIED) + `ROUTED` + görev ve SLA
   (`TaskOpener`, manager atamasıyla ortak) → `ASSIGNED`; `ESCALATE` → `ESCALATED`; `SEND_TO_HUMAN_REVIEW` →
   `CLASSIFIED` + `needs_human_review`; `REJECT_OUT_OF_SCOPE` → `REJECTED`; `REQUEST_MORE_INFO` → `NEEDS_INFO`
-  (soru `info_request`'e yazılır). Her koşu `SUPERVISOR_DECIDED` olayı bırakır.
+  (soru `info_request`'e yazılır); `MERGE_WITH_EXISTING_CASE` → `MERGED` (ana bildirime bağlanır, görev
+  açılmaz). Her koşu `SUPERVISOR_DECIDED` olayı bırakır.
 - Bildirim yapan ek bilgi verince (`POST /cases/{id}/info`) hat yeniden çalışır; yanıt açıklamaya eklenir.
   Agent aynı bildirim için **bir kez** soru sorar; ikinci kez anlaşılmazsa manager'a gider (sonsuz soru döngüsü yok).
 - Bildirim bu arada `ANALYZING` dışına çıktıysa (manager el koydu) hat hiçbir şey yapmaz.
@@ -148,6 +150,25 @@ Orchestrator sıralı ve basittir (Python fonksiyonları). LangChain/LangGraph k
    - `time_decay = exp(-Δdakika / τ)`, τ case type'a göre (sabun: 120 dk, su kaçağı: 60 dk)
 - **Eşikler (config):** ≥ 0.80 → `MERGE` önerisi; 0.60–0.80 → olası duplicate, human review; < 0.60 → yeni case.
 - **Çıktı:** `duplicate_probability, possible_parent_case_id, similar_cases[{case_id, score, components}]`
+
+✅ **Uygulandı (E5-6):** `backend/app/agents/duplicate.py`; adaylar `analysis_repository.duplicate_candidates`.
+- **Adaylar:** sorunu hâlâ açık ve sınıflandırılmış bildirimler (`CLASSIFIED, ESCALATED, ASSIGNED, ACCEPTED,
+  IN_PROGRESS, REOPENED`). Çözülmüş bildirimden sonra gelen bildirim sorunun tekrarladığını gösterir, ayrı tutulur.
+- **text_sim:** karakter 3-5 gram **TF** kosinüs (IDF yok), metinler Türkçe normalize edilir. Aday kümesi 2-10
+  metin olduğundan IDF tam da benzerliği gösteren ortak kelimeleri cezalandırıyordu (aynı sorunun farklı
+  yazımları 0,27-0,50'de kalıyordu; TF ile 0,42-0,63).
+- **Konum:** kat, yer kattan derinse vardır (`KMP/A/A-1/A-1-WCE` → kat `A-1`); doğrudan binaya bağlı yerler
+  (yemekhane salonu) aynı bina sayılır. τ: varsayılan 120 dk, `WATER_LEAK` 60 dk.
+- **Ölçülen örnekler** (aynı WC, aynı anda): "Sabun bitmiş" → 0,83 birleştir; "Erkek tuvaletinde sabun yok" →
+  0,74 manager incelesin; aynı yerde "çöp kutusu dolmuş" → 0,44 yeni bildirim. Tür eşleşmesi ayrımı taşır;
+  metin tek başına zayıf ("klima çalışmıyor" / "projeksiyon çalışmıyor" metin benzerliği 0,58).
+- `duplicate_count` (Verification ve Priority sinyali) = eşik (0,60) üstündeki her benzer bildirim + ona daha
+  önce bağlananlar. Karar kodları `DUPLICATE | POSSIBLE_DUPLICATE | NEW_CASE`; eşikler Supervisor ile ortak.
+- **Birleştirme** (`services/merge.py`, agent ve manager ortak): bildirim `MERGED`, `parent_case_id` dolar, ana
+  bildirimin `duplicate_count`'u artar, iki bildirime de `CASE_MERGED` olayı. Manager olası tekrarı
+  `POST /cases/{id}/merge` ile bağlar; karar `decision_feedback`'e (`field=duplicate`) yazılır.
+- İleride: ana bildirimin önceliği yeni bildirimlerle yeniden hesaplanmıyor (öncelik ilk analizde sabit);
+  bağlanan bildirim sahiplerine ana bildirim kapanınca haber verilmesi bildirim tablosuyla (FAZ 6) gelir.
 
 ### 4.4 Verification Agent (K1)
 Ağırlıklı skor (0..1), her sinyal gerekçeye yazılır:

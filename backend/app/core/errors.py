@@ -106,6 +106,13 @@ class InvalidOverrideValueError(DomainError):
         )
 
 
+class InvalidMergeTargetError(DomainError):
+    # Bildirim kendisine ya da sorunu kapanmis/baglanmis bir bildirime baglanamaz
+    code = "INVALID_MERGE_TARGET"
+    status = HTTPStatus.CONFLICT
+    default_message = messages.INVALID_MERGE_TARGET
+
+
 class SelfLockoutError(DomainError):
     # Admin kendi erisimini kaldirirsa kurumda kimse kalmayabilir
     code = "SELF_LOCKOUT"
