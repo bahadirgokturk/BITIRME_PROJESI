@@ -160,8 +160,18 @@ Başlangıç 0.40. `verification_level`: LOW (<0.4) / MEDIUM / HIGH (≥0.7).
 | Aciliyet ifadeleri | 0–10 |
 
 Bantlar: LOW 0–39 · MEDIUM 40–64 · HIGH 65–84 · CRITICAL 85–100.
-UI'da her katkı bir bar olarak gösterilir ("neden HIGH?"). Örnek: sabun bitti → ~50 (MEDIUM),
-"prizden kıvılcım çıkıyor" → ≥ 90 (CRITICAL).
+UI'da her katkı bir bar olarak gösterilir ("neden HIGH?").
+
+✅ **Uygulandı (E5-5):** `backend/app/agents/priority.py`. Tablodaki katkılara ek iki **taban**:
+- **Türün başlangıç önceliği** (seed `priority`): skor o bandın altına inmez (asansör arızası en az HIGH).
+  Yalnız formülle asansör ~40 (MEDIUM) çıkıyordu; seed'deki birim önceliğiyle çelişmesin diye.
+- **Metinde güvenlik ifadesi** (Intake aciliyet ipucu / Classification `SAFETY_RULE`): en az 85 (CRITICAL).
+  Türün kendisinin güvenlikle ilgili olması (`is_safety_related`) yalnız +30 verir, tabana çekmez.
+
+Ders saati: hafta içi 08:00–18:00 Türkiye saati (sabit UTC+3) → +5. Sınav haftası takvimi henüz yok.
+Yarım puanlar yukarı yuvarlanır (lokasyon 70 → 10,5 → 11). Örnekler: tek "sabun bitti" (WC, ders saati)
+→ 22 LOW; aynı sabun 5 kişi daha bildirmiş + son 30 günde 4 benzer → 40 MEDIUM; elektrik arızası → ~73 HIGH;
+"prizden kıvılcım çıkıyor" → ≥ 85 CRITICAL.
 
 ### 4.6 Routing Agent (K1)
 1. Departman: `case_types.default_department_id` (birincil; görevi alır). `case_types.secondary_department_id`
