@@ -94,6 +94,18 @@ class InvalidAssigneeError(DomainError):
     default_message = messages.INVALID_ASSIGNEE
 
 
+class InvalidOverrideValueError(DomainError):
+    # Duzeltmede bilinmeyen tur/birim kodu ya da gecersiz oncelik
+    code = "INVALID_OVERRIDE_VALUE"
+    status = HTTPStatus.UNPROCESSABLE_ENTITY
+
+    def __init__(self, field: str, value: str) -> None:
+        super().__init__(
+            messages.INVALID_OVERRIDE_VALUE.format(field=field, value=value),
+            details={"field": field, "value": value},
+        )
+
+
 class SelfLockoutError(DomainError):
     # Admin kendi erisimini kaldirirsa kurumda kimse kalmayabilir
     code = "SELF_LOCKOUT"

@@ -20,6 +20,7 @@ from app.models.enums import (
     CaseCategory,
     CaseStatus,
     LocationKind,
+    OverrideField,
     Priority,
     SlaStatus,
     UserRole,
@@ -164,3 +165,34 @@ class AgentDecisionRead(BaseModel):
     model: str
     latency_ms: int
     created_at: datetime
+
+
+# Duzeltilen deger bir kod: tur (SOAP_EMPTY), oncelik (HIGH) ya da birim (SUPPORT_SERVICES)
+OVERRIDE_VALUE_MAX_LENGTH = 100
+
+
+class OverrideRequest(BaseModel):
+    """Manager agent kararini duzeltir (E5-9); gerekce zorunlu, yeniden egitim verisi olur."""
+
+    field: OverrideField
+    corrected_value: str = Field(min_length=1, max_length=OVERRIDE_VALUE_MAX_LENGTH)
+    reason: str = Field(min_length=1, max_length=REOPEN_REASON_MAX_LENGTH)
+
+    _strip_reason = field_validator("reason")(_not_blank)
+
+
+class RejectRequest(BaseModel):
+    reason: str = Field(min_length=1, max_length=REOPEN_REASON_MAX_LENGTH)
+
+    _strip_reason = field_validator("reason")(_not_blank)
+
+
+class ReviewItemRead(BaseModel):
+    """Inceleme kuyrugu satiri: AI onerisi (case icinde), guven ve neden buraya dustugu."""
+
+    case: CaseRead
+    # Supervisor kurali: RULE_3_ESCALATE, RULE_5_SEND_TO_HUMAN_REVIEW; personel reddettiyse bos
+    reason_code: str | None
+    reason: str | None
+    # Siniflandirma guveni (0-1)
+    confidence: float | None

@@ -139,3 +139,11 @@ class PolicyScope(StrEnum):
 
     CASE_TYPE = "CASE_TYPE"
     CATEGORY = "CATEGORY"
+
+
+class OverrideField(StrEnum):
+    """Manager'in duzeltebildigi agent ciktilari (POST /cases/{id}/override)."""
+
+    CASE_TYPE = "case_type"
+    PRIORITY = "priority"
+    DEPARTMENT = "department"

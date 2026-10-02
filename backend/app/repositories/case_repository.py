@@ -30,7 +30,8 @@ class CaseScope:
         )
 
 
-_WITH_SUMMARIES = (
+# Yanittaki ozetler (CaseRead) tek sorguda; inceleme kuyrugu da kullanir
+WITH_SUMMARIES = (
     selectinload(Case.location),
     selectinload(Case.case_type),
     selectinload(Case.department),
@@ -60,7 +61,7 @@ def get(session: Session, case_id: int) -> Case | None:
     return session.scalars(
         select(Case)
         .where(Case.id == case_id)
-        .options(*_WITH_SUMMARIES)
+        .options(*WITH_SUMMARIES)
         .execution_options(populate_existing=True)
     ).one_or_none()
 
@@ -73,7 +74,7 @@ def list_page(
         query = query.where(Case.status.in_(statuses))
     total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
     items = session.scalars(
-        query.options(*_WITH_SUMMARIES)
+        query.options(*WITH_SUMMARIES)
         .order_by(Case.created_at.desc(), Case.id.desc())
         .offset(paging.offset)
         .limit(paging.page_size)
