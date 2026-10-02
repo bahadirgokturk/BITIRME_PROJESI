@@ -29,6 +29,9 @@ test-results/
 /storage/
 /backend/storage/
 ai/data/raw/
+# Tohumla yeniden uretilir (python -m training.train_classifier); metrics.json repoda kalir
+ai/data/synthetic/*.csv
+ai/models/**/model.joblib
 
 # Editors / OS
 .idea/

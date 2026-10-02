@@ -65,3 +65,34 @@ def test_unknown_placeholder_is_rejected(tmp_path: Path) -> None:
 
     with pytest.raises(TemplateError, match="room"):
         load_templates(path)
+
+
+# Her anahtar kelime turunun en az bu kadar sablonunda gecmeli: sablon bazli testte bir sablon
+# ayrilsa da model kelimeyi baska sablonlardan ogrenir (tek sablonda gecen kelime ogrenilemez)
+MIN_TEMPLATES_PER_KEYWORD = 3
+CASE_TYPES_SEED = (
+    Path(__file__).resolve().parents[2]
+    / "backend"
+    / "seeds"
+    / "templates"
+    / "campus"
+    / "case_types.yaml"
+)
+
+
+def test_every_seed_keyword_appears_in_several_templates() -> None:
+    import yaml
+
+    from training.normalization import normalize
+
+    templates = load_templates(CAMPUS_TEMPLATES_PATH)
+    seed = yaml.safe_load(CASE_TYPES_SEED.read_text(encoding="utf-8"))
+    missing = []
+    for case_type in seed["case_types"]:
+        sentences = [f" {normalize(s)} " for s in templates[case_type["code"]]]
+        for keyword in case_type["keywords"]:
+            hits = sum(f" {normalize(keyword)}" in s for s in sentences)
+            if hits < MIN_TEMPLATES_PER_KEYWORD:
+                missing.append(f"{case_type['code']}:{keyword}={hits}")
+
+    assert not missing, missing
