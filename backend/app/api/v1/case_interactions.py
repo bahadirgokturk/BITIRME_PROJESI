@@ -19,6 +19,7 @@ from app.schemas.case import (
     FeedbackCreate,
     InfoReplyCreate,
     InfoRequestCreate,
+    MergeRequest,
     OverrideRequest,
     RejectRequest,
     ReopenRequest,
@@ -119,3 +120,9 @@ def override_decision(case_id: int, payload: OverrideRequest, service: Reviews) 
 def reject_case(case_id: int, payload: RejectRequest, service: Reviews) -> CaseRead:
     """Gecersiz/spam bildirimi reddet; atanmis bildirim reddedilemez (409)."""
     return service.reject(case_id, payload)
+
+
+@router.post("/{case_id}/merge", dependencies=MANAGER_ONLY, responses=CONFLICT)
+def merge_case(case_id: int, payload: MergeRequest, service: Reviews) -> CaseRead:
+    """Bildirimi ayni sorunun acik ana bildirimine bagla (MERGED); decision_feedback'e yazilir."""
+    return service.merge(case_id, payload)

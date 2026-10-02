@@ -46,6 +46,12 @@ TASK_TRANSITIONS: dict[T, frozenset[T]] = {
     T.CANCELLED: frozenset(),
 }
 ACTIVE_TASK_STATUSES = frozenset({T.PENDING, T.ACCEPTED, T.IN_PROGRESS})
+# Tekrar eden bildirimin baglanabilecegi ana bildirim: siniflandirilmis ve sorunu hala acik.
+# Cozulmus (RESOLVED, VERIFICATION) bildirimden sonra gelen yeni bildirim sorunun tekrarladigini
+# gosterir; ayri bildirimdir
+MERGE_PARENT_STATUSES = frozenset(
+    {S.CLASSIFIED, S.ESCALATED, S.ASSIGNED, S.ACCEPTED, S.IN_PROGRESS, S.REOPENED}
+)
 
 # Duruma ilk giriste yazilan zaman damgasi; ilk deger korunur, sonraki girisler olay kaydinda kalir
 _FIRST_TIME_FIELDS: dict[S, str] = {

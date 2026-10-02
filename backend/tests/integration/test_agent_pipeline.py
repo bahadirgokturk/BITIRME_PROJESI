@@ -15,7 +15,15 @@ from tests.integration.factories import bearer
 
 PASSWORD = "demo-parola-123"
 Headers = dict[str, str]
-AGENTS_IN_ORDER = ["intake", "classification", "verification", "priority", "routing", "supervisor"]
+AGENTS_IN_ORDER = [
+    "intake",
+    "classification",
+    "duplicate",
+    "verification",
+    "priority",
+    "routing",
+    "supervisor",
+]
 
 
 @dataclass

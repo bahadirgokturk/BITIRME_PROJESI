@@ -13,13 +13,14 @@ from typing import ClassVar
 from pydantic import BaseModel, Field
 
 from app.agents.base import RULES_MODEL, AgentContext, AgentResult, Reason, timed
+from app.agents.duplicate import DUPLICATE_FROM, POSSIBLE_DUPLICATE_FROM
 from app.models.enums import AutonomyLevel, Priority
 
 # Bunun altinda bildirim dogrulanamaz sayilir: bildirim yapandan ek bilgi istenir
 VERIFICATION_MIN = 0.20
-# Benzerlik bu degerin ustundeyse ayni sorun sayilir; arasi insan incelemesine gider (E5-6)
-DUPLICATE_MERGE_FROM = 0.80
-DUPLICATE_REVIEW_FROM = 0.60
+# Benzerlik esikleri Duplicate Agent ile ortak: ustu ayni sorun, arasi insan incelemesine gider
+DUPLICATE_MERGE_FROM = DUPLICATE_FROM
+DUPLICATE_REVIEW_FROM = POSSIBLE_DUPLICATE_FROM
 OUT_OF_SCOPE_CODE = "OUT_OF_SCOPE"
 
 
@@ -42,7 +43,6 @@ _TASK_CREATED = frozenset({SupervisorDecision.AUTO_ASSIGN, SupervisorDecision.CR
 class SupervisorInput(BaseModel):
     is_meaningful: bool
     verification_score: float = Field(ge=0, le=1)
-    # Duplicate Agent (E5-6) gelene kadar 0
     duplicate_probability: float = Field(ge=0, le=1)
     case_type_code: str
     autonomy: AutonomyLevel

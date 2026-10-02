@@ -386,6 +386,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/cases/{case_id}/merge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Merge Case
+         * @description Bildirimi ayni sorunun acik ana bildirimine bagla (MERGED); decision_feedback'e yazilir.
+         */
+        post: operations["merge_case_api_v1_cases__case_id__merge_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tasks/mine": {
         parameters: {
             query?: never;
@@ -767,6 +787,10 @@ export interface components {
             priority: components["schemas"]["Priority"] | null;
             /** Needs Human Review */
             needs_human_review: boolean;
+            /** Parent Case Id */
+            parent_case_id: number | null;
+            /** Duplicate Count */
+            duplicate_count: number;
             /** Reopened Count */
             reopened_count: number;
             /** Satisfaction Rating */
@@ -787,6 +811,15 @@ export interface components {
             /** Due At */
             due_at: string | null;
             sla_status?: components["schemas"]["SlaStatus"] | null;
+        };
+        /** CaseRef */
+        CaseRef: {
+            /** Id */
+            id: number;
+            /** Case Number */
+            case_number: string;
+            /** Title */
+            title: string;
         };
         /**
          * CaseStatus
@@ -1029,6 +1062,16 @@ export interface components {
             password: string;
         };
         /**
+         * MergeRequest
+         * @description Manager bildirimi ayni sorunun ana bildirimine baglar (E5-6); duzeltme verisi olur.
+         */
+        MergeRequest: {
+            /** Parent Case Id */
+            parent_case_id: number;
+            /** Reason */
+            reason: string;
+        };
+        /**
          * OverrideField
          * @description Manager'in duzeltebildigi agent ciktilari (POST /cases/{id}/override).
          * @enum {string}
@@ -1140,6 +1183,7 @@ export interface components {
             reason: string | null;
             /** Confidence */
             confidence: number | null;
+            possible_duplicate_of?: components["schemas"]["CaseRef"] | null;
         };
         /**
          * SlaStatus
@@ -2858,6 +2902,86 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["RejectRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    merge_case_api_v1_cases__case_id__merge_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MergeRequest"];
             };
         };
         responses: {

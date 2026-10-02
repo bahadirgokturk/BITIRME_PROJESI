@@ -49,6 +49,8 @@ export const EMPTY_CASE: Omit<
   department: null,
   priority: null,
   needs_human_review: false,
+  parent_case_id: null,
+  duplicate_count: 0,
   reopened_count: 0,
   satisfaction_rating: null,
   info_request: null,

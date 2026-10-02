@@ -3,6 +3,7 @@
 Kuyruk: agent'in yukselttigi ya da emin olamadigi bildirimler. Manager AI onerisini onaylar (atama,
 TaskService), duzeltir (override) ya da reddeder. Duzeltme ilgili agent kararina bagli olarak
 decision_feedback'e yazilir; yeniden egitim verisi ve override rate metrigi buradan gelir.
+Birlestirme (merge) de bir duzeltmedir: Duplicate Agent'in onerisi ve manager'in karari yazilir.
 """
 
 from collections.abc import Callable
@@ -20,10 +21,18 @@ from app.repositories import (
     department_repository,
     review_repository,
 )
-from app.schemas.case import CaseRead, OverrideRequest, RejectRequest, ReviewItemRead
+from app.schemas.case import (
+    CaseRead,
+    CaseRef,
+    MergeRequest,
+    OverrideRequest,
+    RejectRequest,
+    ReviewItemRead,
+)
 from app.schemas.common import Page, PageParams
 from app.services.authorization import ensure_can_view_case
 from app.services.case_view import case_read
+from app.services.merge import CaseMerger
 from app.services.workflow import Transition, WorkflowService
 
 # Her alan hangi agent'in kararini duzeltir
@@ -32,6 +41,9 @@ _AGENT_OF: dict[OverrideField, str] = {
     OverrideField.PRIORITY: "priority",
     OverrideField.DEPARTMENT: "routing",
 }
+# Birlestirme duzeltmesinin alan adi ve kaynagi (OverrideField degil: durum degisir)
+DUPLICATE_FIELD = "duplicate"
+DUPLICATE_AGENT = "duplicate"
 
 
 @dataclass(frozen=True)
@@ -79,6 +91,27 @@ class ReviewService:
         self._workflow.record(case, overridden, self._clock.now())
         return self._commit_and_read(case)
 
+    def merge(self, case_id: int, data: MergeRequest) -> CaseRead:
+        case = self._visible_case(case_id)
+        parent = self._visible_case(data.parent_case_id)
+        decision = review_repository.latest_decision(self._session, case.id, DUPLICATE_AGENT)
+        suggested = self._suggested_parent(decision.output_json if decision else None)
+        merged = self._by_user(CaseEventType.CASE_MERGED, {"reason": data.reason})
+        CaseMerger(self._workflow, self._clock).merge(case, parent, merged)
+        self._session.add(
+            DecisionFeedback(
+                decision_id=decision.id if decision else None,
+                case_id=case.id,
+                user_id=self._actor.id,
+                field=DUPLICATE_FIELD,
+                original_value=suggested.case_number if suggested else None,
+                corrected_value=parent.case_number,
+                reason=data.reason,
+                created_at=self._clock.now(),
+            )
+        )
+        return self._commit_and_read(case)
+
     def reject(self, case_id: int, data: RejectRequest) -> CaseRead:
         case = self._visible_case(case_id)
         rejected = self._by_user(CaseEventType.CASE_REJECTED, {"reason": data.reason})
@@ -120,12 +153,24 @@ class ReviewService:
         )
         reason = decision.reason_json[0] if decision and decision.reason_json else None
         confidence = case.confidence_score
+        duplicate = review_repository.latest_decision(self._session, case.id, DUPLICATE_AGENT)
+        suggested = self._suggested_parent(duplicate.output_json if duplicate else None)
         return ReviewItemRead(
             case=case_read(case, self._clock.now()),
             reason_code=reason["code"] if reason else None,
             reason=reason["message"] if reason else None,
             confidence=float(confidence) if confidence is not None else None,
+            possible_duplicate_of=CaseRef.model_validate(suggested, from_attributes=True)
+            if suggested
+            else None,
         )
+
+    def _suggested_parent(self, output: dict[str, object] | None) -> Case | None:
+        """Duplicate Agent'in isaret ettigi ana bildirim (esik ustu en benzer); yoksa None."""
+        parent_id = output.get("possible_parent_case_id") if output else None
+        if not isinstance(parent_id, int):
+            return None
+        return case_repository.get(self._session, parent_id)
 
     def _by_user(self, event: CaseEventType, metadata: dict[str, object]) -> Transition:
         return Transition(

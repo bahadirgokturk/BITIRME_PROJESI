@@ -72,6 +72,10 @@ class CaseRead(BaseModel):
     department: DepartmentSummary | None
     priority: Priority | None
     needs_human_review: bool
+    # MERGED ise bagli oldugu ana bildirim
+    parent_case_id: int | None
+    # Bu bildirime baglanan (ayni sorunu bildiren) bildirim sayisi
+    duplicate_count: int
     reopened_count: int
     # Kapanista bildirim yapanin verdigi puan (1-5)
     satisfaction_rating: int | None
@@ -187,6 +191,21 @@ class RejectRequest(BaseModel):
     _strip_reason = field_validator("reason")(_not_blank)
 
 
+class MergeRequest(BaseModel):
+    """Manager bildirimi ayni sorunun ana bildirimine baglar (E5-6); duzeltme verisi olur."""
+
+    parent_case_id: int
+    reason: str = Field(min_length=1, max_length=REOPEN_REASON_MAX_LENGTH)
+
+    _strip_reason = field_validator("reason")(_not_blank)
+
+
+class CaseRef(BaseModel):
+    id: int
+    case_number: str
+    title: str
+
+
 class ReviewItemRead(BaseModel):
     """Inceleme kuyrugu satiri: AI onerisi (case icinde), guven ve neden buraya dustugu."""
 
@@ -196,3 +215,5 @@ class ReviewItemRead(BaseModel):
     reason: str | None
     # Siniflandirma guveni (0-1)
     confidence: float | None
+    # Duplicate Agent'in "ayni sorun olabilir" dedigi bildirim (0.60-0.80); yoksa bos
+    possible_duplicate_of: CaseRef | None = None
