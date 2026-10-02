@@ -158,7 +158,7 @@ Ortak parametreler: `from`, `to`, `department_id?`, `building_id?`
 | GET | `/analytics/departments` | departman performansı |
 | GET | `/analytics/recurring` | tekrarlayan problemler |
 | GET | `/analytics/process` | event log'dan ortalama adım süreleri (darboğaz) |
-| POST | `/analytics/summary` | `{period: "7d"}` → KPI JSON + doğal dil özeti |
+| POST | `/analytics/summary` | `{period: "7d"}` → KPI JSON + doğal dil özeti (agent E5-12 ✅; endpoint KPI servisiyle E6-2) |
 
 ## Agents
 | Method | Path | Açıklama |

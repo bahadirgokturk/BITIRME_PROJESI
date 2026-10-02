@@ -308,6 +308,17 @@ eşzamanlı çalışır; kural tabanlı, hızlı).
   sayı varsa LLM çıktısı atılır, şablon metin döner. Nedensellik ifadeleri ("çünkü", "nedeniyle")
   yerine "ilişkili olabilir" dili zorunlu tutulur.
 
+✅ **Uygulandı (E5-12, agent):** `backend/app/agents/analytics_summary.py` + `agents/providers/ollama.py`.
+- Girdi [ANALYTICS.md](ANALYTICS.md) bölüm 5 şeması (`SummaryInput`); boş alanın cümlesi yazılmaz (uydurulmaz).
+  Her cümle dayandığı alanla döner (`sentences[{field, text}]`, izlenebilirlik).
+- LLM koruması: çıktıdaki her sayı girdi JSON'unda ya da şablon metninde olmalı (şablonun türettiği "5 saat 10
+  dakika" da geçerli); tarih noktaları ayırıcı sayılır. Nedensellik sözlüğü (`çünkü, nedeniyle, yüzünden,
+  sebebiyle, dolayı`) normalize metinde aranır. Red ya da ulaşılamama → şablon metin + gerekçe
+  (`LLM_REJECTED_NUMBERS | LLM_REJECTED_CAUSAL | LLM_UNAVAILABLE`).
+- `LLM_PROVIDER=none` (varsayılan) → yalnız şablon. `ollama` → `OLLAMA_URL`/`OLLAMA_MODEL`, sıcaklık 0, 20 sn zaman
+  aşımı, yalnız http/https; ek bağımlılık yok (standart kütüphane).
+- `POST /analytics/summary` endpoint'i KPI servisi (E6-2) ile bağlanır; agent hazır.
+
 ## 5. Autonomy Policy
 
 | Seviye | Anlam | Örnek case type'lar |
