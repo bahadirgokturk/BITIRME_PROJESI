@@ -96,7 +96,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Location Options */
+        /**
+         * List Location Options
+         * @description `q`: ad, kod ve takma adlarda arama; Turkce karakter ve buyuk/kucuk harf farketmez.
+         */
         get: operations["list_location_options_api_v1_locations_get"];
         put?: never;
         post?: never;
@@ -548,6 +551,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/case-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Case Types
+         * @description Aktif bildirim turleri (override: case_type kodu buradan secilir).
+         */
+        get: operations["list_case_types_api_v1_case_types_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/departments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Departments
+         * @description Aktif birimler (override: department kodu, atama: department_id).
+         */
+        get: operations["list_departments_api_v1_departments_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/users": {
         parameters: {
             query?: never;
@@ -697,6 +740,10 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Agent Label */
+            agent_label?: string | null;
+            /** Decision Label */
+            decision_label?: string | null;
         };
         /**
          * AssignRequest
@@ -846,6 +893,17 @@ export interface components {
          * @enum {string}
          */
         CaseStatus: "NEW" | "ANALYZING" | "NEEDS_INFO" | "CLASSIFIED" | "ASSIGNED" | "ACCEPTED" | "IN_PROGRESS" | "RESOLVED" | "VERIFICATION" | "CLOSED" | "REOPENED" | "ESCALATED" | "REJECTED" | "MERGED";
+        /** CaseTypeOption */
+        CaseTypeOption: {
+            /** Id */
+            id: number;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            category: components["schemas"]["CaseCategory"];
+            default_department: components["schemas"]["DepartmentSummary"] | null;
+        };
         /** CaseTypeSummary */
         CaseTypeSummary: {
             /** Id */
@@ -906,6 +964,15 @@ export interface components {
         };
         /** DepartmentCreate */
         DepartmentCreate: {
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+        };
+        /** DepartmentOption */
+        DepartmentOption: {
+            /** Id */
+            id: number;
             /** Code */
             code: string;
             /** Name */
@@ -1604,6 +1671,7 @@ export interface operations {
     list_location_options_api_v1_locations_get: {
         parameters: {
             query?: {
+                q?: string | null;
                 page?: number;
                 page_size?: number;
             };
@@ -3589,6 +3657,136 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page_ReviewItemRead_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    list_case_types_api_v1_case_types_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseTypeOption"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    list_departments_api_v1_departments_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DepartmentOption"][];
                 };
             };
             /** @description Unauthorized */

@@ -52,6 +52,14 @@ def move_descendants(session: Session, organization_id: int, old_path: str, new_
     )
 
 
+def list_active(session: Session, organization_id: int) -> Sequence[Location]:
+    return session.scalars(
+        select(Location)
+        .where(Location.organization_id == organization_id, Location.is_active.is_(True))
+        .order_by(Location.path)
+    ).all()
+
+
 def list_active_page(
     session: Session, organization_id: int, paging: PageParams
 ) -> tuple[Sequence[Location], int]:

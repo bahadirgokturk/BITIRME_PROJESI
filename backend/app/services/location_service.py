@@ -4,8 +4,11 @@ path (materialized path) sunucuda hesaplanir: ebeveynin path'i + "/" + kod. Bir 
 tasininca tum alt agacin path'i ayni islemde guncellenir; kendi altina tasinamaz (dongu).
 """
 
+from collections.abc import Sequence
+
 from sqlalchemy.orm import Session
 
+from app.agents.text import normalize
 from app.core import messages
 from app.core.errors import ConflictError, InvalidParentError, NotFoundError
 from app.models import Location, User
@@ -31,16 +34,24 @@ class LocationService:
             page=paging.page,
         )
 
-    def list_options(self, paging: PageParams) -> Page[LocationOption]:
-        """Bildirim formu icin: yalniz aktif lokasyonlar, her rol icin."""
-        items, total = location_repository.list_active_page(
-            self._session, self._actor.organization_id, paging
-        )
-        return Page(
-            items=[LocationOption.model_validate(loc, from_attributes=True) for loc in items],
-            total=total,
-            page=paging.page,
-        )
+    def list_options(self, paging: PageParams, query: str | None = None) -> Page[LocationOption]:
+        """Bildirim formu icin: yalniz aktif lokasyonlar, her rol icin. `query` varsa ad, kod ve
+        takma adlarda arar (Turkce normalize: "kutuphane" yazimi Turkce karakterliyi de bulur)."""
+        organization_id = self._actor.organization_id
+        needle = normalize(query or "")
+        if not needle:
+            items, total = location_repository.list_active_page(
+                self._session, organization_id, paging
+            )
+            return _option_page(items, total, paging)
+        # Kampus olceginde (yuzlerce konum) bellekte filtre yeterli; SQL'de Turkce katlama yok
+        found = [
+            loc
+            for loc in location_repository.list_active(self._session, organization_id)
+            if needle in _searchable(loc)
+        ]
+        page = found[paging.offset : paging.offset + paging.page_size]
+        return _option_page(page, len(found), paging)
 
     def create(self, data: LocationCreate) -> LocationRead:
         organization_id = self._actor.organization_id
@@ -90,3 +101,15 @@ class LocationService:
             raise NotFoundError()
         ensure_same_organization(self._actor, resource_organization_id=location.organization_id)
         return location
+
+
+def _searchable(location: Location) -> str:
+    return normalize(" ".join([location.name, location.code, *map(str, location.aliases)]))
+
+
+def _option_page(items: Sequence[Location], total: int, paging: PageParams) -> Page[LocationOption]:
+    return Page(
+        items=[LocationOption.model_validate(loc, from_attributes=True) for loc in items],
+        total=total,
+        page=paging.page,
+    )

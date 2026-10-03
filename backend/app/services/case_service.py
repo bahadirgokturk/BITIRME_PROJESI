@@ -17,12 +17,18 @@ from app.core.constants import (
 from app.core.errors import NotFoundError
 from app.models import Case, CaseEvent, User
 from app.models.enums import ActorType, CaseEventType, CaseStatus, UserRole
-from app.repositories import agent_decision_repository, case_repository, location_repository
+from app.repositories import (
+    agent_decision_repository,
+    case_repository,
+    case_type_repository,
+    location_repository,
+)
 from app.repositories.case_repository import CaseScope
 from app.schemas.case import AgentDecisionRead, CaseCreate, CaseEventRead, CaseRead
 from app.schemas.common import Page, PageParams
 from app.services.authorization import ensure_can_view_case, ensure_same_organization
 from app.services.case_view import case_read
+from app.services.decision_labels import AGENT_LABELS, decision_label
 from app.services.workflow import Transition, WorkflowService
 
 # Bildirim yapanin zaman cizelgesinde gordugu olaylar; agent kararlari, ic yorumlar ve SLA
@@ -136,7 +142,16 @@ class CaseService:
     def decisions(self, case_id: int) -> list[AgentDecisionRead]:
         case = self._get(case_id)
         decisions = agent_decision_repository.list_for_case(self._session, case.id)
-        return [AgentDecisionRead.model_validate(d, from_attributes=True) for d in decisions]
+        names = case_type_repository.names_by_code(self._session, case.organization_id)
+        return [
+            AgentDecisionRead.model_validate(d, from_attributes=True).model_copy(
+                update={
+                    "agent_label": AGENT_LABELS.get(d.agent_name),
+                    "decision_label": decision_label(d.agent_name, d.decision, names),
+                }
+            )
+            for d in decisions
+        ]
 
     def _page(
         self, scope: CaseScope, statuses: Sequence[CaseStatus], paging: PageParams
