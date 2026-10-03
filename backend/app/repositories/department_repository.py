@@ -36,6 +36,14 @@ def add(session: Session, department: Department) -> Department:
     return department
 
 
+def list_active(session: Session, organization_id: int) -> Sequence[Department]:
+    return session.scalars(
+        select(Department)
+        .where(Department.organization_id == organization_id, Department.is_active.is_(True))
+        .order_by(Department.name)
+    ).all()
+
+
 def list_all(session: Session, organization_id: int) -> Sequence[Department]:
     return session.scalars(
         select(Department).where(Department.organization_id == organization_id)

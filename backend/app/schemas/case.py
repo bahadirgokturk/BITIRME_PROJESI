@@ -169,6 +169,9 @@ class AgentDecisionRead(BaseModel):
     model: str
     latency_ms: int
     created_at: datetime
+    # Turkce basliklar: "Siniflandirma" / "Sabun bitti"; bilinmiyorsa bos (kod gosterilir)
+    agent_label: str | None = None
+    decision_label: str | None = None
 
 
 # Duzeltilen deger bir kod: tur (SOAP_EMPTY), oncelik (HIGH) ya da birim (SUPPORT_SERVICES)

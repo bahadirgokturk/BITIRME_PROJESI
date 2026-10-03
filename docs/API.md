@@ -36,6 +36,8 @@ Yanıt: `TokenRead {access_token, token_type: "bearer", expires_in}` (access tok
 `GET /locations`: tüm roller; yalnız kendi kurumunun **aktif** lokasyonları, ağaç sırasında (`path`).
 Yanıt `Page[LocationOption]` (`id, parent_id, kind, code, name, path, aliases`); önem ağırlığı gibi yönetim
 alanları dönmez. Bildirim formu bunu kullanır; yönetim `/admin/locations`'tadır.
+`?q=`: ad, kod ve takma adlarda arama (Türkçe normalize: "kutuphane" → "Kütüphane"; büyük/küçük harf fark etmez);
+`total` filtrelenmiş sayıdır. Kampüs ölçeğinde (yüzlerce konum) bellekte filtrelenir.
 
 ## Cases
 ✅ **Uygulandı (E3-1):** `POST /cases`, `GET /cases` (`?status=` tekrarlanabilir, en yeni önce),
@@ -64,7 +66,7 @@ belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanı
 | GET | `/cases/mine` | R | kendi case'lerim |
 | GET | `/cases/{id}` | kapsam | detay (+ SLA durumu hesaplanmış) |
 | GET | `/cases/{id}/events` | kapsam | zaman çizelgesi (reporter'a filtrelenmiş) |
-| GET | `/cases/{id}/decisions` | M/A | agent kararları + gerekçeler (koşu sırasıyla; `run_id`, `reasons`, `output`) ✅ |
+| GET | `/cases/{id}/decisions` | M/A | agent kararları + gerekçeler (koşu sırasıyla; `run_id`, `reasons`, `output`) ✅; Türkçe başlıklar `agent_label` ("Sınıflandırma") ve `decision_label` ("Sabun bitti", "Müdüre yükseltildi"; bilinmiyorsa `null`, kod gösterilir) |
 | POST | `/cases/{id}/info` | R (sahip) | NEEDS_INFO iken `{body}` → `ANALYZING`, yanıt herkese açık yorum olarak da eklenir ✅ |
 | POST | `/cases/{id}/comments` | kapsam (ADMIN hariç) | `{body, is_internal}` ✅ |
 | GET | `/cases/{id}/comments` | kapsam | yorumlar (reporter iç notları görmez) ✅ |
@@ -102,6 +104,8 @@ belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanı
   `REOPENED`, aksi `409 INVALID_TRANSITION`), `reopened_count` artar, `CASE_REOPENED` olayı (gerekçe metadata'da).
 
 ## Manager işlemleri
+Sözlükler (MANAGER, ADMIN; diğer roller `403`): `GET /case-types` → aktif türler `[{id, code, name, category, default_department}]`, `GET /departments` → aktif birimler `[{id, code, name}]`. Düzeltme (`override`) kodları ve atama `department_id`'si buradan seçilir.
+
 | Method | Path | Açıklama |
 |---|---|---|
 | GET | `/manager/review-queue` | `ESCALATED` + (`CLASSIFIED` ve `needs_human_review`) ✅ E5-9: en kritik ve en eski önce; satır `{case, reason_code, reason, confidence, possible_duplicate_of}` (Supervisor gerekçesi; personel reddettiyse boş). E5-6: `possible_duplicate_of` = Duplicate Agent'ın "aynı sorun olabilir" dediği bildirim `{id, case_number, title}` |
