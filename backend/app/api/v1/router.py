@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.api.v1 import (
     admin,
+    analytics,
     attachments,
     auth,
     case_interactions,
@@ -23,4 +24,6 @@ api_router.include_router(case_interactions.router)
 api_router.include_router(tasks.router)
 api_router.include_router(manager.router)
 api_router.include_router(lookups.router)
+api_router.include_router(analytics.router)
+api_router.include_router(analytics.agents_router)
 api_router.include_router(admin.router)

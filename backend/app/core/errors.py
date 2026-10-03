@@ -113,6 +113,17 @@ class InvalidMergeTargetError(DomainError):
     default_message = messages.INVALID_MERGE_TARGET
 
 
+class InvalidPeriodError(DomainError):
+    # Analitik donemi: baslangic bitisten sonra ya da cok uzun
+    code = "INVALID_PERIOD"
+    status = HTTPStatus.UNPROCESSABLE_ENTITY
+
+    def __init__(self, max_days: int) -> None:
+        super().__init__(
+            messages.INVALID_PERIOD.format(max_days=max_days), details={"max_days": max_days}
+        )
+
+
 class SelfLockoutError(DomainError):
     # Admin kendi erisimini kaldirirsa kurumda kimse kalmayabilir
     code = "SELF_LOCKOUT"

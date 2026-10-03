@@ -24,6 +24,10 @@ REOPEN_WINDOW_CLOSED = "Bildirim kapandıktan sonraki {hours} saat içinde yenid
 CASE_NOT_CLOSED = "Yalnız kapanmış bildirim puanlanabilir."
 RATING_WINDOW_CLOSED = "Bildirim kapandıktan sonraki {hours} saat içinde puanlanabilir."
 ALREADY_RATED = "Bu bildirim zaten puanlandı."
+INVALID_PERIOD = (
+    "Tarih aralığı geçerli değil: başlangıç bitişten önce olmalı "
+    "ve en fazla {max_days} gün sürmeli."
+)
 INVALID_MERGE_TARGET = "Bildirim yalnız sorunu hâlâ açık olan başka bir bildirime bağlanabilir."
 INVALID_OVERRIDE_VALUE = "Düzeltilen değer geçerli değil: {field} için '{value}' bulunamadı."
 INVALID_ASSIGNEE = "Seçilen kişi bu birimde çalışan aktif bir personel değil."
