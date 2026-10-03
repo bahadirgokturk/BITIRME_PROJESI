@@ -123,3 +123,15 @@ export function addEvidence(current: File[], picked: File[]): EvidenceSelection 
   }
   return { photos, problem: rejected ? evidenceProblem(rejected) : null };
 }
+
+type CaseEvent = Pick<Schemas["CaseEventRead"], "event_type" | "metadata">;
+
+// Bu gorev icin yazilmis en son kanit istegi (EVIDENCE_REQUESTED, metadata.message); yoksa null.
+// Mesaj backend'den gelir (Resolution Agent), ekran kendisi uydurmaz.
+export function evidenceRequest(events: readonly CaseEvent[], taskId: number): string | null {
+  const request = events.findLast(
+    (event) => event.event_type === "EVIDENCE_REQUESTED" && event.metadata.task_id === taskId,
+  );
+  const message = request?.metadata.message;
+  return typeof message === "string" && message !== "" ? message : null;
+}

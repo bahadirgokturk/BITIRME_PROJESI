@@ -34,7 +34,7 @@ describe("mock tasks API", () => {
 
     const accepted = await (await post(`/tasks/${id}/accept`)).json();
     const started = await (await post(`/tasks/${id}/start`)).json();
-    const completed = await (await post(`/tasks/${id}/complete`, { completion_note: "Tamam." })).json();
+    const completed = await (await post(`/tasks/${id}/complete`, { completion_note: "Sabunluklar dolduruldu." })).json();
 
     expect([accepted.status, started.status, completed.status]).toEqual([
       "ACCEPTED",
@@ -61,6 +61,21 @@ describe("mock tasks API", () => {
     const response = await post(`/tasks/${id}/decline`, { reason: "Yetki alanım dışında." });
 
     expect((await response.json()).status).toBe("DECLINED");
+  });
+
+  it("sends the task back once when the note is too short and there is no photo", async () => {
+    const task = taskIn("IN_PROGRESS");
+
+    const first = await (await post(`/tasks/${task.id}/complete`, { completion_note: "bitti" })).json();
+    const events = await (await fetch(apiUrl(`/cases/${task.case_id}/events`))).json();
+    const second = await (await post(`/tasks/${task.id}/complete`, { completion_note: "bitti" })).json();
+
+    expect(first.status).toBe("IN_PROGRESS");
+    expect(events.at(-1)).toMatchObject({
+      event_type: "EVIDENCE_REQUESTED",
+      metadata: { task_id: task.id, message: "Ne yapıldığını birkaç kelimeyle yazın ya da fotoğraf ekleyin." },
+    });
+    expect(second.status).toBe("COMPLETED");
   });
 
   it("filters by status", async () => {

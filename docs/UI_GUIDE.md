@@ -180,6 +180,10 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   backend'de); gönderilmeden önce denetlenir. Önce fotoğraflar sırayla yüklenir (`POST /cases/{id}/attachments`,
   backend personelin dosyasını `EVIDENCE` olarak kaydeder), sonra görev tamamlanır; yükleme başarısızsa görev
   tamamlanmaz. Tamamlanan görevin sonuç kartında kanıt fotoğrafları küçük görsel olarak gösterilir.
+- Eksik kanıt: Resolution Agent işi yetersiz bulursa görev `IN_PROGRESS`'e geri döner. Detayda sarı kutu
+  ("Eksik kanıt: görev sana geri döndü") nedeni gösterir; metin bildirimin olay geçmişindeki son
+  `EVIDENCE_REQUESTED` olayının `metadata.message` alanıdır (ekran uydurmaz). Tamamla panelinde fotoğraf eklemenin
+  işi ek doğrulama beklemeden kapattığı yazar.
 
 ### 5.4 Manager
 

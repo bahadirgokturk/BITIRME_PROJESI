@@ -6,6 +6,7 @@ import type { components } from "@/lib/api/types";
 
 import { CASES, EMPTY_CASE, timelineFor } from "./caseFixtures";
 import { LOCATIONS, USERS } from "./fixtures";
+import { taskEventsFor } from "./taskHandlers";
 
 type Schemas = components["schemas"];
 
@@ -119,8 +120,11 @@ export const caseHandlers = [
 
   http.get(apiUrl("/cases/:id/events"), ({ params }) => {
     const item = findCase(params.id);
-    return item
-      ? HttpResponse.json(timelineFor(item))
-      : error(404, "NOT_FOUND", "Kayıt bulunamadı.");
+    // Personel gorevlerinin bildirimleri bu sahte listede olmayabilir; olaylari taskHandlers.ts tutar
+    const taskEvents = taskEventsFor(Number(params.id));
+    if (!item && !taskEvents) {
+      return error(404, "NOT_FOUND", "Kayıt bulunamadı.");
+    }
+    return HttpResponse.json([...(item ? timelineFor(item) : []), ...(taskEvents ?? [])]);
   }),
 ];

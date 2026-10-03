@@ -81,6 +81,9 @@ export function EvidencePicker({ photos, onChange }: EvidencePickerProps) {
           {photos.length > 0 ? "Fotoğraf daha ekle" : "Fotoğraf ekle"}
         </label>
       ) : null}
+      <p className="text-xs text-muted-foreground">
+        Fotoğraf eklersen iş ek doğrulama beklemeden kapanır.
+      </p>
       {problem ? (
         <p role="alert" className="text-sm font-medium text-destructive">
           {problem}

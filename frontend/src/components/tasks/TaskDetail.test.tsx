@@ -79,6 +79,7 @@ describe("TaskDetail", () => {
       new File(["foto"], "yanlis.webp", { type: "image/webp" }),
     ]);
     await user.click(within(dialog).getByRole("button", { name: "yanlis.webp fotoğrafını kaldır" }));
+    await user.type(within(dialog).getByLabelText("Not (isteğe bağlı)"), "Sabunluklar dolduruldu.");
     expect(within(dialog).getByText("sabunluk.jpg")).toBeInTheDocument();
     expect(within(dialog).getByText("lavabo.png")).toBeInTheDocument();
     expect(within(dialog).queryByText("yanlis.webp")).not.toBeInTheDocument();
@@ -113,6 +114,36 @@ describe("TaskDetail", () => {
     expect(await within(dialog).findByRole("alert")).toHaveTextContent("en fazla 5 fotoğraf eklenebilir");
     expect(screen.queryByText("Görev tamamlandı")).not.toBeInTheDocument();
     await user.click(within(dialog).getByRole("button", { name: "Vazgeç" }));
+  });
+
+  it("explains what is missing when the completed work was sent back", async () => {
+    const sentBack = { ...IN_PROGRESS, id: 778 };
+    server.use(
+      http.get(apiUrl("/tasks/778"), () => HttpResponse.json(sentBack)),
+      http.get(apiUrl(`/cases/${sentBack.case_id}/events`), () =>
+        HttpResponse.json([
+          { id: 1, event_type: "EVIDENCE_REQUESTED", metadata: { task_id: 778, message: "Ne yapıldığını yazın." } },
+        ]),
+      ),
+    );
+
+    const user = renderDetail(778);
+
+    const note = await screen.findByRole("status");
+    expect(note).toHaveTextContent("Eksik kanıt");
+    expect(note).toHaveTextContent("Ne yapıldığını yazın.");
+
+    await user.click(screen.getByRole("button", { name: "Tamamla" }));
+    const dialog = await screen.findByRole("dialog", { name: "Görevi tamamla" });
+    expect(within(dialog).getByText(/Fotoğraf eklersen/)).toBeInTheDocument();
+    await user.click(within(dialog).getByRole("button", { name: "Vazgeç" }));
+  });
+
+  it("shows no missing evidence note on an ordinary task", async () => {
+    renderDetail(PENDING[1]!.id);
+
+    await screen.findByRole("button", { name: "Kabul et" });
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
   it("shows the evidence photos of a completed task", async () => {
