@@ -591,6 +591,246 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/analytics/kpis": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Kpis
+         * @description KPI kartlari; her biri onceki esit uzunluktaki donemle karsilastirilir.
+         */
+        get: operations["kpis_api_v1_analytics_kpis_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/trend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Trend
+         * @description Acilan ve kapanan bildirim serileri.
+         */
+        get: operations["trend_api_v1_analytics_trend_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Categories
+         * @description Kategori -> tur dagilimi.
+         */
+        get: operations["categories_api_v1_analytics_categories_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/locations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Locations
+         * @description Bina/kat/alan bazinda yogunluk ve kategori kirilimi (isi haritasi).
+         */
+        get: operations["locations_api_v1_analytics_locations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/resolution-times": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Resolution Times
+         * @description Kategori bazinda ortalama, medyan ve p90 cozum suresi.
+         */
+        get: operations["resolution_times_api_v1_analytics_resolution_times_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/sla": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sla
+         * @description SLA uyumu ve ihlali, oncelik kirilimiyla.
+         */
+        get: operations["sla_api_v1_analytics_sla_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/aging": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Aging
+         * @description Acik bildirimlerin yas kovalari (0-2, 2-6, 6-12, 12-24, 24+ saat).
+         */
+        get: operations["aging_api_v1_analytics_aging_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/departments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Departments
+         * @description Birim performansi: sayi, cozum suresi, SLA uyumu, acik is yuku.
+         */
+        get: operations["departments_api_v1_analytics_departments_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/recurring": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Recurring
+         * @description Tekrarlayan sorunlar: ayni yer + tur, son 30 gunde esik ve ustu.
+         */
+        get: operations["recurring_api_v1_analytics_recurring_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/process": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Process
+         * @description Olay kaydindan adim sureleri ve darbogaz.
+         */
+        get: operations["process_api_v1_analytics_process_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Summary
+         * @description AI yonetim ozeti: KPI JSON'u + sablon (opsiyonel yerel LLM) metni.
+         */
+        post: operations["summary_api_v1_analytics_summary_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agents/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Agent Metrics
+         * @description Agent performansi: otomasyon, insan incelemesi, duzeltme orani, siniflandirma dogrulugu.
+         */
+        get: operations["agent_metrics_api_v1_agents_metrics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/users": {
         parameters: {
             query?: never;
@@ -745,6 +985,54 @@ export interface components {
             /** Decision Label */
             decision_label?: string | null;
         };
+        /** AgentMetric */
+        AgentMetric: {
+            /** Agent */
+            agent: string;
+            /** Label */
+            label: string;
+            /** Decisions */
+            decisions: number;
+            /** Avg Confidence */
+            avg_confidence: number | null;
+            /** Override Rate Pct */
+            override_rate_pct: number | null;
+        };
+        /**
+         * AgentMetricsRead
+         * @description docs/ANALYTICS.md bolum 3: agent performansi (/manager/agents).
+         */
+        AgentMetricsRead: {
+            period: components["schemas"]["PeriodRead"];
+            /** Automation Pct */
+            automation_pct: number | null;
+            /** Human Review Pct */
+            human_review_pct: number | null;
+            /** Classification Accuracy Pct */
+            classification_accuracy_pct: number | null;
+            /** Duplicate Precision Pct */
+            duplicate_precision_pct: number | null;
+            /** Agents */
+            agents: components["schemas"]["AgentMetric"][];
+        };
+        /** AgingBucket */
+        AgingBucket: {
+            /** Label */
+            label: string;
+            /** Min Hours */
+            min_hours: number;
+            /** Max Hours */
+            max_hours: number | null;
+            /** Count */
+            count: number;
+        };
+        /** AgingRead */
+        AgingRead: {
+            /** Total Open */
+            total_open: number;
+            /** Buckets */
+            buckets: components["schemas"]["AgingBucket"][];
+        };
         /**
          * AssignRequest
          * @description Manager atamasi: departman zorunlu; kisi secilmezse departmanin kuyruguna duser.
@@ -893,6 +1181,15 @@ export interface components {
          * @enum {string}
          */
         CaseStatus: "NEW" | "ANALYZING" | "NEEDS_INFO" | "CLASSIFIED" | "ASSIGNED" | "ACCEPTED" | "IN_PROGRESS" | "RESOLVED" | "VERIFICATION" | "CLOSED" | "REOPENED" | "ESCALATED" | "REJECTED" | "MERGED";
+        /** CaseTypeCount */
+        CaseTypeCount: {
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /** Count */
+            count: number;
+        };
         /** CaseTypeOption */
         CaseTypeOption: {
             /** Id */
@@ -912,6 +1209,29 @@ export interface components {
             code: string;
             /** Name */
             name: string;
+        };
+        /** CategoriesRead */
+        CategoriesRead: {
+            /** Total */
+            total: number;
+            /** Items */
+            items: components["schemas"]["CategoryShare"][];
+        };
+        /** CategoryCount */
+        CategoryCount: {
+            code: components["schemas"]["CaseCategory"];
+            /** Count */
+            count: number;
+        };
+        /** CategoryShare */
+        CategoryShare: {
+            category: components["schemas"]["CaseCategory"];
+            /** Label */
+            label: string;
+            /** Count */
+            count: number;
+            /** Case Types */
+            case_types: components["schemas"]["CaseTypeCount"][];
         };
         /**
          * CloseRequest
@@ -978,6 +1298,24 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** DepartmentPerformance */
+        DepartmentPerformance: {
+            department: components["schemas"]["DepartmentSummary"];
+            /** Cases */
+            cases: number;
+            /** Avg Resolution Min */
+            avg_resolution_min: number | null;
+            /** Median Resolution Min */
+            median_resolution_min: number | null;
+            /** Sla Compliance Pct */
+            sla_compliance_pct: number | null;
+            /** Open Tasks */
+            open_tasks: number;
+            /** Active Staff */
+            active_staff: number;
+            /** Open Tasks Per Staff */
+            open_tasks_per_staff: number | null;
+        };
         /** DepartmentRead */
         DepartmentRead: {
             /** Id */
@@ -1005,6 +1343,11 @@ export interface components {
             /** Is Active */
             is_active?: boolean | null;
         };
+        /** DepartmentsRead */
+        DepartmentsRead: {
+            /** Items */
+            items: components["schemas"]["DepartmentPerformance"][];
+        };
         /** ErrorBody */
         ErrorBody: {
             /** Code */
@@ -1030,6 +1373,11 @@ export interface components {
             /** Comment */
             comment?: string | null;
         };
+        /**
+         * Granularity
+         * @enum {string}
+         */
+        Granularity: "day" | "week" | "month";
         /** HealthRead */
         HealthRead: {
             /**
@@ -1059,6 +1407,45 @@ export interface components {
             /** Question */
             question: string;
         };
+        /**
+         * KpiValue
+         * @description Kart degeri ve onceki esit uzunluktaki donemle karsilastirma.
+         */
+        KpiValue: {
+            /** Value */
+            value: number | null;
+            /** Previous */
+            previous: number | null;
+            /** Delta Pct */
+            delta_pct: number | null;
+        };
+        /**
+         * KpisRead
+         * @description docs/ANALYTICS.md bolum 1. Dashboard ustundeki kartlar.
+         */
+        KpisRead: {
+            period: components["schemas"]["PeriodRead"];
+            total_cases: components["schemas"]["KpiValue"];
+            open_cases: components["schemas"]["KpiValue"];
+            closed_cases: components["schemas"]["KpiValue"];
+            cases_today: components["schemas"]["KpiValue"];
+            avg_resolution_min: components["schemas"]["KpiValue"];
+            median_resolution_min: components["schemas"]["KpiValue"];
+            median_first_response_min: components["schemas"]["KpiValue"];
+            median_assignment_min: components["schemas"]["KpiValue"];
+            sla_compliance_pct: components["schemas"]["KpiValue"];
+            sla_breach_pct: components["schemas"]["KpiValue"];
+            reopen_pct: components["schemas"]["KpiValue"];
+            automation_pct: components["schemas"]["KpiValue"];
+            human_review_pct: components["schemas"]["KpiValue"];
+        };
+        /** LocationCount */
+        LocationCount: {
+            /** Path */
+            path: string;
+            /** Count */
+            count: number;
+        };
         /** LocationCreate */
         LocationCreate: {
             /** Parent Id */
@@ -1084,6 +1471,21 @@ export interface components {
          * @enum {string}
          */
         LocationKind: "CAMPUS" | "BUILDING" | "FLOOR" | "ROOM" | "WC" | "CORRIDOR" | "OUTDOOR" | "OTHER";
+        /**
+         * LocationLevel
+         * @enum {string}
+         */
+        LocationLevel: "building" | "floor" | "area";
+        /** LocationLoad */
+        LocationLoad: {
+            location: components["schemas"]["LocationSummary"];
+            /** Count */
+            count: number;
+            /** By Category */
+            by_category: {
+                [key: string]: number;
+            };
+        };
         /**
          * LocationOption
          * @description Bildirim formundaki lokasyon secicisi icin; onem agirligi gibi yonetim alanlari yok.
@@ -1145,6 +1547,12 @@ export interface components {
             aliases?: string[] | null;
             /** Is Active */
             is_active?: boolean | null;
+        };
+        /** LocationsRead */
+        LocationsRead: {
+            level: components["schemas"]["LocationLevel"];
+            /** Items */
+            items: components["schemas"]["LocationLoad"][];
         };
         /** LoginRequest */
         LoginRequest: {
@@ -1246,11 +1654,70 @@ export interface components {
             /** Page */
             page: number;
         };
+        /** Period */
+        Period: {
+            /**
+             * From
+             * Format: date
+             */
+            from: string;
+            /**
+             * To
+             * Format: date
+             */
+            to: string;
+        };
+        /** PeriodRead */
+        PeriodRead: {
+            /**
+             * From
+             * Format: date
+             */
+            from: string;
+            /**
+             * To
+             * Format: date
+             */
+            to: string;
+        };
         /**
          * Priority
          * @enum {string}
          */
         Priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+        /** ProcessRead */
+        ProcessRead: {
+            /** Steps */
+            steps: components["schemas"]["ProcessStep"][];
+            bottleneck: components["schemas"]["ProcessStep"] | null;
+        };
+        /**
+         * ProcessStep
+         * @description Olay kaydinda ardisik iki adim arasi sure (ornek: TASK_CREATED -> TASK_ACCEPTED).
+         */
+        ProcessStep: {
+            /** From Event */
+            from_event: string;
+            /** To Event */
+            to_event: string;
+            /** Label */
+            label: string;
+            /** Count */
+            count: number;
+            /** Avg Min */
+            avg_min: number | null;
+            /** Median Min */
+            median_min: number | null;
+        };
+        /** RecurringRead */
+        RecurringRead: {
+            /** Threshold */
+            threshold: number;
+            /** Window Days */
+            window_days: number;
+            /** Items */
+            items: components["schemas"]["app__schemas__analytics__RecurringProblem"][];
+        };
         /** RejectRequest */
         RejectRequest: {
             /** Reason */
@@ -1266,6 +1733,25 @@ export interface components {
          * @enum {string}
          */
         ReporterKind: "STUDENT" | "ACADEMIC" | "PERSONNEL";
+        /** ResolutionTimeRow */
+        ResolutionTimeRow: {
+            category: components["schemas"]["CaseCategory"];
+            /** Label */
+            label: string;
+            /** Count */
+            count: number;
+            /** Avg Min */
+            avg_min: number | null;
+            /** Median Min */
+            median_min: number | null;
+            /** P90 Min */
+            p90_min: number | null;
+        };
+        /** ResolutionTimesRead */
+        ResolutionTimesRead: {
+            /** Items */
+            items: components["schemas"]["ResolutionTimeRow"][];
+        };
         /**
          * ReviewItemRead
          * @description Inceleme kuyrugu satiri: AI onerisi (case icinde), guven ve neden buraya dustugu.
@@ -1280,11 +1766,99 @@ export interface components {
             confidence: number | null;
             possible_duplicate_of?: components["schemas"]["CaseRef"] | null;
         };
+        /** Sentence */
+        Sentence: {
+            /** Field */
+            field: string;
+            /** Text */
+            text: string;
+        };
+        /** SlaPriorityRow */
+        SlaPriorityRow: {
+            priority: components["schemas"]["Priority"];
+            /** With Sla */
+            with_sla: number;
+            /** Met */
+            met: number;
+            /** Breached */
+            breached: number;
+            /** Compliance Pct */
+            compliance_pct: number | null;
+        };
+        /** SlaRead */
+        SlaRead: {
+            /** With Sla */
+            with_sla: number;
+            /** Met */
+            met: number;
+            /** Breached */
+            breached: number;
+            /** Compliance Pct */
+            compliance_pct: number | null;
+            /** By Priority */
+            by_priority: components["schemas"]["SlaPriorityRow"][];
+        };
         /**
          * SlaStatus
          * @enum {string}
          */
         SlaStatus: "ON_TRACK" | "AT_RISK" | "BREACHED";
+        /** SlowDepartment */
+        SlowDepartment: {
+            /** Name */
+            name: string;
+            /** Median Resolution Min */
+            median_resolution_min: number;
+        };
+        /**
+         * SummaryInput
+         * @description docs/ANALYTICS.md bolum 5; bilinmeyen alan bos birakilir, cumlesi yazilmaz.
+         */
+        SummaryInput: {
+            period: components["schemas"]["Period"];
+            /** Total Cases */
+            total_cases: number;
+            /** Previous Period Change Pct */
+            previous_period_change_pct?: number | null;
+            top_category?: components["schemas"]["CategoryCount"] | null;
+            highest_problem_location?: components["schemas"]["LocationCount"] | null;
+            /** Sla Compliance Pct */
+            sla_compliance_pct?: number | null;
+            /** Sla Breaches */
+            sla_breaches?: number | null;
+            /** Recurring Problems */
+            recurring_problems?: components["schemas"]["app__agents__analytics_summary__RecurringProblem"][];
+            slowest_department?: components["schemas"]["SlowDepartment"] | null;
+            /** Automation Rate Pct */
+            automation_rate_pct?: number | null;
+        };
+        /**
+         * SummaryPeriod
+         * @enum {string}
+         */
+        SummaryPeriod: "7d" | "30d";
+        /**
+         * SummaryRead
+         * @description AI yonetim ozeti (E5-12): KPI JSON'u ve ondan uretilen metin.
+         */
+        SummaryRead: {
+            kpis: components["schemas"]["SummaryInput"];
+            /** Text */
+            text: string;
+            source: components["schemas"]["SummarySource"];
+            /** Sentences */
+            sentences: components["schemas"]["Sentence"][];
+        };
+        /** SummaryRequest */
+        SummaryRequest: {
+            /** @default 7d */
+            period: components["schemas"]["SummaryPeriod"];
+        };
+        /**
+         * SummarySource
+         * @enum {string}
+         */
+        SummarySource: "TEMPLATE" | "LLM";
         /**
          * TaskRead
          * @description Personel ekrani icin gorev + bildirim ozeti; liste SLA'ya kalan sureye gore siralanir.
@@ -1343,6 +1917,29 @@ export interface components {
             /** Expires In */
             expires_in: number;
         };
+        /**
+         * TrendDirection
+         * @enum {string}
+         */
+        TrendDirection: "up" | "flat" | "down";
+        /** TrendPoint */
+        TrendPoint: {
+            /**
+             * Bucket
+             * Format: date
+             */
+            bucket: string;
+            /** Opened */
+            opened: number;
+            /** Closed */
+            closed: number;
+        };
+        /** TrendRead */
+        TrendRead: {
+            granularity: components["schemas"]["Granularity"];
+            /** Points */
+            points: components["schemas"]["TrendPoint"][];
+        };
         /** UserCreate */
         UserCreate: {
             /**
@@ -1399,6 +1996,39 @@ export interface components {
             department_id?: number | null;
             /** Is Active */
             is_active?: boolean | null;
+        };
+        /** RecurringProblem */
+        app__agents__analytics_summary__RecurringProblem: {
+            /** Location */
+            location: string;
+            /** Type */
+            type: string;
+            /** Type Name */
+            type_name?: string | null;
+            /** Count */
+            count: number;
+        };
+        /**
+         * RecurringProblem
+         * @description Ayni yer + ayni tur, pencere icinde esik ve ustu.
+         *
+         *     Ornek: B Blok 2. Kat Erkek WC - sabun bitti - 17 bildirim.
+         */
+        app__schemas__analytics__RecurringProblem: {
+            location: components["schemas"]["LocationSummary"];
+            case_type: components["schemas"]["CaseTypeSummary"];
+            /** Count */
+            count: number;
+            /**
+             * Last Reported At
+             * Format: date-time
+             */
+            last_reported_at: string;
+            /** Avg Resolution Min */
+            avg_resolution_min: number | null;
+            trend: components["schemas"]["TrendDirection"];
+            /** Suggestion */
+            suggestion: string;
         };
     };
     responses: never;
@@ -3787,6 +4417,858 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DepartmentOption"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    kpis_api_v1_analytics_kpis_get: {
+        parameters: {
+            query?: {
+                from?: string | null;
+                to?: string | null;
+                department_id?: number | null;
+                /** @description Bina lokasyonunun id'si */
+                building_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KpisRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    trend_api_v1_analytics_trend_get: {
+        parameters: {
+            query?: {
+                granularity?: components["schemas"]["Granularity"];
+                from?: string | null;
+                to?: string | null;
+                department_id?: number | null;
+                /** @description Bina lokasyonunun id'si */
+                building_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrendRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    categories_api_v1_analytics_categories_get: {
+        parameters: {
+            query?: {
+                from?: string | null;
+                to?: string | null;
+                department_id?: number | null;
+                /** @description Bina lokasyonunun id'si */
+                building_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoriesRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    locations_api_v1_analytics_locations_get: {
+        parameters: {
+            query?: {
+                level?: components["schemas"]["LocationLevel"];
+                from?: string | null;
+                to?: string | null;
+                department_id?: number | null;
+                /** @description Bina lokasyonunun id'si */
+                building_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocationsRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    resolution_times_api_v1_analytics_resolution_times_get: {
+        parameters: {
+            query?: {
+                from?: string | null;
+                to?: string | null;
+                department_id?: number | null;
+                /** @description Bina lokasyonunun id'si */
+                building_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResolutionTimesRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    sla_api_v1_analytics_sla_get: {
+        parameters: {
+            query?: {
+                from?: string | null;
+                to?: string | null;
+                department_id?: number | null;
+                /** @description Bina lokasyonunun id'si */
+                building_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SlaRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    aging_api_v1_analytics_aging_get: {
+        parameters: {
+            query?: {
+                from?: string | null;
+                to?: string | null;
+                department_id?: number | null;
+                /** @description Bina lokasyonunun id'si */
+                building_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgingRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    departments_api_v1_analytics_departments_get: {
+        parameters: {
+            query?: {
+                from?: string | null;
+                to?: string | null;
+                department_id?: number | null;
+                /** @description Bina lokasyonunun id'si */
+                building_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DepartmentsRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    recurring_api_v1_analytics_recurring_get: {
+        parameters: {
+            query?: {
+                from?: string | null;
+                to?: string | null;
+                department_id?: number | null;
+                /** @description Bina lokasyonunun id'si */
+                building_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecurringRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    process_api_v1_analytics_process_get: {
+        parameters: {
+            query?: {
+                from?: string | null;
+                to?: string | null;
+                department_id?: number | null;
+                /** @description Bina lokasyonunun id'si */
+                building_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProcessRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    summary_api_v1_analytics_summary_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SummaryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SummaryRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    agent_metrics_api_v1_agents_metrics_get: {
+        parameters: {
+            query?: {
+                from?: string | null;
+                to?: string | null;
+                department_id?: number | null;
+                /** @description Bina lokasyonunun id'si */
+                building_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentMetricsRead"];
                 };
             };
             /** @description Unauthorized */
