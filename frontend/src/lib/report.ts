@@ -54,3 +54,32 @@ export function addFiles(current: File[], picked: File[]): FileSelection {
   }
   return { files, problem: rejected ? fileProblem(rejected) : null };
 }
+
+// Konum aramasi (docs/UI_GUIDE.md bolum 5.1). Backend'in normalize kurali ile ayni mantik
+// (backend/app/agents/text.py): kucuk harf, Turkce harfler sadelesir, noktalama bosluk olur.
+export const LOCATION_RESULT_LIMIT = 6; // telefonda klavye acikken ekrana sigan satir sayisi
+
+const TURKISH_FOLD: Readonly<Record<string, string>> = { ç: "c", ğ: "g", ı: "i", ö: "o", ş: "s", ü: "u" };
+
+function fold(text: string): string {
+  return text
+    .toLocaleLowerCase("tr-TR")
+    .replace(/[çğıöşü]/g, (letter) => TURKISH_FOLD[letter] ?? letter)
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+interface SearchableLocation {
+  name: string;
+  code: string;
+  aliases: string[];
+}
+
+// Aramadaki her kelime konumun adinda, kodunda ya da takma adlarinda gecmeli ("b2 wc")
+export function searchLocations<T extends SearchableLocation>(locations: readonly T[], query: string): T[] {
+  const words = fold(query).split(" ").filter(Boolean);
+  return locations.filter((location) => {
+    const haystack = fold([location.name, location.code, ...location.aliases].join(" "));
+    return words.every((word) => haystack.includes(word));
+  });
+}

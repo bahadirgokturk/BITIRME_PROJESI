@@ -27,18 +27,59 @@ function errorBody(code: string, message: string) {
 
 async function fillValidReport(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText("Ne oldu?"), "B blok 2. kat erkek tuvalette sabun bitmiş");
-  await screen.findByRole("option", { name: "B Blok 2. Kat Erkek WC" });
-  await user.selectOptions(screen.getByLabelText("Konum"), "B Blok 2. Kat Erkek WC");
+  await user.click(await screen.findByRole("button", { name: "B Blok 2. Kat Erkek WC" }));
 }
 
 const photo = () => new File(["png"], "sabun.png", { type: "image/png" });
+
+const SLOW_START_MS = 5000;
 
 describe("ReportScreen", () => {
   it("lists the campus locations to choose from", async () => {
     renderScreen();
 
-    expect(await screen.findByRole("option", { name: "B Blok 2. Kat Erkek WC" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "B201 Amfi" })).toBeInTheDocument();
+    // Ilk test sahte API'yi ve bilesenleri ilk kez yukler; yavas CI'da varsayilan 1 sn yetmeyebiliyor
+    const option = await screen.findByRole("button", { name: "B Blok 2. Kat Erkek WC" }, { timeout: SLOW_START_MS });
+    expect(option).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "B201 Amfi" })).toBeInTheDocument();
+  });
+
+  it("finds a location by its nickname, ignoring Turkish letters and case", async () => {
+    const user = renderScreen();
+    await screen.findByRole("button", { name: "B201 Amfi" });
+
+    await user.type(screen.getByLabelText("Konum"), "B2 WC");
+
+    const results = screen.getByRole("list", { name: "Konum sonuçları" });
+    expect(within(results).getAllByRole("button")).toHaveLength(1);
+    expect(within(results).getByRole("button", { name: "B Blok 2. Kat Erkek WC" })).toBeInTheDocument();
+
+    await user.clear(screen.getByLabelText("Konum"));
+    await user.type(screen.getByLabelText("Konum"), "kampus");
+    expect(within(results).getByRole("button", { name: "Merkez Kampüs" })).toBeInTheDocument();
+  });
+
+  it("says so when no location matches", async () => {
+    const user = renderScreen();
+    await screen.findByRole("button", { name: "B201 Amfi" });
+
+    await user.type(screen.getByLabelText("Konum"), "havuz");
+
+    expect(screen.getByText("Eşleşen konum yok. Farklı bir kelime deneyin.")).toBeInTheDocument();
+  });
+
+  it("shows the chosen location and lets the reporter change it", async () => {
+    const user = renderScreen();
+
+    await user.click(await screen.findByRole("button", { name: "B201 Amfi" }));
+
+    expect(screen.getByText("B201 Amfi")).toBeInTheDocument();
+    expect(screen.queryByRole("list", { name: "Konum sonuçları" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Değiştir" }));
+
+    expect(screen.getByLabelText("Konum")).toHaveValue("");
+    expect(screen.getByRole("button", { name: "B Blok 2. Kat Erkek WC" })).toBeInTheDocument();
   });
 
   it("explains what is missing instead of sending", async () => {
@@ -146,7 +187,7 @@ describe("ReportScreen", () => {
     expect(alert).toHaveTextContent("Konumlar yüklenemedi.");
     await user.click(within(alert).getByRole("button", { name: "Tekrar dene" }));
 
-    expect(await screen.findByRole("option", { name: "B201 Amfi" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "B201 Amfi" })).toBeInTheDocument();
   });
 
   it("starts a new, empty report from the confirmation", async () => {

@@ -78,11 +78,12 @@ describe("TaskDetail", () => {
       new File(["foto"], "lavabo.png", { type: "image/png" }),
       new File(["foto"], "yanlis.webp", { type: "image/webp" }),
     ]);
-    await user.click(within(dialog).getByRole("button", { name: "yanlis.webp fotoğrafını kaldır" }));
+    await user.click(within(dialog).getByRole("button", { name: "yanlis.webp dosyasını kaldır" }));
     await user.type(within(dialog).getByLabelText("Not (isteğe bağlı)"), "Sabunluklar dolduruldu.");
-    expect(within(dialog).getByText("sabunluk.jpg")).toBeInTheDocument();
-    expect(within(dialog).getByText("lavabo.png")).toBeInTheDocument();
-    expect(within(dialog).queryByText("yanlis.webp")).not.toBeInTheDocument();
+    const picked = within(dialog).getByRole("list", { name: "Eklenen dosyalar" });
+    expect(within(picked).getByRole("listitem", { name: "sabunluk.jpg" })).toBeInTheDocument();
+    expect(within(picked).getByRole("listitem", { name: "lavabo.png" })).toBeInTheDocument();
+    expect(within(picked).queryByRole("listitem", { name: "yanlis.webp" })).not.toBeInTheDocument();
     expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
     await user.click(within(dialog).getByRole("button", { name: "Tamamla" }));
 
