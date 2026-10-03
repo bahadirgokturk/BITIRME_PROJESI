@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { addFiles, descriptionProblem, fileProblem, REPORT_MAX_FILES } from "./report";
+import { LOCATIONS } from "@/mocks/fixtures";
+
+import { addFiles, descriptionProblem, fileProblem, REPORT_MAX_FILES, searchLocations } from "./report";
 
 const MB = 1024 * 1024;
 
@@ -68,5 +70,28 @@ describe("addFiles", () => {
 
     expect(result.files).toHaveLength(REPORT_MAX_FILES);
     expect(result.problem).toBe("En fazla 5 dosya eklenebilir.");
+  });
+});
+
+describe("searchLocations", () => {
+  const names = (query: string) => searchLocations(LOCATIONS, query).map((location) => location.name);
+
+  it("returns every location for an empty search", () => {
+    expect(names("  ")).toHaveLength(LOCATIONS.length);
+  });
+
+  it("matches the name without caring about case or Turkish letters", () => {
+    expect(names("KAMPUS")).toEqual(["Merkez Kampüs"]);
+    expect(names("erkek wc")).toEqual(["B Blok 2. Kat Erkek WC"]);
+  });
+
+  it("matches nicknames and codes", () => {
+    expect(names("b2 wc")).toEqual(["B Blok 2. Kat Erkek WC"]);
+    expect(names("amfi")).toEqual(["B201 Amfi"]);
+    expect(names("B-201")).toEqual(["B201 Amfi"]);
+  });
+
+  it("needs every word to match", () => {
+    expect(names("amfi wc")).toEqual([]);
   });
 });

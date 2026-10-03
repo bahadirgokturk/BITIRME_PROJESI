@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { apiUrl } from "@/lib/api/client";
 
 import { CASES } from "./caseFixtures";
+import { TASKS } from "./taskFixtures";
 
 function postCase(body: object) {
   return fetch(apiUrl("/cases"), {
@@ -32,6 +33,12 @@ describe("mock cases API", () => {
     expect(created.status).toBe("ANALYZING");
     expect(created.case_number).toMatch(/^CASE-\d{6}$/);
     expect(mine.items.map((c: { id: number }) => c.id)).toContain(created.id);
+  });
+
+  it("gives a new case a number no staff task fixture already uses", async () => {
+    const created = await (await postCase({ description: "Koridorda lamba yanmıyor.", location_id: 4 })).json();
+
+    expect(TASKS.map((task) => task.case_id)).not.toContain(created.id);
   });
 
   it("cuts a long default title at a word boundary like the backend", async () => {

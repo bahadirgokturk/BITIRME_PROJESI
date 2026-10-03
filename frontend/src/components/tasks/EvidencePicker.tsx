@@ -1,9 +1,9 @@
 "use client";
 
-import { CameraIcon, XIcon } from "lucide-react";
+import { CameraIcon } from "lucide-react";
 import { useState, type ChangeEvent } from "react";
 
-import { Button } from "@/components/ui/button";
+import { FileThumbs } from "@/components/files/FileThumb";
 import { Label } from "@/components/ui/label";
 import { addEvidence, EVIDENCE_MAX_COUNT, EVIDENCE_TYPES } from "@/lib/tasks";
 
@@ -14,41 +14,6 @@ const BOX_CLASS =
 interface EvidencePickerProps {
   photos: File[];
   onChange: (photos: File[]) => void;
-}
-
-function PickedPhoto({ photo, onRemove }: { photo: File; onRemove: () => void }) {
-  return (
-    <li className="flex items-center gap-2 rounded-lg border bg-muted/50 pl-3">
-      <CameraIcon aria-hidden className="size-5 shrink-0 text-muted-foreground" />
-      <span className="min-w-0 flex-1 truncate text-sm">{photo.name}</span>
-      <Button
-        type="button"
-        variant="ghost"
-        className="size-11"
-        aria-label={`${photo.name} fotoğrafını kaldır`}
-        onClick={onRemove}
-      >
-        <XIcon aria-hidden className="size-4" />
-      </Button>
-    </li>
-  );
-}
-
-function PickedPhotos({ photos, onChange }: EvidencePickerProps) {
-  if (photos.length === 0) {
-    return null;
-  }
-  return (
-    <ul className="space-y-1.5">
-      {photos.map((photo, index) => (
-        <PickedPhoto
-          key={`${photo.name}-${photo.lastModified}-${index}`}
-          photo={photo}
-          onRemove={() => onChange(photos.filter((item) => item !== photo))}
-        />
-      ))}
-    </ul>
-  );
 }
 
 // Kanit fotograflari: telefonda dosya secici kamerayi ya da galeriyi sunar (Figma: CompleteSheet > PhotoPicker)
@@ -74,7 +39,6 @@ export function EvidencePicker({ photos, onChange }: EvidencePickerProps) {
         onChange={pick}
         className="peer sr-only"
       />
-      <PickedPhotos photos={photos} onChange={onChange} />
       {photos.length < EVIDENCE_MAX_COUNT ? (
         <label htmlFor={FIELD_ID} className={BOX_CLASS}>
           <CameraIcon aria-hidden className="size-5 text-muted-foreground" />
@@ -84,6 +48,7 @@ export function EvidencePicker({ photos, onChange }: EvidencePickerProps) {
       <p className="text-xs text-muted-foreground">
         Fotoğraf eklersen iş ek doğrulama beklemeden kapanır.
       </p>
+      <FileThumbs files={photos} onRemove={(index) => onChange(photos.filter((_, i) => i !== index))} />
       {problem ? (
         <p role="alert" className="text-sm font-medium text-destructive">
           {problem}
