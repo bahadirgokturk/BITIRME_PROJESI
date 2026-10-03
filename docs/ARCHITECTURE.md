@@ -166,6 +166,6 @@ Pipeline FastAPI `BackgroundTasks` ile çalışır (tüm modeller yerel, toplam 
 - Parola: `argon2` (passlib/argon2-cffi). JWT access token (30 dk) + refresh token (httpOnly cookie).
 - RBAC: route dependency `require_roles(...)`; **ownership** kontrolü servis katmanında
   (IDOR: reporter yalnız kendi case'ini, staff yalnız kendine atanmış task'ı görür).
-- Upload: MIME sniffing (magic bytes), uzantı whitelist (jpg/png/webp), 5 MB limit, rastgele dosya adı, EXIF temizleme.
+- Upload: MIME sniffing (magic bytes), uzantı whitelist (jpg/png/webp), 10 MB limit, tür başına 5 dosya (bildirim / kanıt), rastgele dosya adı, EXIF temizleme.
 - CORS: env'den whitelist. Loglarda parola/token/kişisel veri yok. `audit_logs` admin işlemleri için.
 - Rate limit (opsiyonel): `slowapi` ile login ve case oluşturma.

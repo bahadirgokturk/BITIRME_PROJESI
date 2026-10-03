@@ -17,8 +17,8 @@ def get(session: Session, attachment_id: int) -> Attachment | None:
     return session.get(Attachment, attachment_id)
 
 
-def count_for_case(session: Session, case_id: int) -> int:
-    statement = select(func.count()).where(Attachment.case_id == case_id)
+def count_of_kind(session: Session, case_id: int, kind: AttachmentKind) -> int:
+    statement = select(func.count()).where(Attachment.case_id == case_id, Attachment.kind == kind)
     return session.scalar(statement) or 0
 
 

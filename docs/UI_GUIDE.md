@@ -149,7 +149,7 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   **Konum**, **Fotoğraf veya video (isteğe bağlı)**. Kategori/öncelik alanı **yok**.
 - **Konum seçici:** Arama kutusu (lokasyon adı ve takma adlarıyla eşleşir: "b2 wc") + son kullanılan konumlar.
   Kampüs → Bina → Kat → Alan ağacı ikincil yol olarak sunulur. Metinde konum geçiyorsa AI önerir, kullanıcı onaylar.
-- **Fotoğraf / video:** Kamera veya galeri; fotoğraf jpg/png/webp en fazla 5 MB, video mp4/mov en fazla
+- **Fotoğraf / video:** Kamera veya galeri; fotoğraf jpg/png/webp en fazla 10 MB, video mp4/mov en fazla
   30 sn ve 50 MB (toplam 5 dosya). Yükleme sırasında önizleme ve ilerleme; video için süre aşımı mesajı
   (`VIDEO_TOO_LONG`) Türkçe gösterilir.
 - **Gönder butonu** ekranın altında, başparmak erişiminde, tam genişlik.
@@ -176,7 +176,7 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   `--destructive`, her zaman ikon + metinle). Biten görevde süre rozeti ve eylem yoktur; sonuç kartı gösterilir.
   Kurallar: `lib/tasks.ts`.
 - Kanıt fotoğrafı (isteğe bağlı, birden fazla): telefonun dosya seçicisi kamerayla çekmeyi ya da galeriden seçmeyi
-  sunar. JPG/PNG/WEBP, her biri en fazla 5 MB, en çok 5 dosya (bildirenin dosyalarıyla ortak sınır, asıl denetim
+  sunar. JPG/PNG/WEBP, her biri en fazla 10 MB, en çok 5 kanıt fotoğrafı (bildirenin dosyalarından ayrı sınır, asıl denetim
   backend'de); gönderilmeden önce denetlenir. Önce fotoğraflar sırayla yüklenir (`POST /cases/{id}/attachments`,
   backend personelin dosyasını `EVIDENCE` olarak kaydeder), sonra görev tamamlanır; yükleme başarısızsa görev
   tamamlanmaz. Tamamlanan görevin sonuç kartında kanıt fotoğrafları küçük görsel olarak gösterilir.

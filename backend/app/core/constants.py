@@ -39,10 +39,11 @@ CASE_TITLE_FROM_DESCRIPTION_LENGTH = 60
 CASE_NUMBER_PREFIX = "CASE-"
 CASE_NUMBER_DIGITS = 6
 
-# Fotograf yukleme (docs/ARCHITECTURE.md bolum 9): telefon fotografi sikistirilinca 5 MB'a sigar
-MAX_UPLOAD_MB_DEFAULT = 5
+# Fotograf yukleme (docs/ARCHITECTURE.md bolum 9): guncel telefon fotografi 4-8 MB; 5 MB dar geldi
+MAX_UPLOAD_MB_DEFAULT = 10
 BYTES_PER_MB = 1024 * 1024
-# Bir bildirime en fazla 5 fotograf: olayi gostermeye yeter, depolama kotuye kullanilamaz
+# Bir bildirime tur basina (bildirim fotografi / personelin kanit fotografi) en fazla 5 dosya: olayi
+# gostermeye yeter, depolama kotuye kullanilamaz. Ayri sinir: bildirenin dosyalari kaniti engellemez
 MAX_ATTACHMENTS_PER_CASE = 5
 # Kaydedilen dosya adi (original_name) siniri; tam ad yalniz gosterim icin
 ATTACHMENT_NAME_MAX_LENGTH = 255

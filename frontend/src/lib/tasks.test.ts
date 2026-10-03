@@ -71,7 +71,7 @@ describe("evidenceProblem", () => {
 
   it("explains why a file cannot be used", () => {
     expect(evidenceProblem(photo("application/pdf"))).toMatch(/JPG, PNG ya da WEBP/);
-    expect(evidenceProblem(photo("image/jpeg", EVIDENCE_MAX_BYTES + 1))).toMatch(/en fazla 5 MB/);
+    expect(evidenceProblem(photo("image/jpeg", EVIDENCE_MAX_BYTES + 1))).toMatch(/en fazla 10 MB/);
   });
 });
 

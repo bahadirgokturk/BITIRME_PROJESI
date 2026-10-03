@@ -6,7 +6,7 @@ export const DESCRIPTION_MAX_LENGTH = 2000; // CASE_DESCRIPTION_MAX_LENGTH
 export const REPORT_MAX_FILES = 5; // MAX_ATTACHMENTS_PER_CASE
 
 const BYTES_PER_MB = 1024 * 1024;
-const PHOTO_MAX_MB = 5; // MAX_UPLOAD_MB_DEFAULT
+const PHOTO_MAX_MB = 10; // MAX_UPLOAD_MB_DEFAULT
 const VIDEO_MAX_MB = 50; // MAX_VIDEO_MB_DEFAULT (30 sn siniri dosyanin icinde; yalniz backend denetler)
 
 const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
