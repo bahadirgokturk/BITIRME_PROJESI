@@ -5,7 +5,7 @@ cookie'dedir: JavaScript okuyamaz (XSS), SameSite=Strict baska siteden gonderile
 path kisitli oldugu icin yalniz /auth istekleriyle gider.
 """
 
-from datetime import datetime
+from datetime import timedelta
 from http import HTTPStatus
 from typing import Annotated, Any
 
@@ -34,14 +34,14 @@ AppSettings = Annotated[Settings, Depends(get_app_settings)]
 RefreshCookie = Annotated[str | None, Cookie(alias=REFRESH_COOKIE_NAME)]
 
 
-def _set_refresh_cookie(
-    response: Response, token: str, expires_at: datetime, settings: Settings
-) -> None:
+def _set_refresh_cookie(response: Response, token: str, settings: Settings) -> None:
     # Yerelde http://localhost kullanildigi icin Secure yalniz local disinda zorunlu
     response.set_cookie(
         key=REFRESH_COOKIE_NAME,
         value=token,
-        expires=expires_at,
+        # Goreli omur (Max-Age): tarayici saati sunucudan farkli olsa da dogru sure yasar.
+        # Token her verildiginde omru yeniden baslar (auth_service: now + ttl)
+        max_age=int(timedelta(days=settings.jwt_refresh_ttl_days).total_seconds()),
         path=REFRESH_COOKIE_PATH,
         httponly=True,
         secure=settings.environment is not Environment.LOCAL,
@@ -50,7 +50,7 @@ def _set_refresh_cookie(
 
 
 def _token_response(response: Response, tokens: IssuedTokens, settings: Settings) -> TokenRead:
-    _set_refresh_cookie(response, tokens.refresh_token, tokens.refresh_expires_at, settings)
+    _set_refresh_cookie(response, tokens.refresh_token, settings)
     return TokenRead(access_token=tokens.access_token, expires_in=tokens.expires_in)
 
 
