@@ -32,6 +32,21 @@ TAU_MINUTES: dict[str, int] = {"WATER_LEAK": 60}
 SECONDS_PER_MINUTE = 60
 DUPLICATE_FROM = 0.80
 POSSIBLE_DUPLICATE_FROM = 0.60
+# Ayni sorunun farkli yerlerden bildirilebildigi turler (Wi-Fi kesintisi, elektrik, su, asansor...).
+# Digerleri noktasaldir (sabun, kagit, cop, mobilya, projektor): baska yerdeki bildirim baska
+# sorundur, aday sayilmaz. Uctan uca denemede baska kattaki sabunluk "olasi tekrar" cikiyordu
+SPREADING_TYPES = frozenset(
+    {
+        "WIFI_FAILURE",
+        "ELECTRICAL_FAILURE",
+        "WATER_LEAK",
+        "ELEVATOR_FAILURE",
+        "AIR_CONDITIONER_FAILURE",
+        "SECURITY_INCIDENT",
+        "GREEN_AREA",
+        "CAFETERIA_ISSUE",
+    }
+)
 # Manager'a gosterilen en benzer bildirim sayisi
 MAX_SIMILAR_CASES = 3
 SCORE_DIGITS = 3
@@ -99,6 +114,20 @@ def _text_similarities(text: str, others: list[str]) -> list[float]:
     return [float(v) for v in (matrix[1:] @ matrix[0].T).toarray().ravel()]
 
 
+def _containments(text: str, others: list[str]) -> list[float]:
+    """Kisa metnin n-gramlarinin uzun metinde gecen orani. "Sabun bitmis", "Kadinlar tuvaletinde
+    sabun bitmis, sabunluklar bombos" icinde tamamen gecer; kosinus uzunluk farkindan dusuk
+    kalir."""
+    analyzer = TfidfVectorizer(analyzer="char_wb", ngram_range=NGRAM_RANGE).build_analyzer()
+    grams = set(analyzer(normalize(text)))
+    scores = []
+    for other in others:
+        other_grams = set(analyzer(normalize(other)))
+        smaller = min(len(grams), len(other_grams))
+        scores.append(len(grams & other_grams) / smaller if smaller else 0.0)
+    return scores
+
+
 def _segment(path: str, index: int) -> str | None:
     segments = path.split(PATH_SEPARATOR)
     # Son parca yerin kendisidir; kat ancak yer kattan derindeyse vardir
@@ -136,6 +165,16 @@ def _similar(inp: DuplicateInput, candidate: DuplicateCandidate, text: float) ->
         + LOCATION_WEIGHT * components["location"]
         + TIME_WEIGHT * components["time"]
     )
+    # Kural: noktasal sorunda ayni yerde ayni turde acik bildirim varsa sorun aynidir; yazim farki
+    # ("sabun bitmis" / "sabun kalmamis") ayri sorun yapmaz (uctan uca denemede bulundu)
+    same_spot = (
+        inp.case_type_code not in SPREADING_TYPES
+        and candidate.location_id == inp.location_id
+        and candidate.case_type_code == inp.case_type_code
+    )
+    components["same_spot"] = 1.0 if same_spot else 0.0
+    if same_spot:
+        score = max(score, DUPLICATE_FROM)
     return SimilarCase(
         case_id=candidate.case_id,
         score=round(min(score, 1.0), SCORE_DIGITS),
@@ -143,13 +182,27 @@ def _similar(inp: DuplicateInput, candidate: DuplicateCandidate, text: float) ->
     )
 
 
+def _comparable(inp: DuplicateInput) -> list[DuplicateCandidate]:
+    if inp.case_type_code in SPREADING_TYPES:
+        return list(inp.candidates)
+    return [c for c in inp.candidates if c.location_id == inp.location_id]
+
+
 def _check(inp: DuplicateInput) -> DuplicateOutput:
-    texts = _text_similarities(inp.text, [c.text for c in inp.candidates])
+    candidates = _comparable(inp)
+    others = [c.text for c in candidates]
+    cosines = _text_similarities(inp.text, others)
+    contained = _containments(inp.text, others)
+    # Kapsama yalniz ayni yerde: baska odadan gelen "wifi yok" otomatik birlesmesin
+    texts = [
+        max(cos, inside) if c.location_id == inp.location_id else cos
+        for c, cos, inside in zip(candidates, cosines, contained, strict=True)
+    ]
     ranked = sorted(
-        (_similar(inp, c, t) for c, t in zip(inp.candidates, texts, strict=True)),
+        (_similar(inp, c, t) for c, t in zip(candidates, texts, strict=True)),
         key=lambda s: (-s.score, s.case_id),
     )
-    merged_into = {c.case_id: c.duplicate_count for c in inp.candidates}
+    merged_into = {c.case_id: c.duplicate_count for c in candidates}
     similar = [s for s in ranked if s.score >= POSSIBLE_DUPLICATE_FROM]
     best = ranked[0] if ranked else None
     return DuplicateOutput(
