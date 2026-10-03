@@ -207,6 +207,9 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
 
 - Arayüz metinleri **tam Türkçe** ve Türkçe karakterli ("Gönder", "Bildirimlerim"). Cümle düzeninde yazılır
   ("Bildirim yap", "Bildirim Yap" değil).
+- Menü ve başlıklarda yabancı terim kullanılmaz; memurların bildiği adlar yazılır: "Genel bakış" (dashboard),
+  "Raporlar" (analytics), "Yapay zekâ performansı" (agent metrikleri), "Tüm bildirimler" (case listesi).
+  Adresler (route) İngilizce kalır (`/manager/dashboard`); tek kaynak `lib/navigation.ts`.
 - Butonlar fiildir: "Gönder", "Kabul et", "Tamamla". "Tamam/Evet" yerine eylemi söyleyen metin.
 - Hata mesajları backend'den `error.message` olarak gelir ([API.md](API.md): `{"error": {code, message, details}}`);
   frontend bunları olduğu gibi gösterir, kendisi uydurmaz. Alan hataları ilgili alanın altında gösterilir.

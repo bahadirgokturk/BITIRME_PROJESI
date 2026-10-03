@@ -39,7 +39,7 @@ describe("AppShell", () => {
       within(nav).getByRole("link", { name: "Görevlerim" }),
     ).toHaveAttribute("href", "/staff/tasks");
     expect(
-      within(nav).queryByRole("link", { name: "Dashboard" }),
+      within(nav).queryByRole("link", { name: "Genel bakış" }),
     ).not.toBeInTheDocument();
     expect(screen.getByText("içerik")).toBeInTheDocument();
     expect(screen.getByText("Mehmet Demir")).toBeInTheDocument();

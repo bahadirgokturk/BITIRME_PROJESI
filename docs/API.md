@@ -150,6 +150,14 @@ seçilen kişi o departmanın aktif STAFF'ı değilse `422 INVALID_ASSIGNEE`. Ak
 
 ## Analytics (Manager/Admin)
 Ortak parametreler: `from`, `to`, `department_id?`, `building_id?`
+
+📄 **Sözleşme yayında (FAZ 6):** tüm şemalar OpenAPI'de (`KpisRead`, `TrendRead`, `CategoriesRead`, `LocationsRead`,
+`ResolutionTimesRead`, `SlaRead`, `AgingRead`, `DepartmentsRead`, `RecurringRead`, `ProcessRead`, `SummaryRead`,
+`AgentMetricsRead`; `backend/app/schemas/analytics.py`). İş mantığı gelene kadar endpoint'ler `501 NOT_IMPLEMENTED`
+döner; frontend MSW ile sahte veriyle çalışır. Şimdiden çalışanlar: rol (yalnız MANAGER/ADMIN, diğerleri `403`) ve
+parametre doğrulaması (`from` > `to` ya da 366 günden uzun dönem → `422 INVALID_PERIOD`; bilinmeyen
+`granularity`/`level` → `422`). Varsayılan dönem: bugün dahil son 7 gün (Europe/Istanbul). Süreler dakika, oranlar
+yüzde (0–100); veri yoksa `null` (ekran "–" gösterir). KPI kartları `{value, previous, delta_pct}`.
 | Method | Path | Açıklama |
 |---|---|---|
 | GET | `/analytics/kpis` | KPI kartları |
@@ -167,7 +175,7 @@ Ortak parametreler: `from`, `to`, `department_id?`, `building_id?`
 ## Agents
 | Method | Path | Açıklama |
 |---|---|---|
-| GET | `/agents/metrics` | accuracy, avg confidence, automation, human review, override, dup precision |
+| GET | `/agents/metrics` | 📄 sözleşme (`AgentMetricsRead`): automation, human review, classification accuracy, dup precision; agent bazında karar sayısı, ortalama güven, override oranı |
 | GET | `/agents/decisions` | filtre: agent_name, decision, from, to |
 | GET | `/agents/models` | `ml_models` listesi ve metrikleri |
 
