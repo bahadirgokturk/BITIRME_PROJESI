@@ -22,6 +22,9 @@ QUEUE = "/api/v1/manager/review-queue"
 SOAP = "Tuvalette sabun bitmiş, sabunluklar bomboş"
 SOAP_SHORT = "Sabun bitmiş"
 SOAP_OTHER_WORDS = "Erkek tuvaletinde sabun yok"
+# Yayilan sorun yan odadan: ayni ariza olabilir, karari manager verir (benzerlik 0.60-0.80)
+WIFI = "Amfide wifi yok"
+WIFI_NEARBY = "İnternet yok, wifi bağlanmıyor"
 TRASH = "Tuvalette çöp kutusu dolmuş, taşıyor"
 
 
@@ -34,6 +37,8 @@ class Campus:
     manager: Headers
     wc_id: int
     other_building_wc_id: int
+    amfi_id: int
+    lab_id: int
 
 
 @pytest.fixture
@@ -54,6 +59,8 @@ def campus(agent_client: TestClient, db_session: Session) -> Campus:
         manager=bearer(agent_client, "mudur.destek@kampus.example.com", PASSWORD),
         wc_id=location("A-1-WCE"),
         other_building_wc_id=location("B-Z-WC"),
+        amfi_id=location("A-101"),
+        lab_id=location("A-1-LAB"),
     )
 
 
@@ -62,6 +69,11 @@ def _report(client: TestClient, headers: Headers, text: str, location_id: int) -
     created = client.post("/api/v1/cases", json=body, headers=headers)
     assert created.status_code == 201
     return client.get(f"/api/v1/cases/{created.json()['id']}", headers=headers).json()
+
+
+def _possible_pair(client: TestClient, campus: Campus) -> tuple[dict, dict]:
+    first = _report(client, campus.reporter, WIFI, campus.amfi_id)
+    return first, _report(client, campus.other_reporter, WIFI_NEARBY, campus.lab_id)
 
 
 def _first_and_second(client: TestClient, campus: Campus, second: str) -> tuple[dict, dict]:
@@ -180,13 +192,22 @@ def test_closed_problems_are_not_candidates(
     assert second["status"] == "ASSIGNED"
 
 
+def test_any_wording_of_the_same_spot_problem_is_merged(
+    agent_client: TestClient, campus: Campus
+) -> None:
+    # Ayni tuvalette acik sabun bildirimi varken farkli kelimelerle yazilan da ayni sorundur
+    first, second = _first_and_second(agent_client, campus, SOAP_OTHER_WORDS)
+
+    assert (second["status"], second["parent_case_id"]) == ("MERGED", first["id"])
+
+
 # --- Olasi tekrar: manager karar verir ----------------------------------------------------
 
 
 def test_possible_duplicate_goes_to_review_with_the_suspected_original(
     agent_client: TestClient, db_session: Session, campus: Campus
 ) -> None:
-    first, second = _first_and_second(agent_client, campus, SOAP_OTHER_WORDS)
+    first, second = _possible_pair(agent_client, campus)
 
     assert second["status"] == "CLASSIFIED"
     assert second["needs_human_review"] is True
@@ -205,7 +226,7 @@ def test_possible_duplicate_goes_to_review_with_the_suspected_original(
 def test_manager_merges_a_possible_duplicate_and_it_is_recorded_as_feedback(
     agent_client: TestClient, db_session: Session, campus: Campus
 ) -> None:
-    first, second = _first_and_second(agent_client, campus, SOAP_OTHER_WORDS)
+    first, second = _possible_pair(agent_client, campus)
 
     response = _merge(agent_client, campus, second["id"], first["id"])
 
@@ -230,7 +251,7 @@ def test_manager_merges_a_possible_duplicate_and_it_is_recorded_as_feedback(
 def test_merged_reports_carry_their_own_duplicates_to_the_new_parent(
     agent_client: TestClient, db_session: Session, campus: Campus
 ) -> None:
-    first, second = _first_and_second(agent_client, campus, SOAP_OTHER_WORDS)
+    first, second = _possible_pair(agent_client, campus)
     _case(db_session, second["id"]).duplicate_count = 2
     db_session.flush()
 
@@ -243,7 +264,7 @@ def test_merged_reports_carry_their_own_duplicates_to_the_new_parent(
 def test_invalid_merge_targets_are_refused(
     agent_client: TestClient, db_session: Session, campus: Campus, target: str
 ) -> None:
-    first, second = _first_and_second(agent_client, campus, SOAP_OTHER_WORDS)
+    first, second = _possible_pair(agent_client, campus)
     _case(db_session, first["id"]).status = CaseStatus.REJECTED
     db_session.flush()
     parent = {"self": second["id"], "rejected": first["id"], "missing": 999_999}[target]
@@ -263,7 +284,7 @@ def test_an_assigned_case_cannot_be_merged(agent_client: TestClient, campus: Cam
 
 @pytest.mark.parametrize("who", ["reporter", "staff"])
 def test_only_managers_merge(agent_client: TestClient, campus: Campus, who: str) -> None:
-    first, second = _first_and_second(agent_client, campus, SOAP_OTHER_WORDS)
+    first, second = _possible_pair(agent_client, campus)
 
     response = agent_client.post(
         f"/api/v1/cases/{second['id']}/merge",

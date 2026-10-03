@@ -107,3 +107,18 @@ def test_meaningless_text_is_marked() -> None:
 
     assert result.output.is_meaningful is False
     assert result.decision == "TOO_SHORT"
+
+
+def test_a_title_taken_from_the_description_is_not_counted_twice() -> None:
+    # Bos baslik aciklamanin basindan uretilir; ayni harfler iki kez sayilip anlamsiz metin
+    # "anlasilir" sayilmamali (uctan uca denemede bulundu)
+    result = _run("?? !! ... asdf ??", title="?? !! ... asdf ??")
+
+    assert result.output.is_meaningful is False
+    assert result.output.normalized_text == "asdf"
+
+
+def test_a_title_written_by_the_reporter_is_used() -> None:
+    result = _run("Sabun yok", title="B blok erkek tuvaleti")
+
+    assert result.output.normalized_text == "b blok erkek tuvaleti sabun yok"

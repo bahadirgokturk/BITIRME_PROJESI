@@ -115,6 +115,8 @@ Orchestrator sıralı ve basittir (Python fonksiyonları). LangChain/LangGraph k
 - **Çıktı (v1.0):** `normalized_text, urgency_hints[], location_hints[], location_consistency, is_meaningful, has_photo`.
   `problem_phrase` / `entities` ve yazım hatası toleransı (`rapidfuzz`) ileride; karakter n-gram modeli ekli ve
   hatalı yazımları zaten tolere eder.
+- Başlık boş bırakılınca açıklamanın başından üretilir; Intake o zaman metni iki kez saymaz (uçtan uca denemede
+  "?? !! ... asdf ??" harfler iki kez sayıldığı için "anlaşılır" görünüyordu; şimdi `NEEDS_INFO`).
 - Seçilen lokasyon ile metindeki lokasyon ipucu çelişiyorsa `location_consistency=false` (Verification sinyali).
   Kontrol: metindeki bina harfi (`b blok`) ve oda kodu (`a101`/`a-101`) seçilen lokasyonun yolunda var mı; ipucu
   yoksa `null`. Eş anlamlılar yalnız **tam kelime** eşlenir (`wc`/`lavabo` → `tuvalet`).
@@ -162,6 +164,16 @@ Orchestrator sıralı ve basittir (Python fonksiyonları). LangChain/LangGraph k
 - **Ölçülen örnekler** (aynı WC, aynı anda): "Sabun bitmiş" → 0,83 birleştir; "Erkek tuvaletinde sabun yok" →
   0,74 manager incelesin; aynı yerde "çöp kutusu dolmuş" → 0,44 yeni bildirim. Tür eşleşmesi ayrımı taşır;
   metin tek başına zayıf ("klima çalışmıyor" / "projeksiyon çalışmıyor" metin benzerliği 0,58).
+- **Uçtan uca denemeden sonra eklenen kurallar (temiz veritabanında 17 senaryo):**
+  - **Noktasal / yayılan sorun:** sabun, kâğıt, çöp, mobilya, projektör gibi noktasal sorunlarda yalnız aynı yer aday
+    olur (başka kattaki sabunluk "olası tekrar" çıkıyordu). Yayılan türler (`SPREADING_TYPES`: Wi-Fi, elektrik, su,
+    asansör, klima, güvenlik, bahçe, yemekhane) başka odadan da bildirilebilir; kat/bina yakınlığı sayılır.
+  - **Aynı nokta kuralı:** noktasal sorunda aynı yerde aynı türde açık bildirim varsa sorun aynıdır; yazım farkı
+    ("sabun bitmiş" / "sabun kalmamış") ayrı sorun yapmaz → skor en az 0,80 (`components.same_spot = 1`). Yayılan
+    türlerde uygulanmaz (yemekhanede "yemek soğuk" ile "kasada kuyruk" ayrı sorun).
+  - **Kapsama:** aynı yerde kısa metnin n-gramları uzun metinde geçiyorsa metin benzerliği kapsama oranıdır
+    ("wifi yok" ⊂ "Kütüphanede wifi yok, hiçbir cihaz bağlanmıyor"); kosinüs uzunluk farkından düşük kalıyordu.
+    Başka yerde uygulanmaz (başka odadan kısa şikâyet otomatik birleşmez, manager karar verir).
 - `duplicate_count` (Verification ve Priority sinyali) = eşik (0,60) üstündeki her benzer bildirim + ona daha
   önce bağlananlar. Karar kodları `DUPLICATE | POSSIBLE_DUPLICATE | NEW_CASE`; eşikler Supervisor ile ortak.
 - **Birleştirme** (`services/merge.py`, agent ve manager ortak): bildirim `MERGED`, `parent_case_id` dolar, ana

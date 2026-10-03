@@ -79,7 +79,7 @@ class IntakeAgent:
 
 
 def _analyze(inp: IntakeInput) -> IntakeOutput:
-    text = normalize(f"{inp.title} {inp.description}")
+    text = _combined(inp)
     return IntakeOutput(
         normalized_text=text,
         urgency_hints=[term for term in URGENCY_TERMS if re.search(rf"\b{term}", text)],
@@ -106,6 +106,15 @@ def _consistency(text: str, location: LocationInfo) -> bool | None:
     if not checks:
         return None
     return all(checks)
+
+
+def _combined(inp: IntakeInput) -> str:
+    """Baslik + aciklama. Bos birakilan baslik aciklamanin basindan uretilir; o zaman ayni metin iki
+    kez sayilmaz (anlamsiz kisa metin "anlasilir" gorunurdu)."""
+    title, description = normalize(inp.title), normalize(inp.description)
+    if description.startswith(title):
+        return description
+    return f"{title} {description}"
 
 
 def _is_meaningful(text: str) -> bool:
