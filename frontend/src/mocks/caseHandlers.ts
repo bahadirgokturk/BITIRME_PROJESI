@@ -6,6 +6,7 @@ import type { components } from "@/lib/api/types";
 
 import { CASES, EMPTY_CASE, timelineFor } from "./caseFixtures";
 import { LOCATIONS, USERS } from "./fixtures";
+import { TASKS } from "./taskFixtures";
 import { taskEventsFor } from "./taskHandlers";
 
 type Schemas = components["schemas"];
@@ -49,7 +50,9 @@ function newCase(
   body: Schemas["CaseCreate"],
   location: Schemas["LocationRead"],
 ): Schemas["CaseRead"] {
-  const id = Math.max(...cases.map((item) => item.id)) + 1;
+  // Personel gorevlerinin bildirim numaralari da dolu sayilir: yeni bildirim onlarla cakismasin
+  const used = [...cases.map((item) => item.id), ...TASKS.map((task) => task.case_id)];
+  const id = Math.max(...used) + 1;
   return {
     ...EMPTY_CASE,
     id,

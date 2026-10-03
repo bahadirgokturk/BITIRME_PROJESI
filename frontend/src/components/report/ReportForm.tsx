@@ -93,7 +93,7 @@ export function ReportForm({ mutation }: { mutation: ReturnType<typeof useCreate
   }
 
   return (
-    <form noValidate onSubmit={submit} className="mx-auto flex w-full max-w-[640px] flex-col gap-6">
+    <form noValidate onSubmit={submit} className="mx-auto flex w-full max-w-[720px] flex-col gap-6">
       <ReportIntro />
       <div className="flex flex-col gap-5 md:rounded-xl md:border md:p-8">
         <DescriptionField
