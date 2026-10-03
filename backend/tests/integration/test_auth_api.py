@@ -49,6 +49,10 @@ def test_login_returns_access_token_and_sets_hardened_refresh_cookie(
     assert "httponly" in cookie_header
     assert "samesite=strict" in cookie_header
     assert "path=/api/v1/auth" in cookie_header
+    # Goreli omur: tarayici saati yanlis olsa da 7 gun yasar. Mutlak "expires" sunucu saatinden
+    # hesaplaniyordu; testlerin dondurulmus saati gecmiste kalinca cerez atiliyordu (CI 2026-10-03)
+    assert f"max-age={7 * 24 * 60 * 60}" in cookie_header
+    assert "expires=" not in cookie_header
     # Refresh token yanit govdesinde yok; JavaScript onu hic goremez
     assert "refresh" not in response.text
 
