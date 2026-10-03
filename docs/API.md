@@ -80,7 +80,7 @@ belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanı
 - Yetki bildirimi görme kuralıyla aynı (kapsam dışı → `404`); ADMIN yükleyemez (`403`, görev ayrılığı).
   Personelin yüklediği `EVIDENCE` (iş kanıtı), diğerleri `REPORT`.
 - Tür **içerikten** anlaşılır (magic bytes), dosya adına/Content-Type'a bakılmaz: yalnız JPG, PNG, WEBP →
-  aksi `415 UNSUPPORTED_MEDIA_TYPE` (video için aşağıya bakın). Boyut `MAX_UPLOAD_MB` (varsayılan 5) → aşılırsa `413 FILE_TOO_LARGE`.
+  aksi `415 UNSUPPORTED_MEDIA_TYPE` (video için aşağıya bakın). Boyut `MAX_UPLOAD_MB` (varsayılan 10; telefon fotoğrafı 4-8 MB) → aşılırsa `413 FILE_TOO_LARGE`.
 - Fotoğraf sunucuda yeniden kodlanır: telefon döndürmesi uygulanır, **EXIF (GPS konumu, cihaz) silinir**.
   Sıkıştırma bombası ve bozuk dosya `415`. Bildirim başına en fazla 5 fotoğraf (`409`).
 - **Video:** MP4/MOV (telefon kaydı), en fazla **30 sn** (+0,5 sn pay) → aşılırsa `422 VIDEO_TOO_LONG`,

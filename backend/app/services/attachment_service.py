@@ -75,7 +75,11 @@ class AttachmentService:
         case = self._visible_case(case_id)
         if self._actor.role is UserRole.ADMIN:
             raise ForbiddenError()
-        if attachment_repository.count_for_case(self._session, case.id) >= MAX_ATTACHMENTS_PER_CASE:
+        kind = _KIND_BY_ROLE.get(self._actor.role, AttachmentKind.REPORT)
+        if (
+            attachment_repository.count_of_kind(self._session, case.id, kind)
+            >= MAX_ATTACHMENTS_PER_CASE
+        ):
             raise ConflictError(
                 messages.TOO_MANY_ATTACHMENTS.format(limit=MAX_ATTACHMENTS_PER_CASE)
             )
@@ -87,7 +91,7 @@ class AttachmentService:
             Attachment(
                 case_id=case.id,
                 uploaded_by=self._actor.id,
-                kind=_KIND_BY_ROLE.get(self._actor.role, AttachmentKind.REPORT),
+                kind=kind,
                 storage_key=key,
                 original_name=safe_name(file.name, media.extension),
                 mime_type=media.mime_type,

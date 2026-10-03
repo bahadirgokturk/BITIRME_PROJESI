@@ -13,11 +13,11 @@ export const TASK_NOTE_MAX_LENGTH = 1000;
 
 // Kanit fotografi: backend ile ayni kurallar (backend/app/core/constants.py, MAX_UPLOAD_MB_DEFAULT)
 export const EVIDENCE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const EVIDENCE_MAX_MB = 5;
+const EVIDENCE_MAX_MB = 10;
 const BYTES_PER_MB = 1024 * 1024;
 export const EVIDENCE_MAX_BYTES = EVIDENCE_MAX_MB * BYTES_PER_MB;
-// Bir bildirime eklenebilen toplam dosya (MAX_ATTACHMENTS_PER_CASE); bildirenin dosyalari da bu sayiya
-// dahil oldugundan asil sinir backend'dedir, asilirsa onun mesaji gosterilir
+// Personelin bir bildirime ekleyebilecegi kanit fotografi (MAX_ATTACHMENTS_PER_CASE, tur basina);
+// bildirenin fotograflari bu sayiya dahil degil
 export const EVIDENCE_MAX_COUNT = 5;
 
 const MS_PER_MINUTE = 60_000;

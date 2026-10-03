@@ -54,7 +54,7 @@ function rejection(file: File, caseId: number) {
       "FILE_TOO_LARGE",
       isVideo
         ? "Dosya çok büyük. En fazla 50 MB yüklenebilir."
-        : "Dosya çok büyük. En fazla 5 MB yüklenebilir.",
+        : "Dosya çok büyük. En fazla 10 MB yüklenebilir.",
     );
   }
   if (

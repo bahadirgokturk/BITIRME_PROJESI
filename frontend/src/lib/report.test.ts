@@ -43,8 +43,9 @@ describe("fileProblem", () => {
     );
   });
 
-  it("limits photos to 5 MB", () => {
-    expect(fileProblem(file("image/png", 6))).toBe("Fotoğraf en fazla 5 MB olabilir.");
+  it("limits photos to 10 MB", () => {
+    expect(fileProblem(file("image/png", 8))).toBeNull();
+    expect(fileProblem(file("image/png", 11))).toBe("Fotoğraf en fazla 10 MB olabilir.");
   });
 
   it("limits videos to 50 MB", () => {

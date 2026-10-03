@@ -71,7 +71,7 @@ describe("TaskDetail", () => {
     const input = within(dialog).getByLabelText(/Kanıt fotoğrafı/);
 
     await user.upload(input, new File(["x".repeat(EVIDENCE_MAX_BYTES + 1)], "buyuk.jpg", { type: "image/jpeg" }));
-    expect(within(dialog).getByRole("alert")).toHaveTextContent("en fazla 5 MB");
+    expect(within(dialog).getByRole("alert")).toHaveTextContent("en fazla 10 MB");
 
     await user.upload(input, new File(["foto"], "sabunluk.jpg", { type: "image/jpeg" }));
     await user.upload(input, [

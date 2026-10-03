@@ -1,5 +1,6 @@
 """Bildirime fotograf ekleme ve indirme (E3-3): yetki (IDOR), tur/boyut, guvenli basliklar."""
 
+import os
 from io import BytesIO
 
 import pytest
@@ -7,9 +8,16 @@ from fastapi.testclient import TestClient
 from PIL import Image
 from sqlalchemy.orm import Session
 
-from app.core.constants import MAX_ATTACHMENTS_PER_CASE
+from app.core.constants import MAX_ATTACHMENTS_PER_CASE, MAX_UPLOAD_MB_DEFAULT
+from app.models import Case, Organization
 from app.models.enums import UserRole
-from tests.integration.factories import bearer, make_location, make_organization, make_user
+from tests.integration.factories import (
+    bearer,
+    make_department,
+    make_location,
+    make_organization,
+    make_user,
+)
 from tests.media_samples import mp4
 
 Headers = dict[str, str]
@@ -113,6 +121,58 @@ def test_attachment_count_is_limited(client: TestClient, case_id: int) -> None:
 
     assert status == 409
     assert body["error"]["code"] == "CONFLICT"
+
+
+def test_staff_evidence_has_its_own_limit(
+    client: TestClient, db_session: Session, case_id: int
+) -> None:
+    # Bildirenin 5 fotografi personelin kanit fotografini engellemez (ayri sinir)
+    reporter = _as(client, "ogrenci")
+    for _ in range(MAX_ATTACHMENTS_PER_CASE):
+        assert _upload(client, case_id, reporter)[0] == 201
+    staff = _assigned_staff(client, db_session, case_id)
+
+    for _ in range(MAX_ATTACHMENTS_PER_CASE):
+        status, body = _upload(client, case_id, staff)
+        assert status == 201
+        assert body["kind"] == "EVIDENCE"
+    status, _ = _upload(client, case_id, staff)
+
+    assert status == 409
+
+
+def test_phone_sized_photo_is_accepted(client: TestClient, case_id: int) -> None:
+    # Guncel telefon fotografi 4-8 MB: 5 MB siniri dar geliyordu
+    noisy = Image.frombytes("RGB", (1600, 1600), os.urandom(1600 * 1600 * 3))
+    buffer = BytesIO()
+    noisy.save(buffer, format="PNG")
+    assert 6 * 1024 * 1024 < len(buffer.getvalue()) < MAX_UPLOAD_MB_DEFAULT * 1024 * 1024
+
+    status, _ = _upload(client, case_id, _as(client, "ogrenci"), buffer.getvalue())
+
+    assert status == 201
+
+
+def _assigned_staff(client: TestClient, db_session: Session, case_id: int) -> Headers:
+    case = db_session.get(Case, case_id)
+    assert case is not None
+    organization = db_session.get(Organization, case.organization_id)
+    assert organization is not None
+    department = make_department(db_session, organization, "SUPPORT_SERVICES")
+    make_user(
+        db_session,
+        email="temizlik@kampus-a.edu.tr",
+        role=UserRole.STAFF,
+        organization=organization,
+        department_id=department.id,
+    )
+    assigned = client.post(
+        f"/api/v1/cases/{case_id}/assign",
+        json={"department_id": department.id},
+        headers=_as(client, "mudur"),
+    )
+    assert assigned.status_code == 200, assigned.text
+    return _as(client, "temizlik")
 
 
 def test_unknown_attachment_is_404(client: TestClient, case_id: int) -> None:
