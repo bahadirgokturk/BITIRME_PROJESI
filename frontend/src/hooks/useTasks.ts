@@ -76,6 +76,9 @@ export function useCompleteTask(task: Pick<TaskRead, "id" | "case_id">) {
     }
     await queryClient.invalidateQueries({ queryKey: caseAttachmentsKey(task.case_id) });
     const body: Schemas["CompleteRequest"] = { completion_note: note || null };
-    return apiPost<TaskRead>(`/tasks/${task.id}/complete`, body);
+    const updated = await apiPost<TaskRead>(`/tasks/${task.id}/complete`, body);
+    // Is yetersiz bulunursa gorev geri doner; nedeni olay gecmisinde yazar
+    await queryClient.invalidateQueries({ queryKey: ["cases", String(task.case_id), "events"] });
+    return updated;
   });
 }

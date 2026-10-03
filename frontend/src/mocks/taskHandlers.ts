@@ -5,11 +5,13 @@ import { http, HttpResponse } from "msw";
 import { apiUrl } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
 
+import { hasEvidence } from "./attachmentHandlers";
 import { TASKS } from "./taskFixtures";
 
 type Schemas = components["schemas"];
 type Task = Schemas["TaskRead"];
 type TaskStatus = Schemas["TaskStatus"];
+type CaseEvent = Schemas["CaseEventRead"];
 
 // Oturum boyunca durum degisiklikleri burada tutulur; sayfa yenilenince sifirlanir
 const tasks: Task[] = TASKS.map((task) => ({ ...task }));
@@ -23,6 +25,42 @@ const ALLOWED: Record<string, { from: TaskStatus[]; to: TaskStatus; stamp?: keyo
 
 // Filtre verilmezse backend yalniz yapilacak isleri dondurur (ACTIVE_TASK_STATUSES)
 const ACTIVE: TaskStatus[] = ["PENDING", "ACCEPTED", "IN_PROGRESS"];
+
+// Resolution Agent'in sahte karsiligi (backend/app/agents/resolution.py): not kisaysa ve kanit
+// fotografi yoksa gorev bir kez geri doner; ikinci denemede kapanir (gercekte mudur onayina gider)
+const MIN_NOTE_LENGTH = 10;
+const EVIDENCE_MESSAGE = "Ne yapıldığını birkaç kelimeyle yazın ya da fotoğraf ekleyin.";
+const FIRST_EVENT_ID = 5000;
+const evidenceRequests: CaseEvent[] = [];
+
+function requestEvidence(task: Task): CaseEvent {
+  return {
+    id: FIRST_EVENT_ID + evidenceRequests.length,
+    event_type: "EVIDENCE_REQUESTED",
+    actor_type: "AGENT",
+    actor_id: null,
+    agent_name: "resolution",
+    from_status: "VERIFICATION",
+    to_status: "IN_PROGRESS",
+    occurred_at: new Date().toISOString(),
+    metadata: { task_id: task.id, message: EVIDENCE_MESSAGE },
+  };
+}
+
+function needsEvidence(task: Task): boolean {
+  const asked = evidenceRequests.some((event) => event.metadata.task_id === task.id);
+  const note = task.completion_note?.trim() ?? "";
+  return !asked && note.length < MIN_NOTE_LENGTH && !hasEvidence(task.case_id);
+}
+
+// Gorevin bildirimine ait kanit istekleri; bildirimin gorevi yoksa null (caseHandlers.ts kullanir)
+export function taskEventsFor(caseId: number): CaseEvent[] | null {
+  const taskIds = tasks.filter((task) => task.case_id === caseId).map((task) => task.id);
+  if (taskIds.length === 0) {
+    return null;
+  }
+  return evidenceRequests.filter((event) => taskIds.includes(Number(event.metadata.task_id)));
+}
 
 function error(status: number, code: string, message: string) {
   const body: Schemas["ErrorRead"] = { error: { code, message, details: {} } };
@@ -70,6 +108,10 @@ export const taskHandlers = [
     Object.assign(task, await note(request), { status: rule.to });
     if (rule.stamp) {
       Object.assign(task, { [rule.stamp]: new Date().toISOString() });
+    }
+    if (task.status === "COMPLETED" && needsEvidence(task)) {
+      evidenceRequests.push(requestEvidence(task));
+      Object.assign(task, { status: "IN_PROGRESS", completed_at: null });
     }
     return HttpResponse.json(task);
   }),

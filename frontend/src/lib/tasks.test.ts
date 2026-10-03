@@ -4,6 +4,7 @@ import { TASKS } from "@/mocks/taskFixtures";
 
 import {
   addEvidence,
+  evidenceRequest,
   EVIDENCE_MAX_BYTES,
   EVIDENCE_MAX_COUNT,
   evidenceProblem,
@@ -99,6 +100,30 @@ describe("addEvidence", () => {
 
     expect(result.photos).toHaveLength(EVIDENCE_MAX_COUNT);
     expect(result.problem).toBe(`En fazla ${EVIDENCE_MAX_COUNT} fotoğraf eklenebilir.`);
+  });
+});
+
+describe("evidenceRequest", () => {
+  const event = (event_type: string, metadata: Record<string, unknown>) => ({ event_type, metadata });
+
+  it("returns the latest request written for this task", () => {
+    const events = [
+      event("EVIDENCE_REQUESTED", { task_id: 7, message: "Eski mesaj." }),
+      event("WORK_COMPLETED", { task_id: 7 }),
+      event("EVIDENCE_REQUESTED", { task_id: 7, message: "Fotoğraf ekleyin." }),
+    ];
+
+    expect(evidenceRequest(events, 7)).toBe("Fotoğraf ekleyin.");
+  });
+
+  it("ignores requests of other tasks and events without a message", () => {
+    const events = [
+      event("EVIDENCE_REQUESTED", { task_id: 8, message: "Başka görev." }),
+      event("EVIDENCE_REQUESTED", { task_id: 7 }),
+    ];
+
+    expect(evidenceRequest(events, 7)).toBeNull();
+    expect(evidenceRequest([], 7)).toBeNull();
   });
 });
 

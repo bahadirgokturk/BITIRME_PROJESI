@@ -14,6 +14,7 @@ import { formatDateTime } from "@/lib/dates";
 import { slaView, type TaskRead } from "@/lib/tasks";
 
 import { EvidencePhotos } from "./EvidencePhotos";
+import { EvidenceRequestNote } from "./EvidenceRequestNote";
 import { TaskActionBar } from "./TaskActionBar";
 import { PriorityBadge, SlaBadge, TaskStatusBadge } from "./TaskBadges";
 
@@ -70,6 +71,7 @@ function TaskDetailView({ task }: { task: TaskRead }) {
           {sla ? <SlaBadge view={sla} /> : null}
         </div>
       </header>
+      {task.status === "IN_PROGRESS" ? <EvidenceRequestNote task={task} /> : null}
       <TaskResult task={task} />
       <dl className={CARD_CLASS}>
         <Field label="İş">{task.title}</Field>

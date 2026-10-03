@@ -71,6 +71,11 @@ function rejection(file: File, caseId: number) {
 
 // Gercek backend turu yukleyenin rolunden belirler (personel -> EVIDENCE). Sahte modda rol tektir;
 // personel ekranindan (/staff/...) yuklenen dosya kanit sayilir.
+// Resolution Agent'in sahte karsiligi (taskHandlers.ts) kanit fotografi var mi diye buraya bakar
+export function hasEvidence(caseId: number): boolean {
+  return attachments.some((item) => item.case_id === caseId && item.kind === "EVIDENCE");
+}
+
 function uploadKind(): Attachment["kind"] {
   const onStaffScreen = typeof location !== "undefined" && location.pathname.startsWith("/staff/");
   return onStaffScreen ? "EVIDENCE" : "REPORT";
