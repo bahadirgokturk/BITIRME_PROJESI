@@ -154,4 +154,14 @@ Frontend: http://localhost:3000 · API dokümanı: http://localhost:8000/docs ·
 
 ## Durum
 
-FAZ 0 (mimari & planlama) tamamlandı. Kurulum talimatları FAZ 1'de eklenecek.
+**Test ortamı (staging, `develop`'tan otomatik güncellenir):** https://bitirme-projesi-mu.vercel.app
+Demo hesapları ve staging parolası ekip içinde paylaşılır (repoya yazılmaz). Ücretsiz sunucu boştayken uyur:
+ilk açılış 30–60 sn sürebilir. Ayrıntı: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) bölüm 1.1.
+
+| Bölüm | Durum |
+|---|---|
+| Bildirim akışı (bildirim, görev, SLA, fotoğraf) | ✅ |
+| AI agent'ları (sınıflandırma, tekrar, doğrulama, öncelik, yönlendirme, karar, izleme, iş kontrolü, özet) | ✅ |
+| Analitik ve yönetici raporları | ✅ backend; ekranlar ilerliyor |
+| Staging (Vercel + Render + Neon) | ✅ |
+| Production, kalıcı fotoğraf deposu, gerçek veriyle model değerlendirmesi (RQ1) | ⏳ |
