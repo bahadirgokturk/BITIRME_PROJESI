@@ -278,3 +278,14 @@ def test_empty_text_has_no_text_similarity() -> None:
     result = _run([_candidate()], text="!!!")
 
     assert result.output.similar_cases[0].components["text"] == 0.0
+
+
+def test_candidates_opened_after_the_report_are_ignored() -> None:
+    """Ayni yer + ayni tur kurali bile gelecekteki bildirime baglamaz (gecmis veri yukleme)."""
+    later = _candidate(created_at=NOW + timedelta(days=10))
+
+    result = _run([later])
+
+    assert result.decision == DuplicateDecision.NEW_CASE
+    assert result.output.possible_parent_case_id is None
+    assert result.output.similar_cases == []

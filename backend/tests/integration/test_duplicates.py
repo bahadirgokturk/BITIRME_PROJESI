@@ -178,6 +178,24 @@ def test_reports_older_than_a_day_are_not_candidates(
     assert second["status"] == "ASSIGNED"
 
 
+def test_reports_opened_later_are_not_candidates(
+    agent_client: TestClient, clock: FrozenClock, campus: Campus
+) -> None:
+    """Gecmis veri yuklenirken (seeds --history) saat geriye gider: bugun acilmis bildirim, 10 gun
+    onceki bildirimin "kopyasi" sayilmamali. Hata: 32 eski bildirim sonradan acilan kayda
+    baglandi."""
+    later = _report(agent_client, campus.reporter, SOAP, campus.wc_id)
+    clock.advance(timedelta(days=-10))
+    # Belirtec gelecekte verilmis olur: gecmis saatte yeniden giris
+    again = bearer(agent_client, "akademisyen@kampus.example.com", PASSWORD)
+
+    earlier = _report(agent_client, again, SOAP_SHORT, campus.wc_id)
+
+    assert earlier["status"] == "ASSIGNED"
+    assert earlier["parent_case_id"] is None
+    assert later["status"] == "ASSIGNED"
+
+
 def test_closed_problems_are_not_candidates(
     agent_client: TestClient, db_session: Session, campus: Campus
 ) -> None:

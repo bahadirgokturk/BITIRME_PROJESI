@@ -147,7 +147,8 @@ def _location_score(inp: DuplicateInput, candidate: DuplicateCandidate) -> float
 
 
 def _time_decay(inp: DuplicateInput, candidate: DuplicateCandidate) -> float:
-    minutes = max((inp.reported_at - candidate.created_at).total_seconds(), 0) / SECONDS_PER_MINUTE
+    # Adaylar bildirimden once acilmistir (_comparable); fark negatif olamaz
+    minutes = (inp.reported_at - candidate.created_at).total_seconds() / SECONDS_PER_MINUTE
     tau = TAU_MINUTES.get(inp.case_type_code, DEFAULT_TAU_MINUTES)
     return math.exp(-minutes / tau)
 
@@ -183,9 +184,13 @@ def _similar(inp: DuplicateInput, candidate: DuplicateCandidate, text: float) ->
 
 
 def _comparable(inp: DuplicateInput) -> list[DuplicateCandidate]:
+    # Bildirimden sonra acilan kayit onun kopyasi olamaz. Eskiden zaman farki 0'a kirpiliyordu ve
+    # gelecekteki kayit "ayni anda" sayiliyordu: gecmis yuklemede 32 sabun bildirimi 3 hafta sonra
+    # acilan kayda baglandi (04.10.2026). Sorgu da ust sinir koyar; agent ayrica korunur
+    earlier = [c for c in inp.candidates if c.created_at <= inp.reported_at]
     if inp.case_type_code in SPREADING_TYPES:
-        return list(inp.candidates)
-    return [c for c in inp.candidates if c.location_id == inp.location_id]
+        return earlier
+    return [c for c in earlier if c.location_id == inp.location_id]
 
 
 def _check(inp: DuplicateInput) -> DuplicateOutput:
