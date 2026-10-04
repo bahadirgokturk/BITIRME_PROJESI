@@ -53,7 +53,7 @@ function Bars({ point, max }: BarsProps) {
 export function TrendChart({ trend }: { trend: TrendRead }) {
   const max = Math.max(0, ...trend.points.flatMap((point) => [point.opened, point.closed]));
   return (
-    <ChartCard title={trendHeadline(trend.points)} subtitle={`${LIST_LABEL} · ${UNIT[trend.granularity]}`}>
+    <ChartCard title={trendHeadline(trend.points)} subtitle={`${LIST_LABEL} · ${UNIT[trend.granularity]}`} className="h-full">
       {max === 0 ? (
         <EmptyChart>Seçilen dönemde açılan ya da kapanan bildirim olmadı.</EmptyChart>
       ) : (
