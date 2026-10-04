@@ -15,6 +15,19 @@ import {
   TREND_MONTH,
   TREND_WEEK,
 } from "./analyticsFixtures";
+import {
+  AGENT_METRICS_MONTH,
+  AGENT_METRICS_WEEK,
+  AGING,
+  DEPARTMENTS_REPORT,
+  LOCATIONS_MONTH,
+  LOCATIONS_WEEK,
+  PROCESS,
+  RECURRING,
+  RESOLUTION_TIMES,
+  SLA_MONTH,
+  SLA_WEEK,
+} from "./reportFixtures";
 
 type Schemas = components["schemas"];
 
@@ -40,6 +53,21 @@ export const analyticsHandlers = [
 
   http.get(apiUrl("/analytics/categories"), ({ request }) =>
     HttpResponse.json(isMonth(request) ? CATEGORIES_MONTH : CATEGORIES_WEEK),
+  ),
+
+  // Raporlar (/manager/analytics): donemle degisen ornekler konum ve SLA; digerleri sabit
+  http.get(apiUrl("/analytics/locations"), ({ request }) =>
+    HttpResponse.json(isMonth(request) ? LOCATIONS_MONTH : LOCATIONS_WEEK),
+  ),
+  http.get(apiUrl("/analytics/sla"), ({ request }) => HttpResponse.json(isMonth(request) ? SLA_MONTH : SLA_WEEK)),
+  http.get(apiUrl("/analytics/resolution-times"), () => HttpResponse.json(RESOLUTION_TIMES)),
+  http.get(apiUrl("/analytics/aging"), () => HttpResponse.json(AGING)),
+  http.get(apiUrl("/analytics/departments"), () => HttpResponse.json(DEPARTMENTS_REPORT)),
+  http.get(apiUrl("/analytics/recurring"), () => HttpResponse.json(RECURRING)),
+  http.get(apiUrl("/analytics/process"), () => HttpResponse.json(PROCESS)),
+
+  http.get(apiUrl("/agents/metrics"), ({ request }) =>
+    HttpResponse.json(isMonth(request) ? AGENT_METRICS_MONTH : AGENT_METRICS_WEEK),
   ),
 
   http.post<never, Schemas["SummaryRequest"]>(apiUrl("/analytics/summary"), async ({ request }) => {

@@ -80,12 +80,12 @@ export function deltaView(deltaPct: number | null, better: Better): DeltaView {
 type KpiKey = Exclude<keyof KpisRead, "period">;
 
 const KPI_CARDS: readonly { key: KpiKey; label: string; format: (value: number | null) => string; better: Better }[] = [
-  { key: "open_cases", label: "Açık bildirim", format: formatCount, better: "lower" },
-  { key: "sla_compliance_pct", label: "SLA uyumu", format: formatPercent, better: "higher" },
-  { key: "avg_resolution_min", label: "Ortalama çözüm süresi", format: formatMinutes, better: "lower" },
-  { key: "automation_pct", label: "Otomasyon oranı", format: formatPercent, better: "higher" },
-  { key: "cases_today", label: "Bugün açılan", format: formatCount, better: "none" },
-  { key: "human_review_pct", label: "Müdür incelemesi oranı", format: formatPercent, better: "lower" },
+  { key: "open_cases", label: "Açık Bildirim", format: formatCount, better: "lower" },
+  { key: "sla_compliance_pct", label: "SLA Uyumu", format: formatPercent, better: "higher" },
+  { key: "avg_resolution_min", label: "Ortalama Çözüm Süresi", format: formatMinutes, better: "lower" },
+  { key: "automation_pct", label: "Otomasyon Oranı", format: formatPercent, better: "higher" },
+  { key: "cases_today", label: "Bugün Açılan", format: formatCount, better: "none" },
+  { key: "human_review_pct", label: "Müdür İncelemesi Oranı", format: formatPercent, better: "lower" },
 ];
 
 export interface KpiCardView {

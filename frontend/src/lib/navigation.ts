@@ -14,11 +14,11 @@ export interface NavItem {
 }
 
 // Menu adlari duz Turkce: memurlar "dashboard", "agent", "case" gibi terimleri bilmeyebilir (UI_GUIDE bolum 6)
-const REPORT: NavItem = { href: "/report", label: "Bildirim yap" };
-const DASHBOARD: NavItem = { href: "/manager/dashboard", label: "Genel bakış" };
+const REPORT: NavItem = { href: "/report", label: "Bildirim Yap" };
+const DASHBOARD: NavItem = { href: "/manager/dashboard", label: "Genel Bakış" };
 const INSIGHTS: NavItem[] = [
   { href: "/manager/analytics", label: "Raporlar" },
-  { href: "/manager/agents", label: "Yapay zekâ performansı" },
+  { href: "/manager/agents", label: "Yapay Zekâ Performansı" },
 ];
 const MANAGEMENT_VIEWS: NavItem[] = [DASHBOARD, ...INSIGHTS];
 
@@ -29,9 +29,9 @@ const NAVIGATION: Record<Role, NavItem[]> = {
   MANAGER: [
     REPORT,
     DASHBOARD,
-    { href: "/manager/review-queue", label: "İnceleme kuyruğu" },
+    { href: "/manager/review-queue", label: "İnceleme Kuyruğu" },
     ...INSIGHTS,
-    { href: "/manager/cases", label: "Tüm bildirimler" },
+    { href: "/manager/cases", label: "Tüm Bildirimler" },
   ],
   ADMIN: [REPORT, ...MANAGEMENT_VIEWS, { href: "/admin", label: "Yönetim" }],
 };

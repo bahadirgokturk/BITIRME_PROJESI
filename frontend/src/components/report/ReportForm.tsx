@@ -49,7 +49,7 @@ function DescriptionField({ value, onChange, error }: DescriptionFieldProps) {
 function ReportIntro() {
   return (
     <div className="space-y-3">
-      <PageTitle>Bildirim yap</PageTitle>
+      <PageTitle>Bildirim Yap</PageTitle>
       <p className="text-sm text-muted-foreground">
         Ne olduğunu ve nerede olduğunu yaz; kategori seçmene gerek yok, ilgili birime biz yönlendiririz.
       </p>
