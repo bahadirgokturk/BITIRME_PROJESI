@@ -11,6 +11,8 @@ from app.core.constants import MAX_UPLOAD_MB_DEFAULT, MAX_VIDEO_MB_DEFAULT
 
 # HS256 anahtari en az 256 bit olmali (RFC 7518 bolum 3.2): 32 karakter
 JWT_SECRET_MIN_LENGTH = 32
+PSYCOPG_URL_PREFIX = "postgresql+psycopg://"
+HOSTED_URL_PREFIXES = ("postgresql://", "postgres://")
 # .env.example'daki ornek; yalniz local'de kabul edilir
 EXAMPLE_JWT_SECRET = "local-dev-only-secret-change-me-0000000000"  # noqa: S105 - bilinen ornek, reddetmek icin
 
@@ -54,6 +56,16 @@ class Settings(BaseSettings):
     monitoring_enabled: bool = True
     # 5 dk: SLA'lar dakika (en kisa 10 dk kabul) olcegindedir (AGENTS.md 4.8)
     monitoring_interval_seconds: int = Field(default=300, ge=1)
+
+    @field_validator("database_url")
+    @classmethod
+    def _use_psycopg_driver(cls, value: str) -> str:
+        # Neon/Render adresi surucusuz gelir ("postgresql://", eski "postgres://"); SQLAlchemy
+        # surucu belirtilmezse psycopg2 arar, projede psycopg 3 kurulu (pyproject.toml)
+        for prefix in HOSTED_URL_PREFIXES:
+            if value.startswith(prefix):
+                return PSYCOPG_URL_PREFIX + value.removeprefix(prefix)
+        return value
 
     @field_validator("cors_origins", mode="before")
     @classmethod

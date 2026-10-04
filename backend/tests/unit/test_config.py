@@ -58,3 +58,24 @@ def test_example_secret_is_rejected_outside_local(environment: str) -> None:
 
     with pytest.raises(ValidationError):
         Settings(database_url=DB_URL, jwt_secret=EXAMPLE_JWT_SECRET, environment=environment)
+
+
+@pytest.mark.parametrize(
+    "given",
+    [
+        # Neon / Render "postgresql://" ya da eski "postgres://" bicimini verir
+        "postgresql://kullanici:parola@ep-ornek.eu-central-1.aws.neon.tech/neondb?sslmode=require",
+        "postgres://kullanici:parola@ep-ornek.eu-central-1.aws.neon.tech/neondb?sslmode=require",
+    ],
+)
+def test_hosted_database_urls_use_the_psycopg_driver(given: str) -> None:
+    settings = Settings(database_url=given, jwt_secret=BASE["jwt_secret"])
+
+    assert settings.database_url == (
+        "postgresql+psycopg://kullanici:parola@ep-ornek.eu-central-1.aws.neon.tech/neondb"
+        "?sslmode=require"
+    )
+
+
+def test_explicit_driver_is_kept() -> None:
+    assert Settings(**BASE).database_url == BASE["database_url"]
