@@ -52,15 +52,15 @@ export function activeNavHref(role: Role, pathname: string): string | null {
   return match?.href ?? null;
 }
 
-// Giristen sonra acilan sayfa. Ekrani henuz yapilmamis rollerde null: gecici ana sayfa gosterilir
-// (menu adresleri 404 verir). Ekran gelince buraya eklenir.
-const HOME_PATHS: Record<Role, string | null> = {
+// Giristen sonra acilan sayfa: her rol kendi ilk ekranina gider. Yonetici (ADMIN) ekranlari yapilana
+// kadar yonetici de Genel Bakis'i gorur. Adres o rolun menusunde olmak zorunda (navigation.test.ts).
+const HOME_PATHS: Record<Role, string> = {
   REPORTER: "/my-cases",
-  STAFF: null,
-  MANAGER: null,
-  ADMIN: null,
+  STAFF: "/staff/tasks",
+  MANAGER: DASHBOARD.href,
+  ADMIN: DASHBOARD.href,
 };
 
-export function homePathFor(role: Role): string | null {
+export function homePathFor(role: Role): string {
   return HOME_PATHS[role];
 }

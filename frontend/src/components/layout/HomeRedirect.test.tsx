@@ -1,5 +1,5 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -18,11 +18,9 @@ afterEach(() => {
 });
 
 function renderHome() {
-  render(
+  return render(
     <QueryClientProvider client={createQueryClient()}>
-      <HomeRedirect>
-        <p>geçici ana sayfa</p>
-      </HomeRedirect>
+      <HomeRedirect />
     </QueryClientProvider>,
   );
 }
@@ -32,15 +30,24 @@ describe("HomeRedirect", () => {
     renderHome();
 
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/my-cases"));
-    expect(screen.queryByText("geçici ana sayfa")).not.toBeInTheDocument();
   });
 
-  it("keeps the placeholder page for a role whose screens are not built yet", async () => {
-    server.use(http.get(apiUrl("/auth/me"), () => HttpResponse.json(USERS.STAFF)));
+  it.each([
+    ["STAFF", "/staff/tasks"],
+    ["MANAGER", "/manager/dashboard"],
+    ["ADMIN", "/manager/dashboard"],
+  ] as const)("sends %s to its own first screen", async (role, path) => {
+    server.use(http.get(apiUrl("/auth/me"), () => HttpResponse.json(USERS[role])));
 
     renderHome();
 
-    expect(await screen.findByText("geçici ana sayfa")).toBeInTheDocument();
-    expect(replace).not.toHaveBeenCalled();
+    await waitFor(() => expect(replace).toHaveBeenCalledWith(path));
+  });
+
+  it("shows nothing while it redirects", async () => {
+    const { container } = renderHome();
+
+    await waitFor(() => expect(replace).toHaveBeenCalled());
+    expect(container).toBeEmptyDOMElement();
   });
 });

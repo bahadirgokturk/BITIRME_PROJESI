@@ -75,9 +75,18 @@ describe("homePathFor", () => {
     expect(homePathFor("REPORTER")).toBe("/my-cases");
   });
 
-  it("has no landing page yet for roles whose screens are not built", () => {
-    expect(homePathFor("STAFF")).toBeNull();
-    expect(homePathFor("MANAGER")).toBeNull();
-    expect(homePathFor("ADMIN")).toBeNull();
+  it("opens each role's own first screen", () => {
+    expect(homePathFor("STAFF")).toBe("/staff/tasks");
+    expect(homePathFor("MANAGER")).toBe("/manager/dashboard");
+  });
+
+  it("opens the overview for an admin until the admin screens exist", () => {
+    expect(homePathFor("ADMIN")).toBe("/manager/dashboard");
+  });
+
+  it("only sends a role to a page that is in its own menu", () => {
+    for (const role of ROLES) {
+      expect(navigationFor(role).map((item) => item.href)).toContain(homePathFor(role));
+    }
   });
 });
