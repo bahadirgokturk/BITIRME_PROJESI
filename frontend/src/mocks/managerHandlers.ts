@@ -1,11 +1,11 @@
-// Manager inceleme kuyrugu endpoint'lerinin sahte karsiliklari (cevrimdisi mod; gercek API E5-9).
+// Manager inceleme kuyrugu ve duzeltme sozluklerinin sahte karsiliklari (cevrimdisi mod; gercek API E5-9).
 // Sahte API her istegi gecerli sayar; rol kurallarini (MANAGER) yalniz gercek backend denetler.
 import { http, HttpResponse } from "msw";
 
 import { apiUrl } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
 
-import { DECISIONS, REVIEW_ITEMS } from "./managerFixtures";
+import { CASE_TYPE_OPTIONS, DECISIONS, DEPARTMENT_OPTIONS, REVIEW_ITEMS } from "./managerFixtures";
 
 type Schemas = components["schemas"];
 type CaseStatus = Schemas["CaseStatus"];
@@ -40,6 +40,31 @@ function resolve(id: string | readonly string[] | undefined, status: CaseStatus)
 }
 
 const reasonMissing = () => error(422, "VALIDATION_ERROR", "Gerekçe zorunludur.");
+const invalidValue = () => error(422, "INVALID_OVERRIDE_VALUE", "Geçersiz düzeltme değeri.");
+
+// Backend gibi: tur ve birim koduyla, oncelik enum degeriyle duzeltilir; bilinmeyen deger reddedilir
+const OVERRIDES: Record<Schemas["OverrideField"], (target: Schemas["CaseRead"], value: string) => boolean> = {
+  priority: (target, value) => {
+    const priority = PRIORITIES.find((item) => item === value);
+    target.priority = priority ?? target.priority;
+    return priority !== undefined;
+  },
+  case_type: (target, value) => {
+    const type = CASE_TYPE_OPTIONS.find((item) => item.code === value);
+    target.case_type = type ? { id: type.id, code: type.code, name: type.name } : target.case_type;
+    target.category = type?.category ?? target.category;
+    return type !== undefined;
+  },
+  department: (target, value) => {
+    const department = DEPARTMENT_OPTIONS.find((item) => item.code === value);
+    target.department = department ?? target.department;
+    return department !== undefined;
+  },
+};
+
+function applyOverride(target: Schemas["CaseRead"], body: Schemas["OverrideRequest"]): boolean {
+  return OVERRIDES[body.field](target, body.corrected_value);
+}
 
 function withReason(status: CaseStatus) {
   return async ({ request, params }: { request: Request; params: Record<string, string | readonly string[] | undefined> }) => {
@@ -57,21 +82,19 @@ export const managerHandlers = [
 
   http.post(apiUrl("/cases/:id/assign"), ({ params }) => resolve(params.id, "ASSIGNED")),
 
-  // Sahte modda yalniz oncelik duzeltilir; tur/birim icin manager'a acik liste endpoint'i henuz yok
+  http.get(apiUrl("/case-types"), () => HttpResponse.json(CASE_TYPE_OPTIONS)),
+  http.get(apiUrl("/departments"), () => HttpResponse.json(DEPARTMENT_OPTIONS)),
+
   http.post<{ id: string }, Schemas["OverrideRequest"]>(apiUrl("/cases/:id/override"), async ({ request, params }) => {
     const body = await request.json();
     const item = find(params.id);
     if (!item) {
       return error(404, "NOT_FOUND", "Kayıt bulunamadı.");
     }
-    if (body.field !== "priority" || !PRIORITIES.includes(body.corrected_value as Schemas["Priority"])) {
-      return error(422, "INVALID_OVERRIDE_VALUE", "Geçersiz düzeltme değeri.");
-    }
     if (body.reason.trim() === "") {
       return reasonMissing();
     }
-    item.case.priority = body.corrected_value as Schemas["Priority"];
-    return HttpResponse.json(item.case);
+    return applyOverride(item.case, body) ? HttpResponse.json(item.case) : invalidValue();
   }),
 
   http.post(apiUrl("/cases/:id/reject"), withReason("REJECTED")),

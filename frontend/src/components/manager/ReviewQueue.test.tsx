@@ -63,6 +63,9 @@ describe("ReviewQueue", () => {
     expect(within(panel).getByText("Sınıflandırma")).toBeInTheDocument();
     expect(within(panel).getByText(/kıvılcım/)).toBeInTheDocument();
     expect(within(panel).getByText("tfidf-logreg@2026.10.1")).toBeInTheDocument();
+    // Kararlarin Turkce adi API'den gelir (decision_label); kod gosterilmez
+    expect(within(panel).getByText("Müdüre yükseltildi")).toBeInTheDocument();
+    expect(within(panel).queryByText("ESCALATE")).not.toBeInTheDocument();
   });
 
   it("approves the suggestion and assigns the case to the suggested department", async () => {
@@ -91,15 +94,31 @@ describe("ReviewQueue", () => {
 
   it("corrects the priority with a reason", async () => {
     const user = renderQueue();
-    await user.click(within(await card(SAFETY)).getByRole("button", { name: "Önceliği düzelt" }));
+    await user.click(within(await card(SAFETY)).getByRole("button", { name: "Düzelt" }));
 
     const dialog = await screen.findByRole("dialog");
-    await user.selectOptions(within(dialog).getByLabelText("Yeni öncelik"), "Yüksek");
+    await user.selectOptions(within(dialog).getByLabelText("Düzeltilecek alan"), "Öncelik");
+    await user.selectOptions(within(dialog).getByLabelText("Yeni değer"), "Yüksek");
     await user.type(within(dialog).getByLabelText("Gerekçe (zorunlu)"), "Kıvılcım bağlı cihazdan geliyor.");
     await user.click(within(dialog).getByRole("button", { name: "Düzeltmeyi kaydet" }));
 
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(within(await card(SAFETY)).getByText("Yüksek")).toBeInTheDocument();
+  });
+
+  it("corrects the department from the department list", async () => {
+    const user = renderQueue();
+    await user.click(within(await card(UNSURE)).getByRole("button", { name: "Düzelt" }));
+
+    const dialog = await screen.findByRole("dialog");
+    await user.selectOptions(within(dialog).getByLabelText("Düzeltilecek alan"), "Birim");
+    await within(dialog).findByRole("option", { name: "Bakım Onarım ve Peyzaj Şube Müdürlüğü" });
+    await user.selectOptions(within(dialog).getByLabelText("Yeni değer"), "Bakım Onarım ve Peyzaj Şube Müdürlüğü");
+    await user.type(within(dialog).getByLabelText("Gerekçe (zorunlu)"), "Ses havalandırma tesisatından geliyor.");
+    await user.click(within(dialog).getByRole("button", { name: "Düzeltmeyi kaydet" }));
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(within(await card(UNSURE)).getByText("Bakım Onarım ve Peyzaj Şube Müdürlüğü")).toBeInTheDocument();
   });
 
   it("offers merging only for a possible duplicate and names the other case", async () => {

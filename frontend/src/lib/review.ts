@@ -98,3 +98,39 @@ export function decisionReasons(reasons: readonly Record<string, unknown>[]): De
       weight: typeof reason.weight === "number" ? reason.weight : null,
     }));
 }
+
+type CaseRead = Schemas["CaseRead"];
+export type OverrideField = Schemas["OverrideField"];
+
+// Manager'in duzeltebildigi alanlar (POST /cases/{id}/override field)
+export const OVERRIDE_FIELD_LABELS: Record<OverrideField, string> = {
+  case_type: "Tür",
+  priority: "Öncelik",
+  department: "Birim",
+};
+
+// Duzeltme penceresi AI'in onerisiyle acilir; override kod bekler (tur/birim kodu, oncelik enum'u)
+const CURRENT_VALUE: Record<OverrideField, (item: CaseRead) => string> = {
+  case_type: (item) => item.case_type?.code ?? "",
+  priority: (item) => item.priority ?? "",
+  department: (item) => item.department?.code ?? "",
+};
+
+export function currentOverrideValue(item: CaseRead, field: OverrideField): string {
+  return CURRENT_VALUE[field](item);
+}
+
+interface DecisionNames {
+  agent_name: string;
+  decision: string;
+  agent_label?: string | null;
+  decision_label?: string | null;
+}
+
+// Turkce basliklar API'den gelir (agent_label, decision_label); yoksa yerel ad ve karar kodu gosterilir
+export function decisionTitles(decision: DecisionNames): { agent: string; decision: string } {
+  return {
+    agent: decision.agent_label ?? agentLabel(decision.agent_name),
+    decision: decision.decision_label ?? decision.decision,
+  };
+}

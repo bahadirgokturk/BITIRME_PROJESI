@@ -28,6 +28,25 @@ export function useCaseDecisions(caseId: number, enabled: boolean) {
   });
 }
 
+// Duzeltme sozlukleri (MANAGER/ADMIN): pencere acilinca yuklenir, oturum boyunca degismez
+export function useCaseTypes(enabled: boolean) {
+  return useQuery({
+    queryKey: ["lookups", "case-types"],
+    queryFn: () => apiGet<Schemas["CaseTypeOption"][]>("/case-types"),
+    enabled,
+    staleTime: Infinity,
+  });
+}
+
+export function useDepartments(enabled: boolean) {
+  return useQuery({
+    queryKey: ["lookups", "departments"],
+    queryFn: () => apiGet<Schemas["DepartmentOption"][]>("/departments"),
+    enabled,
+    staleTime: Infinity,
+  });
+}
+
 export type ReviewAction = "assign" | "override" | "reject" | "merge" | "close";
 
 // Her islem guncel bildirimi doner; kuyruk ve bildirim listeleri yeniden okunur

@@ -99,7 +99,9 @@ export const DECISIONS: Record<number, Decision[]> = {
   131: [
     decision(1, {
       agent_name: "classification",
+      agent_label: "Sınıflandırma",
       decision: "ELECTRICAL_FAULT",
+      decision_label: "Elektrik arızası",
       confidence: 0.91,
       reasons: [{ code: "MODEL_PREDICTION", message: "Model tahmini: Elektrik arızası (%91), Aydınlatma arızası (%6)" }],
       output: {},
@@ -107,7 +109,9 @@ export const DECISIONS: Record<number, Decision[]> = {
     }),
     decision(2, {
       agent_name: "priority",
+      agent_label: "Öncelik",
       decision: "CRITICAL",
+      decision_label: "Kritik",
       confidence: null,
       reasons: [
         { code: "SAFETY_KEYWORD", message: "‘kıvılcım’ kelimesi → güvenlik", weight: 30 },
@@ -118,7 +122,9 @@ export const DECISIONS: Record<number, Decision[]> = {
     }),
     decision(3, {
       agent_name: "routing",
+      agent_label: "Yönlendirme",
       decision: "ASSIGN_DEPARTMENT",
+      decision_label: "Birime yönlendirildi",
       confidence: 0.88,
       reasons: [{ code: "NO_AVAILABLE_STAFF", message: "Uygun personel yok; görev birimin havuzuna düşer." }],
       output: {},
@@ -126,7 +132,9 @@ export const DECISIONS: Record<number, Decision[]> = {
     }),
     decision(4, {
       agent_name: "supervisor",
+      agent_label: "Karar (Supervisor)",
       decision: "ESCALATE",
+      decision_label: "Müdüre yükseltildi",
       confidence: null,
       reasons: [{ code: "RULE_3_ESCALATE", message: "Güvenlik açısından kritik ya da insan kararı gerektiren tür; müdüre iletilir." }],
       output: {},
@@ -134,3 +142,14 @@ export const DECISIONS: Record<number, Decision[]> = {
     }),
   ],
 };
+
+// Duzeltme sozlukleri (GET /case-types, GET /departments); kodlar caseFixtures.ts ve docs/DEPARTMENTS.md ile ayni
+export const DEPARTMENT_OPTIONS: Schemas["DepartmentOption"][] = [SUPPORT, MAINTENANCE];
+
+export const CASE_TYPE_OPTIONS: Schemas["CaseTypeOption"][] = [
+  { id: 1, code: "SOAP_EMPTY", name: "Sabun bitti", category: "CONSUMABLE", default_department: SUPPORT },
+  { id: 3, code: "TRASH_FULL", name: "Çöp dolu", category: "CLEANING", default_department: SUPPORT },
+  { id: 15, code: "PROJECTOR_FAILURE", name: "Projeksiyon arızası", category: "TECHNICAL", default_department: MAINTENANCE },
+  { id: 20, code: "ELECTRICAL_FAULT", name: "Elektrik arızası", category: "TECHNICAL", default_department: MAINTENANCE },
+  { id: 99, code: "OTHER", name: "Diğer", category: "OTHER", default_department: null },
+];
