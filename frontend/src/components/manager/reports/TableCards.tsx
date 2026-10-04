@@ -1,16 +1,9 @@
-import { cn } from "cn";
-
-import { formatMinutes, formatPercent, type DeltaTone } from "@/lib/analytics";
+import { formatMinutes, formatPercent } from "@/lib/analytics";
 import {
   busiestDepartmentHeadline,
   formatDecimal,
-  recurringHeadline,
-  recurringSubtitle,
-  recurringTrend,
   slowestCategoryHeadline,
   type DepartmentsRead,
-  type RecurringProblem,
-  type RecurringRead,
   type ResolutionTimesRead,
 } from "@/lib/reports";
 
@@ -68,45 +61,6 @@ export function DepartmentsCard({ departments }: { departments: DepartmentsRead 
         <p className={EMPTY_CLASS}>Bu dönemde birimlere atanan bildirim yok.</p>
       ) : (
         <StatTable label={subtitle} nameHeader="Birim" columns={DEPARTMENT_COLUMNS} rows={rows} />
-      )}
-    </ChartCard>
-  );
-}
-
-// Artan sorun kirmizi, azalan yesil; yon okla ve kelimeyle de yazilir (UI_GUIDE bolum 8)
-const TONE_CLASS: Record<DeltaTone, string> = {
-  good: "text-success",
-  bad: "text-destructive",
-  none: "text-muted-foreground",
-};
-
-function RecurringItem({ problem }: { problem: RecurringProblem }) {
-  const trend = recurringTrend(problem.trend);
-  return (
-    <li className="space-y-1 py-3 first:pt-0 last:pb-0">
-      <div className="flex items-start justify-between gap-3 text-sm">
-        <span className="font-medium">{problem.case_type.name}</span>
-        <span className="shrink-0 font-semibold">{problem.count} kez</span>
-      </div>
-      <p className="text-xs">{problem.location.path}</p>
-      <p className={cn("text-xs font-medium", TONE_CLASS[trend.tone])}>{trend.text}</p>
-      <p className={NOTE_CLASS}>{problem.suggestion}</p>
-    </li>
-  );
-}
-
-export function RecurringCard({ recurring }: { recurring: RecurringRead }) {
-  const subtitle = recurringSubtitle(recurring);
-  return (
-    <ChartCard title={recurringHeadline(recurring.items.length)} subtitle={subtitle} className="h-full">
-      {recurring.items.length === 0 ? (
-        <p className={EMPTY_CLASS}>Aynı yerde tekrar tekrar bildirilen bir sorun görülmedi.</p>
-      ) : (
-        <ul aria-label={subtitle} className="divide-y">
-          {recurring.items.map((problem) => (
-            <RecurringItem key={`${problem.location.id}-${problem.case_type.id}`} problem={problem} />
-          ))}
-        </ul>
       )}
     </ChartCard>
   );

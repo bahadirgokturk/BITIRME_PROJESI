@@ -18,7 +18,8 @@ import type { SummaryPeriod } from "@/lib/analytics";
 import { PanelSkeleton } from "../dashboard/ChartCard";
 import { PeriodSwitch } from "../PeriodSwitch";
 import { AgingCard, LocationsCard, ProcessCard, SlaCard } from "./BarCards";
-import { DepartmentsCard, RecurringCard, ResolutionCard } from "./TableCards";
+import { RecurringCard } from "./RecurringCard";
+import { DepartmentsCard, ResolutionCard } from "./TableCards";
 
 // Genis kart solda (2/3), dar kart sagda (1/3); telefonda alt alta
 const ROW_CLASS = "grid gap-4 lg:grid-cols-3";

@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
 import { createQueryClient } from "@/lib/queryClient";
+import { RECURRING } from "@/mocks/reportFixtures";
 import { server } from "@/mocks/node";
 
 import { Reports } from "./Reports";
@@ -78,7 +79,8 @@ describe("Reports", () => {
     expect(await heading("3 sorun tekrar ediyor")).toBeInTheDocument();
     const soap = firstItem("Son 30 günde aynı yerde 5 ve daha fazla kez bildirilenler");
     expect(soap).toHaveTextContent("Sabun bitti");
-    expect(soap).toHaveTextContent("B Blok / 2. Kat / Erkek WC");
+    expect(soap).toHaveTextContent("B Blok 2. Kat Erkek WC");
+    expect(soap).not.toHaveTextContent("KMP/");
     expect(soap).toHaveTextContent("17 kez");
     expect(soap).toHaveTextContent("▲ Artıyor");
     expect(soap).toHaveTextContent("Kalıcı çözüm (dispenser kapasitesi / periyodik kontrol) değerlendirilebilir.");
@@ -88,6 +90,29 @@ describe("Reports", () => {
     expect(steps.getAllByRole("listitem")).toHaveLength(5);
     expect(steps.getAllByRole("listitem")[1]).toHaveTextContent("Atamadan kabuleEn yavaş42 dk");
     expect(steps.getAllByText("En yavaş")).toHaveLength(1);
+  });
+
+  it("shows the five most repeated problems first and the rest on request", async () => {
+    const problem = RECURRING.items[0]!;
+    const items = Array.from({ length: 7 }, (_, index) => ({
+      ...problem,
+      location: { ...problem.location, id: 100 + index, name: `Derslik ${index + 1}` },
+    }));
+    server.use(http.get(apiUrl("/analytics/recurring"), () => HttpResponse.json({ ...RECURRING, items })));
+    const user = renderReports();
+
+    expect(await heading("7 sorun tekrar ediyor")).toBeInTheDocument();
+    const list = within(screen.getByRole("list", { name: "Son 30 günde aynı yerde 5 ve daha fazla kez bildirilenler" }));
+    expect(list.getAllByRole("listitem")).toHaveLength(5);
+
+    await user.click(screen.getByRole("button", { name: "7 sorunun hepsini göster" }));
+
+    expect(list.getAllByRole("listitem")).toHaveLength(7);
+    expect(list.getByText("Derslik 7")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Daha az göster" }));
+
+    expect(list.getAllByRole("listitem")).toHaveLength(5);
   });
 
   it("loads the last 30 days when the period is switched", async () => {

@@ -5,7 +5,7 @@ import type { components } from "@/lib/api/types";
 type Schemas = components["schemas"];
 type CaseCategory = Schemas["CaseCategory"];
 
-const building = (id: number, name: string): Schemas["LocationSummary"] => ({ id, kind: "BUILDING", name, path: name });
+const building = (id: number, name: string): Schemas["LocationSummary"] => ({ id, kind: "BUILDING", name, path: `KMP/${id}` });
 const load = (id: number, name: string, by_category: Partial<Record<CaseCategory, number>>): Schemas["LocationLoad"] => ({
   location: building(id, name),
   count: Object.values(by_category).reduce((sum, count) => sum + count, 0),
@@ -131,6 +131,7 @@ export const DEPARTMENTS_REPORT: Schemas["DepartmentsRead"] = {
   ],
 };
 
+// Gercek backend'de path kod yoludur ("KMP/B/B-2/B-2-WC"); ekranda okunur ad (name) gosterilir
 const SUGGESTION = "Kalıcı çözüm (dispenser kapasitesi / periyodik kontrol) değerlendirilebilir.";
 
 export const RECURRING: Schemas["RecurringRead"] = {
@@ -138,7 +139,7 @@ export const RECURRING: Schemas["RecurringRead"] = {
   window_days: 30,
   items: [
     {
-      location: { id: 21, kind: "WC", name: "Erkek WC", path: "B Blok / 2. Kat / Erkek WC" },
+      location: { id: 21, kind: "WC", name: "B Blok 2. Kat Erkek WC", path: "KMP/B/B-2/B-2-WC" },
       case_type: { id: 1, code: "SOAP_EMPTY", name: "Sabun bitti" },
       count: 17,
       last_reported_at: "2026-10-07T06:40:00Z",
@@ -147,7 +148,7 @@ export const RECURRING: Schemas["RecurringRead"] = {
       suggestion: SUGGESTION,
     },
     {
-      location: { id: 34, kind: "ROOM", name: "Çalışma Salonu", path: "Kütüphane / 1. Kat / Çalışma Salonu" },
+      location: { id: 34, kind: "ROOM", name: "Kütüphane 1. Kat Çalışma Salonu", path: "KMP/KTP/KTP-1/KTP-1-SAL" },
       case_type: { id: 9, code: "INTERNET_DOWN", name: "İnternet yok" },
       count: 9,
       last_reported_at: "2026-10-06T11:15:00Z",
@@ -156,7 +157,7 @@ export const RECURRING: Schemas["RecurringRead"] = {
       suggestion: "Kalıcı çözüm (erişim noktası kontrolü) değerlendirilebilir.",
     },
     {
-      location: { id: 11, kind: "CORRIDOR", name: "Giriş", path: "A Blok / Zemin Kat / Giriş" },
+      location: { id: 11, kind: "CORRIDOR", name: "A Blok Zemin Kat Giriş", path: "KMP/A/A-Z/A-Z-GRS" },
       case_type: { id: 3, code: "TRASH_FULL", name: "Çöp dolu" },
       count: 6,
       last_reported_at: "2026-10-05T14:05:00Z",
