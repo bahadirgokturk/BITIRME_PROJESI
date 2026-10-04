@@ -15,172 +15,28 @@ Saat: 26.09.2026 15:00 (Istanbul). Varsayilan donem: 20-26.09, onceki donem: 13-
 Supervisor: c1 AUTO_ASSIGN, c2 AUTO_ASSIGN (+ duzeltme), c3 SEND_TO_HUMAN_REVIEW, c4 ESCALATE.
 """
 
-import uuid
-from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta, timezone
-from itertools import count
-from typing import Any
-
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.models import AgentDecision, Case, CaseEvent, CaseType, Department, Location, Organization
-from app.models.enums import (
-    ActorType,
-    CaseCategory,
-    CaseEventType,
-    CaseStatus,
-    LocationKind,
-    Priority,
-    UserRole,
+from app.models.enums import ActorType, CaseEventType, CaseStatus, LocationKind
+from tests.integration.analytics_world import (
+    GARDEN,
+    World,
+    add_case,
+    add_event,
+    add_supervisor,
+    after,
+    build_world,
+    closed,
+    get,
+    make_location,
+    projector,
+    soap,
+    tr,
 )
 from tests.integration.conftest import FrozenClock
-from tests.integration.factories import bearer, make_organization, make_user
-
-TURKEY = timezone(timedelta(hours=3))
-NOW = datetime(2026, 9, 26, 15, 0, tzinfo=TURKEY)
-MANAGER_EMAIL = "mudur@kampus.example.com"
-_numbers = count(1)
-
-
-def tr(day: int, hour: int, minute: int = 0) -> datetime:
-    return datetime(2026, 9, day, hour, minute, tzinfo=TURKEY)
-
-
-def after(start: datetime, minutes: int) -> datetime:
-    return start + timedelta(minutes=minutes)
-
-
-@dataclass
-class World:
-    organization: Organization
-    cleaning: Department
-    maintenance: Department
-    locations: dict[str, Location]
-    soap: CaseType
-    projector: CaseType
-    reporter_id: int
-    headers: dict[str, str]
-
-
-def _location(session: Session, world_org: Organization, path: str, kind: LocationKind) -> Location:
-    code = path.rsplit("/", 1)[-1]
-    parent = path.rsplit("/", 1)[0] if "/" in path else None
-    location = Location(
-        organization_id=world_org.id,
-        kind=kind,
-        code=code,
-        name=f"{code} adi",
-        path=path,
-        importance_weight=50,
-    )
-    if parent:
-        location.parent_id = (
-            session.query(Location).filter_by(organization_id=world_org.id, path=parent).one().id
-        )
-    session.add(location)
-    session.flush()
-    return location
-
-
-def _case_type(
-    session: Session, organization: Organization, code: str, category: CaseCategory
-) -> CaseType:
-    case_type = CaseType(
-        organization_id=organization.id,
-        code=code,
-        name=f"{code} adi",
-        category=category,
-        base_priority=Priority.MEDIUM,
-        base_severity=40,
-    )
-    session.add(case_type)
-    session.flush()
-    return case_type
-
-
-TREE = [
-    ("KMP", LocationKind.CAMPUS),
-    ("KMP/A", LocationKind.BUILDING),
-    ("KMP/A/A-1", LocationKind.FLOOR),
-    ("KMP/A/A-1/A-1-WC", LocationKind.WC),
-    ("KMP/B", LocationKind.BUILDING),
-    ("KMP/B/B-1", LocationKind.FLOOR),
-    ("KMP/B/B-1/B-101", LocationKind.ROOM),
-    # Bina disi alan: kat ve bina yok, kendisi grup olur
-    ("KMP/BHC", LocationKind.OUTDOOR),
-]
-
-
-def add_case(session: Session, world: World, created: datetime, **fields: Any) -> Case:
-    case = Case(
-        organization_id=world.organization.id,
-        case_number=f"CASE-{next(_numbers):06d}",
-        title="Test",
-        description="Test bildirimi",
-        reporter_id=world.reporter_id,
-        created_at=created,
-        **fields,
-    )
-    session.add(case)
-    session.flush()
-    return case
-
-
-def add_event(session: Session, case: Case, event: CaseEventType, actor: ActorType) -> None:
-    session.add(
-        CaseEvent(case_id=case.id, event_type=event, actor_type=actor, occurred_at=case.created_at)
-    )
-
-
-def add_supervisor(session: Session, case: Case, decision: str) -> None:
-    session.add(
-        AgentDecision(
-            case_id=case.id,
-            run_id=uuid.uuid4(),
-            agent_name="supervisor",
-            decision=decision,
-            reason_json=[],
-            input_snapshot={},
-            output_json={},
-            model="rules@1.0",
-            latency_ms=1,
-            created_at=after(case.created_at, 1),
-        )
-    )
-
-
-def _soap(world: World, created: datetime) -> dict[str, Any]:
-    return {
-        "case_type_id": world.soap.id,
-        "category": CaseCategory.CONSUMABLE,
-        "location_id": world.locations["KMP/A/A-1/A-1-WC"].id,
-        "department_id": world.cleaning.id,
-        "priority": Priority.MEDIUM,
-        "due_at": after(created, 120),
-    }
-
-
-def _projector(world: World, location: str) -> dict[str, Any]:
-    return {
-        "case_type_id": world.projector.id,
-        "category": CaseCategory.TECHNICAL,
-        "location_id": world.locations[location].id,
-        "department_id": world.maintenance.id,
-        "priority": Priority.HIGH,
-    }
-
-
-def _closed(created: datetime, steps: tuple[int, int, int, int]) -> dict[str, Any]:
-    assigned, accepted, resolved, closed = steps
-    return {
-        "status": CaseStatus.CLOSED,
-        "assigned_at": after(created, assigned),
-        "accepted_at": after(created, accepted),
-        "resolved_at": after(created, resolved),
-        "closed_at": after(created, closed),
-    }
+from tests.integration.factories import make_organization
 
 
 def _add_cases(session: Session, world: World) -> None:
@@ -188,48 +44,42 @@ def _add_cases(session: Session, world: World) -> None:
         session,
         world,
         tr(21, 10),
-        **_soap(world, tr(21, 10)),
-        **_closed(tr(21, 10), (10, 30, 90, 100)),
+        **soap(world, tr(21, 10)),
+        **closed(tr(21, 10), (10, 30, 90, 100)),
     )
     c2 = add_case(
         session,
         world,
         tr(22, 9),
-        **_soap(world, tr(22, 9)),
-        **_closed(tr(22, 9), (20, 60, 180, 190)),
+        **soap(world, tr(22, 9)),
+        **closed(tr(22, 9), (20, 60, 180, 190)),
         reopened_count=1,
     )
     c3 = add_case(
         session,
         world,
         tr(24, 11),
-        **_projector(world, "KMP/B/B-1/B-101"),
+        **projector(world),
         status=CaseStatus.ASSIGNED,
         assigned_at=tr(24, 11, 30),
         due_at=after(tr(24, 11), 240),
     )
-    c4 = add_case(
-        session,
-        world,
-        tr(26, 13, 30),
-        **_projector(world, "KMP/B/B-1/B-101"),
-        status=CaseStatus.CLASSIFIED,
-    )
-    add_case(session, world, tr(21, 10, 5), **_soap(world, tr(21, 10, 5)), status=CaseStatus.MERGED)
+    c4 = add_case(session, world, tr(26, 13, 30), **projector(world), status=CaseStatus.CLASSIFIED)
+    add_case(session, world, tr(21, 10, 5), **soap(world, tr(21, 10, 5)), status=CaseStatus.MERGED)
     add_case(
-        session, world, tr(15, 8), **_soap(world, tr(15, 8)), **_closed(tr(15, 8), (5, 10, 60, 70))
+        session, world, tr(15, 8), **soap(world, tr(15, 8)), **closed(tr(15, 8), (5, 10, 60, 70))
     )
     add_case(
         session,
         world,
         tr(26, 5),
-        **_projector(world, "KMP/BHC"),
+        **projector(world, GARDEN),
         status=CaseStatus.IN_PROGRESS,
         assigned_at=tr(26, 5, 15),
         accepted_at=tr(26, 5, 45),
     )
-    add_event(session, c2, CaseEventType.SLA_BREACHED, ActorType.SYSTEM)
-    add_event(session, c2, CaseEventType.DECISION_OVERRIDDEN, ActorType.USER)
+    add_event(session, c2, CaseEventType.SLA_BREACHED)
+    add_event(session, c2, CaseEventType.DECISION_OVERRIDDEN, actor=ActorType.USER)
     for case, decision in (
         (c1, "AUTO_ASSIGN"),
         (c2, "AUTO_ASSIGN"),
@@ -242,33 +92,9 @@ def _add_cases(session: Session, world: World) -> None:
 
 @pytest.fixture
 def world(client: TestClient, db_session: Session, clock: FrozenClock) -> World:
-    clock.current = NOW.astimezone(UTC)
-    organization = make_organization(db_session)
-    locations = {path: _location(db_session, organization, path, kind) for path, kind in TREE}
-    cleaning = Department(organization_id=organization.id, code="CLEAN", name="Temizlik")
-    maintenance = Department(organization_id=organization.id, code="MAINT", name="Bakım")
-    db_session.add_all([cleaning, maintenance])
-    db_session.flush()
-    reporter = make_user(db_session, email="ogrenci@kampus.example.com", organization=organization)
-    make_user(db_session, email=MANAGER_EMAIL, role=UserRole.MANAGER, organization=organization)
-    world = World(
-        organization=organization,
-        cleaning=cleaning,
-        maintenance=maintenance,
-        locations=locations,
-        soap=_case_type(db_session, organization, "SOAP", CaseCategory.CONSUMABLE),
-        projector=_case_type(db_session, organization, "PROJ", CaseCategory.TECHNICAL),
-        reporter_id=reporter.id,
-        headers=bearer(client, MANAGER_EMAIL),
-    )
+    world = build_world(client, db_session, clock)
     _add_cases(db_session, world)
     return world
-
-
-def get(client: TestClient, world: World, path: str, **params: Any) -> Any:
-    response = client.get(f"/api/v1/analytics/{path}", params=params, headers=world.headers)
-    assert response.status_code == 200, response.text
-    return response.json()
 
 
 # --- KPI kartlari ---------------------------------------------------------------------------
@@ -332,7 +158,7 @@ def test_department_and_building_filters(client: TestClient, world: World) -> No
 def test_building_of_another_organization_is_not_found(
     client: TestClient, world: World, db_session: Session
 ) -> None:
-    other = _location(db_session, make_organization(db_session), "DIS", LocationKind.BUILDING)
+    other = make_location(db_session, make_organization(db_session), "DIS", LocationKind.BUILDING)
 
     response = client.get(
         "/api/v1/analytics/kpis", params={"building_id": other.id}, headers=world.headers

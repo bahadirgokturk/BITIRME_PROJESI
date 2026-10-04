@@ -1,7 +1,8 @@
 """Analitik ve agent metrikleri (FAZ 6, MANAGER ve ADMIN).
 
-Bildirim KPI'lari ve dagilimlari calisir (E6-2, E6-3; app/services/analytics_service.py). Birim
-performansi, tekrarlayan sorunlar, surec, ozet ve agent metrikleri henuz sozlesme (501).
+Bildirim KPI'lari ve dagilimlari (app/services/analytics_service.py) ile birim performansi,
+tekrarlayan sorunlar ve surec (operations_analytics_service.py) calisir (E6-2, E6-3). Ozet ve agent
+metrikleri henuz sozlesme (501).
 
 Ortak filtre: from, to (Europe/Istanbul gunleri, ikisi dahil), department_id, building_id.
 """
@@ -37,6 +38,7 @@ from app.schemas.analytics import (
     TrendRead,
 )
 from app.services.analytics_service import AnalyticsService
+from app.services.operations_analytics_service import OperationsAnalyticsService
 
 # Varsayilan donem: son 7 gun; en uzun donem bir yil (sorgu suresi ve grafik okunurlugu)
 DEFAULT_PERIOD_DAYS = 7
@@ -81,6 +83,17 @@ def get_analytics_service(
 
 
 Analytics = Annotated[AnalyticsService, Depends(get_analytics_service)]
+
+
+def get_operations_service(
+    session: Annotated[Session, Depends(get_session)],
+    user: CurrentUser,
+    clock: Annotated[Clock, Depends(get_clock)],
+) -> OperationsAnalyticsService:
+    return OperationsAnalyticsService(session, user, clock)
+
+
+Operations = Annotated[OperationsAnalyticsService, Depends(get_operations_service)]
 
 
 @router.get("/kpis")
@@ -130,21 +143,21 @@ def aging(filters: Filter, service: Analytics) -> AgingRead:
 
 
 @router.get("/departments")
-def departments(_filter: Filter) -> DepartmentsRead:
+def departments(filters: Filter, service: Operations) -> DepartmentsRead:
     """Birim performansi: sayi, cozum suresi, SLA uyumu, acik is yuku."""
-    raise NotImplementedYetError()
+    return service.departments(filters)
 
 
 @router.get("/recurring")
-def recurring(_filter: Filter) -> RecurringRead:
-    """Tekrarlayan sorunlar: ayni yer + tur, son 30 gunde esik ve ustu."""
-    raise NotImplementedYetError()
+def recurring(filters: Filter, service: Operations) -> RecurringRead:
+    """Tekrarlayan sorunlar: ayni yer + tur, donem sonuna kadarki 30 gunde esik ve ustu."""
+    return service.recurring(filters)
 
 
 @router.get("/process")
-def process(_filter: Filter) -> ProcessRead:
+def process(filters: Filter, service: Operations) -> ProcessRead:
     """Olay kaydindan adim sureleri ve darbogaz."""
-    raise NotImplementedYetError()
+    return service.process(filters)
 
 
 @router.post("/summary")

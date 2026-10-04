@@ -1,6 +1,10 @@
-"""Cozum suresi ve SLA raporlari (docs/ANALYTICS.md bolum 2)."""
+"""Cozum suresi ve SLA raporlari (docs/ANALYTICS.md bolum 2).
+
+Ayni hesap kategori, oncelik ya da birim bazinda gerekir; gruplama kolonu parametredir.
+"""
 
 from dataclasses import dataclass
+from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -27,46 +31,56 @@ class SlaCounts:
         return self.with_sla - self.met
 
 
-def resolution_by_category(
-    session: Session, scope: Scope, window: Window
-) -> list[CategoryDurations]:
-    """Donemde cozulenler, kategori bazinda; en cok bildirim alan once."""
+def resolution_by(
+    session: Session, scope: Scope, window: Window, group: Any
+) -> dict[Any, DurationStats]:
+    """Donemde cozulenlerin suresi, group kolonunun her degeri icin (bos grup donmez)."""
     minutes = minutes_between(Case.resolved_at, Case.created_at)
     statement = scope.apply(
         select(
-            Case.category,
+            group,
             func.count(Case.id),
             func.avg(minutes),
             func.percentile_cont(0.5).within_group(minutes),
             func.percentile_cont(0.9).within_group(minutes),
         )
         .where(
-            window.contains(Case.resolved_at),
-            Case.status.not_in(NO_DURATION),
-            Case.category.is_not(None),
+            window.contains(Case.resolved_at), Case.status.not_in(NO_DURATION), group.is_not(None)
         )
-        .group_by(Case.category)
+        .group_by(group)
     )
-    rows = sorted(session.execute(statement).all(), key=lambda row: (-row[1], row[0]))
-    return [
-        CategoryDurations(category, DurationStats(total, rounded(avg), rounded(med), rounded(p90)))
-        for category, total, avg, med, p90 in rows
-    ]
+    return {
+        key: DurationStats(total, rounded(avg), rounded(median), rounded(p90))
+        for key, total, avg, median, p90 in session.execute(statement)
+    }
 
 
-def sla_by_priority(session: Session, scope: Scope, window: Window) -> dict[Priority, SlaCounts]:
-    """Donemde kapanan ve SLA'si olanlar: cozum hedef zamanindan once mi? Her oncelik doner
-    (bos olanlar 0) ki grafik eksenleri sabit kalsin."""
+def resolution_by_category(
+    session: Session, scope: Scope, window: Window
+) -> list[CategoryDurations]:
+    """Kategori bazinda; en cok bildirim alan once."""
+    rows = resolution_by(session, scope, window, Case.category)
+    ordered = sorted(rows.items(), key=lambda item: (-item[1].count, item[0]))
+    return [CategoryDurations(category, stats) for category, stats in ordered]
+
+
+def sla_by(session: Session, scope: Scope, window: Window, group: Any) -> dict[Any, SlaCounts]:
+    """Donemde kapanan ve SLA'si olanlar: cozum hedef zamanindan once mi?"""
     statement = scope.apply(
         select(
-            Case.priority,
+            group,
             func.count(Case.id),
             func.count(Case.id).filter(Case.resolved_at <= Case.due_at),
         )
         .where(window.contains(Case.closed_at), Case.due_at.is_not(None))
-        .group_by(Case.priority)
+        .group_by(group)
     )
-    found = {priority: SlaCounts(total, met) for priority, total, met in session.execute(statement)}
+    return {key: SlaCounts(total, met) for key, total, met in session.execute(statement)}
+
+
+def sla_by_priority(session: Session, scope: Scope, window: Window) -> dict[Priority, SlaCounts]:
+    """Her oncelik doner (bos olanlar 0) ki grafik eksenleri sabit kalsin."""
+    found = sla_by(session, scope, window, Case.priority)
     return {priority: found.get(priority, SlaCounts(0, 0)) for priority in Priority}
 
 

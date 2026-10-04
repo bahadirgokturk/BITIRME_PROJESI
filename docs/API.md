@@ -168,9 +168,9 @@ yüzde (0–100); veri yoksa `null` (ekran "–" gösterir). KPI kartları `{val
 | GET | `/analytics/resolution-times` | ✅ kategori bazında avg/median/p90 |
 | GET | `/analytics/sla` | ✅ SLA uyum/ihlal |
 | GET | `/analytics/aging` | ✅ açık case yaş kovaları |
-| GET | `/analytics/departments` | departman performansı |
-| GET | `/analytics/recurring` | tekrarlayan problemler |
-| GET | `/analytics/process` | event log'dan ortalama adım süreleri (darboğaz) |
+| GET | `/analytics/departments` | ✅ departman performansı |
+| GET | `/analytics/recurring` | ✅ tekrarlayan problemler |
+| GET | `/analytics/process` | ✅ event log'dan ortalama adım süreleri (darboğaz) |
 | POST | `/analytics/summary` | `{period: "7d"}` → KPI JSON + doğal dil özeti (agent E5-12 ✅; endpoint KPI servisiyle E6-2) |
 
 ## Agents

@@ -59,6 +59,17 @@ def _aging_label(low: int, high: int | None) -> str:
     return f"{low}+ sa" if high is None else f"{low}-{high} sa"
 
 
+def resolve_scope(session: Session, actor: User, filters: AnalyticsFilter) -> Scope:
+    """Kullanicinin kurumu + filtreler. Bina baska kurumunsa 404 (IDOR)."""
+    building_path = None
+    if filters.building_id is not None:
+        building = location_repository.get(session, filters.building_id)
+        if building is None or building.organization_id != actor.organization_id:
+            raise NotFoundError()
+        building_path = building.path
+    return Scope(actor.organization_id, filters.department_id, building_path)
+
+
 class AnalyticsService:
     def __init__(self, session: Session, actor: User, clock: Clock) -> None:
         self._session = session
@@ -242,16 +253,7 @@ class AnalyticsService:
     # --- Ortak ------------------------------------------------------------------------------
 
     def _scope(self, filters: AnalyticsFilter) -> Scope:
-        building_path = None
-        if filters.building_id is not None:
-            building_path = self._building(filters.building_id).path
-        return Scope(self._actor.organization_id, filters.department_id, building_path)
-
-    def _building(self, location_id: int) -> Location:
-        location = location_repository.get(self._session, location_id)
-        if location is None or location.organization_id != self._actor.organization_id:
-            raise NotFoundError()
-        return location
+        return resolve_scope(self._session, self._actor, filters)
 
     @staticmethod
     def _period(filters: AnalyticsFilter) -> PeriodRead:

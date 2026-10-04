@@ -76,3 +76,10 @@ SLA_FALLBACK_PRIORITY = "MEDIUM"
 # Agent otonomisi (docs/AGENTS.md bolum 5): siniflandirma guveni bunun altindaysa manager inceler.
 # Kalibre modelde 0.70 ~ "10 tahminin 7'si dogru"; seed varsayilani, admin tip bazinda degistirir
 MIN_CONFIDENCE_AUTO_DEFAULT = "0.70"
+
+# Tekrarlayan sorun (docs/ANALYTICS.md "Recurring problems"): ayni yer + ayni tur son 30 gunde 5+.
+# 30 gun: aylik yonetim toplantisi dongusu. 5: haftada birden fazla tekrar; tek tuk olaylari
+# ayiklar, kalici sorunu yakalar. Olcum (04.10.2026, bos DB + seeds.run --demo --history): demo
+# gecmisine gomulu 4 oruntunun 4'u de bulundu (B Blok WC sabun 26 bildirimle ilk sirada)
+RECURRING_WINDOW_DAYS = 30
+RECURRING_MIN_COUNT = 5

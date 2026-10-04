@@ -760,7 +760,7 @@ export interface paths {
         };
         /**
          * Recurring
-         * @description Tekrarlayan sorunlar: ayni yer + tur, son 30 gunde esik ve ustu.
+         * @description Tekrarlayan sorunlar: ayni yer + tur, donem sonuna kadarki 30 gunde esik ve ustu.
          */
         get: operations["recurring_api_v1_analytics_recurring_get"];
         put?: never;

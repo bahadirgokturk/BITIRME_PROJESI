@@ -34,3 +34,16 @@ INVALID_ASSIGNEE = "Seçilen kişi bu birimde çalışan aktif bir personel değ
 SELF_LOCKOUT = "Kendi hesabınızı pasifleştiremez ya da yönetici rolünüzü kaldıramazsınız."
 INVALID_PARENT = "Lokasyon kendisinin ya da kendi alt lokasyonunun altına taşınamaz."
 UNAUTHORIZED = "Oturumunuz geçersiz ya da süresi dolmuş. Lütfen yeniden giriş yapın."
+
+# Tekrarlayan sorun onerisi, kategoriye gore (yonetici dashboard'u).
+# Karar degil, oneri: "...edilebilir"
+RECURRING_SUGGESTIONS = {
+    "CLEANING": "Bu alanın temizlik sıklığı veya ayrılan personel gözden geçirilebilir.",
+    "CONSUMABLE": "Kalıcı çözüm (dispenser kapasitesi / periyodik kontrol) değerlendirilebilir.",
+    "TECHNICAL": "Cihazın bakım geçmişi incelenip kalıcı onarım veya yenileme değerlendirilebilir.",
+    "IT": "Bu alandaki ağ veya donanım altyapısının kapasitesi gözden geçirilebilir.",
+    "INFRASTRUCTURE": "Tesisatın kapsamlı bakımı veya yenilenmesi değerlendirilebilir.",
+    "SECURITY": "Bu alandaki güvenlik önlemleri (kamera, devriye) gözden geçirilebilir.",
+    "FOOD_SERVICE": "Hizmet süreci ve tedarik planı gözden geçirilebilir.",
+    "OTHER": "Sorunun kök nedeni yerinde incelenebilir.",
+}
