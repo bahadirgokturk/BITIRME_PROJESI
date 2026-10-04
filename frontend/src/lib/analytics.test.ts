@@ -59,12 +59,12 @@ describe("kpiCards", () => {
     const cards = kpiCards(KPIS_WEEK);
 
     expect(cards.map((card) => card.label)).toEqual([
-      "Açık bildirim",
-      "SLA uyumu",
-      "Ortalama çözüm süresi",
-      "Otomasyon oranı",
-      "Bugün açılan",
-      "Müdür incelemesi oranı",
+      "Açık Bildirim",
+      "SLA Uyumu",
+      "Ortalama Çözüm Süresi",
+      "Otomasyon Oranı",
+      "Bugün Açılan",
+      "Müdür İncelemesi Oranı",
     ]);
     expect(cards[0]).toMatchObject({ value: "42", delta: { text: "▲ %12", tone: "bad" } });
     expect(cards[2]).toMatchObject({ value: "5 sa 10 dk", delta: { text: "▼ %8", tone: "good" } });

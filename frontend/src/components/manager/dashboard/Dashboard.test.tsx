@@ -26,20 +26,20 @@ describe("Dashboard", () => {
   it("shows a skeleton while the numbers load", () => {
     renderDashboard();
 
-    expect(screen.getByRole("heading", { level: 1, name: "Genel bakış" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Genel Bakış" })).toBeInTheDocument();
     expect(screen.getByLabelText("Genel bakış yükleniyor")).toBeInTheDocument();
   });
 
   it("shows the KPI cards with readable values and the change since the previous period", async () => {
     renderDashboard();
 
-    expect(await screen.findByRole("group", { name: "Açık bildirim" })).toHaveTextContent("42");
-    expect(card("Açık bildirim")).toHaveTextContent("▲ %12");
-    expect(card("Açık bildirim")).toHaveTextContent("önceki 7 güne göre");
-    expect(card("SLA uyumu")).toHaveTextContent("%91");
-    expect(card("Ortalama çözüm süresi")).toHaveTextContent("5 sa 10 dk");
-    expect(card("Otomasyon oranı")).toHaveTextContent("%78");
-    expect(card("Müdür incelemesi oranı")).toHaveTextContent("önceki dönemde veri yok");
+    expect(await screen.findByRole("group", { name: "Açık Bildirim" })).toHaveTextContent("42");
+    expect(card("Açık Bildirim")).toHaveTextContent("▲ %12");
+    expect(card("Açık Bildirim")).toHaveTextContent("önceki 7 güne göre");
+    expect(card("SLA Uyumu")).toHaveTextContent("%91");
+    expect(card("Ortalama Çözüm Süresi")).toHaveTextContent("5 sa 10 dk");
+    expect(card("Otomasyon Oranı")).toHaveTextContent("%78");
+    expect(card("Müdür İncelemesi Oranı")).toHaveTextContent("önceki dönemde veri yok");
   });
 
   it("answers the question in each chart title and lists the numbers as text", async () => {
@@ -58,14 +58,14 @@ describe("Dashboard", () => {
 
   it("loads the last 30 days when the period is switched", async () => {
     const user = renderDashboard();
-    await screen.findByRole("group", { name: "Açık bildirim" });
+    await screen.findByRole("group", { name: "Açık Bildirim" });
 
     await user.click(screen.getByRole("button", { name: "Son 30 gün" }));
 
     expect(await screen.findByRole("heading", { name: "251 bildirim açıldı, 236 bildirim kapandı" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Son 30 gün" })).toHaveAttribute("aria-pressed", "true");
-    expect(card("SLA uyumu")).toHaveTextContent("%89");
-    expect(card("SLA uyumu")).toHaveTextContent("önceki 30 güne göre");
+    expect(card("SLA Uyumu")).toHaveTextContent("%89");
+    expect(card("SLA Uyumu")).toHaveTextContent("önceki 30 güne göre");
     expect(within(screen.getByRole("list", { name: "Açılan ve kapanan bildirimler" })).getAllByRole("listitem")).toHaveLength(4);
   });
 
@@ -95,7 +95,7 @@ describe("Dashboard", () => {
     renderDashboard();
 
     expect(await screen.findByText("Özet üretilemedi.")).toBeInTheDocument();
-    expect(card("Açık bildirim")).toHaveTextContent("42");
+    expect(card("Açık Bildirim")).toHaveTextContent("42");
   });
 
   it("explains an empty period instead of drawing empty charts", async () => {
@@ -106,8 +106,8 @@ describe("Dashboard", () => {
     );
     renderDashboard();
 
-    expect(await screen.findByRole("group", { name: "Açık bildirim" })).toHaveTextContent("0");
-    expect(card("SLA uyumu")).toHaveTextContent("–");
+    expect(await screen.findByRole("group", { name: "Açık Bildirim" })).toHaveTextContent("0");
+    expect(card("SLA Uyumu")).toHaveTextContent("–");
     expect(screen.getByText("Seçilen dönemde açılan ya da kapanan bildirim olmadı.")).toBeInTheDocument();
     expect(screen.getByText("Gösterilecek kategori yok.")).toBeInTheDocument();
     expect(screen.getByText("Özet oluşturmak için bu dönemde yeterli bildirim yok.")).toBeInTheDocument();
@@ -130,6 +130,6 @@ describe("Dashboard", () => {
 
     await user.click(within(alert).getByRole("button", { name: "Tekrar dene" }));
 
-    expect(await screen.findByRole("group", { name: "Açık bildirim" })).toHaveTextContent("42");
+    expect(await screen.findByRole("group", { name: "Açık Bildirim" })).toHaveTextContent("42");
   });
 });

@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 
-import { cn } from "cn";
-
 import { PageTitle } from "@/components/layout/PageTitle";
 import { ErrorState } from "@/components/states/ErrorState";
 import { useCategories, useKpis, useTrend } from "@/hooks/useAnalytics";
-import { PERIODS, periodDays, type SummaryPeriod } from "@/lib/analytics";
+import { periodDays, type SummaryPeriod } from "@/lib/analytics";
 
 import { AiSummary, AiSummaryEmpty } from "./AiSummary";
+import { PeriodSwitch } from "../PeriodSwitch";
 import { CategoryBars } from "./CategoryBars";
 import { PanelSkeleton } from "./ChartCard";
 import { KpiGrid, KpiGridSkeleton } from "./KpiGrid";
@@ -17,32 +16,6 @@ import { TrendChart } from "./TrendChart";
 
 const CHARTS_CLASS = "grid gap-4 lg:grid-cols-3";
 const TREND_SPAN = "lg:col-span-2";
-
-interface PeriodSwitchProps {
-  value: SummaryPeriod;
-  onChange: (period: SummaryPeriod) => void;
-}
-
-function PeriodSwitch({ value, onChange }: PeriodSwitchProps) {
-  return (
-    <div role="group" aria-label="Dönem" className="flex rounded-lg bg-muted p-1">
-      {PERIODS.map((period) => (
-        <button
-          key={period.value}
-          type="button"
-          aria-pressed={period.value === value}
-          onClick={() => onChange(period.value)}
-          className={cn(
-            "h-11 flex-1 rounded-md px-3.5 text-sm whitespace-nowrap text-muted-foreground outline-none focus-visible:ring-3 focus-visible:ring-ring/50 md:h-9",
-            period.value === value && "border bg-background font-medium text-foreground",
-          )}
-        >
-          {period.label}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 function DashboardSkeleton() {
   return (
@@ -90,7 +63,7 @@ export function Dashboard() {
   return (
     <div className="mx-auto w-full max-w-[1152px] space-y-4 md:space-y-6">
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <PageTitle>Genel bakış</PageTitle>
+        <PageTitle>Genel Bakış</PageTitle>
         <PeriodSwitch value={period} onChange={setPeriod} />
       </header>
       <DashboardBody period={period} />

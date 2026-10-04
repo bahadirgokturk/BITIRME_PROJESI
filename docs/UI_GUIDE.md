@@ -197,13 +197,24 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   gerekçe zorunludur; bu kayıt modelin yeniden eğitimi için veri olur.
 - **Dashboard:** üstte 4–6 KPI kartı (açık kayıt, SLA uyumu, ortalama çözüm süresi, otomasyon oranı), altında trend
   ve dağılım grafikleri. Her grafik başlığı sorunun cevabını söyler ("Bu hafta en çok sorun: B Blok").
-  **Kodda olan (`/manager/dashboard`, menüde "Genel bakış"):** dönem düğmesi (Son 7 gün / Son 30 gün), 6 KPI kartı
+  **Kodda olan (`/manager/dashboard`, menüde "Genel Bakış"):** dönem düğmesi (Son 7 gün / Son 30 gün), 6 KPI kartı
   (açık bildirim, SLA uyumu, ortalama çözüm süresi, otomasyon oranı, bugün açılan, müdür incelemesi oranı),
   açılan/kapanan çubuk grafiği, kategori çubukları ve AI yönetim özeti. Değişim oku yöne göre değil iyi/kötü
   olmasına göre renklenir (açık bildirim artarsa kırmızı ▲); önceki dönemde veri yoksa "–". Grafik kütüphanesi
   kullanılmaz: çubuklar düz HTML/CSS, açılan turuncu ve kapanan turkuaz (renk yolculuğu); durum renkleri grafikte
   kullanılmaz. Sayılar ekran okuyucuya metin olarak da verilir. Telefonda kartlar ikişerli, grafikler alt alta.
   Kurallar: `lib/analytics.ts`.
+- **Raporlar (`/manager/analytics`):** dönem düğmesi ve yedi kart: bina yoğunluğu, zamanında çözülen (SLA),
+  çözüm süreleri, bekleyen bildirimler, birim performansı, tekrarlayan sorunlar, süreç adımları. Her kartın başlığı
+  sonucu söyler ("En yoğun bina: B Blok (21 bildirim)", "En yavaş adım: Atamadan kabule"); veri yoksa düz ad ve tek
+  satır açıklama gösterilir. İstatistik terimi yazılmaz: medyan "Tipik süre", p90 "10 işten 9'u" diye geçer ve
+  tablonun altında açıklanır. Çubuklar turkuaz; yalnız en eski bekleyenler (24+ sa) kırmızı, en yavaş adım turuncu ve
+  "En yavaş" etiketli. Tablolar (`StatTable`) masaüstünde klasik tablo, telefonda her satır ikili ızgarada küçük bir
+  kart olur (sütun başlığı değerin üstüne yazılır). Kurallar: `lib/reports.ts`.
+- **Yapay zekâ performansı (`/manager/agents`):** dört oran kutusu (otomasyon, müdür incelemesi, doğru tür tahmini,
+  doğru tekrar tespiti; her birinin altında bir cümlelik açıklama) ve adım tablosu (karar sayısı, ortalama güven,
+  düzeltilme oranı). "Agent" yerine "adım", "override" yerine "düzeltilme" denir; adım adları backend'den gelir.
+  Kurallar: `lib/agentMetrics.ts`.
 
 ### 5.5 Admin
 
@@ -212,10 +223,12 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
 
 ## 6. Metin ve Dil
 
-- Arayüz metinleri **tam Türkçe** ve Türkçe karakterli ("Gönder", "Bildirimlerim"). Cümle düzeninde yazılır
-  ("Bildirim yap", "Bildirim Yap" değil).
-- Menü ve başlıklarda yabancı terim kullanılmaz; memurların bildiği adlar yazılır: "Genel bakış" (dashboard),
-  "Raporlar" (analytics), "Yapay zekâ performansı" (agent metrikleri), "Tüm bildirimler" (case listesi).
+- Arayüz metinleri **tam Türkçe** ve Türkçe karakterli ("Gönder", "Bildirimlerim"). Butonlar, açıklamalar ve kart
+  başlıkları cümle düzeninde yazılır ("Tekrar dene"). **İstisna:** menü adları, bu adları taşıyan sayfa başlıkları ve
+  gösterge kutularının küçük başlıkları her kelimenin baş harfi büyük yazılır ("Bildirim Yap", "Genel Bakış",
+  "Açık Bildirim").
+- Menü ve başlıklarda yabancı terim kullanılmaz; memurların bildiği adlar yazılır: "Genel Bakış" (dashboard),
+  "Raporlar" (analytics), "Yapay Zekâ Performansı" (agent metrikleri), "Tüm Bildirimler" (case listesi).
   Adresler (route) İngilizce kalır (`/manager/dashboard`); tek kaynak `lib/navigation.ts`.
 - Butonlar fiildir: "Gönder", "Kabul et", "Tamamla". "Tamam/Evet" yerine eylemi söyleyen metin.
 - Hata mesajları backend'den `error.message` olarak gelir ([API.md](API.md): `{"error": {code, message, details}}`);

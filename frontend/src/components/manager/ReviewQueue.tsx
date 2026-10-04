@@ -57,7 +57,7 @@ export function ReviewQueue() {
     <div className="mx-auto w-full max-w-[1120px] space-y-6">
       <header className="flex items-end justify-between gap-4">
         <div className="space-y-3">
-          <PageTitle>İnceleme kuyruğu</PageTitle>
+          <PageTitle>İnceleme Kuyruğu</PageTitle>
           <p className="text-sm text-muted-foreground">
             AI&apos;ın emin olamadığı ya da size iletilen bildirimler. En kritik ve en eski üstte.
           </p>

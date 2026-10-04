@@ -54,18 +54,18 @@ describe("activeNavHref", () => {
 
 describe("menu labels", () => {
   it("uses sentence case for the report item (UI_GUIDE)", () => {
-    expect(navigationFor("REPORTER")[0]?.label).toBe("Bildirim yap");
+    expect(navigationFor("REPORTER")[0]?.label).toBe("Bildirim Yap");
   });
 
   it("names the manager screens in plain Turkish (UI_GUIDE bolum 6)", () => {
     const labels = Object.fromEntries(navigationFor("MANAGER").map((item) => [item.href, item.label]));
 
     expect(labels).toMatchObject({
-      "/manager/dashboard": "Genel bakış",
-      "/manager/review-queue": "İnceleme kuyruğu",
+      "/manager/dashboard": "Genel Bakış",
+      "/manager/review-queue": "İnceleme Kuyruğu",
       "/manager/analytics": "Raporlar",
-      "/manager/agents": "Yapay zekâ performansı",
-      "/manager/cases": "Tüm bildirimler",
+      "/manager/agents": "Yapay Zekâ Performansı",
+      "/manager/cases": "Tüm Bildirimler",
     });
   });
 });

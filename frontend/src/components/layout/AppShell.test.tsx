@@ -39,7 +39,7 @@ describe("AppShell", () => {
       within(nav).getByRole("link", { name: "Görevlerim" }),
     ).toHaveAttribute("href", "/staff/tasks");
     expect(
-      within(nav).queryByRole("link", { name: "Genel bakış" }),
+      within(nav).queryByRole("link", { name: "Genel Bakış" }),
     ).not.toBeInTheDocument();
     expect(screen.getByText("içerik")).toBeInTheDocument();
     expect(screen.getByText("Mehmet Demir")).toBeInTheDocument();
@@ -50,7 +50,7 @@ describe("AppShell", () => {
 
     const nav = screen.getByRole("navigation", { name: "Ana menü" });
     expect(within(nav).getByRole("link", { name: "Görevlerim" })).toHaveAttribute("aria-current", "page");
-    expect(within(nav).getByRole("link", { name: "Bildirim yap" })).not.toHaveAttribute("aria-current");
+    expect(within(nav).getByRole("link", { name: "Bildirim Yap" })).not.toHaveAttribute("aria-current");
   });
 
   it("opens the mobile menu panel with the same items and logout", async () => {
