@@ -21,13 +21,28 @@ süre metriklerine dahil edilmez (sayım metriklerinde ayrı gösterilir).
 | Automation Rate | Supervisor kararı `AUTO_ASSIGN`/`CREATE_TASK` olan **ve** kapanışa kadar `DECISION_OVERRIDDEN` veya manuel atama olmayan case / analiz edilen case |
 | Human Review Rate | `SEND_TO_HUMAN_REVIEW` + `ESCALATE` kararlı case / analiz edilen case |
 
-Her KPI önceki eşit uzunluktaki dönemle karşılaştırılır (`delta_pct`).
+Her KPI önceki eşit uzunluktaki dönemle karşılaştırılır (`delta_pct`; önceki değer 0 ya da yoksa `null`).
+
+**Uygulamadaki netleştirmeler** (`backend/app/analytics/`, E6-2):
+
+| Konu | Karar |
+|---|---|
+| Dönem | `from`–`to` Europe/Istanbul günleri, iki uç dahil; sorgular `[başlangıç, bitiş)` yarı açık aralık |
+| Süre metrikleri | Ölçülen olay dönemde olanlar: çözüm süresi dönemde **çözülenler**, ilk yanıt dönemde **kabul edilenler**, atama dönemde **atananlar** |
+| Open Cases | Dönem sonundaki (bugünse şu anki) açık sayı: o ana kadar açılmış, kapanmamış; REJECTED/MERGED hiç açık sayılmaz. Önceki değer = önceki dönemin sonu |
+| Cases Today | Bugün; önceki değer dün |
+| SLA Compliance | Dönemde kapanan ve `due_at`'i olan bildirimler |
+| SLA Breach | Dönemde açılan ve `due_at`'i olan bildirimler içinde `SLA_BREACHED` olayı olanlar |
+| Automation / Human Review | Dönemde açılan ve Supervisor'dan geçen bildirimler; her bildirimin **son** Supervisor kararı. "İnsan dokundu" = `DECISION_OVERRIDDEN` olayı ya da kullanıcının yaptığı `TASK_CREATED`/`TASK_REASSIGNED` |
+| Sayım dışı | MERGED tüm sayımlardan, REJECTED ayrıca süre metriklerinden düşer |
 
 ## 2. Raporlar
 
 - **Trend:** `date_trunc(granularity, created_at)` bazında sayım; açılan vs kapanan iki seri.
 - **Kategori dağılımı:** category → case_type kırılımı.
 - **Lokasyon analizi:** `locations.path` ile bina / kat / alan seviyesinde toplama (heatmap: bina × kategori).
+  Seviye derinlikten değil türden bulunur: bina = yoldaki `BUILDING` (yoksa kampüsün doğrudan alt düğümü, ör. bahçe);
+  kat = yoldaki `FLOOR` (yoksa binası); alan = lokasyonun kendisi.
 - **Çözüm süresi:** kategori bazında avg, median (`percentile_cont(0.5)`), p90 (`percentile_cont(0.9)`).
 - **Aging:** açık case'ler `now − created_at` → 0–2, 2–6, 6–12, 12–24, 24+ saat kovaları.
 - **Departman performansı:** case sayısı, avg/median çözüm, SLA uyumu, açık iş yükü, personel başına açık task.
