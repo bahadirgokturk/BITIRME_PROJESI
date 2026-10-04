@@ -23,7 +23,7 @@ Production (E7-3) hafta 11'de, staging birkaç hafta sorunsuz çalıştıktan so
 | | Staging | Production |
 |---|---|---|
 | Tetikleyici | `develop`'a merge | `main`'e merge + GitHub Environment `production` manuel onayı |
-| Frontend | Vercel projesi (develop branch'i) | Aynı Vercel projesi, production domain (`main`) |
+| Frontend | Vercel projesi `campusflow-staging` (production branch: `develop`) | Ayrı Vercel projesi (production branch: `main`) |
 | Backend | Render servisi `campusflow-api-staging` | Render servisi `campusflow-api` |
 | Veritabanı | Neon projesi `campusflow-staging` | Neon projesi `campusflow-prod` |
 | Veri | Demo seed | Yalnız template seed |
@@ -37,27 +37,52 @@ Production (E7-3) hafta 11'de, staging birkaç hafta sorunsuz çalıştıktan so
 | Yerel LLM yok | Ollama canlıda çalışmaz | `LLM_PROVIDER=none` ile tam çalışır (ADR-2) |
 | Kalıcı disk yok | Yüklenen fotoğraflar yeniden başlatmada kaybolur | `STORAGE_BACKEND=s3` (S3-uyumlu bucket, ör. Supabase Storage) |
 
-**Kurulum adımları (E7-3a):**
+**Kurulum adımları (E7-3a, 04.10.2026'da uygulandı):**
 
 1. *(Bahadır)* Vercel, Render ve Neon hesaplarını GitHub ile açar; repoya erişim verir. Hesap açma ve giriş
    işlemleri kişinin kendisi tarafından yapılır.
-2. *(A)* Production Dockerfile'ları (çok aşamalı, dev bağımlılıksız, `--reload` yok) ve `deploy-staging.yml` yazılır.
-3. Neon'da `campusflow-staging` açılır; bağlantı adresi Render'a `DATABASE_URL` olarak girilir
-   (`postgresql+psycopg://…?sslmode=require`).
-4. Render servisi Docker ile kurulur; her deploy'da önce `alembic upgrade head`, sonra uygulama başlar;
-   deploy sonrası `/api/v1/health` smoke testi.
-5. Vercel projesi `frontend/` kök dizini ile kurulur; `NEXT_PUBLIC_API_URL` = Render servisinin adresi + `/api/v1`.
-6. Render'da `CORS_ORIGINS` = Vercel staging adresi. (Vercel PR önizleme adresleri değişkendir; gerekirse
-   ayrı bir önizleme origin kuralı eklenir.)
-7. Secret'lar yalnız sağlayıcıların env ayarlarında ve GitHub Environments'ta tutulur; repoya yazılmaz.
-8. **Refresh cookie ve farklı alan adları:** Refresh cookie `SameSite=Strict`. Vercel (`*.vercel.app`) ile
-   Render (`*.onrender.com`) farklı site sayıldığı için tarayıcı cookie'yi göndermez. Çözüm: frontend
-   API'ye **aynı origin** üzerinden gider — Next.js `rewrites` ile `/api/*` → Render. Böylece cookie
-   first-party kalır; `SameSite=None` gibi gevşetmelere gerek olmaz.
-9. **Gerçek istemci IP'si:** Giriş hız sınırı IP'ye bakar. Render/Vercel proxy arkasında uvicorn'a
-   `--proxy-headers --forwarded-allow-ips="*"` verilmezse tüm istekler proxy IP'sinden gelmiş görünür ve
-   IP sınırı herkesi birlikte engeller. Sayaçlar bellekte olduğu için backend **tek instance** çalışmalı;
-   ölçeklenirse sayaçlar Postgres'e taşınır.
+2. **İmaj:** `backend/Dockerfile` tek imaj. Yerelde docker-compose kendi komutunu (`--reload`) verir; Render
+   Dockerfile'daki `CMD` ile başlar: önce `alembic upgrade head` (ücretsiz planda deploy öncesi komut yok;
+   migration idempotent), sonra uvicorn Render'ın `PORT` değişkeninde, `--proxy-headers` ile (https → Secure çerez).
+   Ayrı `deploy-staging.yml` gerekmez: Render ve Vercel GitHub entegrasyonuyla `develop`'a her merge'de kendileri deploy eder.
+3. **Neon:** proje `campusflow-staging`, bölge **AWS Europe Central 1 (Frankfurt)**. Bağlantı adresi Neon'un verdiği
+   gibi (`postgresql://…?sslmode=require`) Render'a `DATABASE_URL` olarak yapıştırılır; uygulama psycopg sürücüsünü
+   kendisi ekler (`core/config.py`).
+4. **Render Web Service:** repo `BITIRME_PROJESI`, branch `develop`, Root Directory `backend`, Runtime **Docker**,
+   Region **Frankfurt**, Instance **Free**, Health Check Path `/api/v1/health`, Auto-Deploy açık. Ad:
+   `campusflow-api-staging`. Env:
+
+   | Değişken | Değer |
+   |---|---|
+   | `ENVIRONMENT` | `staging` |
+   | `DATABASE_URL` | Neon bağlantı adresi (secret) |
+   | `JWT_SECRET` | Render'ın **Generate** düğmesiyle rastgele (secret) |
+   | `CORS_ORIGINS` | Vercel staging adresi (rewrite ile gerekmez; doğrudan erişim için) |
+
+5. **Vercel:** repo, Root Directory `frontend`, **Production Branch = `develop`** (bu proje staging'dir; production
+   için ayrı Vercel projesi `main`'i izler). Env:
+
+   | Değişken | Değer |
+   |---|---|
+   | `BACKEND_ORIGIN` | Render servisinin adresi, sonunda `/` olmadan (ör. `https://campusflow-api-staging.onrender.com`) |
+   | `NEXT_PUBLIC_API_URL` | `/api/v1` |
+   | `NEXT_PUBLIC_API_MOCKING` | `disabled` |
+
+   **Neden doğrudan Render adresi değil:** giriş çerezi `SameSite=Strict`; Vercel ve Render farklı siteler olduğu için
+   tarayıcı çerezi göndermez, oturum yenilenemez. `frontend/next.config.ts` `/api/v1/*` isteklerini
+   `BACKEND_ORIGIN`'e aktarır; tarayıcı tek site görür. Yerelde `next start` ile doğrulandı: giriş çerezi frontend
+   adresinden geldi, `/auth/refresh` 200 döndü.
+6. **Demo verisi (tek seferlik):** kendi terminalinizde, Neon adresini komuta yazarak (sohbete/repoya yapıştırmadan):
+
+   ```bash
+   docker compose run --rm -e ENVIRONMENT=staging -e DATABASE_URL="<Neon adresi>" -e JWT_SECRET="<32+ karakter rastgele>" -e SEED_DEMO_PASSWORD="<yeni parola>" backend sh -c "alembic upgrade head && python -m seeds.run --demo --history"
+   ```
+
+   ⚠️ `SEED_DEMO_PASSWORD` için `.env.example`'daki yerel değeri **kullanmayın**: o değer public repoda yazılı, staging
+   ise internete açık; demo admin hesabını herkes açabilir. Staging parolası yalnız ekipte paylaşılır.
+7. **Bilinen kısıt:** `STORAGE_BACKEND=local`; Render diski kalıcı değil, yüklenen fotoğraflar her deploy/yeniden
+   başlatmada silinir. Staging için kabul edildi; production öncesi S3-uyumlu depo (E7-3).
+8. Secret'lar yalnız sağlayıcıların env ayarlarında tutulur; repoya ve sohbete yazılmaz.
 
 ## 2. Ortam Değişkenleri
 
