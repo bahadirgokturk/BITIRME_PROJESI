@@ -46,12 +46,22 @@ Her KPI önceki eşit uzunluktaki dönemle karşılaştırılır (`delta_pct`; �
 - **Çözüm süresi:** kategori bazında avg, median (`percentile_cont(0.5)`), p90 (`percentile_cont(0.9)`).
 - **Aging:** açık case'ler `now − created_at` → 0–2, 2–6, 6–12, 12–24, 24+ saat kovaları.
 - **Departman performansı:** case sayısı, avg/median çözüm, SLA uyumu, açık iş yükü, personel başına açık task.
+  Kurumun tüm aktif birimleri satır olarak döner (bildirimi olmayan da). Açık görev = `PENDING/ACCEPTED/IN_PROGRESS`
+  (anlık); aktif personel = birimdeki aktif `STAFF`; personeli olmayan birimde oran `null`.
 - **Recurring problems:** son 30 gün, `(location_id, case_type_id)` grubunda `count ≥ RECURRING_THRESHOLD`
   (varsayılan 5; config). Çıktı: lokasyon yolu, tip, sayı, son olay, ortalama çözüm süresi, trend.
   Örn. *B Blok / 2. Kat / Erkek WC — SOAP_EMPTY — 17 case*. Öneri metni: "Kalıcı çözüm (dispenser
   kapasitesi / periyodik kontrol) değerlendirilebilir."
+  Uygulama: pencere, filtredeki `to` gününe kadarki son 30 gün (`from` kullanılmaz); MERGED kayıtlar ayrı tekrar
+  sayılmaz (aynı olayın kopyasıdır). Trend: pencerenin ikinci yarısı ilk yarısından fazlaysa `up`, azsa `down`.
+  Öneri metni kategoriye göre (`core/messages.py` `RECURRING_SUGGESTIONS`); karar değil öneridir.
+  Doğrulama (RQ4): boş veritabanına yüklenen 60 günlük demo geçmişinde gömülü 4 örüntünün 4'ü de bulundu.
 - **Süreç analitiği (event log):** ardışık event çiftleri arasındaki ortalama/medyan süre
   (ör. `TASK_CREATED → TASK_ACCEPTED`) → en uzun adım = darboğaz. Departman bazında karşılaştırma.
+  Uygulama: dönemde açılan bildirimler; 5 adım `CASE_CREATED → TASK_CREATED → TASK_ACCEPTED → WORK_STARTED →
+  WORK_COMPLETED → CASE_CLOSED`. Adım süresi = başlangıç olayının ilk görülmesinden ondan sonraki ilk bitiş
+  olayına (yeniden atama ilk süreyi bozmaz). Darboğaz = medyanı en uzun adım; departman karşılaştırması
+  `department_id` filtresiyle yapılır.
 
 ## 3. Agent Performansı
 

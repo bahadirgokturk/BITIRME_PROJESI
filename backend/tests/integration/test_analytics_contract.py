@@ -37,13 +37,8 @@ def tokens(client: TestClient, db_session: Session) -> dict[str, dict[str, str]]
     return {role: bearer(client, email, PASSWORD) for role, email in emails.items()}
 
 
-# Is mantigi henuz gelmeyenler; bildirim KPI'lari test_analytics_cases.py'de
-NOT_IMPLEMENTED = [
-    "/api/v1/analytics/departments",
-    "/api/v1/analytics/recurring",
-    "/api/v1/analytics/process",
-    "/api/v1/agents/metrics",
-]
+# Is mantigi henuz gelmeyenler; digerleri test_analytics_cases.py ve test_analytics_operations.py'de
+NOT_IMPLEMENTED = ["/api/v1/agents/metrics"]
 
 
 @pytest.mark.parametrize("path", NOT_IMPLEMENTED)
