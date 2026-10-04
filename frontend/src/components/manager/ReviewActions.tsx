@@ -1,14 +1,12 @@
 "use client";
 
-import { useState } from "react";
-
 import { FormAlert } from "@/components/states/FormAlert";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { useReviewAction, type ReviewItem } from "@/hooks/useReview";
 import type { components } from "@/lib/api/types";
-import { PRIORITY_LABELS, reviewActions, type Priority } from "@/lib/review";
+import { reviewActions } from "@/lib/review";
 
+import { OverrideDialog } from "./OverrideDialog";
 import { ReasonDialog } from "./ReasonDialog";
 
 type Schemas = components["schemas"];
@@ -36,40 +34,6 @@ function ApproveButton({ item, onDone }: ActionProps) {
       </Button>
       {assign.error ? <FormAlert error={assign.error} /> : null}
     </>
-  );
-}
-
-function OverridePriority({ item, onDone }: ActionProps) {
-  const override = useReviewAction<Schemas["OverrideRequest"]>(item.case.id, "override");
-  const [priority, setPriority] = useState<Priority>(item.case.priority ?? "MEDIUM");
-  const selectId = `override-priority-${item.case.id}`;
-  return (
-    <ReasonDialog
-      trigger="Önceliği düzelt"
-      title="Önceliği düzelt"
-      description={`${item.case.case_number} · ${item.case.title}. Düzeltmen modelin yeniden eğitiminde kullanılır.`}
-      confirm="Düzeltmeyi kaydet"
-      mutation={override}
-      toBody={(reason): Schemas["OverrideRequest"] => ({ field: "priority", corrected_value: priority, reason })}
-      onDone={() => onDone(`${item.case.case_number} önceliği düzeltildi.`)}
-      extra={
-        <div className="space-y-1.5">
-          <Label htmlFor={selectId}>Yeni öncelik</Label>
-          <select
-            id={selectId}
-            value={priority}
-            onChange={(event) => setPriority(event.target.value as Priority)}
-            className="h-11 w-full rounded-lg border border-input bg-background px-3 text-base outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-          >
-            {Object.entries(PRIORITY_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </div>
-      }
-    />
   );
 }
 
@@ -101,7 +65,7 @@ export function ReviewActions({ item, onDone }: ActionProps) {
       {allowed.approve ? <ApproveButton item={item} onDone={onDone} /> : null}
       {allowed.close ? <SimpleReasonAction item={item} onDone={onDone} kind="close" /> : null}
       {allowed.merge ? <SimpleReasonAction item={item} onDone={onDone} kind="merge" /> : null}
-      {allowed.override ? <OverridePriority item={item} onDone={onDone} /> : null}
+      {allowed.override ? <OverrideDialog item={item} onDone={onDone} /> : null}
       {allowed.reject ? <SimpleReasonAction item={item} onDone={onDone} kind="reject" /> : null}
     </>
   );

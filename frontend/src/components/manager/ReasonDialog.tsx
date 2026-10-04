@@ -17,14 +17,16 @@ interface ReasonDialogProps<Body> {
   mutation: UseMutationResult<unknown, Error, Body>;
   toBody: (reason: string) => Body;
   onDone: () => void;
-  // Gerekcenin ustunde ek alan (ornek: yeni oncelik secimi)
+  // Gerekcenin ustunde ek alan (ornek: duzeltilecek alan ve yeni deger)
   extra?: ReactNode;
+  // Ek alan da dolu olmali (ornek: yeni deger secildi)
+  canSubmit?: boolean;
 }
 
 // Gerekce isteyen manager islemleri (reddet, birlestir, kapat, duzelt): gerekce zorunlu ve
 // decision_feedback'e yazilir; backend hatasi pencerede gosterilir, pencere acik kalir
 export function ReasonDialog<Body>(props: ReasonDialogProps<Body>) {
-  const { trigger, title, description, confirm, mutation, toBody, onDone, extra } = props;
+  const { trigger, title, description, confirm, mutation, toBody, onDone, extra, canSubmit = true } = props;
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   const fieldId = useId();
@@ -54,7 +56,7 @@ export function ReasonDialog<Body>(props: ReasonDialogProps<Body>) {
           <FormAlert error={mutation.error} />
           <div className="flex justify-end gap-2">
             <DialogClose render={<Button type="button" variant="outline" className="h-11 px-4" />}>Vazgeç</DialogClose>
-            <Button type="submit" className="h-11 px-4" disabled={reason.trim() === "" || mutation.isPending}>
+            <Button type="submit" className="h-11 px-4" disabled={!canSubmit || reason.trim() === "" || mutation.isPending}>
               {mutation.isPending ? "Kaydediliyor…" : confirm}
             </Button>
           </div>

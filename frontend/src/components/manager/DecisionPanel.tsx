@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCaseDecisions, type AgentDecision } from "@/hooks/useReview";
 import { ApiError } from "@/lib/api/client";
-import { agentLabel, decisionReasons } from "@/lib/review";
+import { decisionReasons, decisionTitles } from "@/lib/review";
 
 import { Confidence } from "./Confidence";
 
@@ -16,11 +16,12 @@ function weightText(weight: number | null): string {
 }
 
 function DecisionRow({ decision }: { decision: AgentDecision }) {
+  const titles = decisionTitles(decision);
   return (
     <li className="grid grid-cols-[12rem_1fr_6rem] gap-6 border-t py-3 first:border-t-0">
       <div>
-        <p className="text-xs text-muted-foreground">{agentLabel(decision.agent_name)}</p>
-        <p className="text-sm font-semibold break-words">{decision.decision}</p>
+        <p className="text-xs text-muted-foreground">{titles.agent}</p>
+        <p className="text-sm font-semibold break-words">{titles.decision}</p>
       </div>
       <div className="space-y-1">
         <ul className="space-y-0.5 text-[13px]">

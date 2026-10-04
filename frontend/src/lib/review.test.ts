@@ -2,7 +2,17 @@ import { describe, expect, it } from "vitest";
 
 import { CASES } from "@/mocks/caseFixtures";
 
-import { agentLabel, confidencePercent, decisionReasons, priorityLabel, reviewActions, reviewBadge } from "./review";
+import {
+  agentLabel,
+  confidencePercent,
+  currentOverrideValue,
+  decisionReasons,
+  decisionTitles,
+  OVERRIDE_FIELD_LABELS,
+  priorityLabel,
+  reviewActions,
+  reviewBadge,
+} from "./review";
 
 function firstCase() {
   const [first] = CASES;
@@ -109,5 +119,37 @@ describe("decisionReasons", () => {
     expect(decisionReasons([{ code: "X" }, { message: "Geçerli" }])).toEqual([
       { code: "", message: "Geçerli", weight: null },
     ]);
+  });
+});
+
+describe("decisionTitles", () => {
+  it("prefers the Turkish labels sent by the API", () => {
+    const decision = { agent_name: "supervisor", decision: "ESCALATE", agent_label: "Karar", decision_label: "Müdüre yükseltildi" };
+
+    expect(decisionTitles(decision)).toEqual({ agent: "Karar", decision: "Müdüre yükseltildi" });
+  });
+
+  it("falls back to the local agent name and the decision code", () => {
+    const decision = { agent_name: "classification", decision: "ELECTRICAL_FAULT", agent_label: null, decision_label: null };
+
+    expect(decisionTitles(decision)).toEqual({ agent: "Sınıflandırma", decision: "ELECTRICAL_FAULT" });
+  });
+});
+
+describe("override fields", () => {
+  it("names the three fields the manager can correct", () => {
+    expect(OVERRIDE_FIELD_LABELS).toEqual({ case_type: "Tür", priority: "Öncelik", department: "Birim" });
+  });
+
+  it.each([
+    ["case_type", "SOAP_EMPTY"],
+    ["priority", "LOW"],
+    ["department", "SUPPORT_SERVICES"],
+  ] as const)("starts the %s value from the AI suggestion", (field, value) => {
+    expect(currentOverrideValue(base, field)).toBe(value);
+  });
+
+  it("starts empty when the AI made no suggestion", () => {
+    expect(currentOverrideValue({ ...base, department: null }, "department")).toBe("");
   });
 });
