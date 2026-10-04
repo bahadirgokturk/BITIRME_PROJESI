@@ -1,7 +1,8 @@
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
 import { apiGet } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
+import { caseListQuery, type CaseFilters } from "@/lib/caseList";
 import { nextPage } from "@/lib/pagination";
 
 export type CaseRead = components["schemas"]["CaseRead"];
@@ -35,5 +36,21 @@ export function useCaseEvents(caseId: string) {
   return useQuery({
     queryKey: ["cases", caseId, "events"],
     queryFn: () => apiGet<CaseEventRead[]>(`/cases/${encodeURIComponent(caseId)}/events`),
+  });
+}
+
+// Mudurun tum bildirimleri, suzgeclerle ve sayfa sayfa. Suzgec degisince yeni cevap gelene kadar
+// eski liste ekranda kalir (iskelete donup titremesin).
+export function useCaseList(filters: CaseFilters) {
+  return useInfiniteQuery({
+    queryKey: ["cases", "list", filters],
+    queryFn: ({ pageParam }) => apiGet<CasePage>(`/cases?${caseListQuery(filters, pageParam)}`),
+    initialPageParam: 1,
+    getNextPageParam: nextPage,
+    placeholderData: keepPreviousData,
+    select: (data) => ({
+      items: data.pages.flatMap((page) => page.items),
+      total: data.pages[0]?.total ?? 0,
+    }),
   });
 }

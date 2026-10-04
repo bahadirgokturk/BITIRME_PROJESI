@@ -6,6 +6,7 @@ import type { components } from "@/lib/api/types";
 
 import { CASES, EMPTY_CASE, timelineFor } from "./caseFixtures";
 import { LOCATIONS, USERS } from "./fixtures";
+import { MANAGER_CASES } from "./managerCaseFixtures";
 import { TASKS } from "./taskFixtures";
 import { taskEventsFor } from "./taskHandlers";
 
@@ -15,6 +16,8 @@ type Schemas = components["schemas"];
 const DESCRIPTION_MIN_LENGTH = 10;
 const TITLE_FROM_DESCRIPTION_LENGTH = 60;
 const CASE_NUMBER_DIGITS = 6;
+// Backend ile ayni: backend/app/core/constants.py PAGE_SIZE_DEFAULT
+const PAGE_SIZE_DEFAULT = 20;
 
 // Oturum boyunca olusturulan bildirimler burada tutulur; sayfa yenilenince sifirlanir
 const cases: Schemas["CaseRead"][] = [...CASES];
@@ -43,7 +46,29 @@ function titleFrom(description: string): string {
 }
 
 export function findCase(id: string | readonly string[] | undefined) {
-  return cases.find((item) => String(item.id) === id);
+  return [...cases, ...MANAGER_CASES].find((item) => String(item.id) === id);
+}
+
+const fold = (text: string) => text.toLocaleLowerCase("tr");
+
+// q: numara, baslik ya da konum adinda gecen metin
+function matchesSearch(item: Schemas["CaseRead"], search: string | null): boolean {
+  if (!search) {
+    return true;
+  }
+  return [item.case_number, item.title, item.location.name].some((text) => fold(text).includes(fold(search)));
+}
+
+function matches(item: Schemas["CaseRead"], params: URLSearchParams): boolean {
+  const statuses = params.getAll("status");
+  const priority = params.get("priority");
+  const sla = params.get("sla_status");
+  return (
+    (statuses.length === 0 || statuses.includes(item.status)) &&
+    (!priority || item.priority === priority) &&
+    (!sla || item.sla_status === sla) &&
+    matchesSearch(item, params.get("q"))
+  );
 }
 
 function newCase(
@@ -106,12 +131,14 @@ export const caseHandlers = [
     ),
   ),
 
+  // Mudur listesi (/manager/cases): gercek API'deki suzgecler ve sayfalama (docs/API.md "Cases")
   http.get(apiUrl("/cases"), ({ request }) => {
-    const statuses = new URL(request.url).searchParams.getAll("status");
-    const items = statuses.length
-      ? cases.filter((item) => statuses.includes(item.status))
-      : cases;
-    return HttpResponse.json(page(items));
+    const params = new URL(request.url).searchParams;
+    const items = [...MANAGER_CASES, ...cases].filter((item) => matches(item, params));
+    const pageNumber = Number(params.get("page") ?? 1);
+    const size = Number(params.get("page_size") ?? PAGE_SIZE_DEFAULT);
+    const start = (pageNumber - 1) * size;
+    return HttpResponse.json({ items: items.slice(start, start + size), total: items.length, page: pageNumber });
   }),
 
   http.get(apiUrl("/cases/:id"), ({ params }) => {
