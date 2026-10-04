@@ -7,13 +7,13 @@ from datetime import datetime
 from typing import Any
 
 from sqlalchemy import ColumnElement, and_, exists, func, or_, select
-from sqlalchemy.dialects.postgresql import distinct_on
 from sqlalchemy.orm import Session
 
 from app.agents.supervisor import SupervisorAgent, SupervisorDecision
+from app.analytics.decisions import latest_decisions
 from app.analytics.scope import NO_DURATION, NOT_COUNTED, Scope, Window
 from app.core.constants import PERCENT
-from app.models import AgentDecision, Case, CaseEvent
+from app.models import Case, CaseEvent
 from app.models.enums import ActorType, CaseEventType
 
 SECONDS_PER_MINUTE = 60
@@ -126,13 +126,7 @@ def agent_share(session: Session, scope: Scope, window: Window) -> AgentShare:
 
     Otomatik: karar atama/gorev ve sonrasinda insan AI kararini duzeltmedi ya da elle atamadi.
     """
-    latest = (
-        select(AgentDecision.case_id, AgentDecision.decision)
-        .where(AgentDecision.agent_name == SupervisorAgent.name)
-        .ext(distinct_on(AgentDecision.case_id))
-        .order_by(AgentDecision.case_id, AgentDecision.created_at.desc(), AgentDecision.id.desc())
-        .subquery()
-    )
+    latest = latest_decisions(SupervisorAgent.name)
     touched = exists().where(
         CaseEvent.case_id == Case.id,
         or_(

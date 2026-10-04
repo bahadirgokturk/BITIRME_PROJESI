@@ -4,7 +4,7 @@ Saat 26.09.2026 15:00 (Istanbul), donem 20-26.09, tekrar penceresi 28.08-26.09 (
 
   SABUN A-1-WC  28.08, 02.09, 20.09, 22.09, 24.09, 25.09  hepsi cozum +60, kapanis +70; SLA +120,
                 25.09'da SLA +30 (asti)
-  SABUN A-1-WC  20.08 (pencere disi), 23.09 MERGED (sayilmaz)
+  SABUN A-1-WC  20.08 (pencere disi), 23.09 MERGED ve REJECTED (gercek sorun degil; sayilmaz)
   SABUN BAHCE   18.09 ASSIGNED, CLEAN'de bekleyen gorev
   PROJ  B-101   21.09 cozum +300 (SLA +240 asti, gorev bitti), 22.09 ASSIGNED (gorev kabul edildi),
                 23.09 IN_PROGRESS (gorev suruyor), 24.09 CLASSIFIED -> 4 bildirim, esigin altinda
@@ -80,6 +80,9 @@ def _add_cleaning(session: Session, world: World) -> None:
     add_case(session, world, tr(25, 10), **_soap_closed(world, tr(25, 10), due_minutes=30))
     add_case(session, world, tr(20, 10, month=8), **_soap_closed(world, tr(20, 10, month=8)))
     add_case(session, world, tr(23, 10), **soap(world, tr(23, 10)), status=CaseStatus.MERGED)
+    # Reddedilen (ornegin kapsam disi) bildirimin birimi olmaz
+    rejected = soap(world, tr(23, 11)) | {"department_id": None}
+    add_case(session, world, tr(23, 11), **rejected, status=CaseStatus.REJECTED)
     waiting = add_case(
         session, world, tr(18, 9), **soap(world, tr(18, 9), GARDEN), status=CaseStatus.ASSIGNED
     )
@@ -163,7 +166,8 @@ def test_recurring_problem_in_the_last_30_days(client: TestClient, world: World)
     (item,) = body["items"]
     assert item["location"]["path"] == "KMP/A/A-1/A-1-WC"
     assert item["case_type"]["code"] == "SOAP"
-    # 28.08 pencerenin ilk gunu; 20.08 disarida, birlestirilen sayilmaz. Projektor 4: esik alti
+    # 28.08 pencerenin ilk gunu; 20.08 disarida, birlestirilen ve reddedilen sayilmaz.
+    # Projektor 4: esik alti
     assert item["count"] == 6
     assert datetime.fromisoformat(item["last_reported_at"]) == tr(25, 10)
     assert item["avg_resolution_min"] == 60.0

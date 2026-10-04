@@ -1,8 +1,8 @@
 """Analitik ve agent metrikleri (FAZ 6, MANAGER ve ADMIN).
 
-Bildirim KPI'lari ve dagilimlari (app/services/analytics_service.py) ile birim performansi,
-tekrarlayan sorunlar ve surec (operations_analytics_service.py) calisir (E6-2, E6-3). Ozet ve agent
-metrikleri henuz sozlesme (501).
+Bildirim KPI'lari ve dagilimlari (analytics_service.py), birim performansi, tekrarlayan sorunlar ve
+surec (operations_analytics_service.py), AI yonetim ozeti (summary_service.py) ve agent metrikleri
+(agent_metrics_service.py). Hesaplar app/analytics altinda; LLM yalniz ozet metnini akicilastirir.
 
 Ortak filtre: from, to (Europe/Istanbul gunleri, ikisi dahil), department_id, building_id.
 """
@@ -13,12 +13,15 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app.agents.analytics_summary import AnalyticsSummaryAgent
+from app.agents.providers.ollama import summary_polisher
 from app.analytics.scope import TURKEY, AnalyticsFilter
-from app.api.deps import CurrentUser, require_roles
+from app.api.deps import CurrentUser, get_app_settings, require_roles
 from app.api.v1.responses import AUTHENTICATED_RESPONSES
 from app.core.clock import Clock, get_clock
+from app.core.config import Settings
 from app.core.database import get_session
-from app.core.errors import InvalidPeriodError, NotImplementedYetError
+from app.core.errors import InvalidPeriodError
 from app.models.enums import UserRole
 from app.schemas.analytics import (
     AgentMetricsRead,
@@ -37,8 +40,10 @@ from app.schemas.analytics import (
     SummaryRequest,
     TrendRead,
 )
+from app.services.agent_metrics_service import AgentMetricsService
 from app.services.analytics_service import AnalyticsService
 from app.services.operations_analytics_service import OperationsAnalyticsService
+from app.services.summary_service import SummaryService
 
 # Varsayilan donem: son 7 gun; en uzun donem bir yil (sorgu suresi ve grafik okunurlugu)
 DEFAULT_PERIOD_DAYS = 7
@@ -94,6 +99,23 @@ def get_operations_service(
 
 
 Operations = Annotated[OperationsAnalyticsService, Depends(get_operations_service)]
+
+
+def get_summary_service(
+    analytics: Analytics,
+    operations: Operations,
+    settings: Annotated[Settings, Depends(get_app_settings)],
+    clock: Annotated[Clock, Depends(get_clock)],
+) -> SummaryService:
+    # LLM_PROVIDER=none (varsayilan): yalniz sablon metin (docs/AGENTS.md 4.10)
+    agent = AnalyticsSummaryAgent(summary_polisher(settings))
+    return SummaryService((analytics, operations), agent, clock)
+
+
+def get_agent_metrics_service(
+    session: Annotated[Session, Depends(get_session)], user: CurrentUser
+) -> AgentMetricsService:
+    return AgentMetricsService(session, user)
 
 
 @router.get("/kpis")
@@ -161,12 +183,16 @@ def process(filters: Filter, service: Operations) -> ProcessRead:
 
 
 @router.post("/summary")
-def summary(_payload: SummaryRequest) -> SummaryRead:
+def summary(
+    payload: SummaryRequest, service: Annotated[SummaryService, Depends(get_summary_service)]
+) -> SummaryRead:
     """AI yonetim ozeti: KPI JSON'u + sablon (opsiyonel yerel LLM) metni."""
-    raise NotImplementedYetError()
+    return service.summarize(payload.period)
 
 
 @agents_router.get("/metrics")
-def agent_metrics(_filter: Filter) -> AgentMetricsRead:
+def agent_metrics(
+    filters: Filter, service: Annotated[AgentMetricsService, Depends(get_agent_metrics_service)]
+) -> AgentMetricsRead:
     """Agent performansi: otomasyon, insan incelemesi, duzeltme orani, siniflandirma dogrulugu."""
-    raise NotImplementedYetError()
+    return service.metrics(filters)
