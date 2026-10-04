@@ -238,6 +238,9 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
 - Menü ve başlıklarda yabancı terim kullanılmaz; memurların bildiği adlar yazılır: "Genel Bakış" (dashboard),
   "Raporlar" (analytics), "Yapay Zekâ Performansı" (agent metrikleri), "Tüm Bildirimler" (case listesi).
   Adresler (route) İngilizce kalır (`/manager/dashboard`); tek kaynak `lib/navigation.ts`.
+- Girişten sonra herkes kendi ilk ekranına gider: bildirim yapan `/my-cases`, personel `/staff/tasks`, müdür
+  `/manager/dashboard`. Yönetici (ADMIN) ekranları yapılana kadar yönetici de `/manager/dashboard`'u görür
+  (`homePathFor`, `lib/navigation.ts`).
 - Ekran metinlerinde "AI" yazılmaz, "yapay zekâ" yazılır ("Yapay zekâ önerisi", "Yapay zekâ yönetim özeti"). Tek
   istisna ürün adıdır: "CampusFlow AI".
 - Butonlar fiildir: "Gönder", "Kabul et", "Tamamla". "Tamam/Evet" yerine eylemi söyleyen metin.

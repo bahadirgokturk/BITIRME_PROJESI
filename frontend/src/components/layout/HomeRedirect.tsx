@@ -1,14 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, type ReactNode } from "react";
+import { useEffect } from "react";
 
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { homePathFor } from "@/lib/navigation";
 
 // "/" adresi: kullanicinin rolune ait ilk sayfaya gider (giris de "/"a yonlendirir).
-// Rolun ekrani yoksa gecici icerik (children) gosterilir. Oturum hatalarini CurrentUserShell ele alir.
-export function HomeRedirect({ children }: { children: ReactNode }) {
+// Yonlendirme bitene kadar bir sey cizilmez. Oturum hatalarini CurrentUserShell ele alir.
+export function HomeRedirect() {
   const router = useRouter();
   const { data: user } = useCurrentUser();
   const target = user ? homePathFor(user.role) : null;
@@ -19,8 +19,5 @@ export function HomeRedirect({ children }: { children: ReactNode }) {
     }
   }, [router, target]);
 
-  if (!user || target) {
-    return null;
-  }
-  return children;
+  return null;
 }
