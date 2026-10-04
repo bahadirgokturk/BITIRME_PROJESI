@@ -38,7 +38,7 @@ Tasarım sırası: **REPORTER ve STAFF önce mobil** (375 px), sonra masaüstü;
 | `/cases/[id]` | kapsam | FAZ 3 | Detay + zaman çizelgesi (reporter'a sadeleştirilmiş) |
 | `/staff/tasks`, `/staff/tasks/[id]` | STAFF | FAZ 4–7 | Görev listesi ve yaşam döngüsü |
 | `/manager/review-queue` | MANAGER | FAZ 7 | AI'ın emin olmadığı / escalate edilen kayıtlar |
-| `/manager/cases` | MANAGER | FAZ 7 | Filtreli liste |
+| `/manager/cases` | MANAGER | FAZ 7 | Filtreli liste (✅ kodda) |
 | `/manager/dashboard`, `/manager/analytics` | MANAGER, ADMIN | FAZ 9–10 | KPI kartları, grafikler |
 | `/manager/agents` | MANAGER, ADMIN | FAZ 10 | Agent performansı |
 
@@ -217,6 +217,12 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   doğru tekrar tespiti; her birinin altında bir cümlelik açıklama) ve adım tablosu (karar sayısı, ortalama güven,
   düzeltilme oranı). "Agent" yerine "adım", "override" yerine "düzeltilme" denir; adım adları backend'den gelir.
   Kurallar: `lib/agentMetrics.ts`.
+- **Tüm Bildirimler (`/manager/cases`):** arama kutusu (numara, başlık, konum; yazmayı bıraktıktan 300 ms sonra arar),
+  öncelik seçimi ve durum grubu düğmeleri. 14 durum beş gruba toplanır: Tümü, Açık, Kapanan, Reddedilen ve
+  birleştirilen, Geciken (hedef süresi aşılan açık bildirimler). Her satırda numara, başlık (altında tür ve okunur
+  konum adı), birim, durum, öncelik, kalan süre ve açılış zamanı; satır bildirimin detayına gider. Masaüstünde tablo,
+  telefonda her bildirim ayrı kart (tek DOM, iki yerleşim). Liste 20'şer yüklenir ("Daha fazla göster"). Süzgeçle
+  sonuç çıkmazsa "Süzgeçleri temizle" düğmesi, hiç bildirim yoksa düz açıklama gösterilir. Kurallar: `lib/caseList.ts`.
 
 ### 5.5 Admin
 

@@ -62,7 +62,7 @@ export function taskActions(status: TaskStatus): TaskActions {
   return ACTIONS[status];
 }
 
-function duration(minutes: number): string {
+export function duration(minutes: number): string {
   if (minutes < MINUTES_PER_HOUR) {
     // "0 dk" yaniltici olur; son dakika da 1 dk olarak gosterilir
     return `${Math.max(minutes, 1)} dk`;
