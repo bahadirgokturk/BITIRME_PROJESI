@@ -16,7 +16,7 @@ function SummaryPanel({ action, children }: { action?: ReactNode; children: Reac
     <section className={`${PANEL_CLASS} relative`}>
       <div className="flex min-h-9 items-center gap-2">
         <SparklesIcon aria-hidden className="size-[18px] text-primary" />
-        <h2 className="font-semibold">AI yönetim özeti</h2>
+        <h2 className="font-semibold">Yapay zekâ yönetim özeti</h2>
       </div>
       {children}
       {/* Telefonda metnin altinda tam genislik, masaustunde basligin saginda (Figma: AiSummary) */}

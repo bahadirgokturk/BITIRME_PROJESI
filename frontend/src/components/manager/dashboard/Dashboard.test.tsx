@@ -80,6 +80,7 @@ describe("Dashboard", () => {
     const user = renderDashboard();
 
     expect(await screen.findByText("Özet 1")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Yapay zekâ yönetim özeti" })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Yeniden oluştur" }));
 

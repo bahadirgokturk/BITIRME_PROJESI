@@ -199,7 +199,7 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   ve dağılım grafikleri. Her grafik başlığı sorunun cevabını söyler ("Bu hafta en çok sorun: B Blok").
   **Kodda olan (`/manager/dashboard`, menüde "Genel Bakış"):** dönem düğmesi (Son 7 gün / Son 30 gün), 6 KPI kartı
   (açık bildirim, SLA uyumu, ortalama çözüm süresi, otomasyon oranı, bugün açılan, müdür incelemesi oranı),
-  açılan/kapanan çubuk grafiği, kategori çubukları ve AI yönetim özeti. Değişim oku yöne göre değil iyi/kötü
+  açılan/kapanan çubuk grafiği, kategori çubukları ve yapay zekâ yönetim özeti. Değişim oku yöne göre değil iyi/kötü
   olmasına göre renklenir (açık bildirim artarsa kırmızı ▲); önceki dönemde veri yoksa "–". Grafik kütüphanesi
   kullanılmaz: çubuklar düz HTML/CSS, açılan turuncu ve kapanan turkuaz (renk yolculuğu); durum renkleri grafikte
   kullanılmaz. Sayılar ekran okuyucuya metin olarak da verilir. Telefonda kartlar ikişerli, grafikler alt alta.
@@ -232,6 +232,8 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
 - Menü ve başlıklarda yabancı terim kullanılmaz; memurların bildiği adlar yazılır: "Genel Bakış" (dashboard),
   "Raporlar" (analytics), "Yapay Zekâ Performansı" (agent metrikleri), "Tüm Bildirimler" (case listesi).
   Adresler (route) İngilizce kalır (`/manager/dashboard`); tek kaynak `lib/navigation.ts`.
+- Ekran metinlerinde "AI" yazılmaz, "yapay zekâ" yazılır ("Yapay zekâ önerisi", "Yapay zekâ yönetim özeti"). Tek
+  istisna ürün adıdır: "CampusFlow AI".
 - Butonlar fiildir: "Gönder", "Kabul et", "Tamamla". "Tamam/Evet" yerine eylemi söyleyen metin.
 - Hata mesajları backend'den `error.message` olarak gelir ([API.md](API.md): `{"error": {code, message, details}}`);
   frontend bunları olduğu gibi gösterir, kendisi uydurmaz. Alan hataları ilgili alanın altında gösterilir.

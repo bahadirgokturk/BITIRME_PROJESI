@@ -36,7 +36,7 @@ function QueueBody({ query, onDone }: { query: QueueQuery; onDone: (message: str
     return (
       <div className="flex flex-col items-center gap-2 py-16 text-center">
         <p className="font-semibold">İncelenecek bildirim yok.</p>
-        <p className="text-sm text-muted-foreground">AI&apos;ın emin olamadığı ya da size iletilen bildirimler burada görünür.</p>
+        <p className="text-sm text-muted-foreground">Yapay zekânın emin olamadığı ya da size iletilen bildirimler burada görünür.</p>
       </div>
     );
   }
@@ -59,7 +59,7 @@ export function ReviewQueue() {
         <div className="space-y-3">
           <PageTitle>İnceleme Kuyruğu</PageTitle>
           <p className="text-sm text-muted-foreground">
-            AI&apos;ın emin olamadığı ya da size iletilen bildirimler. En kritik ve en eski üstte.
+            Yapay zekânın emin olamadığı ya da size iletilen bildirimler. En kritik ve en eski üstte.
           </p>
         </div>
         {query.isSuccess && query.data.total > 0 ? (
