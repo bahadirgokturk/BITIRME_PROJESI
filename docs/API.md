@@ -153,7 +153,7 @@ Ortak parametreler: `from`, `to`, `department_id?`, `building_id?`
 
 📄 **Sözleşme yayında (FAZ 6):** tüm şemalar OpenAPI'de (`KpisRead`, `TrendRead`, `CategoriesRead`, `LocationsRead`,
 `ResolutionTimesRead`, `SlaRead`, `AgingRead`, `DepartmentsRead`, `RecurringRead`, `ProcessRead`, `SummaryRead`,
-`AgentMetricsRead`; `backend/app/schemas/analytics.py`). ✅ işaretliler gerçek veri döner (E6-2/E6-3); diğerleri iş
+`AgentMetricsRead`; `backend/app/schemas/analytics.py`). ✅ işaretliler gerçek veri döner (E6-2/E6-3/E6-5); diğerleri iş
 mantığı gelene kadar `501 NOT_IMPLEMENTED` döner, frontend onlar için MSW ile çalışır. `building_id` başka kurumun
 lokasyonuysa `404`. Ortak kurallar: rol (yalnız MANAGER/ADMIN, diğerleri `403`) ve
 parametre doğrulaması (`from` > `to` ya da 366 günden uzun dönem → `422 INVALID_PERIOD`; bilinmeyen
@@ -171,12 +171,12 @@ yüzde (0–100); veri yoksa `null` (ekran "–" gösterir). KPI kartları `{val
 | GET | `/analytics/departments` | ✅ departman performansı |
 | GET | `/analytics/recurring` | ✅ tekrarlayan problemler |
 | GET | `/analytics/process` | ✅ event log'dan ortalama adım süreleri (darboğaz) |
-| POST | `/analytics/summary` | `{period: "7d"}` → KPI JSON + doğal dil özeti (agent E5-12 ✅; endpoint KPI servisiyle E6-2) |
+| POST | `/analytics/summary` | ✅ `{period: "7d"\|"30d"}` → KPI JSON + doğal dil özeti. Kurum geneli (filtre yok); girdi dashboard uçlarıyla aynı servislerden; `LLM_PROVIDER=none` iken yalnız şablon metin |
 
 ## Agents
 | Method | Path | Açıklama |
 |---|---|---|
-| GET | `/agents/metrics` | 📄 sözleşme (`AgentMetricsRead`): automation, human review, classification accuracy, dup precision; agent bazında karar sayısı, ortalama güven, override oranı |
+| GET | `/agents/metrics` | ✅ automation, human review, classification accuracy, dup precision; agent bazında karar sayısı, ortalama güven, override oranı (hat sırasıyla) |
 | GET | `/agents/decisions` | filtre: agent_name, decision, from, to |
 | GET | `/agents/models` | `ml_models` listesi ve metrikleri |
 

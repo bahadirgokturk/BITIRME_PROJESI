@@ -52,8 +52,9 @@ Her KPI önceki eşit uzunluktaki dönemle karşılaştırılır (`delta_pct`; �
   (varsayılan 5; config). Çıktı: lokasyon yolu, tip, sayı, son olay, ortalama çözüm süresi, trend.
   Örn. *B Blok / 2. Kat / Erkek WC — SOAP_EMPTY — 17 case*. Öneri metni: "Kalıcı çözüm (dispenser
   kapasitesi / periyodik kontrol) değerlendirilebilir."
-  Uygulama: pencere, filtredeki `to` gününe kadarki son 30 gün (`from` kullanılmaz); MERGED kayıtlar ayrı tekrar
-  sayılmaz (aynı olayın kopyasıdır). Trend: pencerenin ikinci yarısı ilk yarısından fazlaysa `up`, azsa `down`.
+  Uygulama: pencere, filtredeki `to` gününe kadarki son 30 gün (`from` kullanılmaz). MERGED (aynı olayın
+  kopyası) ve REJECTED (gerçek bir kampüs sorunu değil, ör. kapsam dışı talep) kayıtlar sayılmaz.
+  Trend: pencerenin ikinci yarısı ilk yarısından fazlaysa `up`, azsa `down`.
   Öneri metni kategoriye göre (`core/messages.py` `RECURRING_SUGGESTIONS`); karar değil öneridir.
   Doğrulama (RQ4): boş veritabanına yüklenen 60 günlük demo geçmişinde gömülü 4 örüntünün 4'ü de bulundu.
 - **Süreç analitiği (event log):** ardışık event çiftleri arasındaki ortalama/medyan süre
@@ -67,14 +68,14 @@ Her KPI önceki eşit uzunluktaki dönemle karşılaştırılır (`delta_pct`; �
 
 | Metrik | Tanım |
 |---|---|
-| Classification accuracy | AI tahmini = nihai (insan onaylı/düzeltilmiş) case_type olan / etiketli case. Seed verisinde `ground_truth` alanı ile; canlıda override yoksa onaylanmış kabul edilir (varsayım raporlanır) |
+| Classification accuracy | Dönemde açılan bildirimlerde Classification Agent'ın **son** tahmini = bildirimin son türü olan / tahmin. Gerçek tür etiketi saklanmadığı için (demo geçmişi dahil) manager'ın düzeltmediği tahmin doğru sayılır → **iyimser** ölçüm; RQ1'in dürüst cevabı gerçek test setindeki offline değerlendirmedir |
 | Macro-F1 (offline) | `ml_models.metrics_json` — gerçek test seti |
 | Average confidence | classification kararlarının ortalama confidence'ı; doğru/yanlış tahminler için ayrı (kalibrasyon grafiği) |
 | Automatic routing rate | Routing önerisi değiştirilmeden uygulanan / toplam |
 | Routing accuracy | Nihai departman = önerilen departman / toplam |
 | Human review rate | yukarıda |
-| Decision override rate | `decision_feedback` sayısı / ilgili agent karar sayısı (agent bazında) |
-| Duplicate detection precision / recall | Seed'de bilinen duplicate kümelerine göre; canlıda manager onay/ret |
+| Decision override rate | Dönemde verilen kararlardan `decision_feedback`'e bağlananlar / karar sayısı (agent bazında). Ortalama güven aynı tabloda (yalnız güven üreten agent'lar) |
+| Duplicate detection precision / recall | Uygulanan: precision = tekrar diye işaretlenip (DUPLICATE ya da POSSIBLE_DUPLICATE, son karar) birleştirilen / işaretlenen; inceleme kuyruğunda bekleyenler sayılmaz. Kesin tekrar otomatik birleştiği için doğru kabul edilir. Recall için bilinen küme etiketi gerekir (henüz yok) |
 | Automation rate | yukarıda |
 
 ## 4. Araştırma Soruları ↔ Metrikler

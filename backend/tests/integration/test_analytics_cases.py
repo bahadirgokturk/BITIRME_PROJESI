@@ -264,3 +264,41 @@ def test_aging_buckets_open_cases_by_hours(client: TestClient, world: World) -> 
         ("24+ sa", 1),
     ]
     assert body["buckets"][-1]["max_hours"] is None
+
+
+# --- AI yonetim ozeti -----------------------------------------------------------------------
+
+
+def test_summary_is_built_only_from_computed_kpis(client: TestClient, world: World) -> None:
+    response = client.post(
+        "/api/v1/analytics/summary", json={"period": "7d"}, headers=world.headers
+    )
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["kpis"] == {
+        "period": {"from": "2026-09-20", "to": "2026-09-26"},
+        "total_cases": 5,
+        "previous_period_change_pct": 400,
+        "top_category": {"code": "TECHNICAL", "count": 3},
+        # Bina seviyesi; A ve B 2'ser, esitlikte yol sirasi
+        "highest_problem_location": {"path": "A adi", "count": 2},
+        "sla_compliance_pct": 50,
+        "sla_breaches": 1,
+        "recurring_problems": [],
+        # Cozulen bildirimi olan tek birim
+        "slowest_department": {"name": "Temizlik", "median_resolution_min": 135},
+        "automation_rate_pct": 25,
+    }
+    # LLM_PROVIDER=none: yalniz sablon, her cumle bir alana bagli
+    assert body["source"] == "TEMPLATE"
+    assert "%50" in body["text"]
+    assert {s["field"] for s in body["sentences"]} >= {"total_cases", "sla_compliance_pct"}
+
+
+def test_monthly_summary_covers_30_days(client: TestClient, world: World) -> None:
+    response = client.post(
+        "/api/v1/analytics/summary", json={"period": "30d"}, headers=world.headers
+    )
+
+    assert response.json()["kpis"]["period"] == {"from": "2026-08-28", "to": "2026-09-26"}

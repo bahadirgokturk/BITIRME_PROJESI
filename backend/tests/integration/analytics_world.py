@@ -10,6 +10,7 @@ Birimler: CLEAN (Temizlik), MAINT (Bakim). Turler: SOAP (sarf), PROJ (teknik).
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta, timezone
+from decimal import Decimal
 from itertools import count
 from typing import Any
 
@@ -21,10 +22,12 @@ from app.models import (
     Case,
     CaseEvent,
     CaseType,
+    DecisionFeedback,
     Department,
     Location,
     Organization,
     Task,
+    User,
 )
 from app.models.enums import (
     ActorType,
@@ -171,19 +174,44 @@ def add_event(
     )
 
 
+def add_decision(
+    session: Session, case: Case, agent: str, decision: str, *, confidence: str | None = None
+) -> AgentDecision:
+    row = AgentDecision(
+        case_id=case.id,
+        run_id=uuid.uuid4(),
+        agent_name=agent,
+        decision=decision,
+        confidence=Decimal(confidence) if confidence else None,
+        reason_json=[],
+        input_snapshot={},
+        output_json={},
+        model="rules@1.0",
+        latency_ms=1,
+        created_at=after(case.created_at, 1),
+    )
+    session.add(row)
+    session.flush()
+    return row
+
+
 def add_supervisor(session: Session, case: Case, decision: str) -> None:
+    add_decision(session, case, "supervisor", decision)
+
+
+def add_feedback(session: Session, decision: AgentDecision, field: str, corrected: str) -> None:
+    """Manager'in AI kararini duzeltmesi (decision_feedback)."""
+    manager_id = session.query(User).filter_by(email=MANAGER_EMAIL).one().id
     session.add(
-        AgentDecision(
-            case_id=case.id,
-            run_id=uuid.uuid4(),
-            agent_name="supervisor",
-            decision=decision,
-            reason_json=[],
-            input_snapshot={},
-            output_json={},
-            model="rules@1.0",
-            latency_ms=1,
-            created_at=after(case.created_at, 1),
+        DecisionFeedback(
+            decision_id=decision.id,
+            case_id=decision.case_id,
+            user_id=manager_id,
+            field=field,
+            original_value=decision.decision,
+            corrected_value=corrected,
+            reason="Test duzeltmesi",
+            created_at=after(decision.created_at, 5),
         )
     )
 

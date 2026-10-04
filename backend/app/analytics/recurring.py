@@ -1,5 +1,6 @@
 """Tekrarlayan sorunlar (docs/ANALYTICS.md "Recurring problems", RQ4): ayni yer + ayni tur,
-pencere icinde esik ve ustu. Birlestirilen bildirimler ayri tekrar sayilmaz.
+pencere icinde esik ve ustu. Birlestirilen (ayni olayin kopyasi) ve reddedilen (gercek bir kampus
+sorunu degil, orn. kapsam disi talep) bildirimler sayilmaz.
 """
 
 from dataclasses import dataclass
@@ -9,7 +10,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.analytics.case_kpis import minutes_between, rounded
-from app.analytics.scope import NO_DURATION, NOT_COUNTED, Scope, Window
+from app.analytics.scope import NO_DURATION, Scope, Window
 from app.models import Case, CaseType, Location
 from app.schemas.analytics import TrendDirection
 
@@ -43,12 +44,12 @@ def recurring_problems(
             CaseType,
             total,
             func.max(Case.created_at),
-            func.avg(minutes).filter(Case.status.not_in(NO_DURATION)),
+            func.avg(minutes),
             func.count(Case.id).filter(Case.created_at < middle),
         )
         .join(Location, Location.id == Case.location_id)
         .join(CaseType, CaseType.id == Case.case_type_id)
-        .where(window.contains(Case.created_at), Case.status.not_in(NOT_COUNTED))
+        .where(window.contains(Case.created_at), Case.status.not_in(NO_DURATION))
         .group_by(Location.id, CaseType.id)
         .having(total >= threshold)
         .order_by(total.desc(), Location.path, CaseType.code)

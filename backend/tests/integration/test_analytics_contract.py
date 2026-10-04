@@ -1,5 +1,5 @@
-"""FAZ 6 sozlesmesi (PROJECT_PLAN bolum 1): analitik ve agent metrik endpoint'leri OpenAPI'de;
-is mantigi gelene kadar 501. Rol ve parametre dogrulamasi simdiden calisir."""
+"""FAZ 6 sozlesmesi: analitik ve agent metrik uclarinda rol ve parametre dogrulamasi.
+Is mantigi test_analytics_cases.py, test_analytics_operations.py ve test_analytics_agents.py'de."""
 
 import pytest
 from fastapi.testclient import TestClient
@@ -37,29 +37,13 @@ def tokens(client: TestClient, db_session: Session) -> dict[str, dict[str, str]]
     return {role: bearer(client, email, PASSWORD) for role, email in emails.items()}
 
 
-# Is mantigi henuz gelmeyenler; digerleri test_analytics_cases.py ve test_analytics_operations.py'de
-NOT_IMPLEMENTED = ["/api/v1/agents/metrics"]
-
-
-@pytest.mark.parametrize("path", NOT_IMPLEMENTED)
-@pytest.mark.parametrize("role", ["manager", "admin"])
-def test_reads_are_published_but_not_implemented_yet(
-    client: TestClient, tokens: dict[str, dict[str, str]], path: str, role: str
+@pytest.mark.parametrize("role", ["reporter", "staff"])
+def test_only_managers_and_admins_request_a_summary(
+    client: TestClient, tokens: dict[str, dict[str, str]], role: str
 ) -> None:
-    response = client.get(path, headers=tokens[role])
+    response = client.post("/api/v1/analytics/summary", json={"period": "7d"}, headers=tokens[role])
 
-    assert response.status_code == 501
-    assert response.json()["error"]["code"] == "NOT_IMPLEMENTED"
-
-
-def test_summary_is_published_but_not_implemented_yet(
-    client: TestClient, tokens: dict[str, dict[str, str]]
-) -> None:
-    response = client.post(
-        "/api/v1/analytics/summary", json={"period": "7d"}, headers=tokens["manager"]
-    )
-
-    assert response.status_code == 501
+    assert response.status_code == 403
 
 
 @pytest.mark.parametrize("path", READS)
