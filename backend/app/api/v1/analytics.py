@@ -1,20 +1,22 @@
 """Analitik ve agent metrikleri (FAZ 6, MANAGER ve ADMIN).
 
-Su an yalniz sozlesme: semalar OpenAPI'de, is mantigi E6-2/E6-3/E6-5 ile gelir (PROJECT_PLAN
-bolum 1). Parametre dogrulamasi simdiden calisir.
+Bildirim KPI'lari ve dagilimlari calisir (E6-2, E6-3; app/services/analytics_service.py). Birim
+performansi, tekrarlayan sorunlar, surec, ozet ve agent metrikleri henuz sozlesme (501).
 
 Ortak filtre: from, to (Europe/Istanbul gunleri, ikisi dahil), department_id, building_id.
 """
 
-from dataclasses import dataclass
-from datetime import date, timedelta, timezone
+from datetime import date, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
 
-from app.api.deps import require_roles
+from app.analytics.scope import TURKEY, AnalyticsFilter
+from app.api.deps import CurrentUser, require_roles
 from app.api.v1.responses import AUTHENTICATED_RESPONSES
 from app.core.clock import Clock, get_clock
+from app.core.database import get_session
 from app.core.errors import InvalidPeriodError, NotImplementedYetError
 from app.models.enums import UserRole
 from app.schemas.analytics import (
@@ -34,12 +36,11 @@ from app.schemas.analytics import (
     SummaryRequest,
     TrendRead,
 )
+from app.services.analytics_service import AnalyticsService
 
 # Varsayilan donem: son 7 gun; en uzun donem bir yil (sorgu suresi ve grafik okunurlugu)
 DEFAULT_PERIOD_DAYS = 7
 MAX_PERIOD_DAYS = 366
-# Kampus saati: gun sinirlari Europe/Istanbul (sabit UTC+3, yaz saati yok)
-TURKEY = timezone(timedelta(hours=3))
 
 MANAGERS = [Depends(require_roles(UserRole.MANAGER, UserRole.ADMIN))]
 router = APIRouter(
@@ -51,14 +52,6 @@ router = APIRouter(
 agents_router = APIRouter(
     prefix="/agents", tags=["agents"], responses=AUTHENTICATED_RESPONSES, dependencies=MANAGERS
 )
-
-
-@dataclass(frozen=True)
-class AnalyticsFilter:
-    start: date
-    end: date
-    department_id: int | None
-    building_id: int | None
 
 
 def analytics_filter(
@@ -79,46 +72,61 @@ def analytics_filter(
 Filter = Annotated[AnalyticsFilter, Depends(analytics_filter)]
 
 
+def get_analytics_service(
+    session: Annotated[Session, Depends(get_session)],
+    user: CurrentUser,
+    clock: Annotated[Clock, Depends(get_clock)],
+) -> AnalyticsService:
+    return AnalyticsService(session, user, clock)
+
+
+Analytics = Annotated[AnalyticsService, Depends(get_analytics_service)]
+
+
 @router.get("/kpis")
-def kpis(_filter: Filter) -> KpisRead:
+def kpis(filters: Filter, service: Analytics) -> KpisRead:
     """KPI kartlari; her biri onceki esit uzunluktaki donemle karsilastirilir."""
-    raise NotImplementedYetError()
+    return service.kpis(filters)
 
 
 @router.get("/trend")
-def trend(_filter: Filter, granularity: Granularity = Granularity.DAY) -> TrendRead:
+def trend(
+    filters: Filter, service: Analytics, granularity: Granularity = Granularity.DAY
+) -> TrendRead:
     """Acilan ve kapanan bildirim serileri."""
-    raise NotImplementedYetError()
+    return service.trend(filters, granularity)
 
 
 @router.get("/categories")
-def categories(_filter: Filter) -> CategoriesRead:
+def categories(filters: Filter, service: Analytics) -> CategoriesRead:
     """Kategori -> tur dagilimi."""
-    raise NotImplementedYetError()
+    return service.categories(filters)
 
 
 @router.get("/locations")
-def locations(_filter: Filter, level: LocationLevel = LocationLevel.BUILDING) -> LocationsRead:
+def locations(
+    filters: Filter, service: Analytics, level: LocationLevel = LocationLevel.BUILDING
+) -> LocationsRead:
     """Bina/kat/alan bazinda yogunluk ve kategori kirilimi (isi haritasi)."""
-    raise NotImplementedYetError()
+    return service.locations(filters, level)
 
 
 @router.get("/resolution-times")
-def resolution_times(_filter: Filter) -> ResolutionTimesRead:
+def resolution_times(filters: Filter, service: Analytics) -> ResolutionTimesRead:
     """Kategori bazinda ortalama, medyan ve p90 cozum suresi."""
-    raise NotImplementedYetError()
+    return service.resolution_times(filters)
 
 
 @router.get("/sla")
-def sla(_filter: Filter) -> SlaRead:
+def sla(filters: Filter, service: Analytics) -> SlaRead:
     """SLA uyumu ve ihlali, oncelik kirilimiyla."""
-    raise NotImplementedYetError()
+    return service.sla(filters)
 
 
 @router.get("/aging")
-def aging(_filter: Filter) -> AgingRead:
+def aging(filters: Filter, service: Analytics) -> AgingRead:
     """Acik bildirimlerin yas kovalari (0-2, 2-6, 6-12, 12-24, 24+ saat)."""
-    raise NotImplementedYetError()
+    return service.aging(filters)
 
 
 @router.get("/departments")

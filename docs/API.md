@@ -153,20 +153,21 @@ Ortak parametreler: `from`, `to`, `department_id?`, `building_id?`
 
 📄 **Sözleşme yayında (FAZ 6):** tüm şemalar OpenAPI'de (`KpisRead`, `TrendRead`, `CategoriesRead`, `LocationsRead`,
 `ResolutionTimesRead`, `SlaRead`, `AgingRead`, `DepartmentsRead`, `RecurringRead`, `ProcessRead`, `SummaryRead`,
-`AgentMetricsRead`; `backend/app/schemas/analytics.py`). İş mantığı gelene kadar endpoint'ler `501 NOT_IMPLEMENTED`
-döner; frontend MSW ile sahte veriyle çalışır. Şimdiden çalışanlar: rol (yalnız MANAGER/ADMIN, diğerleri `403`) ve
+`AgentMetricsRead`; `backend/app/schemas/analytics.py`). ✅ işaretliler gerçek veri döner (E6-2/E6-3); diğerleri iş
+mantığı gelene kadar `501 NOT_IMPLEMENTED` döner, frontend onlar için MSW ile çalışır. `building_id` başka kurumun
+lokasyonuysa `404`. Ortak kurallar: rol (yalnız MANAGER/ADMIN, diğerleri `403`) ve
 parametre doğrulaması (`from` > `to` ya da 366 günden uzun dönem → `422 INVALID_PERIOD`; bilinmeyen
 `granularity`/`level` → `422`). Varsayılan dönem: bugün dahil son 7 gün (Europe/Istanbul). Süreler dakika, oranlar
 yüzde (0–100); veri yoksa `null` (ekran "–" gösterir). KPI kartları `{value, previous, delta_pct}`.
 | Method | Path | Açıklama |
 |---|---|---|
-| GET | `/analytics/kpis` | KPI kartları |
-| GET | `/analytics/trend?granularity=day\|week\|month` | case trendi |
-| GET | `/analytics/categories` | kategori/tip dağılımı |
-| GET | `/analytics/locations` | bina/kat/alan bazlı yoğunluk |
-| GET | `/analytics/resolution-times` | kategori bazında avg/median/p90 |
-| GET | `/analytics/sla` | SLA uyum/ihlal |
-| GET | `/analytics/aging` | açık case yaş kovaları |
+| GET | `/analytics/kpis` | ✅ KPI kartları |
+| GET | `/analytics/trend?granularity=day\|week\|month` | ✅ case trendi |
+| GET | `/analytics/categories` | ✅ kategori/tip dağılımı |
+| GET | `/analytics/locations` | ✅ bina/kat/alan bazlı yoğunluk |
+| GET | `/analytics/resolution-times` | ✅ kategori bazında avg/median/p90 |
+| GET | `/analytics/sla` | ✅ SLA uyum/ihlal |
+| GET | `/analytics/aging` | ✅ açık case yaş kovaları |
 | GET | `/analytics/departments` | departman performansı |
 | GET | `/analytics/recurring` | tekrarlayan problemler |
 | GET | `/analytics/process` | event log'dan ortalama adım süreleri (darboğaz) |
