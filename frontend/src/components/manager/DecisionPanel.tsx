@@ -43,13 +43,13 @@ function DecisionRow({ decision }: { decision: AgentDecision }) {
 export function DecisionPanel({ caseId }: { caseId: number }) {
   const decisions = useCaseDecisions(caseId, true);
   if (decisions.isPending) {
-    return <Skeleton aria-label="AI kararları yükleniyor" className="h-24 w-full" />;
+    return <Skeleton aria-label="Yapay zekâ kararları yükleniyor" className="h-24 w-full" />;
   }
   if (decisions.isError) {
     return (
       <div role="alert" className="flex items-center justify-between gap-3 rounded-lg bg-destructive/10 p-3 text-sm">
         <p className="text-destructive">
-          AI kararları yüklenemedi.{decisions.error instanceof ApiError ? ` ${decisions.error.message}` : ""}
+          Yapay zekâ kararları yüklenemedi.{decisions.error instanceof ApiError ? ` ${decisions.error.message}` : ""}
         </p>
         <Button variant="outline" className="h-11 px-4" onClick={() => void decisions.refetch()}>
           Tekrar dene
@@ -58,10 +58,10 @@ export function DecisionPanel({ caseId }: { caseId: number }) {
     );
   }
   if (decisions.data.length === 0) {
-    return <p className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">Bu bildirim için AI kararı yok.</p>;
+    return <p className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">Bu bildirim için yapay zekâ kararı yok.</p>;
   }
   return (
-    <ol aria-label="AI kararları" className="rounded-lg bg-muted px-4 py-1">
+    <ol aria-label="Yapay zekâ kararları" className="rounded-lg bg-muted px-4 py-1">
       {decisions.data.map((decision) => (
         <DecisionRow key={decision.id} decision={decision} />
       ))}

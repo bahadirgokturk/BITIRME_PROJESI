@@ -98,7 +98,7 @@ export function OverrideDialog({ item, onDone }: { item: ReviewItem; onDone: (me
   return (
     <ReasonDialog
       trigger="Düzelt"
-      title="AI önerisini düzelt"
+      title="Yapay zekâ önerisini düzelt"
       description={`${item.case.case_number} · ${item.case.title}. Düzeltmen modelin yeniden eğitiminde kullanılır.`}
       confirm="Düzeltmeyi kaydet"
       mutation={override}

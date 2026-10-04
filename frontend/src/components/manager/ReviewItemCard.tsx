@@ -20,7 +20,7 @@ const TONE_CLASS: Record<BadgeTone, string> = {
 
 function Suggestion({ item }: { item: ReviewItem }) {
   const rows: [string, string][] = [
-    ["AI önerisi · Tür", item.case.case_type?.name ?? "Belirlenmedi"],
+    ["Yapay zekâ önerisi · Tür", item.case.case_type?.name ?? "Belirlenmedi"],
     ["Öncelik", item.case.priority ? priorityLabel(item.case.priority) : "Belirlenmedi"],
     ["Birim", item.case.department?.name ?? "Belirlenmedi"],
   ];
@@ -84,7 +84,7 @@ export function ReviewItemCard({ item, onDone }: { item: ReviewItem; onDone: (me
           aria-expanded={showReasons}
           onClick={() => setShowReasons(!showReasons)}
         >
-          {showReasons ? "Gerekçeyi gizle" : "AI gerekçesi"}
+          {showReasons ? "Gerekçeyi gizle" : "Yapay zekâ gerekçesi"}
         </Button>
       </div>
       {showReasons ? <DecisionPanel caseId={item.case.id} /> : null}

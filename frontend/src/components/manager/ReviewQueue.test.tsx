@@ -57,9 +57,9 @@ describe("ReviewQueue", () => {
     const user = renderQueue();
     const safety = await card(SAFETY);
 
-    await user.click(within(safety).getByRole("button", { name: "AI gerekçesi" }));
+    await user.click(within(safety).getByRole("button", { name: "Yapay zekâ gerekçesi" }));
 
-    const panel = await within(safety).findByRole("list", { name: "AI kararları" });
+    const panel = await within(safety).findByRole("list", { name: "Yapay zekâ kararları" });
     expect(within(panel).getByText("Sınıflandırma")).toBeInTheDocument();
     expect(within(panel).getByText(/kıvılcım/)).toBeInTheDocument();
     expect(within(panel).getByText("tfidf-logreg@2026.10.1")).toBeInTheDocument();
