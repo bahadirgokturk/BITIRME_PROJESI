@@ -145,7 +145,9 @@ Orchestrator sıralı ve basittir (Python fonksiyonları). LangChain/LangGraph k
   - Henüz bildirim akışına bağlı değil: Supervisor ve orchestrator ile birlikte bağlanacak (E5-8).
 
 ### 4.3 Duplicate Agent (K2 + K1)
-1. **Aday üretimi (servis):** aynı organizasyon, terminal olmayan, son 24 saat, aynı bina (path prefix).
+1. **Aday üretimi (servis):** aynı organizasyon, terminal olmayan, son 24 saat, aynı bina (path prefix);
+   yalnız bildirimden **önce** açılmış kayıtlar (geçmiş veri yüklenirken saat geriye gider; sonradan açılan
+   kayıt eski bildirimin kopyası olamaz). Agent da bu kuralı ayrıca uygular.
 2. **Skor:** `dup = 0.45·text_sim + 0.25·type_match + 0.20·location_score + 0.10·time_decay`
    - `text_sim`: TF-IDF kosinüs (varsayılan) veya yerel embedding kosinüs (opsiyonel)
    - `location_score`: aynı alan 1.0, aynı kat 0.6, aynı bina 0.3

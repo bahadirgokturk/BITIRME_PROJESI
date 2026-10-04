@@ -34,7 +34,9 @@ def building_code(path: str) -> str | None:
 
 def duplicate_candidates(session: Session, case: Case, since: datetime) -> Sequence[Case]:
     """Ayni sorunun daha once bildirilmis olabilecegi acik bildirimler (AGENTS.md 4.3):
-    ayni kurum, ayni bina, `since` sonrasi, siniflandirilmis ve sorunu hala acik."""
+    ayni kurum, ayni bina, `since` ile bildirimin kendisi arasinda acilmis, siniflandirilmis ve
+    sorunu hala acik. Ust sinir: gecmis veri yuklenirken (seeds --history) saat geriye gider;
+    sonradan acilmis bildirim eski bildirimin kopyasi olamaz."""
     building = PATH_SEPARATOR.join(case.location.path.split(PATH_SEPARATOR)[: BUILDING_SEGMENT + 1])
     return session.scalars(
         select(Case)
@@ -45,6 +47,7 @@ def duplicate_candidates(session: Session, case: Case, since: datetime) -> Seque
             Case.status.in_(MERGE_PARENT_STATUSES),
             Case.case_type_id.is_not(None),
             Case.created_at >= since,
+            Case.created_at <= case.created_at,
             or_(
                 Location.path == building,
                 Location.path.startswith(building + PATH_SEPARATOR, autoescape=True),
