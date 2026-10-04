@@ -6,6 +6,7 @@ import { http, HttpResponse } from "msw";
 import { apiUrl } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
 
+import { analyticsHandlers } from "./analyticsHandlers";
 import { attachmentHandlers } from "./attachmentHandlers";
 import { caseHandlers } from "./caseHandlers";
 import { interactionHandlers } from "./interactionHandlers";
@@ -80,4 +81,5 @@ export const handlers = [
   ...interactionHandlers,
   ...taskHandlers,
   ...managerHandlers,
+  ...analyticsHandlers,
 ];

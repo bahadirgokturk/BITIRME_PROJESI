@@ -197,6 +197,13 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   gerekçe zorunludur; bu kayıt modelin yeniden eğitimi için veri olur.
 - **Dashboard:** üstte 4–6 KPI kartı (açık kayıt, SLA uyumu, ortalama çözüm süresi, otomasyon oranı), altında trend
   ve dağılım grafikleri. Her grafik başlığı sorunun cevabını söyler ("Bu hafta en çok sorun: B Blok").
+  **Kodda olan (`/manager/dashboard`, menüde "Genel bakış"):** dönem düğmesi (Son 7 gün / Son 30 gün), 6 KPI kartı
+  (açık bildirim, SLA uyumu, ortalama çözüm süresi, otomasyon oranı, bugün açılan, müdür incelemesi oranı),
+  açılan/kapanan çubuk grafiği, kategori çubukları ve AI yönetim özeti. Değişim oku yöne göre değil iyi/kötü
+  olmasına göre renklenir (açık bildirim artarsa kırmızı ▲); önceki dönemde veri yoksa "–". Grafik kütüphanesi
+  kullanılmaz: çubuklar düz HTML/CSS, açılan turuncu ve kapanan turkuaz (renk yolculuğu); durum renkleri grafikte
+  kullanılmaz. Sayılar ekran okuyucuya metin olarak da verilir. Telefonda kartlar ikişerli, grafikler alt alta.
+  Kurallar: `lib/analytics.ts`.
 
 ### 5.5 Admin
 
