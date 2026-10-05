@@ -160,14 +160,14 @@ def _sentences(inp: SummaryInput) -> list[Sentence]:
             (
                 "slowest_department",
                 f"En uzun çözüm süresi {slow.name} biriminde "
-                f"(medyan {_duration(slow.median_resolution_min)}).",
+                f"(tipik süre {_duration(slow.median_resolution_min)}).",
             )
         )
     if inp.automation_rate_pct is not None:
         found.append(
             (
                 "automation_rate_pct",
-                "Agent'ların insan müdahalesi olmadan yönlendirdiği bildirim oranı: "
+                "Yapay zekânın insan müdahalesi olmadan yönlendirdiği bildirim oranı: "
                 f"%{inp.automation_rate_pct}.",
             )
         )
