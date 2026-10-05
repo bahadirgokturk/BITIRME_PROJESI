@@ -76,6 +76,16 @@ def test_every_sentence_comes_from_a_data_field() -> None:
     assert "5 saat 10 dakika" in text
 
 
+def test_wording_matches_the_screens() -> None:
+    # Ekranlar "tipik süre" ve "yapay zekâ" der (docs/UI_GUIDE.md); ozet ayni dili kullanir
+    text = _summary().output.text
+
+    assert "(tipik süre 5 saat 10 dakika)" in text
+    assert "Yapay zekânın insan müdahalesi olmadan" in text
+    assert "medyan" not in text
+    assert "Agent" not in text
+
+
 def test_a_decrease_is_worded_as_a_decrease() -> None:
     assert "%9 azalış" in _summary(previous_period_change_pct=-9).output.text
 
@@ -125,7 +135,7 @@ def test_an_unfaithful_or_failed_rewrite_falls_back_to_the_template(
 
 
 def test_number_check_accepts_numbers_from_the_data_and_the_template() -> None:
-    allowed_text = "186 bildirim; medyan 5 saat 10 dakika. 19.09.2026"
+    allowed_text = "186 bildirim; tipik süre 5 saat 10 dakika. 19.09.2026"
 
     assert check_polished("Toplam 186; 5 saat 10 dakika, 19.09.2026.", allowed_text) is None
     assert check_polished("Toplam 187 bildirim.", allowed_text) == "LLM_REJECTED_NUMBERS"
