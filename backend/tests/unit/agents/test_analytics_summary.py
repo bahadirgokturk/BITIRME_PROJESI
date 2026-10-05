@@ -77,7 +77,7 @@ def test_every_sentence_comes_from_a_data_field() -> None:
 
 
 def test_wording_matches_the_screens() -> None:
-    # Ekranlar "tipik süre" ve "yapay zekâ" der (docs/UI_GUIDE.md); ozet ayni dili kullanir
+    # Ozet ekranlarla ayni kelimeleri kullanir (docs/UI_GUIDE.md): "medyan" ve "Agent" yok
     text = _summary().output.text
 
     assert "(tipik süre 5 saat 10 dakika)" in text
