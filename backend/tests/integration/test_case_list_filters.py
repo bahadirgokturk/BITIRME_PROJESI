@@ -1,6 +1,7 @@
 """Bildirim listesi suzgecleri (docs/API.md "Cases"): arama, oncelik, SLA asimi, sayfalama.
 
-Arama Turkce harfleri ASCII karsiligina indirir: "kutuphane" ile "Kütüphane" eslesir.
+Arama Turkce harfleri ASCII karsiligina indirir: "kutuphane" yazan,
+Turkce harfli yazilisini da bulur.
 """
 
 from dataclasses import dataclass

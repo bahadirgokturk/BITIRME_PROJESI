@@ -1,7 +1,9 @@
-"""Turkce harflere duyarsiz arama: "kirik", "KIRIK" ve "Kırık" ayni metni bulur.
+"""Turkce harflere duyarsiz arama: "kirik", "KIRIK" ve noktasiz/sapkali yazilisi
+ayni metni bulur.
 
 Iki taraf da ayni katlamadan gecer: Turkce harfler ASCII karsiligina iner, sonra kucuk harfe.
-Once cevrilir ki "I"/"İ" kucuk harfe donerken yerel ayara (locale) bagli kalmasin.
+Once cevrilir ki buyuk I (noktali ya da noktasiz) kucuk harfe donerken yerel ayara
+(locale) bagli kalmasin.
 """
 
 from sqlalchemy import ColumnElement, SQLColumnExpression, func
