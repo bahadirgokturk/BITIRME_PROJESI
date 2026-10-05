@@ -94,7 +94,7 @@ Her fazın başında iş şu sırayla ilerler (ayrıntı: [UI_GUIDE.md](UI_GUIDE
 | E7 | **Kalite & Teslim** | | |
 | E7-1 | Playwright E2E ana senaryo | 11 | B/C |
 | E7-2 | Güvenlik kontrol listesi (IDOR, upload, CORS, rate limit) | 11 | A |
-| E7-3a | **Staging** canlı ortamı: Vercel + Render + Neon, production Dockerfile'ları, `deploy-staging.yml` ([DEPLOYMENT.md](DEPLOYMENT.md) bölüm 1.1) | 4–5 | A |
+| E7-3a | **Staging** canlı ortamı: Vercel + Render + Neon; açılışta migration, `/api` yönlendirmesi; deploy GitHub entegrasyonuyla ([DEPLOYMENT.md](DEPLOYMENT.md) bölüm 1.1) | 4–5 | A ✅ |
 | E7-3 | **Production** ortamı + `deploy-production.yml` (manuel onay), sürüm etiketi | 11 | A |
 | E7-4 | Akademik deney raporu (RQ1–RQ5), tez tabloları/grafikleri | 12 | Hepsi |
 | E7-5 | UI polish, demo senaryosu, sunum | 12 | Hepsi |
