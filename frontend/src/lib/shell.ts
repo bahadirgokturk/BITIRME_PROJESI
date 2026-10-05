@@ -22,13 +22,13 @@ export function mobileBarFor(pathname: string): MobileBar {
   return match?.bar ?? { kind: "menu" };
 }
 
-const REPORTER_KIND_LABELS: Record<ReporterKind, string> = {
+export const REPORTER_KIND_LABELS: Record<ReporterKind, string> = {
   STUDENT: "Öğrenci",
   ACADEMIC: "Akademik personel",
   PERSONNEL: "İdari personel",
 };
 
-const ROLE_LABELS: Record<Role, string> = {
+export const ROLE_LABELS: Record<Role, string> = {
   REPORTER: "Bildirim yapan",
   STAFF: "Personel",
   MANAGER: "Birim müdürü",

@@ -64,3 +64,6 @@ const HOME_PATHS: Record<Role, string> = {
 export function homePathFor(role: Role): string {
   return HOME_PATHS[role];
 }
+
+// Yonetim bolumunun sekmeleri (docs/UI_GUIDE.md bolum 5.5); yeni bolum eklenince buraya satir eklenir
+export const ADMIN_SECTIONS: readonly NavItem[] = [{ href: "/admin/users", label: "Kullanıcılar" }];
