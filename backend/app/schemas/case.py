@@ -27,6 +27,16 @@ from app.models.enums import (
 )
 
 
+class CaseSearch(BaseModel):
+    """GET /cases suzgecleri (docs/API.md "Cases"); hepsi bossa kapsamdaki tum bildirimler."""
+
+    statuses: list[CaseStatus] = []
+    priority: Priority | None = None
+    # Yalniz SLA'si asilanlar (liste rozetindeki sla_status == BREACHED)
+    breached_only: bool = False
+    text: str | None = None
+
+
 class CaseCreate(BaseModel):
     """Bildirim formu. Tur, birim ve oncelik kullanicidan istenmez; agent'lar belirler."""
 

@@ -63,6 +63,10 @@ class CaseStatus(StrEnum):
     MERGED = "MERGED"
 
 
+# Is bitmis sayilir: SLA karari cozum anina gore verilir ve bir daha degismez (services/sla.py)
+SLA_SETTLED_STATUSES = frozenset({CaseStatus.RESOLVED, CaseStatus.VERIFICATION, CaseStatus.CLOSED})
+
+
 class ActorType(StrEnum):
     USER = "USER"
     AGENT = "AGENT"

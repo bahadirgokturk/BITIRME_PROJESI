@@ -5,7 +5,7 @@ MANAGER/ADMIN tum kurum. Yetkisiz kayit 404 doner (IDOR).
 """
 
 from http import HTTPStatus
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Query
 from sqlalchemy.orm import Session
@@ -14,9 +14,10 @@ from app.api.deps import Analysis, CurrentUser, require_roles
 from app.api.v1.pagination import page_params
 from app.api.v1.responses import AUTHENTICATED_RESPONSES
 from app.core.clock import Clock, get_clock
+from app.core.constants import CASE_SEARCH_MAX_LENGTH
 from app.core.database import get_session
-from app.models.enums import CaseStatus, UserRole
-from app.schemas.case import AgentDecisionRead, CaseCreate, CaseEventRead, CaseRead
+from app.models.enums import CaseStatus, Priority, UserRole
+from app.schemas.case import AgentDecisionRead, CaseCreate, CaseEventRead, CaseRead, CaseSearch
 from app.schemas.common import Page, PageParams
 from app.services.case_service import CaseService
 
@@ -46,13 +47,35 @@ def create_case(
     return created
 
 
+def case_search(
+    status: Annotated[list[CaseStatus] | None, Query()] = None,
+    priority: Priority | None = None,
+    sla_status: Annotated[
+        Literal["BREACHED"] | None, Query(description="Yalniz SLA'si asilan bildirimler")
+    ] = None,
+    q: Annotated[
+        str | None,
+        Query(
+            max_length=CASE_SEARCH_MAX_LENGTH,
+            description="Numara, baslik ya da konum adinda arama (Turkce harflere duyarsiz)",
+        ),
+    ] = None,
+) -> CaseSearch:
+    text = q.strip() if q else ""
+    return CaseSearch(
+        statuses=status or [],
+        priority=priority,
+        breached_only=sla_status is not None,
+        text=text or None,
+    )
+
+
 @router.get("")
 def list_cases(
-    paging: Paging,
-    service: Cases,
-    status: Annotated[list[CaseStatus] | None, Query()] = None,
+    paging: Paging, service: Cases, search: Annotated[CaseSearch, Depends(case_search)]
 ) -> Page[CaseRead]:
-    return service.search(status or [], paging)
+    """Kapsamdaki bildirimler, en yeni once; total suzulmus sayidir."""
+    return service.search(search, paging)
 
 
 # /mine, /{case_id}'den once tanimlanir; yoksa "mine" bir id sanilir

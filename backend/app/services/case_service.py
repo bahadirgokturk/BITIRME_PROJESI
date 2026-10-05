@@ -4,8 +4,6 @@ Yeni bildirim NEW olarak kaydedilir ve hemen ANALYZING'e gecer; agent hatti (FAZ
 devam eder. Tur, birim ve oncelik kullanicidan alinmaz.
 """
 
-from collections.abc import Sequence
-
 from sqlalchemy.orm import Session
 
 from app.core.clock import Clock
@@ -23,8 +21,8 @@ from app.repositories import (
     case_type_repository,
     location_repository,
 )
-from app.repositories.case_repository import CaseScope
-from app.schemas.case import AgentDecisionRead, CaseCreate, CaseEventRead, CaseRead
+from app.repositories.case_repository import CaseFilter, CaseScope
+from app.schemas.case import AgentDecisionRead, CaseCreate, CaseEventRead, CaseRead, CaseSearch
 from app.schemas.common import Page, PageParams
 from app.services.authorization import ensure_can_view_case, ensure_same_organization
 from app.services.case_view import case_read
@@ -120,12 +118,19 @@ class CaseService:
         self._session.commit()
         return self.get(case.id)
 
-    def search(self, statuses: Sequence[CaseStatus], paging: PageParams) -> Page[CaseRead]:
-        return self._page(scope_for(self._actor), statuses, paging)
+    def search(self, search: CaseSearch, paging: PageParams) -> Page[CaseRead]:
+        filters = CaseFilter(
+            now=self._clock.now(),
+            statuses=search.statuses,
+            priority=search.priority,
+            breached_only=search.breached_only,
+            text=search.text,
+        )
+        return self._page(scope_for(self._actor), filters, paging)
 
     def list_mine(self, paging: PageParams) -> Page[CaseRead]:
         scope = CaseScope(organization_id=self._actor.organization_id, reporter_id=self._actor.id)
-        return self._page(scope, (), paging)
+        return self._page(scope, CaseFilter(now=self._clock.now()), paging)
 
     def get(self, case_id: int) -> CaseRead:
         return case_read(self._get(case_id), self._clock.now())
@@ -153,10 +158,8 @@ class CaseService:
             for d in decisions
         ]
 
-    def _page(
-        self, scope: CaseScope, statuses: Sequence[CaseStatus], paging: PageParams
-    ) -> Page[CaseRead]:
-        items, total = case_repository.list_page(self._session, scope, statuses, paging)
+    def _page(self, scope: CaseScope, filters: CaseFilter, paging: PageParams) -> Page[CaseRead]:
+        items, total = case_repository.list_page(self._session, scope, filters, paging)
         return Page(
             items=[case_read(c, self._clock.now()) for c in items],
             total=total,

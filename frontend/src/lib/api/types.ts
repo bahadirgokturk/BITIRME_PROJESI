@@ -116,7 +116,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Cases */
+        /**
+         * List Cases
+         * @description Kapsamdaki bildirimler, en yeni once; total suzulmus sayidir.
+         */
         get: operations["list_cases_api_v1_cases_get"];
         put?: never;
         /**
@@ -2370,9 +2373,14 @@ export interface operations {
     list_cases_api_v1_cases_get: {
         parameters: {
             query?: {
-                status?: components["schemas"]["CaseStatus"][] | null;
                 page?: number;
                 page_size?: number;
+                status?: components["schemas"]["CaseStatus"][] | null;
+                priority?: components["schemas"]["Priority"] | null;
+                /** @description Yalniz SLA'si asilan bildirimler */
+                sla_status?: "BREACHED" | null;
+                /** @description Numara, baslik ya da konum adinda arama (Turkce harflere duyarsiz) */
+                q?: string | null;
             };
             header?: never;
             path?: never;
