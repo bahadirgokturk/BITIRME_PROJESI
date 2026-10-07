@@ -10,8 +10,8 @@ describe("web app manifest", () => {
     const result = manifest();
 
     expect(result).toMatchObject({
-      name: "CampusFlow AI",
-      short_name: "CampusFlow",
+      name: "BakırçayFlow",
+      short_name: "BakırçayFlow",
       start_url: "/",
       display: "standalone",
       lang: "tr",

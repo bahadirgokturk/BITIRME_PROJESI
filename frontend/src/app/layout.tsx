@@ -15,10 +15,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CampusFlow AI",
+  title: "BakırçayFlow",
   description: "Kampüs olay, görev ve karar destek platformu",
   // iPhone'da "Ana Ekrana Ekle" ile tam ekran acilir; saat/pil cubugu beyaz zeminde koyu yazi
-  appleWebApp: { capable: true, title: "CampusFlow", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "BakırçayFlow", statusBarStyle: "default" },
 };
 
 // Telefonun durum cubugu uygulamanin beyaz ust cubuguyla ayni renkte (Figma: PWA ayarlari)

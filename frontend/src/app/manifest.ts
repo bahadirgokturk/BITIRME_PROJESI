@@ -5,8 +5,8 @@ import type { MetadataRoute } from "next";
 // Beyaz tema rengi, uygulamanin beyaz ust cubuguyla kesintisiz birlesir.
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "CampusFlow AI",
-    short_name: "CampusFlow",
+    name: "BakırçayFlow",
+    short_name: "BakırçayFlow",
     description: "Kampüsteki sorunları bildir, çözülene kadar takip et.",
     start_url: "/",
     display: "standalone",
