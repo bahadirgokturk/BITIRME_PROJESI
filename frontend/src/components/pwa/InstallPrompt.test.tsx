@@ -40,7 +40,7 @@ describe("InstallPrompt", () => {
     await userEvent.setup().click(screen.getByRole("button", { name: "Yükle" }));
 
     expect(prompt).toHaveBeenCalled();
-    expect(screen.queryByText("CampusFlow’u ana ekranına ekle")).not.toBeInTheDocument();
+    expect(screen.queryByText("BakırçayFlow’u ana ekranına ekle")).not.toBeInTheDocument();
   });
 
   it("shows the two iPhone steps and remembers 'Anladım'", async () => {
