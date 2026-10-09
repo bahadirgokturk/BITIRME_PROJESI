@@ -72,7 +72,7 @@ describe("menu labels", () => {
 
 describe("ADMIN_SECTIONS", () => {
   it("lists the admin tabs in order, all under /admin", () => {
-    expect(ADMIN_SECTIONS.map((section) => section.label)).toEqual(["Kullanıcılar", "Birimler"]);
+    expect(ADMIN_SECTIONS.map((section) => section.label)).toEqual(["Kullanıcılar", "Birimler", "Konumlar"]);
     expect(ADMIN_SECTIONS.every((section) => section.href.startsWith("/admin/"))).toBe(true);
   });
 });

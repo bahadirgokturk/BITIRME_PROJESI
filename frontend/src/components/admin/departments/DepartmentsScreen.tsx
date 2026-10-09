@@ -14,7 +14,7 @@ import {
 
 import { ActionNote, ListSkeleton, NoMatch, ScreenHeader } from "../AdminParts";
 import { AdminSections } from "../AdminSections";
-import { DepartmentFilters } from "./DepartmentFilters";
+import { SearchFilters } from "../SearchFilters";
 import { DepartmentSheet, type DepartmentTarget } from "./DepartmentSheet";
 import { DepartmentsTable } from "./DepartmentsTable";
 
@@ -78,7 +78,7 @@ export function DepartmentsScreen() {
         onAdd={() => setTarget({ mode: "create" })}
       />
       <ActionNote message={lastAction} />
-      <DepartmentFilters value={filters} onChange={setFilters} />
+      <SearchFilters searchLabel="Birim ara" placeholder="Birim adı ya da kod ara" value={filters} onChange={setFilters} />
       <DepartmentsBody
         query={departments}
         filters={filters}

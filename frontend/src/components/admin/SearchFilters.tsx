@@ -1,7 +1,6 @@
 import { cn } from "cn";
 
 import type { StatusFilter } from "@/lib/admin";
-import type { DepartmentFilters as Filters } from "@/lib/adminDepartments";
 
 const FIELD_CLASS =
   "h-11 rounded-lg border bg-background px-3 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50 md:h-10";
@@ -12,19 +11,27 @@ const STATUS_LABELS: Record<StatusFilter, string> = {
   inactive: "Pasif",
 };
 
-interface DepartmentFiltersProps {
+interface Filters {
+  search: string;
+  status: StatusFilter;
+}
+
+interface SearchFiltersProps {
+  // Arama kutusunun ekran okuyucu adi (ornek: "Birim ara")
+  searchLabel: string;
+  placeholder: string;
   value: Filters;
   onChange: (filters: Filters) => void;
 }
 
-// Arama + durum (Figma: 06 Admin > /admin/departments); suzme tarayicida yapilir (lib/adminDepartments.ts)
-export function DepartmentFilters({ value, onChange }: DepartmentFiltersProps) {
+// Arama + durum suzgeci (Figma: 06 Admin); suzme tarayicida yapilir
+export function SearchFilters({ searchLabel, placeholder, value, onChange }: SearchFiltersProps) {
   return (
     <div className="flex flex-col gap-3 md:flex-row">
       <input
         type="search"
-        aria-label="Birim ara"
-        placeholder="Birim adı ya da kod ara"
+        aria-label={searchLabel}
+        placeholder={placeholder}
         value={value.search}
         onChange={(event) => onChange({ ...value, search: event.target.value })}
         className={cn(FIELD_CLASS, "w-full md:flex-1")}

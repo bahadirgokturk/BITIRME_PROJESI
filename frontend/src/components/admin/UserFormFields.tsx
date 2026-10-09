@@ -2,31 +2,7 @@ import { Input } from "@/components/ui/input";
 import { needsDepartment, type FormMode, type UserForm, type UserFormProblems } from "@/lib/admin";
 import { REPORTER_KIND_LABELS, ROLE_LABELS } from "@/lib/shell";
 
-import { Field, type ControlProps } from "./Field";
-
-const SELECT_CLASS =
-  "h-11 w-full rounded-lg border border-input bg-background px-3 text-base outline-none focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive";
-
-interface ChoiceProps {
-  control: ControlProps;
-  value: string;
-  options: readonly [string, string][];
-  onChange: (value: string) => void;
-  placeholder?: string;
-}
-
-function Choice({ control, value, options, onChange, placeholder }: ChoiceProps) {
-  return (
-    <select {...control} value={value} onChange={(event) => onChange(event.target.value)} className={SELECT_CLASS}>
-      {placeholder ? <option value="">{placeholder}</option> : null}
-      {options.map(([key, label]) => (
-        <option key={key} value={key}>
-          {label}
-        </option>
-      ))}
-    </select>
-  );
-}
+import { Choice, Field } from "./Field";
 
 interface UserFormFieldsProps {
   form: UserForm;
