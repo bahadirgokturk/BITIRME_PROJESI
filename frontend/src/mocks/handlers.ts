@@ -9,13 +9,13 @@ import type { components } from "@/lib/api/types";
 import { analyticsHandlers } from "./analyticsHandlers";
 import { adminDepartmentHandlers } from "./adminDepartmentHandlers";
 import { adminHandlers } from "./adminHandlers";
+import { adminLocationHandlers } from "./adminLocationHandlers";
 import { attachmentHandlers } from "./attachmentHandlers";
 import { caseHandlers } from "./caseHandlers";
 import { interactionHandlers } from "./interactionHandlers";
 import { managerHandlers } from "./managerHandlers";
 import { taskHandlers } from "./taskHandlers";
 import {
-  LOCATIONS,
   MOCK_PASSWORD,
   USERS,
   type Role,
@@ -36,10 +36,6 @@ function error(status: number, code: string, message: string) {
   return HttpResponse.json(body, { status });
 }
 
-function page<T>(items: T[]) {
-  return { items, total: items.length, page: 1 };
-}
-
 const token: Schemas["TokenRead"] = {
   access_token: "mock-access-token",
   token_type: "bearer",
@@ -49,7 +45,8 @@ const token: Schemas["TokenRead"] = {
 export const handlers = [
   // Sahte giris: fixture e-postalari icin ortak parola; /auth/me NEXT_PUBLIC_MOCK_ROLE rolunu doner.
   // Bildirimler caseHandlers.ts, dosyalar attachmentHandlers.ts, yorum/puan interactionHandlers.ts'te,
-  // yonetim kullanicilari adminHandlers.ts'te, birimler adminDepartmentHandlers.ts'te.
+  // yonetim kullanicilari adminHandlers.ts'te, birimler adminDepartmentHandlers.ts'te,
+  // konumlar adminLocationHandlers.ts'te.
   http.post<never, Schemas["LoginRequest"]>(
     apiUrl("/auth/login"),
     async ({ request }) => {
@@ -68,9 +65,6 @@ export const handlers = [
   ),
   http.get(apiUrl("/auth/me"), () => HttpResponse.json(USERS[mockRole()])),
 
-  http.get(apiUrl("/admin/locations"), () =>
-    HttpResponse.json(page(LOCATIONS)),
-  ),
 
   ...caseHandlers,
   ...attachmentHandlers,
@@ -80,4 +74,5 @@ export const handlers = [
   ...analyticsHandlers,
   ...adminHandlers,
   ...adminDepartmentHandlers,
+  ...adminLocationHandlers,
 ];

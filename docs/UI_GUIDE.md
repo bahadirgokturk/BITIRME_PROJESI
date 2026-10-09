@@ -229,7 +229,10 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
 ### 5.5 Admin
 
 - Tek kalıp: arama + filtre + tablo + sağdan açılan düzenleme paneli (Sheet). Silme yok; **Pasifleştir** (soft delete).
-- Lokasyonlar ağaç görünümünde (Kampüs → Bina → Kat → Alan).
+- **Konumlar** (`/admin/locations`): ağaç görünümü (Kampüs → Bina → Kat → Alan). Ekran açılınca en üst düzey açıktır;
+  bir konumun altı okuna basınca açılır. Arama (ad, kod, diğer adlar) ya da durum süzgeci varken sonuçlar düz
+  listedir ve her sonucun altında yeri yazar ("Merkez Kampüs › B Blok"). Tür ve kod yalnız eklerken seçilir.
+  Üst konum değişirse konum altındakilerle birlikte taşınır. Ekranda "lokasyon" yerine "konum" yazılır.
 - **Birimler** (`/admin/departments`): birim adı ya da kod araması, durum süzgeci; tabloda her birimin aktif
   kullanıcı sayısı görünür. Kod yalnız eklerken yazılır (büyük harf, rakam, alt çizgi; yazarken kendiliğinden
   bu biçime çevrilir) ve sonradan değiştirilemez. Ortak parçalar `components/admin/AdminParts.tsx` ve

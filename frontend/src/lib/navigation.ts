@@ -69,4 +69,5 @@ export function homePathFor(role: Role): string {
 export const ADMIN_SECTIONS: readonly NavItem[] = [
   { href: "/admin/users", label: "Kullanıcılar" },
   { href: "/admin/departments", label: "Birimler" },
+  { href: "/admin/locations", label: "Konumlar" },
 ];

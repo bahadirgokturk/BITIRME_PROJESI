@@ -32,3 +32,35 @@ export function Field({ label, error, hint, children }: FieldProps) {
     </div>
   );
 }
+
+const SELECT_CLASS =
+  "h-11 w-full rounded-lg border border-input bg-background px-3 text-base outline-none focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive disabled:bg-muted disabled:opacity-100";
+
+interface ChoiceProps {
+  control: ControlProps;
+  value: string;
+  options: readonly [string, string][];
+  onChange: (value: string) => void;
+  placeholder?: string;
+  disabled?: boolean;
+}
+
+// Secim kutusu; placeholder verilirse bos deger de secilebilir
+export function Choice({ control, value, options, onChange, placeholder, disabled }: ChoiceProps) {
+  return (
+    <select
+      {...control}
+      value={value}
+      disabled={disabled}
+      onChange={(event) => onChange(event.target.value)}
+      className={SELECT_CLASS}
+    >
+      {placeholder ? <option value="">{placeholder}</option> : null}
+      {options.map(([key, label]) => (
+        <option key={key} value={key}>
+          {label}
+        </option>
+      ))}
+    </select>
+  );
+}
