@@ -219,7 +219,8 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   doğru tekrar tespiti; her birinin altında bir cümlelik açıklama) ve adım tablosu (karar sayısı, ortalama güven,
   düzeltilme oranı). "Agent" yerine "adım", "override" yerine "düzeltilme" denir; adım adları backend'den gelir.
   Kurallar: `lib/agentMetrics.ts`.
-- **Tüm Bildirimler (`/manager/cases`):** arama kutusu (numara, başlık, konum; yazmayı bıraktıktan 300 ms sonra arar),
+- **Tüm Bildirimler (`/manager/cases`):** müdür kurumdaki bütün birimlerin bildirimlerini görür (backend böyle
+  döner), ekran metni de "Kurumdaki bütün bildirimler" der. Arama kutusu (numara, başlık, konum; yazmayı bıraktıktan 300 ms sonra arar),
   öncelik seçimi ve durum grubu düğmeleri. 14 durum beş gruba toplanır: Tümü, Açık, Kapanan, Reddedilen ve
   birleştirilen, Geciken (hedef süresi aşılan açık bildirimler). Her satırda numara, başlık (altında tür ve okunur
   konum adı), birim, durum, öncelik, kalan süre ve açılış zamanı; satır bildirimin detayına gider. Masaüstünde tablo,

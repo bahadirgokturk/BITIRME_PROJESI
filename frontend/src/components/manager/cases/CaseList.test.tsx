@@ -106,11 +106,18 @@ describe("CaseList", () => {
     expect(screen.getByRole("searchbox", { name: "Bildirim ara" })).toHaveValue("");
   });
 
-  it("says so when the unit has no cases yet", async () => {
+  it("says the list covers the whole institution (a manager sees every unit's cases)", () => {
+    renderList();
+
+    expect(screen.getByText(/^Kurumdaki bütün bildirimler\./)).toBeInTheDocument();
+  });
+
+  it("says so when there are no cases yet", async () => {
     server.use(http.get(apiUrl("/cases"), () => HttpResponse.json({ items: [], total: 0, page: 1 })));
     renderList();
 
     expect(await screen.findByText("Henüz bildirim yok.")).toBeInTheDocument();
+    expect(screen.getByText("Bir bildirim geldiğinde burada görünür.")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Süzgeçleri temizle" })).not.toBeInTheDocument();
   });
 
