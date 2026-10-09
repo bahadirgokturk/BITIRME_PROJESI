@@ -80,8 +80,8 @@ describe("homePathFor", () => {
     expect(homePathFor("MANAGER")).toBe("/manager/dashboard");
   });
 
-  it("opens the overview for an admin until the admin screens exist", () => {
-    expect(homePathFor("ADMIN")).toBe("/manager/dashboard");
+  it("opens the admin screens for an admin", () => {
+    expect(homePathFor("ADMIN")).toBe("/admin");
   });
 
   it("only sends a role to a page that is in its own menu", () => {

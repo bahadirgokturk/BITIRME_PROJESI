@@ -230,6 +230,10 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
 
 - Tek kalıp: arama + filtre + tablo + sağdan açılan düzenleme paneli (Sheet). Silme yok; **Pasifleştir** (soft delete).
 - Lokasyonlar ağaç görünümünde (Kampüs → Bina → Kat → Alan).
+- **Kullanıcılar** (`/admin/users`): ad ya da e-posta araması, rol ve durum süzgeci. Masaüstünde tablo; telefonda
+  aynı tablo kart olarak görünür (ad ve durum üstte, diğer değerler başlıklarıyla alt alta), yana kaydırma olmaz.
+  Süzgeçlere uyan kullanıcı yoksa "Süzgeçleri temizle" düğmesi çıkar. Bölümler arası geçiş üstteki sekmelerle
+  (`ADMIN_SECTIONS`, `lib/navigation.ts`); menüdeki "Yönetim" ilk sekmeye açılır.
 
 ## 6. Metin ve Dil
 
@@ -241,8 +245,7 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   "Raporlar" (analytics), "Yapay Zekâ Performansı" (agent metrikleri), "Tüm Bildirimler" (case listesi).
   Adresler (route) İngilizce kalır (`/manager/dashboard`); tek kaynak `lib/navigation.ts`.
 - Girişten sonra herkes kendi ilk ekranına gider: bildirim yapan `/my-cases`, personel `/staff/tasks`, müdür
-  `/manager/dashboard`. Yönetici (ADMIN) ekranları yapılana kadar yönetici de `/manager/dashboard`'u görür
-  (`homePathFor`, `lib/navigation.ts`).
+  `/manager/dashboard`, yönetici (ADMIN) `/admin` (`homePathFor`, `lib/navigation.ts`).
 - Ekran metinlerinde "AI" yazılmaz, "yapay zekâ" yazılır ("Yapay zekâ önerisi", "Yapay zekâ yönetim özeti"). Tek
   istisna ürünün eski adıdır ("CampusFlow AI"); ekranda görünen ad artık "BakırçayFlow".
 - Butonlar fiildir: "Gönder", "Kabul et", "Tamamla". "Tamam/Evet" yerine eylemi söyleyen metin.

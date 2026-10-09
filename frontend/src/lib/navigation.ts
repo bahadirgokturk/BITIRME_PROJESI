@@ -52,15 +52,18 @@ export function activeNavHref(role: Role, pathname: string): string | null {
   return match?.href ?? null;
 }
 
-// Giristen sonra acilan sayfa: her rol kendi ilk ekranina gider. Yonetici (ADMIN) ekranlari yapilana
-// kadar yonetici de Genel Bakis'i gorur. Adres o rolun menusunde olmak zorunda (navigation.test.ts).
+// Giristen sonra acilan sayfa: her rol kendi ilk ekranina gider (yonetici: Yonetim).
+// Adres o rolun menusunde olmak zorunda (navigation.test.ts).
 const HOME_PATHS: Record<Role, string> = {
   REPORTER: "/my-cases",
   STAFF: "/staff/tasks",
   MANAGER: DASHBOARD.href,
-  ADMIN: DASHBOARD.href,
+  ADMIN: "/admin",
 };
 
 export function homePathFor(role: Role): string {
   return HOME_PATHS[role];
 }
+
+// Yonetim bolumunun sekmeleri (docs/UI_GUIDE.md bolum 5.5); yeni bolum eklenince buraya satir eklenir
+export const ADMIN_SECTIONS: readonly NavItem[] = [{ href: "/admin/users", label: "Kullanıcılar" }];

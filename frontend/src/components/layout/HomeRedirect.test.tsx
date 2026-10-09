@@ -35,7 +35,7 @@ describe("HomeRedirect", () => {
   it.each([
     ["STAFF", "/staff/tasks"],
     ["MANAGER", "/manager/dashboard"],
-    ["ADMIN", "/manager/dashboard"],
+    ["ADMIN", "/admin"],
   ] as const)("sends %s to its own first screen", async (role, path) => {
     server.use(http.get(apiUrl("/auth/me"), () => HttpResponse.json(USERS[role])));
 
