@@ -40,7 +40,8 @@ jobs:
         working-directory: backend
     services:
       postgres:
-        image: postgres:16-alpine
+        # Docker Hub, GitHub makinelerine indirme siniri uyguluyor (toomanyrequests); ayni resmi imaj AWS aynasindan
+        image: public.ecr.aws/docker/library/postgres:16-alpine
         env:
           POSTGRES_USER: campusflow
           POSTGRES_PASSWORD: campusflow
