@@ -12,7 +12,14 @@ interface UsersTableProps {
 }
 
 const HEAD_CLASS = "px-4 py-2.5 text-left text-xs font-medium text-muted-foreground";
-const CELL_CLASS = "px-4 py-3 align-middle";
+// Telefonda her satir bir kart: ad ve durum ustte, diger degerler basliklariyla alt alta (tek DOM, iki yerlesim)
+const ROW_CLASS =
+  "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 rounded-lg border bg-card p-3.5 " +
+  "md:table-row md:rounded-none md:border-0 md:border-t md:bg-transparent";
+const CELL_CLASS = "md:px-4 md:py-3 md:align-middle";
+// Telefonda sutun basligi degerin ustune yazilir (data-label); masaustunde baslik satiri gorunur
+const LABELLED_CLASS =
+  "before:block before:text-xs before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden";
 
 function StatusBadge({ active }: { active: boolean }) {
   return (
@@ -48,20 +55,25 @@ interface UserRowProps {
 
 function UserRow({ user, departments, onEdit }: UserRowProps) {
   return (
-    <tr className={cn("border-t", !user.is_active && "text-muted-foreground")}>
+    <tr className={cn(ROW_CLASS, !user.is_active && "text-muted-foreground")}>
       <td className={CELL_CLASS}>
         <p className="font-medium">{user.full_name}</p>
-        <p className="text-xs text-muted-foreground">{user.email}</p>
+        <p className="text-xs break-all text-muted-foreground">{user.email}</p>
       </td>
-      <td className={CELL_CLASS}>{ROLE_LABELS[user.role]}</td>
-      <td className={CELL_CLASS}>{userAssignment(user, departments)}</td>
-      <td className={CELL_CLASS}>
+      <td data-label="Rol" className={cn(CELL_CLASS, LABELLED_CLASS, "col-span-2")}>
+        {ROLE_LABELS[user.role]}
+      </td>
+      <td data-label="Birim / tür" className={cn(CELL_CLASS, LABELLED_CLASS, "col-span-2")}>
+        {userAssignment(user, departments)}
+      </td>
+      <td data-label="Son giriş" className={cn(CELL_CLASS, LABELLED_CLASS)}>
         <LastLogin value={user.last_login_at} />
       </td>
-      <td className={CELL_CLASS}>
+      {/* Telefonda durum rozeti kartin sag ust kosesinde, adin karsisinda durur */}
+      <td className={cn(CELL_CLASS, "col-start-2 row-start-1 justify-self-end")}>
         <StatusBadge active={user.is_active} />
       </td>
-      <td className={cn(CELL_CLASS, "text-right")}>
+      <td className={cn(CELL_CLASS, "justify-self-end md:text-right")}>
         <button
           type="button"
           aria-label={`${user.full_name} kullanıcısını düzenle`}
@@ -75,15 +87,16 @@ function UserRow({ user, departments, onEdit }: UserRowProps) {
   );
 }
 
-// Kullanici tablosu (Figma: 06 Admin > UsersTable); pasif kullanici soluk ama okunur
+// Kullanici tablosu (Figma: 06 Admin > /admin/users): masaustunde klasik tablo, telefonda her satir bir kart.
+// Pasif kullanici soluk ama okunur.
 export function UsersTable({ users, departments, onEdit }: UsersTableProps) {
   return (
-    <div className="overflow-x-auto rounded-xl border">
-      <table className="w-full text-sm">
-        <thead className="bg-muted">
+    <div className="md:overflow-x-auto md:rounded-xl md:border">
+      <table aria-label="Kullanıcılar" className="block w-full text-sm md:table">
+        <thead className="hidden bg-muted md:table-header-group">
           <tr>
             {COLUMNS.map((column) => (
-              <th key={column} className={HEAD_CLASS}>
+              <th key={column} scope="col" className={HEAD_CLASS}>
                 {column}
               </th>
             ))}
@@ -92,7 +105,7 @@ export function UsersTable({ users, departments, onEdit }: UsersTableProps) {
             </th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="grid gap-3 md:table-row-group">
           {users.map((user) => (
             <UserRow key={user.id} user={user} departments={departments} onEdit={onEdit} />
           ))}

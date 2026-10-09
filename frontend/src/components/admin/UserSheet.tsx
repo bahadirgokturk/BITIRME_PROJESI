@@ -28,7 +28,7 @@ function StatusSection({ user, onDone }: { user: AdminUser; onDone: (message: st
       <p className="text-sm font-medium">{user.is_active ? "Kullanıcıyı pasifleştir" : "Kullanıcıyı aktifleştir"}</p>
       <p className="text-[13px] text-muted-foreground">
         {user.is_active
-          ? "Pasifleştirilen kullanıcının tüm oturumları hemen kapanır. Kayıt silinmez; istediğin zaman yeniden aktifleştirebilirsin."
+          ? "Pasifleştirilen kullanıcının tüm oturumları hemen kapanır. Kayıt silinmez; istediğiniz zaman yeniden aktifleştirebilirsiniz."
           : "Kullanıcı yeniden giriş yapabilir; eski oturumları geri gelmez."}
       </p>
       <FormAlert error={update.error} />

@@ -56,6 +56,25 @@ describe("UsersScreen", () => {
     expect(screen.queryByRole("row", { name: /Zeynep Kaya/ })).not.toBeInTheDocument();
   });
 
+  it("offers to clear the filters when nothing matches", async () => {
+    const user = renderScreen();
+    await row(/Mehmet Demir/);
+
+    await user.type(screen.getByLabelText("Kullanıcı ara"), "olmayan biri");
+    expect(screen.getByText("Aramanıza uyan kullanıcı yok.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Süzgeçleri temizle" }));
+
+    expect(screen.getByLabelText("Kullanıcı ara")).toHaveValue("");
+    expect(screen.getByRole("row", { name: /Mehmet Demir/ })).toBeInTheDocument();
+  });
+
+  it("labels each value for the phone card layout", async () => {
+    renderScreen();
+
+    const staff = await row(/Mehmet Demir/);
+    expect(within(staff).getByText("Personel").closest("td")).toHaveAttribute("data-label", "Rol");
+  });
+
   it("adds a reporter", async () => {
     const user = renderScreen();
     await row(/Mehmet Demir/);
