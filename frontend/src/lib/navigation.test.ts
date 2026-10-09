@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { activeNavHref, homePathFor, navigationFor, ROLES } from "./navigation";
+import { activeNavHref, ADMIN_SECTIONS, homePathFor, navigationFor, ROLES } from "./navigation";
 
 describe("navigationFor", () => {
   it("gives every role a non-empty menu", () => {
@@ -67,6 +67,13 @@ describe("menu labels", () => {
       "/manager/agents": "Yapay Zekâ Performansı",
       "/manager/cases": "Tüm Bildirimler",
     });
+  });
+});
+
+describe("ADMIN_SECTIONS", () => {
+  it("lists the admin tabs in order, all under /admin", () => {
+    expect(ADMIN_SECTIONS.map((section) => section.label)).toEqual(["Kullanıcılar", "Birimler"]);
+    expect(ADMIN_SECTIONS.every((section) => section.href.startsWith("/admin/"))).toBe(true);
   });
 });
 

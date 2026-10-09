@@ -230,6 +230,10 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
 
 - Tek kalıp: arama + filtre + tablo + sağdan açılan düzenleme paneli (Sheet). Silme yok; **Pasifleştir** (soft delete).
 - Lokasyonlar ağaç görünümünde (Kampüs → Bina → Kat → Alan).
+- **Birimler** (`/admin/departments`): birim adı ya da kod araması, durum süzgeci; tabloda her birimin aktif
+  kullanıcı sayısı görünür. Kod yalnız eklerken yazılır (büyük harf, rakam, alt çizgi; yazarken kendiliğinden
+  bu biçime çevrilir) ve sonradan değiştirilemez. Ortak parçalar `components/admin/AdminParts.tsx` ve
+  `AdminTable.tsx` içindedir; yeni yönetim ekranı bunları kullanır.
 - **Kullanıcılar** (`/admin/users`): ad ya da e-posta araması, rol ve durum süzgeci. Masaüstünde tablo; telefonda
   aynı tablo kart olarak görünür (ad ve durum üstte, diğer değerler başlıklarıyla alt alta), yana kaydırma olmaz.
   Süzgeçlere uyan kullanıcı yoksa "Süzgeçleri temizle" düğmesi çıkar. Bölümler arası geçiş üstteki sekmelerle
