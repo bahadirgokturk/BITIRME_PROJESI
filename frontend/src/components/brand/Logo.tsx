@@ -1,6 +1,7 @@
 import { cn } from "cn";
 
-// Uygulama simgesi: C + onay + turuncu F (F = Flow + Fixed). Cizim public/brand/logo-art.svg,
+// Uygulama simgesi: turkuazdan bakira yedi tonda akan su, ortasinda beyaz universite logosu.
+// Su akan cayi (Bakircay) ve isin akisini (Flow) anlatir. Cizim public/brand/logo-art.svg,
 // zemin primary token'i (Figma: 02 Components > Logo/Simge). Boyut className ile verilir.
 export function LogoMark({ className }: { className?: string }) {
   return (
@@ -23,7 +24,7 @@ export function LogoWordmark({ size = "md" }: { size?: keyof typeof WORDMARK_SIZ
     <span className={cn("flex items-center", classes.gap)}>
       <LogoMark className={classes.mark} />
       <span className={cn("font-semibold tracking-tight", classes.text)}>
-        Campus<span className="text-primary">Flow</span>
+        Bakırçay<span className="text-primary">Flow</span>
       </span>
     </span>
   );

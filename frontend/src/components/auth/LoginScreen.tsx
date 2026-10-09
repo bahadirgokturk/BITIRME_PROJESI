@@ -6,10 +6,11 @@ import { LoginForm } from "./LoginForm";
 function BrandPanel() {
   return (
     <section className="hidden flex-1 flex-col justify-center gap-6 bg-primary px-20 text-primary-foreground md:flex">
-      <LogoMark className="size-24" />
+      {/* Zemin de logo da turkuaz: ince beyaz cerceve logonun kenarini belli eder (yalniz bu panelde) */}
+      <LogoMark className="size-24 ring-1 ring-white" />
       <p className="text-4xl leading-tight font-semibold">Kampüsteki sorunları bildir, çözülene kadar takip et.</p>
       <span aria-hidden className="block h-1 w-8 rounded-[2px] bg-brand-accent" />
-      <p className="opacity-85">İzmir Bakırçay Üniversitesi · CampusFlow</p>
+      <p className="opacity-85">İzmir Bakırçay Üniversitesi · BakırçayFlow</p>
     </section>
   );
 }

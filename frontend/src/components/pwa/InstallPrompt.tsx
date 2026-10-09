@@ -55,7 +55,7 @@ export function InstallPrompt({ hasCases }: { hasCases: boolean }) {
       <div className="flex items-start gap-3">
         <LogoMark className="mt-1" />
         <div className="flex-1 space-y-0.5 pt-1">
-          <p className="font-semibold">CampusFlow’u ana ekranına ekle</p>
+          <p className="font-semibold">BakırçayFlow’u ana ekranına ekle</p>
           <p className="text-sm text-muted-foreground">
             {isIos
               ? "Uygulama gibi tek dokunuşla açmak için iki adım yeterli:"

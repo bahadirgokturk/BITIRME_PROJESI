@@ -1,6 +1,6 @@
 # UI_GUIDE — Tasarım Rehberi (Figma → Next.js)
 
-Bu rehber CampusFlow AI arayüzünü tasarlayan ve kodlayan herkes içindir. Hedef: **kullanıcı dostu**, tutarlı,
+Bu rehber BakırçayFlow (eski adıyla CampusFlow AI) arayüzünü tasarlayan ve kodlayan herkes içindir. Hedef: **kullanıcı dostu**, tutarlı,
 erişilebilir ve Figma'da çizilenle koddaki ekranın **aynı** olduğu bir arayüz.
 Kod kuralları için [KOD_KURALLARI.md](../KOD_KURALLARI.md) ve [CONVENTIONS.md](CONVENTIONS.md) geçerlidir.
 
@@ -76,7 +76,7 @@ Figma değişkenleri (Variables) **koddaki CSS değişkenleriyle aynı adla** ta
   | Token | Açık tema | Koyu tema | Kullanım |
   |---|---|---|---|
   | `primary`, `ring` | turkuaz `#00818D` (beyaz yazı 4.64:1) | `#00A5B5` (koyu yazı 6.65:1) | Ana buton, bağlantı, odak halkası, ilerleme çubuğu |
-  | `brand-accent` | turuncu `#FF8901` | aynı | Süsleme (başlık altı çizgi, seçili menü çizgisi, logodaki F) ve **renk yolculuğu** (aşağıda). Metin ya da buton rengi olarak kullanılmaz |
+  | `brand-accent` | turuncu `#FF8901` | aynı | Süsleme (başlık altı çizgi, seçili menü çizgisi, logodaki bakır rengi su) ve **renk yolculuğu** (aşağıda). Metin ya da buton rengi olarak kullanılmaz |
   | `brand-accent-strong` | koyu turuncu `#D96A00` | aynı | Renk yolculuğunun en başı (1. yıldız) |
   | `primary-strong` | koyu turkuaz `#005F68` | `#00818D` | Renk yolculuğunun en sonu (5. yıldız) |
 
@@ -85,7 +85,9 @@ Figma değişkenleri (Variables) **koddaki CSS değişkenleriyle aynı adla** ta
   Puan yıldızları: 1. koyu turuncu, 2. turuncu, 3. geçişli, 4. turkuaz, 5. koyu turkuaz. Bilgi yalnız renkle
   verilmez: aktif adım kalın yazılır, puan sözle de gösterilir ("4 / 5 · İyi").
 
-  Diğer token'lar shadcn nötr temasında kalır. Logo: `public/brand/logo-art.svg` + `components/brand/Logo.tsx`
+  Diğer token'lar shadcn nötr temasında kalır. Logo: turkuazdan (`#00818D`) bakıra (`#FF8901`) yedi tonda yumuşak geçişli dalgalı su katmanları; tam ortada
+  beyaz üniversite logosu. Su katmanlarında beyaz kullanılmaz (beyaz zeminde logo bölünmüş görünür). Yazı: "Bakırçay" metin renginde, "Flow" turkuaz. `public/brand/logo-art.svg` +
+  `components/brand/Logo.tsx`; uygulama simgeleri `public/icons/` ve `src/app/icon.png`, `apple-icon.png`
   (Figma: 02 Components > Logo/Simge, Logo/Yatay).
 - **Uygulama kabuğu:** Masaüstünde sol kenar çubuğu (logo, kullanıcı, menü, çıkış). Telefonda üstte sabit çubuk:
   ana sayfalarda menü butonu + logo (menü soldan açılan panel, shadcn Sheet), alt sayfalarda (ör. `/cases/[id]`)
@@ -245,7 +247,7 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
 - Girişten sonra herkes kendi ilk ekranına gider: bildirim yapan `/my-cases`, personel `/staff/tasks`, müdür
   `/manager/dashboard`, yönetici (ADMIN) `/admin` (`homePathFor`, `lib/navigation.ts`).
 - Ekran metinlerinde "AI" yazılmaz, "yapay zekâ" yazılır ("Yapay zekâ önerisi", "Yapay zekâ yönetim özeti"). Tek
-  istisna ürün adıdır: "CampusFlow AI".
+  istisna ürünün eski adıdır ("CampusFlow AI"); ekranda görünen ad artık "BakırçayFlow".
 - Butonlar fiildir: "Gönder", "Kabul et", "Tamamla". "Tamam/Evet" yerine eylemi söyleyen metin.
 - Hata mesajları backend'den `error.message` olarak gelir ([API.md](API.md): `{"error": {code, message, details}}`);
   frontend bunları olduğu gibi gösterir, kendisi uydurmaz. Alan hataları ilgili alanın altında gösterilir.

@@ -1,7 +1,11 @@
-<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="Art">
-<path id="Vector" d="M23.7734 26.9688C22.4264 28.181 20.7569 28.9768 18.9669 29.2599C17.177 29.543 15.3434 29.3013 13.6879 28.564C12.0325 27.8266 10.6263 26.6253 9.6394 25.1054C8.65252 23.5855 8.1273 21.8122 8.1273 20C8.1273 18.1878 8.65252 16.4145 9.6394 14.8946C10.6263 13.3747 12.0325 12.1734 13.6879 11.436C15.3434 10.6987 17.177 10.457 18.9669 10.7401C20.7569 11.0232 22.4264 11.819 23.7734 13.0313" stroke="white" stroke-width="3.4375" stroke-linecap="round"/>
-<path id="Vector_2" d="M13.125 20.1562L15.9375 22.9688L21.25 17.3438" stroke="white" stroke-width="2.65625" stroke-linecap="round" stroke-linejoin="round"/>
-<path id="Vector_3" d="M27.5 24.6875V15.625H32.1875M27.5 20H31.25" stroke="#FF8901" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Su">
+<path d="M-10 7.5c5.5-4.2 11-4.2 16.5 0s11 4.2 16.5 0 11-4.2 16.5 0 11 4.2 16.5 0V46H-10z" fill="#2595A0"/>
+<path d="M-16 13c5.5-4.2 11-4.2 16.5 0s11 4.2 16.5 0 11-4.2 16.5 0 11 4.2 16.5 0V46H-16z" fill="#4FABAB"/>
+<path d="M-13 18.5c5.5-4.2 11-4.2 16.5 0s11 4.2 16.5 0 11-4.2 16.5 0 11 4.2 16.5 0V46H-13z" fill="#8EBFA6"/>
+<path d="M-18 24c5.5-4.2 11-4.2 16.5 0s11 4.2 16.5 0 11-4.2 16.5 0 11 4.2 16.5 0V46H-18z" fill="#D9BC80"/>
+<path d="M-12 29.5c5.5-4.2 11-4.2 16.5 0s11 4.2 16.5 0 11-4.2 16.5 0 11 4.2 16.5 0V46H-12z" fill="#F8A94F"/>
+<path d="M-17 35c5.5-4.2 11-4.2 16.5 0s11 4.2 16.5 0 11-4.2 16.5 0 11 4.2 16.5 0V46H-17z" fill="#FF8901"/>
+<path transform="translate(10.73 11.5)" d="M0 0h7.16v13.42a3.58 3.58 0 0 1-7.16 0zM10.38 0h3.63a3.535 3.535 0 0 1 0 7.07h-3.63zM10.38 9.85h4.57a3.575 3.575 0 0 1 0 7.15h-4.57z" fill="#FFFFFF"/>
 </g>
 </svg>

@@ -11,10 +11,7 @@ from datetime import datetime, timedelta
 
 from app.core.constants import PERCENT, SLA_FALLBACK_PRIORITY, SLA_WARNING_PCT_DEFAULT
 from app.models import Case, SlaRule
-from app.models.enums import CaseStatus, Priority, SlaStatus
-
-# Bu durumlarda is bitmis sayilir; SLA karari cozum anina gore verilir
-_DONE = frozenset({CaseStatus.RESOLVED, CaseStatus.VERIFICATION, CaseStatus.CLOSED})
+from app.models.enums import SLA_SETTLED_STATUSES, Priority, SlaStatus
 
 
 @dataclass(frozen=True)
@@ -103,7 +100,7 @@ def case_sla_status(case: Case, now: datetime) -> SlaStatus | None:
             started_at=case.created_at,
             due_at=case.due_at,
             warning_pct=warning_pct,
-            resolved_at=case.resolved_at if case.status in _DONE else None,
+            resolved_at=case.resolved_at if case.status in SLA_SETTLED_STATUSES else None,
             now=now,
         )
     )

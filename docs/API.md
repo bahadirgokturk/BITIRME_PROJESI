@@ -40,8 +40,16 @@ alanları dönmez. Bildirim formu bunu kullanır; yönetim `/admin/locations`'ta
 `total` filtrelenmiş sayıdır. Kampüs ölçeğinde (yüzlerce konum) bellekte filtrelenir.
 
 ## Cases
-✅ **Uygulandı (E3-1):** `POST /cases`, `GET /cases` (`?status=` tekrarlanabilir, en yeni önce),
-`GET /cases/mine`, `GET /cases/{id}`, `GET /cases/{id}/events`.
+✅ **Uygulandı (E3-1):** `POST /cases`, `GET /cases`, `GET /cases/mine`, `GET /cases/{id}`,
+`GET /cases/{id}/events`.
+- `GET /cases` süzgeçleri (hepsi VE ile birleşir; `total` süzülmüş sayıdır, liste en yeni önce):
+  - `status` tekrarlanabilir (`status=REJECTED&status=MERGED`)
+  - `priority`: `LOW | MEDIUM | HIGH | CRITICAL`
+  - `sla_status=BREACHED`: listede `sla_status` rozeti `BREACHED` olanlar (çözülmüşse çözüm anına, açıksa
+    şimdiki zamana göre). `AT_RISK`/`ON_TRACK` süzgeci yok → `422`.
+  - `q` (en çok 100 karakter): bildirim numarası, başlık ya da konum adında geçen parça. Büyük/küçük harf ve
+    Türkçe harf duyarsız (`kutuphane` = `Kütüphane`, `ışık` = `IŞIK`); `%` ve `_` düz metin sayılır.
+  - `category`, `location_id`, `department_id`, `from`, `to` henüz yok.
 - Yeni bildirim `NEW` olarak kaydedilir ve aynı istekte `ANALYZING`'e geçer; zaman çizelgesinde `CASE_CREATED` +
   `ANALYSIS_STARTED`. Agent hattı (FAZ 5) gelene kadar `ANALYZING`'de bekler.
 - Numara `CASE-000124` (PostgreSQL sequence, id'den bağımsız). Başlık boşsa açıklamanın ilk 60 karakteri; kelime ortasından kesilmez, kısaltılınca sonuna `…` eklenir.
@@ -62,7 +70,7 @@ belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanı
 | Method | Path | Rol | Açıklama |
 |---|---|---|---|
 | POST | `/cases` | tümü | case oluştur (JSON; foto ayrı istekle) → 201 `ANALYZING` |
-| GET | `/cases` | M/A (tümü), R (kendi), S (kapsam) | filtre: status, category, location_id, department_id, priority, sla_status, from, to, q |
+| GET | `/cases` | M/A (tümü), R (kendi), S (kapsam) | filtre: status, priority, sla_status (BREACHED), q ✅; category, location_id, department_id, from, to (planlı) |
 | GET | `/cases/mine` | R | kendi case'lerim |
 | GET | `/cases/{id}` | kapsam | detay (+ SLA durumu hesaplanmış) |
 | GET | `/cases/{id}/events` | kapsam | zaman çizelgesi (reporter'a filtrelenmiş) |

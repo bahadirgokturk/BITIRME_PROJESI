@@ -35,6 +35,8 @@ CASE_DESCRIPTION_MAX_LENGTH = 2000
 CASE_TITLE_MAX_LENGTH = 200
 # Baslik girilmezse aciklamanin ilk 60 karakteri: liste satirina tek satirda sigar
 CASE_TITLE_FROM_DESCRIPTION_LENGTH = 60
+# Liste aramasi (GET /cases?q=): numara, baslik ya da konum adinin bir parcasi; uzun metin gereksiz
+CASE_SEARCH_MAX_LENGTH = 100
 # CASE-000124: 6 hane bir kampuste yillarca yeter (999.999 bildirim)
 CASE_NUMBER_PREFIX = "CASE-"
 CASE_NUMBER_DIGITS = 6

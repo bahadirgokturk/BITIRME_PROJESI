@@ -4,6 +4,7 @@ Ozet girdisi dashboard'daki uclarla ayni servislerden gelir; agent yalniz bu JSO
 veritabanina dokunmaz. Kurum geneli: birim/bina filtresi yoktur.
 """
 
+import math
 from datetime import timedelta
 
 from app.agents.analytics_summary import (
@@ -31,9 +32,13 @@ from app.services.operations_analytics_service import OperationsAnalyticsService
 PERIOD_DAYS = {SummaryPeriod.WEEK: 7, SummaryPeriod.MONTH: 30}
 
 
-def _whole(value: float | None) -> int | None:
-    # Ozet metninde yuzde ve dakika tam sayi okunur ("%82", "135 dk")
-    return None if value is None else round(value)
+# Yarim degerler yukari: frontend Math.round ile ayni (Python round 68.5 -> 68 verir, ekran %69)
+_HALF = 0.5
+
+
+def screen_round(value: float | None) -> int | None:
+    """Ozet metninde yuzde ve dakika tam sayi okunur ("%82", "135 dk"); ekrandaki kutuyla ayni."""
+    return None if value is None else math.floor(value + _HALF)
 
 
 def _slowest(departments: DepartmentsRead) -> SlowDepartment | None:
@@ -43,7 +48,7 @@ def _slowest(departments: DepartmentsRead) -> SlowDepartment | None:
     slowest = max(measured, key=lambda row: row.median_resolution_min or 0)
     return SlowDepartment(
         name=slowest.department.name,
-        median_resolution_min=round(slowest.median_resolution_min or 0),
+        median_resolution_min=screen_round(slowest.median_resolution_min) or 0,
     )
 
 
@@ -89,8 +94,8 @@ class SummaryService:
         places = self._analytics.locations(filters, LocationLevel.BUILDING).items
         return SummaryInput(
             period=Period(start=first, end=today),
-            total_cases=round(kpis.total_cases.value or 0),
-            previous_period_change_pct=_whole(kpis.total_cases.delta_pct),
+            total_cases=screen_round(kpis.total_cases.value) or 0,
+            previous_period_change_pct=screen_round(kpis.total_cases.delta_pct),
             top_category=(
                 CategoryCount(code=categories[0].category, count=categories[0].count)
                 if categories
@@ -101,9 +106,9 @@ class SummaryService:
                 if places
                 else None
             ),
-            sla_compliance_pct=_whole(kpis.sla_compliance_pct.value),
+            sla_compliance_pct=screen_round(kpis.sla_compliance_pct.value),
             sla_breaches=self._analytics.sla(filters).breached,
             recurring_problems=_recurring(self._operations.recurring(filters)),
             slowest_department=_slowest(self._operations.departments(filters)),
-            automation_rate_pct=_whole(kpis.automation_pct.value),
+            automation_rate_pct=screen_round(kpis.automation_pct.value),
         )
