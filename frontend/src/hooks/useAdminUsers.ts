@@ -7,21 +7,13 @@ type Schemas = components["schemas"];
 export type AdminUser = Schemas["UserRead"];
 
 const USERS_KEY = ["admin", "users"];
-// Backend'in page_size ust siniri; kampus olceginde tum kullanicilar ve birimler tek istekte gelir
+// Backend'in page_size ust siniri; kampus olceginde tum kullanicilar tek istekte gelir
 const ADMIN_PAGE_SIZE = 200;
 
 export function useAdminUsers() {
   return useQuery({
     queryKey: USERS_KEY,
     queryFn: () => apiGet<Schemas["Page_UserRead_"]>(`/admin/users?page_size=${ADMIN_PAGE_SIZE}`),
-    select: (page) => page.items,
-  });
-}
-
-export function useAdminDepartments() {
-  return useQuery({
-    queryKey: ["admin", "departments"],
-    queryFn: () => apiGet<Schemas["Page_DepartmentRead_"]>(`/admin/departments?page_size=${ADMIN_PAGE_SIZE}`),
     select: (page) => page.items,
   });
 }

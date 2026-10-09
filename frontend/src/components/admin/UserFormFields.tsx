@@ -1,43 +1,11 @@
-import { useId, type ReactNode } from "react";
-
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { needsDepartment, type FormMode, type UserForm, type UserFormProblems } from "@/lib/admin";
 import { REPORTER_KIND_LABELS, ROLE_LABELS } from "@/lib/shell";
 
+import { Field, type ControlProps } from "./Field";
+
 const SELECT_CLASS =
   "h-11 w-full rounded-lg border border-input bg-background px-3 text-base outline-none focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive";
-
-interface ControlProps {
-  id: string;
-  "aria-invalid"?: true;
-  "aria-describedby"?: string;
-}
-
-interface FieldProps {
-  label: string;
-  error?: string;
-  hint?: string;
-  children: (props: ControlProps) => ReactNode;
-}
-
-// Etiket + alan + hata/ipucu; hata alanin altinda ve alana bagli (UI_GUIDE bolum 6 ve 8)
-function Field({ label, error, hint, children }: FieldProps) {
-  const id = useId();
-  const noteId = `${id}-note`;
-  const note = error ?? hint;
-  return (
-    <div className="space-y-1.5">
-      <Label htmlFor={id}>{label}</Label>
-      {children({ id, "aria-invalid": error ? true : undefined, "aria-describedby": note ? noteId : undefined })}
-      {note ? (
-        <p id={noteId} className={error ? "text-xs text-destructive" : "text-xs text-muted-foreground"}>
-          {note}
-        </p>
-      ) : null}
-    </div>
-  );
-}
 
 interface ChoiceProps {
   control: ControlProps;

@@ -8,7 +8,12 @@ import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle } from "@
 import { useCreateUser, useUpdateUser, type AdminUser } from "@/hooks/useAdminUsers";
 import { EMPTY_USER_FORM, formFromUser, toUserBody, userFormProblems, type UserForm } from "@/lib/admin";
 
+import { ActiveToggle } from "./AdminParts";
 import { UserFormFields } from "./UserFormFields";
+
+const ACTIVE_NOTE =
+  "Pasifleştirilen kullanıcının tüm oturumları hemen kapanır. Kayıt silinmez; istediğiniz zaman yeniden aktifleştirebilirsiniz.";
+const INACTIVE_NOTE = "Kullanıcı yeniden giriş yapabilir; eski oturumları geri gelmez.";
 
 export type SheetTarget = { mode: "create" } | { mode: "edit"; user: AdminUser };
 
@@ -24,26 +29,19 @@ function StatusSection({ user, onDone }: { user: AdminUser; onDone: (message: st
   const update = useUpdateUser(user.id);
   const next = !user.is_active;
   return (
-    <div className="space-y-2 rounded-lg border p-4">
-      <p className="text-sm font-medium">{user.is_active ? "Kullanıcıyı pasifleştir" : "Kullanıcıyı aktifleştir"}</p>
-      <p className="text-[13px] text-muted-foreground">
-        {user.is_active
-          ? "Pasifleştirilen kullanıcının tüm oturumları hemen kapanır. Kayıt silinmez; istediğiniz zaman yeniden aktifleştirebilirsiniz."
-          : "Kullanıcı yeniden giriş yapabilir; eski oturumları geri gelmez."}
-      </p>
-      <FormAlert error={update.error} />
-      <Button
-        type="button"
-        variant="outline"
-        className={user.is_active ? "h-11 px-4 text-destructive" : "h-11 px-4"}
-        disabled={update.isPending}
-        onClick={() =>
-          update.mutate({ is_active: next }, { onSuccess: () => onDone(`${user.full_name} ${next ? "aktifleştirildi" : "pasifleştirildi"}.`) })
-        }
-      >
-        {user.is_active ? "Pasifleştir" : "Aktifleştir"}
-      </Button>
-    </div>
+    <ActiveToggle
+      active={user.is_active}
+      subject="Kullanıcıyı"
+      note={user.is_active ? ACTIVE_NOTE : INACTIVE_NOTE}
+      error={update.error}
+      pending={update.isPending}
+      onToggle={() =>
+        update.mutate(
+          { is_active: next },
+          { onSuccess: () => onDone(`${user.full_name} ${next ? "aktifleştirildi" : "pasifleştirildi"}.`) },
+        )
+      }
+    />
   );
 }
 

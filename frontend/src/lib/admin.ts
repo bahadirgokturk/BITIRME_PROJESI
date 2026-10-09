@@ -18,11 +18,10 @@ export interface UserFilters {
   status: StatusFilter;
 }
 
-const STATUS_MATCH: Record<StatusFilter, (user: UserRead) => boolean> = {
-  all: () => true,
-  active: (user) => user.is_active,
-  inactive: (user) => !user.is_active,
-};
+// Durum suzgeci butun yonetim listelerinde ayni calisir (kullanicilar, birimler)
+export function matchesStatus(status: StatusFilter, isActive: boolean): boolean {
+  return status === "all" || (status === "active") === isActive;
+}
 
 // Liste API'de aranmiyor (yalniz sayfalama); kampus olceginde tum kullanicilar tek istekte gelir
 export function filterUsers(users: readonly UserRead[], filters: UserFilters): UserRead[] {
@@ -30,7 +29,7 @@ export function filterUsers(users: readonly UserRead[], filters: UserFilters): U
   return users.filter(
     (user) =>
       (filters.role === null || user.role === filters.role) &&
-      STATUS_MATCH[filters.status](user) &&
+      matchesStatus(filters.status, user.is_active) &&
       `${user.full_name} ${user.email}`.toLocaleLowerCase(LOCALE).includes(query),
   );
 }
