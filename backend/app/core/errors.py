@@ -41,6 +41,13 @@ class InvalidParentError(DomainError):
     default_message = messages.INVALID_PARENT
 
 
+class InvalidSlaTargetsError(DomainError):
+    # Cozum hedefi kabul hedefinden kisa (guncelleme sonrasi birlesik degerlerle)
+    code = "INVALID_SLA_TARGETS"
+    status = HTTPStatus.UNPROCESSABLE_ENTITY
+    default_message = messages.INVALID_SLA_TARGETS
+
+
 class InvalidUserRoleError(DomainError):
     # Rol ile reporter_kind/department_id birbirini tutmuyor (docs/DATABASE.md "users")
     code = "INVALID_USER_ROLE"

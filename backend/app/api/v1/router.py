@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.api.v1 import (
     admin,
+    admin_catalog,
     analytics,
     attachments,
     auth,
@@ -27,3 +28,4 @@ api_router.include_router(lookups.router)
 api_router.include_router(analytics.router)
 api_router.include_router(analytics.agents_router)
 api_router.include_router(admin.router)
+api_router.include_router(admin_catalog.router)

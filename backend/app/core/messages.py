@@ -10,6 +10,8 @@ INVALID_CREDENTIALS = "E-posta veya parola hatalı."
 TOO_MANY_LOGIN_ATTEMPTS = "Çok fazla hatalı giriş denemesi. Lütfen biraz sonra tekrar deneyin."
 FORBIDDEN = "Bu işlem için yetkiniz yok."
 DUPLICATE_CODE = "Bu kod zaten kullanılıyor."
+DUPLICATE_SLA_RULE = "Bu bildirim türü ve öncelik için zaten bir SLA kuralı var."
+INVALID_SLA_TARGETS = "Çözüm süresi, kabul süresinden kısa olamaz."
 DUPLICATE_EMAIL = "Bu e-posta adresi zaten kayıtlı."
 INVALID_USER_ROLE = (
     "Rol bilgileri tutarsız: bildirim yapanlarda kullanıcı türü, "
