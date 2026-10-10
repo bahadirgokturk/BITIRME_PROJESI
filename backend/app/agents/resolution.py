@@ -112,8 +112,10 @@ def _evaluate(inp: ResolutionInput) -> tuple[ResolutionOutput, list[Reason]]:
     missing = [r for r in reasons if r.code in _MISSING]
     if missing and not inp.has_evidence_photo:
         message = " ".join(r.message for r in missing)
+        # Karari veren gerekceler once: inceleme kuyrugu ilk gerekceyi gosterir
+        ordered = missing + [r for r in reasons if r.code not in _MISSING]
         return ResolutionOutput(decision=ResolutionDecision.NEEDS_MORE_EVIDENCE, message=message), (
-            reasons
+            ordered
         )
     output = ResolutionOutput(decision=ResolutionDecision.RESOLVED, message="İş tamamlanmış.")
     return output, reasons

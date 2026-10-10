@@ -61,7 +61,8 @@ def test_suspiciously_quick_work_needs_more_evidence() -> None:
     result = _run(work_minutes=DEFAULT_MIN_WORK_MINUTES - 1)
 
     assert result.decision == ResolutionDecision.NEEDS_MORE_EVIDENCE
-    assert _codes(result) == ["NOTE_OK", "TOO_QUICK"]
+    # Karari veren gerekce once: inceleme kuyrugu ilk gerekceyi "Neden burada?" diye gosterir
+    assert _codes(result) == ["TOO_QUICK", "NOTE_OK"]
 
 
 def test_the_minimum_work_time_depends_on_the_case_type() -> None:
