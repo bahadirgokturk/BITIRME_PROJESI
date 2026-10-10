@@ -85,7 +85,7 @@ Ayarlar `frontend/.env.development` içinde; kendine özel değişiklik için `f
 | Değişken | Değerler | Etki |
 |---|---|---|
 | `NEXT_PUBLIC_API_MOCKING` | `enabled` / `disabled` | Sahte API açık/kapalı |
-| `NEXT_PUBLIC_MOCK_ROLE` | `REPORTER` `STAFF` `MANAGER` `ADMIN` | Sahte `/auth/me` hangi rolle dönsün → menü o role göre çizilir |
+| `NEXT_PUBLIC_MOCK_ROLE` | `REPORTER` `STAFF` `MANAGER` `ADMIN` | Sayfa açıldığında sahte `/auth/me` hangi rolle dönsün → menü o role göre çizilir. Giriş sayfasından bir fixture e-postasıyla (`src/mocks/fixtures.ts`) giriş yapılırsa, sayfa yenilenene kadar o kullanıcının rolü geçerli olur |
 
 Sahte girişte tüm kullanıcıların parolası `demo1234`; e-postalar `src/mocks/fixtures.ts` içinde.
 `.env` dosyası değiştikten sonra `npm run dev`'i durdurup yeniden başlat.

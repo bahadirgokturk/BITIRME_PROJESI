@@ -31,6 +31,14 @@ function mockRole(): Role {
   return role && role in USERS ? role : "REPORTER";
 }
 
+// Giris yapan fixture kullanicisi; sayfa yenilenince sifirlanir ve NEXT_PUBLIC_MOCK_ROLE'e donulur.
+// Boylece her rol, sunucuyu yeniden baslatmadan o rolun e-postasiyla giris yaparak denenebilir (e2e/).
+let signedIn: Schemas["UserRead"] | null = null;
+
+function currentUser(): Schemas["UserRead"] {
+  return signedIn ?? USERS[mockRole()];
+}
+
 function error(status: number, code: string, message: string) {
   const body: Schemas["ErrorRead"] = { error: { code, message, details: {} } };
   return HttpResponse.json(body, { status });
@@ -43,7 +51,7 @@ const token: Schemas["TokenRead"] = {
 };
 
 export const handlers = [
-  // Sahte giris: fixture e-postalari icin ortak parola; /auth/me NEXT_PUBLIC_MOCK_ROLE rolunu doner.
+  // Sahte giris: fixture e-postalari icin ortak parola; /auth/me giris yapani, yoksa NEXT_PUBLIC_MOCK_ROLE rolunu doner.
   // Bildirimler caseHandlers.ts, dosyalar attachmentHandlers.ts, yorum/puan interactionHandlers.ts'te,
   // yonetim kullanicilari adminHandlers.ts'te, birimler adminDepartmentHandlers.ts'te,
   // konumlar adminLocationHandlers.ts'te.
@@ -51,19 +59,20 @@ export const handlers = [
     apiUrl("/auth/login"),
     async ({ request }) => {
       const { email, password } = await request.json();
-      const known = Object.values(USERS).some((user) => user.email === email);
-      if (!known || password !== MOCK_PASSWORD) {
+      const user = Object.values(USERS).find((candidate) => candidate.email === email);
+      if (!user || password !== MOCK_PASSWORD) {
         return error(401, "UNAUTHORIZED", "E-posta veya parola hatalı.");
       }
+      signedIn = user;
       return HttpResponse.json(token);
     },
   ),
   http.post(apiUrl("/auth/refresh"), () => HttpResponse.json(token)),
-  http.post(
-    apiUrl("/auth/logout"),
-    () => new HttpResponse(null, { status: 204 }),
-  ),
-  http.get(apiUrl("/auth/me"), () => HttpResponse.json(USERS[mockRole()])),
+  http.post(apiUrl("/auth/logout"), () => {
+    signedIn = null;
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.get(apiUrl("/auth/me"), () => HttpResponse.json(currentUser())),
 
 
   ...caseHandlers,
