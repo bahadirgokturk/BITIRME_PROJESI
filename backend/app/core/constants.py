@@ -33,6 +33,9 @@ LOGIN_LIMITER_PRUNE_THRESHOLD = 10_000
 CASE_DESCRIPTION_MIN_LENGTH = 10
 CASE_DESCRIPTION_MAX_LENGTH = 2000
 CASE_TITLE_MAX_LENGTH = 200
+# Bildirim turu adi ve siniflandirma anahtar kelimesi (case_types.name varchar(100))
+CASE_TYPE_NAME_MAX_LENGTH = 100
+CASE_TYPE_KEYWORD_MAX_LENGTH = 50
 # Baslik girilmezse aciklamanin ilk 60 karakteri: liste satirina tek satirda sigar
 CASE_TITLE_FROM_DESCRIPTION_LENGTH = 60
 # Liste aramasi (GET /cases?q=): numara, baslik ya da konum adinin bir parcasi; uzun metin gereksiz
