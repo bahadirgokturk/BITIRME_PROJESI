@@ -61,7 +61,7 @@ Her fazın başında iş şu sırayla ilerler (ayrıntı: [UI_GUIDE.md](UI_GUIDE
 | E2-2 | RBAC dependency + ownership yardımcıları + testleri | 3 | A |
 | E2-3 | Admin CRUD: users, departments, locations (hiyerarşi), case types, SLA, agent policies | 3–4 | A (API ✅) + B/C (ekran: kullanıcı, birim, lokasyon ✅; tür, SLA, politika bekliyor) |
 | E2-4 | Campus template seed (YAML → DB, idempotent), [DEPARTMENTS.md](DEPARTMENTS.md) matrisinden | 3 | A |
-| E2-5 | Audit log | 4 | A |
+| E2-5 | Audit log | 4 | A ✅ |
 | E3 | **Case Yönetimi** | | |
 | E3-1 | Case modeli, case_number sequence, oluşturma API'si | 4 | A |
 | E3-2 | WorkflowService + transition tablosu + event yazımı (%100 test) | 4 | A |

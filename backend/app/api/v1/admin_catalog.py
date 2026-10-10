@@ -10,7 +10,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.api.deps import CurrentUser, require_roles
+from app.api.deps import Audit, CurrentUser, require_roles
 from app.api.v1.pagination import page_params
 from app.api.v1.responses import AUTHENTICATED_RESPONSES
 from app.core.database import get_session
@@ -38,16 +38,20 @@ Paging = Annotated[PageParams, Depends(page_params)]
 DbSession = Annotated[Session, Depends(get_session)]
 
 
-def get_case_type_service(session: DbSession, actor: CurrentUser) -> CaseTypeService:
-    return CaseTypeService(session, actor)
+def get_case_type_service(
+    session: DbSession, actor: CurrentUser, auditor: Audit
+) -> CaseTypeService:
+    return CaseTypeService(session, actor, auditor)
 
 
-def get_sla_rule_service(session: DbSession, actor: CurrentUser) -> SlaRuleService:
-    return SlaRuleService(session, actor)
+def get_sla_rule_service(session: DbSession, actor: CurrentUser, auditor: Audit) -> SlaRuleService:
+    return SlaRuleService(session, actor, auditor)
 
 
-def get_agent_policy_service(session: DbSession, actor: CurrentUser) -> AgentPolicyService:
-    return AgentPolicyService(session, actor)
+def get_agent_policy_service(
+    session: DbSession, actor: CurrentUser, auditor: Audit
+) -> AgentPolicyService:
+    return AgentPolicyService(session, actor, auditor)
 
 
 CaseTypes = Annotated[CaseTypeService, Depends(get_case_type_service)]

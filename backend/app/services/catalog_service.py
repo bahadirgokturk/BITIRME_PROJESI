@@ -13,7 +13,7 @@ from app.core import messages
 from app.core.constants import MIN_CONFIDENCE_AUTO_DEFAULT
 from app.core.errors import ConflictError, InvalidSlaTargetsError, NotFoundError
 from app.models import AgentPolicy, CaseType, SlaRule, User
-from app.models.enums import AutonomyLevel, PolicyScope
+from app.models.enums import AuditEntity, AutonomyLevel, PolicyScope
 from app.repositories import (
     agent_policy_repository,
     case_type_repository,
@@ -32,6 +32,7 @@ from app.schemas.catalog import (
     ensure_resolution_after_response,
 )
 from app.schemas.common import Page, PageParams
+from app.services.audit import Auditor, snapshot
 from app.services.authorization import ensure_same_organization
 
 # Yeni tur icin baslangic politikasi: agent uygular, mudur bilgilendirilir (docs/AGENTS.md 5).
@@ -58,9 +59,10 @@ def _page[T: BaseModel](read: type[T], found: tuple[Any, int], paging: PageParam
 
 
 class CaseTypeService:
-    def __init__(self, session: Session, actor: User) -> None:
+    def __init__(self, session: Session, actor: User, auditor: Auditor) -> None:
         self._session = session
         self._actor = actor
+        self._auditor = auditor
 
     def list(self, paging: PageParams) -> Page[CaseTypeAdminRead]:
         found = case_type_repository.list_page(self._session, self._actor.organization_id, paging)
@@ -86,17 +88,22 @@ class CaseTypeService:
                 notify_manager=True,
             ),
         )
+        created = CaseTypeAdminRead.model_validate(case_type, from_attributes=True)
+        self._auditor.created(AuditEntity.CASE_TYPE, created)
         self._session.commit()
-        return CaseTypeAdminRead.model_validate(case_type, from_attributes=True)
+        return created
 
     def update(self, case_type_id: int, data: CaseTypeUpdate) -> CaseTypeAdminRead:
         case_type = get_case_type(self._session, self._actor, case_type_id)
+        before = snapshot(CaseTypeAdminRead.model_validate(case_type, from_attributes=True))
         updates = changes(data, CASE_TYPE_NULLABLE)
         self._check_departments(updates)
         for field, value in updates.items():
             setattr(case_type, field, value)
+        updated = CaseTypeAdminRead.model_validate(case_type, from_attributes=True)
+        self._auditor.updated(AuditEntity.CASE_TYPE, before, updated)
         self._session.commit()
-        return CaseTypeAdminRead.model_validate(case_type, from_attributes=True)
+        return updated
 
     def _check_departments(self, values: dict[str, Any]) -> None:
         for field in DEPARTMENT_FIELDS:
@@ -112,9 +119,10 @@ class CaseTypeService:
 
 
 class SlaRuleService:
-    def __init__(self, session: Session, actor: User) -> None:
+    def __init__(self, session: Session, actor: User, auditor: Auditor) -> None:
         self._session = session
         self._actor = actor
+        self._auditor = auditor
 
     def list(self, paging: PageParams) -> Page[SlaRuleRead]:
         found = sla_repository.list_page(self._session, self._actor.organization_id, paging)
@@ -132,14 +140,17 @@ class SlaRuleService:
         rule = sla_repository.add(
             self._session, SlaRule(organization_id=organization_id, **data.model_dump())
         )
+        created = SlaRuleRead.model_validate(rule, from_attributes=True)
+        self._auditor.created(AuditEntity.SLA_RULE, created)
         self._session.commit()
-        return SlaRuleRead.model_validate(rule, from_attributes=True)
+        return created
 
     def update(self, rule_id: int, data: SlaRuleUpdate) -> SlaRuleRead:
         rule = sla_repository.get(self._session, rule_id)
         if rule is None:
             raise NotFoundError()
         ensure_same_organization(self._actor, resource_organization_id=rule.organization_id)
+        before = snapshot(SlaRuleRead.model_validate(rule, from_attributes=True))
         updates = changes(data)
         response = updates.get("response_minutes", rule.response_minutes)
         resolution = updates.get("resolution_minutes", rule.resolution_minutes)
@@ -149,14 +160,17 @@ class SlaRuleService:
             raise InvalidSlaTargetsError() from error
         for field, value in updates.items():
             setattr(rule, field, value)
+        updated = SlaRuleRead.model_validate(rule, from_attributes=True)
+        self._auditor.updated(AuditEntity.SLA_RULE, before, updated)
         self._session.commit()
-        return SlaRuleRead.model_validate(rule, from_attributes=True)
+        return updated
 
 
 class AgentPolicyService:
-    def __init__(self, session: Session, actor: User) -> None:
+    def __init__(self, session: Session, actor: User, auditor: Auditor) -> None:
         self._session = session
         self._actor = actor
+        self._auditor = auditor
 
     def list(self, paging: PageParams) -> Page[AgentPolicyRead]:
         found = agent_policy_repository.list_page(
@@ -169,14 +183,17 @@ class AgentPolicyService:
         if policy is None:
             raise NotFoundError()
         ensure_same_organization(self._actor, resource_organization_id=policy.organization_id)
+        before = snapshot(AgentPolicyRead.model_validate(policy, from_attributes=True))
         updates = changes(data)
         if "min_confidence_auto" in updates:
             # float -> Decimal: DB numeric; str uzerinden ki 0.85 tam 0.85 kalsin
             updates["min_confidence_auto"] = Decimal(str(updates["min_confidence_auto"]))
         for field, value in updates.items():
             setattr(policy, field, value)
+        updated = AgentPolicyRead.model_validate(policy, from_attributes=True)
+        self._auditor.updated(AuditEntity.AGENT_POLICY, before, updated)
         self._session.commit()
-        return AgentPolicyRead.model_validate(policy, from_attributes=True)
+        return updated
 
 
 def get_case_type(session: Session, actor: User, case_type_id: int) -> CaseType:

@@ -3,6 +3,7 @@
 from app.models.agent_decision import AgentDecision
 from app.models.agent_policy import AgentPolicy
 from app.models.attachment import Attachment
+from app.models.audit_log import AuditLog
 from app.models.base import Base
 from app.models.case import Case, CaseEvent
 from app.models.case_type import CaseType
@@ -20,6 +21,7 @@ __all__ = [
     "AgentDecision",
     "AgentPolicy",
     "Attachment",
+    "AuditLog",
     "Base",
     "Case",
     "CaseEvent",

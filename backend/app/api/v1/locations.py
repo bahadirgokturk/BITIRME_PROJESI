@@ -8,7 +8,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.api.deps import CurrentUser
+from app.api.deps import Audit, CurrentUser
 from app.api.v1.pagination import page_params
 from app.api.v1.responses import AUTHENTICATED_RESPONSES
 from app.core.database import get_session
@@ -23,9 +23,10 @@ router = APIRouter(prefix="/locations", tags=["locations"], responses=AUTHENTICA
 
 
 def get_location_service(
-    session: Annotated[Session, Depends(get_session)], user: CurrentUser
+    session: Annotated[Session, Depends(get_session)], user: CurrentUser, auditor: Audit
 ) -> LocationService:
-    return LocationService(session, user)
+    # Bu route yalniz okur; denetim izi yalniz /admin degisikliklerinde yazilir
+    return LocationService(session, user, auditor)
 
 
 @router.get("")

@@ -14,6 +14,7 @@ from app.core.errors import ForbiddenError, UnauthorizedError
 from app.models import User
 from app.models.enums import UserRole
 from app.services.analysis_service import AnalysisLauncher, SessionScope
+from app.services.audit import Auditor
 from app.services.auth_service import AuthService
 from app.services.login_rate_limiter import LoginRateLimiter
 from app.storage import Storage
@@ -87,3 +88,20 @@ def require_roles(*roles: UserRole) -> Callable[[User], User]:
         return user
 
     return dependency
+
+
+def get_auditor(
+    request: Request,
+    session: Annotated[Session, Depends(get_session)],
+    actor: CurrentUser,
+    clock: Annotated[Clock, Depends(get_clock)],
+) -> Auditor:
+    """Admin degisikliklerinin denetim izi.
+
+    IP: proxy arkasinda (Vercel -> Render) uvicorn --proxy-headers ile gercek istemci adresi.
+    """
+    ip_address = request.client.host if request.client else None
+    return Auditor(session, actor, clock, ip_address)
+
+
+Audit = Annotated[Auditor, Depends(get_auditor)]

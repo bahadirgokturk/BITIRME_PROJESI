@@ -939,6 +939,28 @@ export interface paths {
         patch: operations["update_location_api_v1_admin_locations__location_id__patch"];
         trace?: never;
     };
+    "/api/v1/admin/audit-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Audit Logs
+         * @description Admin tanimlarindaki degisiklikler, en yeni once.
+         *
+         *     entity_type + entity_id ile tek bir kaydin gecmisi suzulur.
+         */
+        get: operations["list_audit_logs_api_v1_admin_audit_logs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/case-types": {
         parameters: {
             query?: never;
@@ -1207,6 +1229,49 @@ export interface components {
              * @description Indirme adresi. Yetki ister: <img src> yerine fetch + Bearer ile alinir (docs/API.md).
              */
             readonly url: string;
+        };
+        /**
+         * AuditEntity
+         * @description Denetim izine yazilan admin tanimlari (audit_logs.entity_type).
+         *
+         *     Eylem adi: <ENTITY>_CREATED ya da <ENTITY>_UPDATED.
+         * @enum {string}
+         */
+        AuditEntity: "USER" | "DEPARTMENT" | "LOCATION" | "CASE_TYPE" | "SLA_RULE" | "AGENT_POLICY";
+        /** AuditLogFilter */
+        AuditLogFilter: {
+            entity_type?: components["schemas"]["AuditEntity"] | null;
+            /** Entity Id */
+            entity_id?: number | null;
+        };
+        /** AuditLogRead */
+        AuditLogRead: {
+            /** Id */
+            id: number;
+            /** Action */
+            action: string;
+            entity_type: components["schemas"]["AuditEntity"];
+            /** Entity Id */
+            entity_id: number;
+            /** Actor Id */
+            actor_id: number;
+            /** Actor Name */
+            actor_name: string;
+            /** Before */
+            before: {
+                [key: string]: unknown;
+            } | null;
+            /** After */
+            after: {
+                [key: string]: unknown;
+            } | null;
+            /** Ip Address */
+            ip_address: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
         };
         /**
          * AutonomyLevel
@@ -1805,6 +1870,15 @@ export interface components {
         Page_AgentPolicyRead_: {
             /** Items */
             items: components["schemas"]["AgentPolicyRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+        };
+        /** Page[AuditLogRead] */
+        Page_AuditLogRead_: {
+            /** Items */
+            items: components["schemas"]["AuditLogRead"][];
             /** Total */
             total: number;
             /** Page */
@@ -6186,6 +6260,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LocationRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    list_audit_logs_api_v1_admin_audit_logs_get: {
+        parameters: {
+            query: {
+                filters: components["schemas"]["AuditLogFilter"];
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_AuditLogRead_"];
                 };
             };
             /** @description Unauthorized */
