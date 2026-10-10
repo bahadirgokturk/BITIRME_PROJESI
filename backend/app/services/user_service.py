@@ -14,10 +14,11 @@ from app.core.clock import Clock
 from app.core.errors import ConflictError, InvalidUserRoleError, NotFoundError, SelfLockoutError
 from app.core.security import hash_password
 from app.models import User
-from app.models.enums import UserRole
+from app.models.enums import AuditEntity, UserRole
 from app.repositories import department_repository, refresh_token_repository, user_repository
 from app.schemas.common import Page, PageParams
 from app.schemas.user import UserCreate, UserRead, UserUpdate
+from app.services.audit import Auditor, snapshot
 from app.services.authorization import ensure_same_organization
 
 
@@ -38,10 +39,11 @@ _NULLABLE_FIELDS = frozenset({"reporter_kind", "department_id"})
 
 
 class UserService:
-    def __init__(self, session: Session, actor: User, clock: Clock) -> None:
+    def __init__(self, session: Session, actor: User, clock: Clock, auditor: Auditor) -> None:
         self._session = session
         self._actor = actor
         self._clock = clock
+        self._auditor = auditor
 
     def list(self, paging: PageParams) -> Page[UserRead]:
         items, total = user_repository.list_page(self._session, self._actor.organization_id, paging)
@@ -63,11 +65,14 @@ class UserService:
         )
         self._validate(user)
         user_repository.add(self._session, user)
+        created = UserRead.model_validate(user, from_attributes=True)
+        self._auditor.created(AuditEntity.USER, created)
         self._session.commit()
-        return UserRead.model_validate(user, from_attributes=True)
+        return created
 
     def update(self, user_id: int, data: UserUpdate) -> UserRead:
         user = self._get(user_id)
+        before = snapshot(UserRead.model_validate(user, from_attributes=True))
         was_active = user.is_active
         changes = data.model_dump(exclude_unset=True)
         for field, value in changes.items():
@@ -80,8 +85,10 @@ class UserService:
         self._ensure_not_self_lockout(user)
         if was_active and not user.is_active:
             refresh_token_repository.revoke_all_for_user(self._session, user.id, self._clock.now())
+        updated = UserRead.model_validate(user, from_attributes=True)
+        self._auditor.updated(AuditEntity.USER, before, updated)
         self._session.commit()
-        return UserRead.model_validate(user, from_attributes=True)
+        return updated
 
     def _validate(self, user: User) -> None:
         rule = ROLE_RULES[user.role]

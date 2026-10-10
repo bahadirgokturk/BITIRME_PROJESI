@@ -12,17 +12,20 @@ from app.agents.text import normalize
 from app.core import messages
 from app.core.errors import ConflictError, InvalidParentError, NotFoundError
 from app.models import Location, User
+from app.models.enums import AuditEntity
 from app.repositories import location_repository
 from app.repositories.location_repository import PATH_SEPARATOR
 from app.schemas.common import Page, PageParams
 from app.schemas.location import LocationCreate, LocationOption, LocationRead, LocationUpdate
+from app.services.audit import Auditor, snapshot
 from app.services.authorization import ensure_same_organization
 
 
 class LocationService:
-    def __init__(self, session: Session, actor: User) -> None:
+    def __init__(self, session: Session, actor: User, auditor: Auditor) -> None:
         self._session = session
         self._actor = actor
+        self._auditor = auditor
 
     def list(self, paging: PageParams) -> Page[LocationRead]:
         items, total = location_repository.list_page(
@@ -63,11 +66,14 @@ class LocationService:
             path=self._path_under(data.parent_id, data.code),
         )
         location_repository.add(self._session, location)
+        created = LocationRead.model_validate(location, from_attributes=True)
+        self._auditor.created(AuditEntity.LOCATION, created)
         self._session.commit()
-        return LocationRead.model_validate(location, from_attributes=True)
+        return created
 
     def update(self, location_id: int, data: LocationUpdate) -> LocationRead:
         location = self._get(location_id)
+        before = snapshot(LocationRead.model_validate(location, from_attributes=True))
         changes = data.model_dump(exclude_unset=True)
         # parent_id: null bilincli bir secimdir (koke tasi); diger alanlarda null "degistirme"
         if "parent_id" in changes:
@@ -75,8 +81,10 @@ class LocationService:
         for field, value in changes.items():
             if value is not None:
                 setattr(location, field, value)
+        updated = LocationRead.model_validate(location, from_attributes=True)
+        self._auditor.updated(AuditEntity.LOCATION, before, updated)
         self._session.commit()
-        return LocationRead.model_validate(location, from_attributes=True)
+        return updated
 
     def _move(self, location: Location, parent_id: int | None) -> None:
         old_path = location.path

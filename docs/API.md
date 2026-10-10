@@ -218,7 +218,12 @@ Rol kontrolü girdi doğrulamasından önce çalışır. Başka kurumun kaydı `
   `notify_manager`). Tür başına tek politika vardır ve tür eklenirken açılır; ekleme/silme yok.
 
 Liste yanıtı `Page[T]`, `?page=&page_size=` en fazla 200. Silme yerine `is_active=false` (soft delete).
-Planlı: `GET /admin/audit-logs`.
+- ✅ **`GET /admin/audit-logs`** (E2-5): yukarıdaki tanımlardaki her ekleme/güncelleme aynı işlemde kaydedilir
+  (`DEPARTMENT_CREATED`, `SLA_RULE_UPDATED`…). Kayıt: `action, entity_type, entity_id, actor_id, actor_name,
+  before, after, ip_address, created_at`. Eklemede `before` boş, `after` tam kayıt; güncellemede ikisi de yalnız
+  değişen alanlar (gerçek değişiklik yoksa kayıt yazılmaz). Parola/hash hiçbir zaman yazılmaz. En yeni önce;
+  süzgeç `?entity_type=CASE_TYPE&entity_id=12` (tek kaydın geçmişi). `entity_type`: `USER, DEPARTMENT,
+  LOCATION, CASE_TYPE, SLA_RULE, AGENT_POLICY`.
 
 ## Internal / Sistem
 | Method | Path | Açıklama |

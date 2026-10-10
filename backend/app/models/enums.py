@@ -142,6 +142,20 @@ class AutonomyLevel(StrEnum):
     L3_ESCALATE = "L3_ESCALATE"  # insan karar verir
 
 
+class AuditEntity(StrEnum):
+    """Denetim izine yazilan admin tanimlari (audit_logs.entity_type).
+
+    Eylem adi: <ENTITY>_CREATED ya da <ENTITY>_UPDATED.
+    """
+
+    USER = "USER"
+    DEPARTMENT = "DEPARTMENT"
+    LOCATION = "LOCATION"
+    CASE_TYPE = "CASE_TYPE"
+    SLA_RULE = "SLA_RULE"
+    AGENT_POLICY = "AGENT_POLICY"
+
+
 class PolicyScope(StrEnum):
     """agent_policies satirinin kapsami: tek bir bildirim tipi ya da bir kategori."""
 

@@ -205,8 +205,11 @@ id, user_id NULL, channel (`IN_APP`/`WEBHOOK`), type, payload jsonb, status (`PE
 read_at, created_at, sent_at
 
 ### audit_logs
-id, organization_id, user_id, action (`USER_CREATED`, `SLA_UPDATED`…), entity_type, entity_id,
+id, organization_id, user_id, action (`USER_CREATED`, `SLA_RULE_UPDATED`…), entity_type, entity_id,
 before_json, after_json, ip_address, created_at
+✅ E2-5: yalnız ekleme. Admin tanımları (kullanıcı, birim, lokasyon, bildirim türü, SLA kuralı, agent
+politikası) değişince aynı transaction'da yazılır; güncellemede before/after yalnız değişen alanlar.
+İndeksler: (organization_id, created_at), (organization_id, entity_type, entity_id).
 
 ## 4. Veri Bütünlüğü Kuralları
 
