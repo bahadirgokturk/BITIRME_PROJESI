@@ -18,7 +18,9 @@ interface ActionProps {
 
 // Onay = AI'in onerdigi birime atama (backend/app/services/review_service.py)
 function ApproveButton({ item, onDone }: ActionProps) {
-  const assign = useReviewAction<Schemas["AssignRequest"]>(item.case.id, "assign");
+  const assign = useReviewAction<Schemas["AssignRequest"]>(item.case.id, "assign", () =>
+    onDone(`${item.case.case_number} atandı.`),
+  );
   const departmentId = item.case.department?.id;
   return (
     <>
@@ -27,7 +29,7 @@ function ApproveButton({ item, onDone }: ActionProps) {
         disabled={departmentId === undefined || assign.isPending}
         onClick={() =>
           departmentId !== undefined &&
-          assign.mutate({ department_id: departmentId }, { onSuccess: () => onDone(`${item.case.case_number} atandı.`) })
+          assign.mutate({ department_id: departmentId })
         }
       >
         {assign.isPending ? "Atanıyor…" : "Onayla ve ata"}
@@ -38,13 +40,15 @@ function ApproveButton({ item, onDone }: ActionProps) {
 }
 
 function SimpleReasonAction({ item, onDone, kind }: ActionProps & { kind: "reject" | "merge" | "close" }) {
-  const action = useReviewAction<{ reason: string; parent_case_id?: number }>(item.case.id, kind);
   const parent = item.possible_duplicate_of;
   const texts = {
     reject: { label: "Reddet", description: "Bildirim reddedilir ve kuyruktan çıkar.", done: "reddedildi" },
     merge: { label: "Birleştir", description: `Bu bildirim ${parent?.case_number} · ${parent?.title} ile birleştirilir.`, done: "birleştirildi" },
     close: { label: "Kapat", description: "Tamamlanan iş doğrulanır ve bildirim kapatılır.", done: "kapatıldı" },
   }[kind];
+  const action = useReviewAction<{ reason: string; parent_case_id?: number }>(item.case.id, kind, () =>
+    onDone(`${item.case.case_number} ${texts.done}.`),
+  );
   return (
     <ReasonDialog
       trigger={texts.label}
@@ -53,7 +57,6 @@ function SimpleReasonAction({ item, onDone, kind }: ActionProps & { kind: "rejec
       confirm={texts.label}
       mutation={action}
       toBody={(reason) => (kind === "merge" && parent ? { parent_case_id: parent.id, reason } : { reason })}
-      onDone={() => onDone(`${item.case.case_number} ${texts.done}.`)}
     />
   );
 }

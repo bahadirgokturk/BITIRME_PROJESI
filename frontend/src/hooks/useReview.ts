@@ -49,15 +49,19 @@ export function useDepartments(enabled: boolean) {
 
 export type ReviewAction = "assign" | "override" | "reject" | "merge" | "close";
 
-// Her islem guncel bildirimi doner; kuyruk ve bildirim listeleri yeniden okunur
-export function useReviewAction<Body>(caseId: number, action: ReviewAction) {
+// Her islem guncel bildirimi doner; kuyruk ve bildirim listeleri yeniden okunur.
+// onDone burada, yenilemeden once cagrilir: kuyruk yenilenince kart kaybolur ve mutate()'e verilen
+// onSuccess kaybolan bilesende calismaz (onay notu hic gorunmezdi).
+export function useReviewAction<Body>(caseId: number, action: ReviewAction, onDone: () => void) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: Body) => apiPost<CaseRead>(`/cases/${caseId}/${action}`, body),
-    onSuccess: () =>
-      Promise.all([
+    onSuccess: () => {
+      onDone();
+      return Promise.all([
         queryClient.invalidateQueries({ queryKey: REVIEW_QUEUE_KEY }),
         queryClient.invalidateQueries({ queryKey: ["cases"] }),
-      ]),
+      ]);
+    },
   });
 }
