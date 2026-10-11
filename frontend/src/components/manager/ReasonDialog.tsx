@@ -16,7 +16,6 @@ interface ReasonDialogProps<Body> {
   confirm: string;
   mutation: UseMutationResult<unknown, Error, Body>;
   toBody: (reason: string) => Body;
-  onDone: () => void;
   // Gerekcenin ustunde ek alan (ornek: duzeltilecek alan ve yeni deger)
   extra?: ReactNode;
   // Ek alan da dolu olmali (ornek: yeni deger secildi)
@@ -26,19 +25,15 @@ interface ReasonDialogProps<Body> {
 // Gerekce isteyen manager islemleri (reddet, birlestir, kapat, duzelt): gerekce zorunlu ve
 // decision_feedback'e yazilir; backend hatasi pencerede gosterilir, pencere acik kalir
 export function ReasonDialog<Body>(props: ReasonDialogProps<Body>) {
-  const { trigger, title, description, confirm, mutation, toBody, onDone, extra, canSubmit = true } = props;
+  const { trigger, title, description, confirm, mutation, toBody, extra, canSubmit = true } = props;
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   const fieldId = useId();
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    mutation.mutate(toBody(reason.trim()), {
-      onSuccess: () => {
-        setOpen(false);
-        onDone();
-      },
-    });
+    // Onay notunu hook verir (useReviewAction); burada yalniz pencere kapanir
+    mutation.mutate(toBody(reason.trim()), { onSuccess: () => setOpen(false) });
   }
 
   return (

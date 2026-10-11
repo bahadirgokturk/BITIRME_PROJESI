@@ -1,7 +1,7 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { http, HttpResponse } from "msw";
+import { delay, http, HttpResponse } from "msw";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
@@ -14,6 +14,7 @@ import { ReviewQueue } from "./ReviewQueue";
 const SAFETY = "Laboratuvarda priz kıvılcım çıkarıyor";
 const DUPLICATE = "Amfide projeksiyon yine bozuk";
 const UNSURE = "Koridorda garip bir ses var";
+const SLOW_REFETCH_MS = 300;
 
 function renderQueue() {
   const user = userEvent.setup();
@@ -76,6 +77,26 @@ describe("ReviewQueue", () => {
 
     await waitFor(() => expect(screen.queryByRole("article", { name: SAFETY })).not.toBeInTheDocument());
     expect(screen.getByRole("status")).toHaveTextContent("CASE-000131 atandı.");
+  });
+
+  // Islemden sonra kuyruk ve bildirim sorgulari yenilenir. Kuyruk once donerse kart, digerleri surerken
+  // kaybolur; onay notu karta bagli kalirsa hic gorunmez (gercek backend'de gorulen hata).
+  it("still confirms the action when the card leaves before the other refetches finish", async () => {
+    server.use(
+      // Yalniz geciktirir; cevabi asil sahte handler verir
+      http.get(apiUrl("/cases/:id/decisions"), async () => {
+        await delay(SLOW_REFETCH_MS);
+      }),
+    );
+    const user = renderQueue();
+    const safety = await card(SAFETY);
+    await user.click(within(safety).getByRole("button", { name: "Yapay zekâ gerekçesi" }));
+    await within(safety).findByRole("list", { name: "Yapay zekâ kararları" });
+
+    await user.click(within(safety).getByRole("button", { name: "Onayla ve ata" }));
+
+    await waitFor(() => expect(screen.queryByRole("article", { name: SAFETY })).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("CASE-000131 atandı."));
   });
 
   it("requires a reason before rejecting", async () => {

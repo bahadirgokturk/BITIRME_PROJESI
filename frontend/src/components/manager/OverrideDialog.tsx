@@ -86,7 +86,9 @@ function OverrideFields({ field, value, onField, onValue }: FieldsProps) {
 // AI onerisini duzelt (tur, oncelik, birim): gerekce zorunlu, decision_feedback'e yazilir ve
 // modelin yeniden egitiminde kullanilir (docs/API.md "override")
 export function OverrideDialog({ item, onDone }: { item: ReviewItem; onDone: (message: string) => void }) {
-  const override = useReviewAction<Schemas["OverrideRequest"]>(item.case.id, "override");
+  const override = useReviewAction<Schemas["OverrideRequest"]>(item.case.id, "override", () =>
+    onDone(`${item.case.case_number} düzeltildi.`),
+  );
   const [field, setField] = useState<OverrideField>("case_type");
   const [value, setValue] = useState(() => currentOverrideValue(item.case, "case_type"));
 
@@ -103,7 +105,6 @@ export function OverrideDialog({ item, onDone }: { item: ReviewItem; onDone: (me
       confirm="Düzeltmeyi kaydet"
       mutation={override}
       toBody={(reason): Schemas["OverrideRequest"] => ({ field, corrected_value: value, reason })}
-      onDone={() => onDone(`${item.case.case_number} düzeltildi.`)}
       canSubmit={value !== ""}
       extra={<OverrideFields field={field} value={value} onField={chooseField} onValue={setValue} />}
     />

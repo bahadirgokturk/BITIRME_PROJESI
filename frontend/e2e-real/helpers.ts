@@ -7,12 +7,14 @@ const API_URL = process.env.E2E_API_URL ?? "http://localhost:8000/api/v1";
 const PASSWORD_KEY = "SEED_DEMO_PASSWORD";
 const ANALYSIS_TIMEOUT_MS = 30_000;
 const STEP_TIMEOUT_MS = 5_000;
+const TASK_PAGE_SIZE = 100;
 
 // Demo hesaplari (backend/seeds/demo/users.yaml)
 export const ACCOUNTS = {
   reporter: "ogrenci@kampus.example.com",
   otherReporter: "akademisyen@kampus.example.com",
   cleaner: "temizlik@kampus.example.com",
+  guard: "guvenlik@kampus.example.com",
   technician: "teknisyen@kampus.example.com",
   manager: "mudur.destek@kampus.example.com",
   admin: "admin@kampus.example.com",
@@ -156,6 +158,21 @@ export async function createTestLocation(request: APIRequestContext, kind: "WC" 
     }
   };
   return { name: room.name, retire };
+}
+
+// Routing Agent gorevi is yuku en az olan personele verir; kim oldugu veritabaninin o anki durumuna baglidir.
+// Adaylarin gorev listesine bakilir, bildirimi gorev olarak goren ilk hesap doner.
+export async function findAssignee(request: APIRequestContext, caseNumber: string, candidates: Account[]): Promise<Account> {
+  for (const candidate of candidates) {
+    const headers = await apiHeaders(request, candidate);
+    const response = await request.get(`${API_URL}/tasks/mine?page_size=${TASK_PAGE_SIZE}`, { headers });
+    expect(response.ok(), await response.text()).toBe(true);
+    const { items } = (await response.json()) as { items: { case_number: string }[] };
+    if (items.some((task) => task.case_number === caseNumber)) {
+      return candidate;
+    }
+  }
+  throw new Error(`${caseNumber} icin gorev hicbir adayda yok: ${candidates.join(", ")}`);
 }
 
 interface AgentDecision {

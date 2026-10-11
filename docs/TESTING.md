@@ -42,7 +42,7 @@
 `e2e-real/` senaryoları:
 
 1. **Ana senaryo** (`main-flow.spec.ts`): bildiren "sabun bitmiş" bildirir → agent'lar türü bulur ve görevi atar
-   (kararlar API'den doğrulanır: `SOAP_EMPTY`, `CREATE_TASK`) → müdür listede görür → personel kabul eder,
+   (kararlar API'den doğrulanır: `SOAP_EMPTY`; `AUTO_ASSIGN` ya da `CREATE_TASK`) → müdür listede görür → personel kabul eder,
    başlatır, not ve fotoğrafla tamamlar → bildirim kapanır → bildiren puan verir → müdür tüm geçmişi görür.
 2. **Alternatif — yetki** (`alternative-flows.spec.ts`): başka bir bildiren aynı bildirimi açamaz ("Kayıt bulunamadı").
 3. **Alternatif — insan kararı**: "priz kıvılcım çıkarıyor" bildirimi kritik sayılır, agent'lar atamaz; müdür

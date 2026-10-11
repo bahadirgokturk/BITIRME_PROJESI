@@ -1,11 +1,13 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 
-import { agentDecisions, completeTask, createTestLocation, openFromMenu, reportProblem, signIn, waitForTimeline } from "./helpers";
+import { agentDecisions, completeTask, createTestLocation, findAssignee, openFromMenu, reportProblem, signIn, waitForTimeline } from "./helpers";
 
 const DESCRIPTION = "Erkek tuvaletinde sabun bitmiş";
 const DEPARTMENT = "Destek Hizmetleri Şube Müdürlüğü";
 const COMPLETION_NOTE = "Sabunluk dolduruldu, lavabolar kontrol edildi.";
 const TOP_RATING = "5 yıldız";
+// Uygun personel bossa dogrudan ona (AUTO_ASSIGN), degilse birim havuzuna (CREATE_TASK): ikisi de insansiz karar
+const AUTOMATED = ["AUTO_ASSIGN", "CREATE_TASK"];
 const AGENTS = ["intake", "classification", "priority", "routing", "supervisor"];
 const LIFECYCLE = ["Bildiriminiz alındı", "Görevli çalışmaya başladı", "Görevli işi tamamladı", "Değerlendirmeniz alındı"];
 
@@ -14,7 +16,7 @@ async function expectAgentsDecided(request: APIRequestContext, caseId: string) {
   const decisionOf = (agent: string) => decisions.find((item) => item.agent_name === agent)?.decision;
   expect(decisions.map((item) => item.agent_name)).toEqual(expect.arrayContaining(AGENTS));
   expect(decisionOf("classification")).toBe("SOAP_EMPTY");
-  expect(decisionOf("supervisor")).toBe("CREATE_TASK");
+  expect(AUTOMATED).toContain(decisionOf("supervisor"));
 }
 
 async function findInAllCases(page: Page, caseNumber: string) {
@@ -46,7 +48,8 @@ test("a reported problem is assigned by the agents, done by staff, closed and ra
   const rows = await findInAllCases(page, reported.number);
   await expect(rows.getByText(DEPARTMENT)).toBeVisible();
 
-  await signIn(page, "cleaner");
+  // Destek Hizmetleri'nin iki personeli var; gorev hangisine dustuyse o tamamlar
+  await signIn(page, await findAssignee(request, reported.number, ["cleaner", "guard"]));
   await completeTask(page, reported.number, COMPLETION_NOTE);
 
   await signIn(page, "reporter");
