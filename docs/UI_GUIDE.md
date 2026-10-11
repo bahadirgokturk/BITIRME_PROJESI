@@ -244,6 +244,12 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   (ikisi de boş bırakılabilir), başlangıç önceliği, ciddiyet (0–100), güvenlikle ilgili kutusu, anahtar kelimeler
   (virgülle ayrılır, küçük harfe çevrilir). Eklerken kısa bir not çıkar: model yeni türü yeniden eğitilene kadar
   anahtar kelimelerle bulur ve türe bir yapay zekâ politikası kendiliğinden açılır.
+- **Süre Hedefleri** (`/admin/sla-rules`): bir bildirimin kabul ve çözüm süresi. Türü boş kural "Varsayılan
+  (tüm türler)" adıyla en üstte, önceliğe göre durur; türe özel kurallar tür adına göre dizilir. Süreler dakika
+  yerine okunur yazılır ("30 dk", "4 saat", "1 gün", "1 saat 30 dk"); uyarı eşiği "%75". Arama tür adında; öncelik ve
+  durum süzgeci. Panelde süre **sayı + birim** (dakika, saat, gün) olarak girilir. Tür ve öncelik yalnız eklerken
+  seçilir. Aynı tür ve öncelik için ikinci kural gönderilmeden açıklanır (pasif kural varsa "onu aktifleştirin");
+  çözüm hedefi kabul hedefinden kısa olamaz; uyarı eşiği 1–99.
 - **Sekmeler ve panel:** telefonda sekme şeridi yana kayar, seçili sekme açılışta görünür yere gelir. Ekle/düzenle
   paneli telefonda tam genişlik, masaüstünde 440 px (`SHEET_CLASS`, `components/admin/AdminParts.tsx`).
 - **Kullanıcılar** (`/admin/users`): ad ya da e-posta araması, rol ve durum süzgeci. Masaüstünde tablo; telefonda
