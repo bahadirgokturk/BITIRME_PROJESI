@@ -255,6 +255,13 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   yazılır: `L1_AUTONOMOUS` "Kendi uygular", `L2_NOTIFY` "Uygular, müdüre haber verir", `L3_ESCALATE` "Müdür karar
   verir". Güven eşiği yüzde olarak gösterilir ve girilir ("%70"; API'de 0–1). Panelde seviye, açıklamalı üç
   seçenekten seçilir; arama tür adı ya da kodda, süzgeç karar yetkisinde.
+- **İşlem Kayıtları** (`/admin/audit-logs`): yalnız okunur; en yeni üstte, 50'şer kayıt ("1–50 / 312 kayıt",
+  Önceki / Sonraki). Sütunlar: zaman, kim, işlem ("Birim güncellendi" + kaydın adı), değişiklik. Değişiklik
+  ekranların kendi sözcükleriyle yazılır ("Çözüm hedefi: 2 saat → 3 saat", "Durum: Aktif → Pasif"); kod ve numaralar
+  ada çevrilir (`lib/auditLogs.ts`). Yeni kayıtta alanlar "Alanları göster" ile açılır. Kayıt türü süzgeci sunucuda
+  uygulanır. Kaydın adı güncel listelerden bulunur; bulunamazsa kayıttaki ad ya da "#12" yazılır.
+  Diğer sekmelerdeki düzenleme panellerinde **"Geçmişi gör"** bağlantısı o kaydın geçmişini açar
+  (`?entity_type=…&entity_id=…`); üstte "… kaydının geçmişi" şeridi ve "Tüm kayıtları göster" bağlantısı çıkar.
 - **Sekmeler ve panel:** telefonda sekme şeridi yana kayar, seçili sekme açılışta görünür yere gelir. Ekle/düzenle
   paneli telefonda tam genişlik, masaüstünde 440 px (`SHEET_CLASS`, `components/admin/AdminParts.tsx`).
 - **Kullanıcılar** (`/admin/users`): ad ya da e-posta araması, rol ve durum süzgeci. Masaüstünde tablo; telefonda

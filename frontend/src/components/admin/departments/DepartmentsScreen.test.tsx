@@ -123,6 +123,22 @@ describe("DepartmentsScreen", () => {
     expect(await row(/Beslenme ve Yemekhane Hizmetleri/)).toBeInTheDocument();
   });
 
+  it("links to the department's history from the edit panel, not from the add panel", async () => {
+    const user = renderScreen();
+
+    await user.click(within(await row(/Beslenme Hizmetleri/)).getByRole("button", { name: "Beslenme Hizmetleri birimini düzenle" }));
+    const sheet = await screen.findByRole("dialog", { name: "Birimi düzenle" });
+    expect(within(sheet).getByRole("link", { name: "Geçmişi gör" })).toHaveAttribute(
+      "href",
+      "/admin/audit-logs?entity_type=DEPARTMENT&entity_id=4",
+    );
+
+    await user.click(within(sheet).getByRole("button", { name: "Vazgeç" }));
+    await user.click(screen.getByRole("button", { name: "Birim ekle" }));
+    const addSheet = await screen.findByRole("dialog", { name: "Birim ekle" });
+    expect(within(addSheet).queryByRole("link", { name: "Geçmişi gör" })).not.toBeInTheDocument();
+  });
+
   it("deactivates a department from the edit panel", async () => {
     const user = renderScreen();
 

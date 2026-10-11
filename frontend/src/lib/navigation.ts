@@ -73,4 +73,5 @@ export const ADMIN_SECTIONS: readonly NavItem[] = [
   { href: "/admin/case-types", label: "Bildirim Türleri" },
   { href: "/admin/sla-rules", label: "Süre Hedefleri" },
   { href: "/admin/agent-policies", label: "Yapay Zekâ Politikaları" },
+  { href: "/admin/audit-logs", label: "İşlem Kayıtları" },
 ];

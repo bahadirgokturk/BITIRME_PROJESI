@@ -18,11 +18,13 @@ interface AdminTableProps {
   label: string;
   // Son sutun (Duzenle) basliksizdir; ekran okuyucu icin gizli bir baslik eklenir
   columns: readonly string[];
+  // Yalniz okunan tabloda (ornek: islem kayitlari) islem sutunu yoktur
+  actions?: boolean;
   children: ReactNode;
 }
 
 // Yonetim tablosu (Figma: 06 Admin): masaustunde klasik tablo, telefonda her satir bir kart
-export function AdminTable({ label, columns, children }: AdminTableProps) {
+export function AdminTable({ label, columns, actions = true, children }: AdminTableProps) {
   return (
     <div className="md:overflow-x-auto md:rounded-xl md:border">
       <table aria-label={label} className="block w-full text-sm md:table">
@@ -33,9 +35,11 @@ export function AdminTable({ label, columns, children }: AdminTableProps) {
                 {column}
               </th>
             ))}
-            <th className={HEAD_CLASS}>
-              <span className="sr-only">İşlem</span>
-            </th>
+            {actions ? (
+              <th className={HEAD_CLASS}>
+                <span className="sr-only">İşlem</span>
+              </th>
+            ) : null}
           </tr>
         </thead>
         <tbody className="grid gap-3 md:table-row-group">{children}</tbody>

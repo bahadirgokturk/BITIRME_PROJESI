@@ -19,7 +19,7 @@ import {
 } from "@/lib/adminSlaRules";
 import { PRIORITY_LABELS } from "@/lib/tasks";
 
-import { ActiveToggle, SHEET_CLASS } from "../AdminParts";
+import { ActiveToggle, HistoryLink, SHEET_CLASS } from "../AdminParts";
 import { SlaRuleFormFields } from "./SlaRuleFormFields";
 
 export type SlaRuleTarget = { mode: "create" } | { mode: "edit"; row: SlaRuleRow };
@@ -113,6 +113,7 @@ export function SlaRuleSheet({ target, rules, caseTypes, onClose, onDone }: SlaR
           <FormAlert error={saving.error} />
           {editing ? <StatusSection rule={target.row.rule} name={name} onDone={onDone} /> : null}
           <div className="mt-auto flex justify-end gap-2 pt-2">
+            {editing ? <HistoryLink entity="SLA_RULE" id={target.row.rule.id} /> : null}
             <SheetClose render={<Button type="button" variant="outline" className="h-11 px-4" />}>Vazgeç</SheetClose>
             <Button type="submit" className="h-11 px-4" disabled={saving.isPending}>
               {saving.isPending ? "Kaydediliyor…" : "Kaydet"}
