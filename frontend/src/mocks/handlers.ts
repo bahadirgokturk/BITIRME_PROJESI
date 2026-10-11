@@ -7,6 +7,7 @@ import { apiUrl } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
 
 import { analyticsHandlers } from "./analyticsHandlers";
+import { adminCaseTypeHandlers } from "./adminCaseTypeHandlers";
 import { adminDepartmentHandlers } from "./adminDepartmentHandlers";
 import { adminHandlers } from "./adminHandlers";
 import { adminLocationHandlers } from "./adminLocationHandlers";
@@ -54,7 +55,7 @@ export const handlers = [
   // Sahte giris: fixture e-postalari icin ortak parola; /auth/me giris yapani, yoksa NEXT_PUBLIC_MOCK_ROLE rolunu doner.
   // Bildirimler caseHandlers.ts, dosyalar attachmentHandlers.ts, yorum/puan interactionHandlers.ts'te,
   // yonetim kullanicilari adminHandlers.ts'te, birimler adminDepartmentHandlers.ts'te,
-  // konumlar adminLocationHandlers.ts'te.
+  // konumlar adminLocationHandlers.ts'te, bildirim turleri adminCaseTypeHandlers.ts'te.
   http.post<never, Schemas["LoginRequest"]>(
     apiUrl("/auth/login"),
     async ({ request }) => {
@@ -83,5 +84,6 @@ export const handlers = [
   ...analyticsHandlers,
   ...adminHandlers,
   ...adminDepartmentHandlers,
+  ...adminCaseTypeHandlers,
   ...adminLocationHandlers,
 ];

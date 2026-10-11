@@ -7,6 +7,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 // Yonetim ekranlarinin ortak parcalari (docs/UI_GUIDE.md bolum 5.5: arama + suzgec + tablo + panel kalibi)
 
+// Ekle/duzenle paneli: telefonda tam genislik, masaustunde 440 px. Genislik data-[side=right] ile yazilir;
+// yoksa shadcn Sheet'in kendi kurali (ekranin 3/4'u) one gecer ve telefonda form dar kalir.
+export const SHEET_CLASS =
+  "gap-5 overflow-y-auto p-6 data-[side=right]:w-full data-[side=right]:sm:max-w-[440px]";
+
 interface ScreenHeaderProps {
   title: string;
   description: string;

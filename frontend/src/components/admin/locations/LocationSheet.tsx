@@ -17,7 +17,7 @@ import {
   type LocationForm,
 } from "@/lib/adminLocations";
 
-import { ActiveToggle } from "../AdminParts";
+import { ActiveToggle, SHEET_CLASS } from "../AdminParts";
 import { LocationFormFields } from "./LocationFormFields";
 
 export type LocationTarget = { mode: "create" } | { mode: "edit"; location: AdminLocation };
@@ -88,7 +88,7 @@ export function LocationSheet({ target, locations, onClose, onDone }: LocationSh
 
   return (
     <Sheet open onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="right" className="w-full gap-5 overflow-y-auto p-6 sm:max-w-[440px]">
+      <SheetContent side="right" className={SHEET_CLASS}>
         <SheetTitle className="text-lg font-semibold">{editing ? "Konumu düzenle" : "Konum ekle"}</SheetTitle>
         <SheetDescription>{editing ? target.location.name : CREATE_NOTE}</SheetDescription>
         <form noValidate onSubmit={submit} className="flex flex-1 flex-col gap-4">

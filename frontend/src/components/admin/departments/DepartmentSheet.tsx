@@ -16,7 +16,7 @@ import {
   type DepartmentFormProblems,
 } from "@/lib/adminDepartments";
 
-import { ActiveToggle } from "../AdminParts";
+import { ActiveToggle, SHEET_CLASS } from "../AdminParts";
 import { Field } from "../Field";
 
 export type DepartmentTarget = { mode: "create" } | { mode: "edit"; department: Department };
@@ -118,7 +118,7 @@ export function DepartmentSheet({ target, onClose, onDone }: DepartmentSheetProp
 
   return (
     <Sheet open onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="right" className="w-full gap-5 overflow-y-auto p-6 sm:max-w-[440px]">
+      <SheetContent side="right" className={SHEET_CLASS}>
         <SheetTitle className="text-lg font-semibold">{editing ? "Birimi düzenle" : "Birim ekle"}</SheetTitle>
         <SheetDescription>
           {editing ? target.department.name : "Yeni birim, kullanıcı eklerken ve bildirim atarken seçilebilir."}

@@ -25,7 +25,7 @@ const LOCALE = "tr-TR";
 
 // Backend ile ayni adlar (backend/app/agents/analytics_summary.py CATEGORY_LABELS); lokasyon
 // cevabinda kategori yalniz kod olarak gelir
-const CATEGORY_LABELS: Record<CaseCategory, string> = {
+export const CATEGORY_LABELS: Record<CaseCategory, string> = {
   CLEANING: "Temizlik",
   CONSUMABLE: "Sarf malzemesi",
   TECHNICAL: "Teknik",

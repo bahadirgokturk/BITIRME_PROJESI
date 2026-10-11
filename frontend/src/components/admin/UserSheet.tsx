@@ -8,7 +8,7 @@ import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle } from "@
 import { useCreateUser, useUpdateUser, type AdminUser } from "@/hooks/useAdminUsers";
 import { EMPTY_USER_FORM, formFromUser, toUserBody, userFormProblems, type UserForm } from "@/lib/admin";
 
-import { ActiveToggle } from "./AdminParts";
+import { ActiveToggle, SHEET_CLASS } from "./AdminParts";
 import { UserFormFields } from "./UserFormFields";
 
 const ACTIVE_NOTE =
@@ -78,7 +78,7 @@ export function UserSheet({ target, departments, onClose, onDone }: UserSheetPro
 
   return (
     <Sheet open onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="right" className="w-full gap-5 overflow-y-auto p-6 sm:max-w-[440px]">
+      <SheetContent side="right" className={SHEET_CLASS}>
         <SheetTitle className="text-lg font-semibold">{target.mode === "create" ? "Kullanıcı ekle" : "Kullanıcıyı düzenle"}</SheetTitle>
         <SheetDescription>
           {target.mode === "edit" ? `${target.user.full_name} · ${target.user.email}` : "Yeni kullanıcı kampüs hesabıyla giriş yapar."}
