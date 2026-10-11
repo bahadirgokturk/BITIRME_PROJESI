@@ -168,7 +168,8 @@ gitGraph
 | backend | `ruff check`, `ruff format --check`, `mypy app`, `pytest` (Postgres service container), `alembic upgrade head` doğrulama |
 | ai | `ruff`, `pytest` (generator + agent unit testleri), küçük veriyle eğitim smoke testi |
 | frontend | `npm ci`, `eslint`, `tsc --noEmit`, `vitest run`, `next build` |
-| e2e (develop→main PR'da) | docker compose up + seed + Playwright kritik senaryo |
+| e2e | Playwright, sahte API ile ekran senaryoları (backend gerekmez) |
+| e2e-real | Postgres + migration + seed + backend; Playwright ana senaryo ve alternatifler gerçek agent kararlarıyla (`docs/TESTING.md`) |
 
 **`deploy-staging.yml`:** `develop` push → image build → migration → deploy → smoke (`/health`).
 **`deploy-production.yml`:** `main` push → GitHub Environment `production` (manuel onay) → migration → deploy → smoke.

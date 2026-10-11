@@ -138,6 +138,67 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
 
+  # Gercek backend ile uctan uca senaryolar (docs/TESTING.md "E2E Ana Senaryo"): agent'lar gercekten karar verir.
+  # Backend Docker'siz, backend job'undaki gibi calisir (Docker Hub indirme sinirina takilmamak icin).
+  e2e-real:
+    name: e2e-real (real backend + agents)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: public.ecr.aws/docker/library/postgres:16-alpine
+        env:
+          POSTGRES_USER: campusflow
+          POSTGRES_PASSWORD: campusflow
+          POSTGRES_DB: campusflow
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U campusflow"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://campusflow:campusflow@localhost:5432/campusflow
+      # Yalniz CI icin; gercek ortam anahtarlari GitHub Environments'ta tutulur
+      JWT_SECRET: ci-only-test-secret-not-used-anywhere-else-000
+      SEED_DEMO_PASSWORD: ci-only-demo-parola-000
+      # Senaryolar frontend'i bu adreste acar (frontend/playwright.real.config.ts)
+      CORS_ORIGINS: http://localhost:3000
+      STORAGE_LOCAL_PATH: /tmp/campusflow-storage
+      # Periyodik izleme senaryonun ortasinda bildirimlere dokunmasin
+      MONITORING_ENABLED: "false"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Backend (migration, seed, start)
+        working-directory: backend
+        run: |
+          mkdir -p "$STORAGE_LOCAL_PATH"
+          uv sync --frozen
+          uv run alembic upgrade head
+          uv run python -m seeds.run --demo
+          nohup uv run uvicorn app.main:create_app --factory --port 8000 > "$RUNNER_TEMP/backend.log" 2>&1 &
+          for attempt in $(seq 1 30); do
+            curl -sf http://localhost:8000/api/v1/health && exit 0
+            sleep 2
+          done
+          cat "$RUNNER_TEMP/backend.log"
+          exit 1
+      - name: Playwright senaryolari
+        working-directory: frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npm run test:e2e:real
+      - name: Backend log (hata olursa)
+        if: failure()
+        run: cat "$RUNNER_TEMP/backend.log"
+
   api-contract:
     name: api-contract (OpenAPI types up to date)
     runs-on: ubuntu-latest

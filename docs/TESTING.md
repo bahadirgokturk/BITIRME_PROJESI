@@ -30,6 +30,36 @@
 4. Case `CLOSED`; reporter geri bildirim verir
 5. Manager dashboard'da Closed Cases +1, event log'da tüm lifecycle
 
+### Nasıl çalışır?
+
+İki ayrı Playwright takımı var:
+
+| Takım | Komut (`frontend/`) | API | Ne dener? |
+|---|---|---|---|
+| `e2e/` | `npm run test:e2e` | Sahte (uygulama içi) | Ekranların telefon ve masaüstünde işlediği: bildirim yapan, müdür, yönetici. Backend gerekmez. |
+| `e2e-real/` | `npm run test:e2e:real` | **Gerçek backend + agent'lar** | Ana senaryo ve iki alternatif. Önce `docker compose up -d`, `alembic upgrade head`, `seeds.run --demo`. |
+
+`e2e-real/` senaryoları:
+
+1. **Ana senaryo** (`main-flow.spec.ts`): bildiren "sabun bitmiş" bildirir → agent'lar türü bulur ve görevi atar
+   (kararlar API'den doğrulanır: `SOAP_EMPTY`, `CREATE_TASK`) → müdür listede görür → personel kabul eder,
+   başlatır, not ve fotoğrafla tamamlar → bildirim kapanır → bildiren puan verir → müdür tüm geçmişi görür.
+2. **Alternatif — yetki** (`alternative-flows.spec.ts`): başka bir bildiren aynı bildirimi açamaz ("Kayıt bulunamadı").
+3. **Alternatif — insan kararı**: "priz kıvılcım çıkarıyor" bildirimi kritik sayılır, agent'lar atamaz; müdür
+   İnceleme Kuyruğu'nda yapay zekâ gerekçesini görür, onaylar; teknisyen tamamlar.
+
+Dikkat edilecekler:
+
+- Her koşu yönetici API'siyle **kendi deneme binasını** açar ve sonunda pasife alır. Duplicate Agent aynı binadaki
+  açık bildirimlere baktığı için sabit bir konum, yarıda kalmış bir koşudan ya da elle açılmış bir bildirimden
+  etkilenirdi.
+- Frontend `http://localhost:3000` adresinde açılır (backend'in CORS izni). O portta geliştirme sunucusu
+  çalışıyorsa önce kapatılmalı.
+- Demo parolası koda yazılmaz: `SEED_DEMO_PASSWORD` ortam değişkeninden ya da depo kökündeki `.env`'den okunur.
+- Senaryolar veritabanına yazar (her koşuda 2 bildirim ve 2 pasif deneme binası). Jüri demosunun veritabanında koşturulmaz.
+- Henüz denenmeyen: müdür panosundaki "kapanan bildirim" sayısının artışı (ana senaryo 5. adım) ve otomatik atanan
+  bildirimde agent kararlarını gösteren ekran (müdüre özel bildirim detayı henüz yok; kararlar API'den doğrulanıyor).
+
 ## Kurallar
 
 - Testler birbirinden bağımsız; her integration testi transaction rollback ile izole.
