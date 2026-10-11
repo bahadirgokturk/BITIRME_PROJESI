@@ -17,7 +17,7 @@ import {
   type LocationForm,
 } from "@/lib/adminLocations";
 
-import { ActiveToggle, SHEET_CLASS } from "../AdminParts";
+import { ActiveToggle, HistoryLink, SHEET_CLASS } from "../AdminParts";
 import { LocationFormFields } from "./LocationFormFields";
 
 export type LocationTarget = { mode: "create" } | { mode: "edit"; location: AdminLocation };
@@ -102,6 +102,7 @@ export function LocationSheet({ target, locations, onClose, onDone }: LocationSh
           <FormAlert error={saving.error} />
           {editing ? <StatusSection location={target.location} onDone={onDone} /> : null}
           <div className="mt-auto flex justify-end gap-2 pt-2">
+            {editing ? <HistoryLink entity="LOCATION" id={target.location.id} /> : null}
             <SheetClose render={<Button type="button" variant="outline" className="h-11 px-4" />}>Vazgeç</SheetClose>
             <Button type="submit" className="h-11 px-4" disabled={saving.isPending}>
               {saving.isPending ? "Kaydediliyor…" : "Kaydet"}

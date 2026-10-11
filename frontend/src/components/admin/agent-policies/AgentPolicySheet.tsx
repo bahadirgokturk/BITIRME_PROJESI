@@ -20,7 +20,7 @@ import {
   type AutonomyLevel,
 } from "@/lib/adminAgentPolicies";
 
-import { SHEET_CLASS } from "../AdminParts";
+import { HistoryLink, SHEET_CLASS } from "../AdminParts";
 import { Field } from "../Field";
 
 const LEVELS = Object.keys(AUTONOMY_LABELS) as AutonomyLevel[];
@@ -142,6 +142,7 @@ export function AgentPolicySheet({ row, onClose, onDone }: AgentPolicySheetProps
           <PolicyFields form={form} error={problems.confidence_pct} onChange={setForm} />
           <FormAlert error={update.error} />
           <div className="mt-auto flex justify-end gap-2 pt-2">
+            <HistoryLink entity="AGENT_POLICY" id={row.policy.id} />
             <SheetClose render={<Button type="button" variant="outline" className="h-11 px-4" />}>Vazgeç</SheetClose>
             <Button type="submit" className="h-11 px-4" disabled={update.isPending}>
               {update.isPending ? "Kaydediliyor…" : "Kaydet"}

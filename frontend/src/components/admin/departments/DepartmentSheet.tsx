@@ -16,7 +16,7 @@ import {
   type DepartmentFormProblems,
 } from "@/lib/adminDepartments";
 
-import { ActiveToggle, SHEET_CLASS } from "../AdminParts";
+import { ActiveToggle, HistoryLink, SHEET_CLASS } from "../AdminParts";
 import { Field } from "../Field";
 
 export type DepartmentTarget = { mode: "create" } | { mode: "edit"; department: Department };
@@ -128,6 +128,7 @@ export function DepartmentSheet({ target, onClose, onDone }: DepartmentSheetProp
           <FormAlert error={saving.error} />
           {editing ? <StatusSection department={target.department} onDone={onDone} /> : null}
           <div className="mt-auto flex justify-end gap-2 pt-2">
+            {editing ? <HistoryLink entity="DEPARTMENT" id={target.department.id} /> : null}
             <SheetClose render={<Button type="button" variant="outline" className="h-11 px-4" />}>Vazgeç</SheetClose>
             <Button type="submit" className="h-11 px-4" disabled={saving.isPending}>
               {saving.isPending ? "Kaydediliyor…" : "Kaydet"}

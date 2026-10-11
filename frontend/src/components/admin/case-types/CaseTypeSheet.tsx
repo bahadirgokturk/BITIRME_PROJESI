@@ -15,7 +15,7 @@ import {
   type CaseTypeForm,
 } from "@/lib/adminCaseTypes";
 
-import { ActiveToggle, SHEET_CLASS } from "../AdminParts";
+import { ActiveToggle, HistoryLink, SHEET_CLASS } from "../AdminParts";
 import { CaseTypeFormFields } from "./CaseTypeFormFields";
 
 export type CaseTypeTarget = { mode: "create" } | { mode: "edit"; caseType: CaseType };
@@ -109,6 +109,7 @@ export function CaseTypeSheet({ target, departments, onClose, onDone }: CaseType
           <FormAlert error={saving.error} />
           {editing ? <StatusSection caseType={target.caseType} onDone={onDone} /> : <ModelNote />}
           <div className="mt-auto flex justify-end gap-2 pt-2">
+            {editing ? <HistoryLink entity="CASE_TYPE" id={target.caseType.id} /> : null}
             <SheetClose render={<Button type="button" variant="outline" className="h-11 px-4" />}>Vazgeç</SheetClose>
             <Button type="submit" className="h-11 px-4" disabled={saving.isPending}>
               {saving.isPending ? "Kaydediliyor…" : "Kaydet"}

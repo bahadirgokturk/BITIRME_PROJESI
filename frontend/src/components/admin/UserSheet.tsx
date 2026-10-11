@@ -8,7 +8,7 @@ import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle } from "@
 import { useCreateUser, useUpdateUser, type AdminUser } from "@/hooks/useAdminUsers";
 import { EMPTY_USER_FORM, formFromUser, toUserBody, userFormProblems, type UserForm } from "@/lib/admin";
 
-import { ActiveToggle, SHEET_CLASS } from "./AdminParts";
+import { ActiveToggle, HistoryLink, SHEET_CLASS } from "./AdminParts";
 import { UserFormFields } from "./UserFormFields";
 
 const ACTIVE_NOTE =
@@ -88,6 +88,7 @@ export function UserSheet({ target, departments, onClose, onDone }: UserSheetPro
           <FormAlert error={saving.error} />
           {target.mode === "edit" ? <StatusSection user={target.user} onDone={onDone} /> : null}
           <div className="mt-auto flex justify-end gap-2 pt-2">
+            {target.mode === "edit" ? <HistoryLink entity="USER" id={target.user.id} /> : null}
             <SheetClose render={<Button type="button" variant="outline" className="h-11 px-4" />}>Vazgeç</SheetClose>
             <Button type="submit" className="h-11 px-4" disabled={saving.isPending}>
               {saving.isPending ? "Kaydediliyor…" : "Kaydet"}

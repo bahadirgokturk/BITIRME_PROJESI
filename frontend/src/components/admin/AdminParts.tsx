@@ -1,9 +1,12 @@
+import Link from "next/link";
+
 import { cn } from "cn";
 
 import { PageTitle } from "@/components/layout/PageTitle";
 import { FormAlert } from "@/components/states/FormAlert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { historyHref, type AuditEntity } from "@/lib/auditLogs";
 
 // Yonetim ekranlarinin ortak parcalari (docs/UI_GUIDE.md bolum 5.5: arama + suzgec + tablo + panel kalibi)
 
@@ -14,7 +17,8 @@ export const SHEET_CLASS =
 
 interface ScreenHeaderProps {
   title: string;
-  description: string;
+  // Basligin kendini acikladigi ekranlarda (ornek: islem kayitlari) verilmez
+  description?: string;
   // Ekleme olmayan ekranlarda (ornek: yapay zeka politikalari) verilmez
   addLabel?: string;
   onAdd?: () => void;
@@ -31,7 +35,7 @@ export function ScreenHeader({ title, description, addLabel, onAdd }: ScreenHead
           </Button>
         ) : null}
       </div>
-      <p className="text-sm text-muted-foreground">{description}</p>
+      {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
     </header>
   );
 }
@@ -113,5 +117,17 @@ export function ActiveToggle({ active, subject, note, error, pending, onToggle }
         {active ? "Pasifleştir" : "Aktifleştir"}
       </Button>
     </div>
+  );
+}
+
+// Duzenleme panelinden kaydin gecmisine gecis (Islem Kayitlari, tek kayit suzgeci); dugme satirinin solunda durur
+export function HistoryLink({ entity, id }: { entity: AuditEntity; id: number }) {
+  return (
+    <Link
+      href={historyHref(entity, id)}
+      className="mr-auto inline-flex min-h-11 items-center text-sm font-medium text-primary outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+    >
+      Geçmişi gör
+    </Link>
   );
 }
