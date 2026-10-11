@@ -250,6 +250,11 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   durum süzgeci. Panelde süre **sayı + birim** (dakika, saat, gün) olarak girilir. Tür ve öncelik yalnız eklerken
   seçilir. Aynı tür ve öncelik için ikinci kural gönderilmeden açıklanır (pasif kural varsa "onu aktifleştirin");
   çözüm hedefi kabul hedefinden kısa olamaz; uyarı eşiği 1–99.
+- **Yapay Zekâ Politikaları** (`/admin/agent-policies`): tür başına bir satır; ekleme ve pasifleştirme yok (politika,
+  tür eklenince kendiliğinden açılır), bu yüzden "ekle" düğmesi ve durum süzgeci bulunmaz. Seviyeler düz Türkçe
+  yazılır: `L1_AUTONOMOUS` "Kendi uygular", `L2_NOTIFY` "Uygular, müdüre haber verir", `L3_ESCALATE` "Müdür karar
+  verir". Güven eşiği yüzde olarak gösterilir ve girilir ("%70"; API'de 0–1). Panelde seviye, açıklamalı üç
+  seçenekten seçilir; arama tür adı ya da kodda, süzgeç karar yetkisinde.
 - **Sekmeler ve panel:** telefonda sekme şeridi yana kayar, seçili sekme açılışta görünür yere gelir. Ekle/düzenle
   paneli telefonda tam genişlik, masaüstünde 440 px (`SHEET_CLASS`, `components/admin/AdminParts.tsx`).
 - **Kullanıcılar** (`/admin/users`): ad ya da e-posta araması, rol ve durum süzgeci. Masaüstünde tablo; telefonda
