@@ -15,8 +15,9 @@ export const SHEET_CLASS =
 interface ScreenHeaderProps {
   title: string;
   description: string;
-  addLabel: string;
-  onAdd: () => void;
+  // Ekleme olmayan ekranlarda (ornek: yapay zeka politikalari) verilmez
+  addLabel?: string;
+  onAdd?: () => void;
 }
 
 export function ScreenHeader({ title, description, addLabel, onAdd }: ScreenHeaderProps) {
@@ -24,9 +25,11 @@ export function ScreenHeader({ title, description, addLabel, onAdd }: ScreenHead
     <header className="space-y-2">
       <div className="flex items-end justify-between gap-4">
         <PageTitle>{title}</PageTitle>
-        <Button className="h-11 px-4" onClick={onAdd}>
-          {addLabel}
-        </Button>
+        {addLabel ? (
+          <Button className="h-11 px-4" onClick={onAdd}>
+            {addLabel}
+          </Button>
+        ) : null}
       </div>
       <p className="text-sm text-muted-foreground">{description}</p>
     </header>

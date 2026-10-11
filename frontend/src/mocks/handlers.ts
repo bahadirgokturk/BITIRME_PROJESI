@@ -7,6 +7,7 @@ import { apiUrl } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
 
 import { analyticsHandlers } from "./analyticsHandlers";
+import { adminAgentPolicyHandlers } from "./adminAgentPolicyHandlers";
 import { adminCaseTypeHandlers } from "./adminCaseTypeHandlers";
 import { adminDepartmentHandlers } from "./adminDepartmentHandlers";
 import { adminHandlers } from "./adminHandlers";
@@ -57,7 +58,7 @@ export const handlers = [
   // Bildirimler caseHandlers.ts, dosyalar attachmentHandlers.ts, yorum/puan interactionHandlers.ts'te,
   // yonetim kullanicilari adminHandlers.ts'te, birimler adminDepartmentHandlers.ts'te,
   // konumlar adminLocationHandlers.ts'te, bildirim turleri adminCaseTypeHandlers.ts'te,
-  // sure hedefleri adminSlaRuleHandlers.ts'te.
+  // sure hedefleri adminSlaRuleHandlers.ts'te, yapay zeka politikalari adminAgentPolicyHandlers.ts'te.
   http.post<never, Schemas["LoginRequest"]>(
     apiUrl("/auth/login"),
     async ({ request }) => {
@@ -88,5 +89,6 @@ export const handlers = [
   ...adminDepartmentHandlers,
   ...adminCaseTypeHandlers,
   ...adminSlaRuleHandlers,
+  ...adminAgentPolicyHandlers,
   ...adminLocationHandlers,
 ];
