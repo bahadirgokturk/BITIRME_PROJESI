@@ -22,7 +22,7 @@ test("an admin adds a staff member to a department", async ({ page }) => {
   await expect(row.getByText("Destek Hizmetleri Şube Müdürlüğü")).toBeVisible();
 });
 
-// Sekmeler arasi gecis ve konum agaci: Birimler -> Konumlar -> bir dali ac -> ara -> Bildirim Turleri
+// Sekmeler arasi gecis ve konum agaci: Birimler -> Konumlar -> bir dali ac -> ara -> Bildirim Turleri -> Sure Hedefleri
 test("an admin moves between the admin tabs and browses the location tree", async ({ page }) => {
   await signIn(page, "ADMIN");
   const tabs = page.getByRole("navigation", { name: "Yönetim bölümleri" });
@@ -42,4 +42,8 @@ test("an admin moves between the admin tabs and browses the location tree", asyn
   await tabs.getByRole("link", { name: "Bildirim Türleri" }).click();
   await expect(page.getByRole("heading", { name: "Bildirim Türleri" })).toBeVisible();
   await expect(page.getByRole("row", { name: /Elektrik arızası/ })).toContainText("Güvenlikle ilgili");
+
+  await tabs.getByRole("link", { name: "Süre Hedefleri" }).click();
+  await expect(page.getByRole("heading", { name: "Süre Hedefleri" })).toBeVisible();
+  await expect(page.getByRole("row", { name: /Elektrik arızası/ })).toContainText("2 saat");
 });

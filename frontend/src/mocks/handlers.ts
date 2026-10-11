@@ -11,6 +11,7 @@ import { adminCaseTypeHandlers } from "./adminCaseTypeHandlers";
 import { adminDepartmentHandlers } from "./adminDepartmentHandlers";
 import { adminHandlers } from "./adminHandlers";
 import { adminLocationHandlers } from "./adminLocationHandlers";
+import { adminSlaRuleHandlers } from "./adminSlaRuleHandlers";
 import { attachmentHandlers } from "./attachmentHandlers";
 import { caseHandlers } from "./caseHandlers";
 import { interactionHandlers } from "./interactionHandlers";
@@ -55,7 +56,8 @@ export const handlers = [
   // Sahte giris: fixture e-postalari icin ortak parola; /auth/me giris yapani, yoksa NEXT_PUBLIC_MOCK_ROLE rolunu doner.
   // Bildirimler caseHandlers.ts, dosyalar attachmentHandlers.ts, yorum/puan interactionHandlers.ts'te,
   // yonetim kullanicilari adminHandlers.ts'te, birimler adminDepartmentHandlers.ts'te,
-  // konumlar adminLocationHandlers.ts'te, bildirim turleri adminCaseTypeHandlers.ts'te.
+  // konumlar adminLocationHandlers.ts'te, bildirim turleri adminCaseTypeHandlers.ts'te,
+  // sure hedefleri adminSlaRuleHandlers.ts'te.
   http.post<never, Schemas["LoginRequest"]>(
     apiUrl("/auth/login"),
     async ({ request }) => {
@@ -85,5 +87,6 @@ export const handlers = [
   ...adminHandlers,
   ...adminDepartmentHandlers,
   ...adminCaseTypeHandlers,
+  ...adminSlaRuleHandlers,
   ...adminLocationHandlers,
 ];

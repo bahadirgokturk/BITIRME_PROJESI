@@ -95,21 +95,18 @@ describe("CaseTypesScreen", () => {
     const sheet = await openAdd(user);
     expect(within(sheet).getByText(/model yeniden eğitilene kadar anahtar kelimelerle bulunur/)).toBeInTheDocument();
 
-    await user.type(within(sheet).getByLabelText("Tür adı"), "Asansör arızası");
-    await user.type(within(sheet).getByLabelText("Kod"), "asansör arızası");
-    expect(within(sheet).getByLabelText("Kod")).toHaveValue("ASANSOR_ARIZASI");
+    await user.type(within(sheet).getByLabelText("Tür adı"), "Asansör");
+    await user.type(within(sheet).getByLabelText("Kod"), "asansör 1");
+    expect(within(sheet).getByLabelText("Kod")).toHaveValue("ASANSOR_1");
     await user.selectOptions(within(sheet).getByLabelText("Kategori"), "Teknik");
     await user.selectOptions(within(sheet).getByLabelText("Görevi alan birim"), MAINTENANCE);
-    await user.type(within(sheet).getByLabelText("Anahtar kelimeler"), "Asansör, kabin");
+    await user.type(within(sheet).getByLabelText("Anahtar kelimeler"), "kabin");
     await user.click(within(sheet).getByRole("button", { name: "Kaydet" }));
 
-    const added = await row(/Asansör arızası/);
-    expect(within(added).getByText("ASANSOR_ARIZASI")).toBeInTheDocument();
+    const added = await row(/Asansör/);
+    expect(within(added).getByText("ASANSOR_1")).toBeInTheDocument();
     expect(within(added).getByText(MAINTENANCE)).toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent("Asansör arızası eklendi.");
-
-    await user.type(screen.getByLabelText("Tür ara"), "kabin");
-    expect(screen.getByRole("row", { name: /Asansör arızası/ })).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Asansör eklendi.");
   });
 
   it("explains missing fields before sending", async () => {

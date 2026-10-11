@@ -43,13 +43,16 @@ interface ChoiceProps {
   onChange: (value: string) => void;
   placeholder?: string;
   disabled?: boolean;
+  // Gorunen etiket baska bir alanla ayniysa (ornek: iki "Birim" kutusu) ekran okuyucu adi
+  ariaLabel?: string;
 }
 
 // Secim kutusu; placeholder verilirse bos deger de secilebilir
-export function Choice({ control, value, options, onChange, placeholder, disabled }: ChoiceProps) {
+export function Choice({ control, value, options, onChange, placeholder, disabled, ariaLabel }: ChoiceProps) {
   return (
     <select
       {...control}
+      aria-label={ariaLabel}
       value={value}
       disabled={disabled}
       onChange={(event) => onChange(event.target.value)}
