@@ -238,6 +238,14 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   kullanıcı sayısı görünür. Kod yalnız eklerken yazılır (büyük harf, rakam, alt çizgi; yazarken kendiliğinden
   bu biçime çevrilir) ve sonradan değiştirilemez. Ortak parçalar `components/admin/AdminParts.tsx` ve
   `AdminTable.tsx` içindedir; yeni yönetim ekranı bunları kullanır.
+- **Bildirim Türleri** (`/admin/case-types`): tür adı, kod ya da anahtar kelime araması; kategori ve durum süzgeci.
+  Tabloda adın altında kod, güvenlikle ilgili türlerde "Güvenlikle ilgili" notu; görevi alan birim boşsa "Birim yok".
+  Panelde: ad, kod (yalnız eklerken; sonradan kilitli), kategori, görevi alan birim ve bilgilendirilen birim
+  (ikisi de boş bırakılabilir), başlangıç önceliği, ciddiyet (0–100), güvenlikle ilgili kutusu, anahtar kelimeler
+  (virgülle ayrılır, küçük harfe çevrilir). Eklerken kısa bir not çıkar: model yeni türü yeniden eğitilene kadar
+  anahtar kelimelerle bulur ve türe bir yapay zekâ politikası kendiliğinden açılır.
+- **Sekmeler ve panel:** telefonda sekme şeridi yana kayar, seçili sekme açılışta görünür yere gelir. Ekle/düzenle
+  paneli telefonda tam genişlik, masaüstünde 440 px (`SHEET_CLASS`, `components/admin/AdminParts.tsx`).
 - **Kullanıcılar** (`/admin/users`): ad ya da e-posta araması, rol ve durum süzgeci. Masaüstünde tablo; telefonda
   aynı tablo kart olarak görünür (ad ve durum üstte, diğer değerler başlıklarıyla alt alta), yana kaydırma olmaz.
   Süzgeçlere uyan kullanıcı yoksa "Süzgeçleri temizle" düğmesi çıkar. Bölümler arası geçiş üstteki sekmelerle
