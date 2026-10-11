@@ -94,6 +94,7 @@ docker compose exec backend sh -c "ruff check . && ruff format --check . && mypy
 docker compose exec backend alembic revision --autogenerate -m "..."   # then review + write downgrade
 cd frontend && npm run lint && npm run typecheck && npm test
 cd frontend && npm run test:e2e                        # Playwright senaryolari: bildiren, mudur, yonetici (sahte API; ilk kez: npx playwright install chromium)
+cd frontend && npm run test:e2e:real                   # ayni senaryolar gercek backend + agent'larla (once compose up + seed; port 3000 bos olmali)
 cd frontend && npm run gen:api                         # regenerate API types (backend must be running)
 python scripts/check_ascii_comments.py backend ai frontend/src scripts
 ```
