@@ -50,4 +50,12 @@ test("a manager opens a case from the list and reads why the AI decided so", asy
   await expect(decisions.getByText("Model tahmini: Sabun bitti (%94)")).toBeVisible();
   await expect(decisions.getByText("Görev personele atandı")).toBeVisible();
   await expect(page.getByRole("list", { name: "Zaman çizelgesi" }).getByText("Görev açıldı")).toBeVisible();
+
+  // Mudur ekibe ic not birakir; bildiren bunu gormez
+  await page.getByLabel("Yorum yaz").fill("Yarın sabah kontrol edilsin.");
+  await page.getByLabel("İç not (bildirim yapan görmez)").check();
+  await page.getByRole("button", { name: "Gönder" }).click();
+  const comments = page.getByRole("list", { name: "Yorumlar" });
+  await expect(comments.getByText("Yarın sabah kontrol edilsin.")).toBeVisible();
+  await expect(comments.getByText("İç not", { exact: true })).toBeVisible();
 });

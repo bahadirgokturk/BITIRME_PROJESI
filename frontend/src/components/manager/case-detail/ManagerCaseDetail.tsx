@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
+import { CaseComments } from "@/components/cases/CaseComments";
 import { ErrorState } from "@/components/states/ErrorState";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -56,6 +57,7 @@ function CaseView({ item }: { item: CaseRead }) {
         <div className="space-y-6">
           <AiDecisions caseId={item.id} />
           <ManagerTimeline caseId={String(item.id)} />
+          <CaseComments caseId={item.id} />
         </div>
       </div>
     </>

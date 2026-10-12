@@ -85,7 +85,7 @@ const EVENT_LABELS: Readonly<Record<string, string | undefined>> = {
   REASSIGN_RECOMMENDED: "Yeniden atama önerildi",
   ESCALATED: "Müdüre yükseltildi",
   DECISION_OVERRIDDEN: "Yapay zekâ kararı düzeltildi",
-  COMMENT_ADDED: "Not eklendi",
+  COMMENT_ADDED: "Yorum yazıldı",
   FEEDBACK_SUBMITTED: "Bildiren değerlendirdi",
 };
 
@@ -97,6 +97,7 @@ type Metadata = CaseEvent["metadata"];
 // Olayin tasidigi ayrinti varsa metne katilir; yoksa genel metin kalir
 const DETAILED: Readonly<Record<string, ((metadata: Metadata) => string | null) | undefined>> = {
   FEEDBACK_SUBMITTED: ({ rating }) => (typeof rating === "number" ? `Bildiren ${rating} puan verdi` : null),
+  COMMENT_ADDED: ({ is_internal: internal }) => (internal === true ? "İç not eklendi" : null),
   CASE_MERGED: ({ merged_case_number: merged }) =>
     typeof merged === "string" ? `${merged} bu bildirimle birleştirildi` : null,
 };

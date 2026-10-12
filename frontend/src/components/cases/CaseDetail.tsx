@@ -12,6 +12,7 @@ import { ApiError } from "@/lib/api/client";
 import { formatDateTime } from "@/lib/dates";
 import { reporterView } from "@/lib/status";
 
+import { CaseComments } from "./CaseComments";
 import { CaseFeedback } from "./CaseFeedback";
 import { CaseStatusView } from "./CaseStatusView";
 import { CaseTimeline } from "./CaseTimeline";
@@ -53,6 +54,7 @@ function CaseDetailView({ item }: { item: CaseRead }) {
         <Field label="Bildirim tarihi" value={formatDateTime(item.created_at)} />
       </dl>
       <CaseTimeline caseId={String(item.id)} />
+      <CaseComments caseId={item.id} />
     </>
   );
 }
