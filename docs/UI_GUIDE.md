@@ -239,6 +239,7 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   bu biçime çevrilir) ve sonradan değiştirilemez. Ortak parçalar `components/admin/AdminParts.tsx` ve
   `AdminTable.tsx` içindedir; yeni yönetim ekranı bunları kullanır.
 - **Bildirim Türleri** (`/admin/case-types`): tür adı, kod ya da anahtar kelime araması; kategori ve durum süzgeci.
+  Liste ada göre alfabetik sıralanır (API koda göre sıralar).
   Tabloda adın altında kod, güvenlikle ilgili türlerde "Güvenlikle ilgili" notu; görevi alan birim boşsa "Birim yok".
   Panelde: ad, kod (yalnız eklerken; sonradan kilitli), kategori, görevi alan birim ve bilgilendirilen birim
   (ikisi de boş bırakılabilir), başlangıç önceliği, ciddiyet (0–100), güvenlikle ilgili kutusu, anahtar kelimeler
@@ -259,7 +260,7 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   Önceki / Sonraki). Sütunlar: zaman, kim, işlem ("Birim güncellendi" + kaydın adı), değişiklik. Değişiklik
   ekranların kendi sözcükleriyle yazılır ("Çözüm hedefi: 2 saat → 3 saat", "Durum: Aktif → Pasif"); kod ve numaralar
   ada çevrilir (`lib/auditLogs.ts`). Yeni kayıtta alanlar "Alanları göster" ile açılır. Kayıt türü süzgeci sunucuda
-  uygulanır. Kaydın adı güncel listelerden bulunur; bulunamazsa kayıttaki ad ya da "#12" yazılır.
+  uygulanır; uyan kayıt yoksa "Farklı bir kayıt türü seçin…" önerilir (bu ekranda arama kutusu yok). Kaydın adı güncel listelerden bulunur; bulunamazsa kayıttaki ad ya da "#12" yazılır.
   Diğer sekmelerdeki düzenleme panellerinde **"Geçmişi gör"** bağlantısı o kaydın geçmişini açar
   (`?entity_type=…&entity_id=…`); üstte "… kaydının geçmişi" şeridi ve "Tüm kayıtları göster" bağlantısı çıkar.
 - **Sekmeler ve panel:** telefonda sekme şeridi yana kayar, seçili sekme açılışta görünür yere gelir. Ekle/düzenle

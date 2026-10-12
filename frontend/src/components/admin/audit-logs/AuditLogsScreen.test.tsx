@@ -100,6 +100,9 @@ describe("AuditLogsScreen", () => {
     server.use(http.get(apiUrl("/admin/audit-logs"), () => HttpResponse.json({ items: [], total: 0, page: 1 })));
     await user.selectOptions(screen.getByLabelText("Kayıt türü"), "Konum");
     expect(await screen.findByText("Bu süzgece uyan kayıt yok.")).toBeInTheDocument();
+    // Bu ekranda arama kutusu yok: "farkli bir kelime deneyin" denmez
+    expect(screen.getByText("Farklı bir kayıt türü seçin ya da süzgeçleri temizleyin.")).toBeInTheDocument();
+    expect(screen.queryByText(/kelime/)).not.toBeInTheDocument();
     server.resetHandlers();
     await user.click(screen.getByRole("button", { name: "Süzgeçleri temizle" }));
 

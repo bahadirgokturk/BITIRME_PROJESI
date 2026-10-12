@@ -18,6 +18,8 @@ import { AuditLogTable } from "./AuditLogTable";
 type LogsQuery = ReturnType<typeof useAuditLogs>;
 
 const ALL = "";
+// Bu ekranda arama kutusu yok; oneri yalniz tur suzgecinden soz eder
+const KIND_HINT = "Farklı bir kayıt türü seçin ya da süzgeçleri temizleyin.";
 const AUDIT_PATH = "/admin/audit-logs";
 
 function EmptyNote({ title, note }: { title: string; note: string }) {
@@ -67,7 +69,7 @@ interface BodyProps {
 
 function emptyState(filtered: boolean, onClear: (() => void) | null) {
   if (onClear) {
-    return <NoMatch title="Bu süzgece uyan kayıt yok." onClear={onClear} />;
+    return <NoMatch title="Bu süzgece uyan kayıt yok." hint={KIND_HINT} onClear={onClear} />;
   }
   return filtered ? (
     <EmptyNote title="Bu kaydın geçmişi yok." note="Kayıt, işlem kayıtları tutulmaya başlamadan önce eklenmiş olabilir." />

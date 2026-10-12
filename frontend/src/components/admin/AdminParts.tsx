@@ -40,12 +40,21 @@ export function ScreenHeader({ title, description, addLabel, onAdd }: ScreenHead
   );
 }
 
+const SEARCH_HINT = "Farklı bir kelime deneyin ya da süzgeçleri temizleyin.";
+
+interface NoMatchProps {
+  title: string;
+  // Arama kutusu olmayan ekran kendi onerisini verir
+  hint?: string;
+  onClear: () => void;
+}
+
 // Suzgeclere uyan kayit yoksa: aciklama + suzgecleri temizleme
-export function NoMatch({ title, onClear }: { title: string; onClear: () => void }) {
+export function NoMatch({ title, hint = SEARCH_HINT, onClear }: NoMatchProps) {
   return (
     <div className="flex flex-col items-center gap-2 py-12 text-center">
       <p className="font-semibold">{title}</p>
-      <p className="text-sm text-muted-foreground">Farklı bir kelime deneyin ya da süzgeçleri temizleyin.</p>
+      <p className="text-sm text-muted-foreground">{hint}</p>
       <Button variant="outline" className="mt-2 h-11 px-4" onClick={onClear}>
         Süzgeçleri temizle
       </Button>
