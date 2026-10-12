@@ -40,7 +40,7 @@ export function ScreenHeader({ title, description, addLabel, onAdd }: ScreenHead
   );
 }
 
-const SEARCH_HINT = "Farklı bir kelime deneyin ya da süzgeçleri temizleyin.";
+const SEARCH_HINT = "Farklı bir kelime deneyin ya da filtreleri temizleyin.";
 
 interface NoMatchProps {
   title: string;
@@ -56,7 +56,7 @@ export function NoMatch({ title, hint = SEARCH_HINT, onClear }: NoMatchProps) {
       <p className="font-semibold">{title}</p>
       <p className="text-sm text-muted-foreground">{hint}</p>
       <Button variant="outline" className="mt-2 h-11 px-4" onClick={onClear}>
-        Süzgeçleri temizle
+        Filtreleri temizle
       </Button>
     </div>
   );

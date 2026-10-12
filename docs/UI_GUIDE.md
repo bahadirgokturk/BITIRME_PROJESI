@@ -224,21 +224,21 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   öncelik seçimi ve durum grubu düğmeleri. 14 durum beş gruba toplanır: Tümü, Açık, Kapanan, Reddedilen ve
   birleştirilen, Geciken (hedef süresi aşılan açık bildirimler). Her satırda numara, başlık (altında tür ve okunur
   konum adı), birim, durum, öncelik, kalan süre ve açılış zamanı; satır bildirimin detayına gider. Masaüstünde tablo,
-  telefonda her bildirim ayrı kart (tek DOM, iki yerleşim). Liste 20'şer yüklenir ("Daha fazla göster"). Süzgeçle
-  sonuç çıkmazsa "Süzgeçleri temizle" düğmesi, hiç bildirim yoksa düz açıklama gösterilir. Kurallar: `lib/caseList.ts`.
+  telefonda her bildirim ayrı kart (tek DOM, iki yerleşim). Liste 20'şer yüklenir ("Daha fazla göster"). Filtreyle
+  sonuç çıkmazsa "Filtreleri temizle" düğmesi, hiç bildirim yoksa düz açıklama gösterilir. Kurallar: `lib/caseList.ts`.
 
 ### 5.5 Admin
 
 - Tek kalıp: arama + filtre + tablo + sağdan açılan düzenleme paneli (Sheet). Silme yok; **Pasifleştir** (soft delete).
 - **Konumlar** (`/admin/locations`): ağaç görünümü (Kampüs → Bina → Kat → Alan). Ekran açılınca en üst düzey açıktır;
-  bir konumun altı okuna basınca açılır. Arama (ad, kod, diğer adlar) ya da durum süzgeci varken sonuçlar düz
+  bir konumun altı okuna basınca açılır. Arama (ad, kod, diğer adlar) ya da durum filtresi varken sonuçlar düz
   listedir ve her sonucun altında yeri yazar ("Merkez Kampüs › B Blok"). Tür ve kod yalnız eklerken seçilir.
   Üst konum değişirse konum altındakilerle birlikte taşınır. Ekranda "lokasyon" yerine "konum" yazılır.
-- **Birimler** (`/admin/departments`): birim adı ya da kod araması, durum süzgeci; tabloda her birimin aktif
+- **Birimler** (`/admin/departments`): birim adı ya da kod araması, durum filtresi; tabloda her birimin aktif
   kullanıcı sayısı görünür. Kod yalnız eklerken yazılır (büyük harf, rakam, alt çizgi; yazarken kendiliğinden
   bu biçime çevrilir) ve sonradan değiştirilemez. Ortak parçalar `components/admin/AdminParts.tsx` ve
   `AdminTable.tsx` içindedir; yeni yönetim ekranı bunları kullanır.
-- **Bildirim Türleri** (`/admin/case-types`): tür adı, kod ya da anahtar kelime araması; kategori ve durum süzgeci.
+- **Bildirim Türleri** (`/admin/case-types`): tür adı, kod ya da anahtar kelime araması; kategori ve durum filtresi.
   Liste ada göre alfabetik sıralanır (API koda göre sıralar).
   Tabloda adın altında kod, güvenlikle ilgili türlerde "Güvenlikle ilgili" notu; görevi alan birim boşsa "Birim yok".
   Panelde: ad, kod (yalnız eklerken; sonradan kilitli), kategori, görevi alan birim ve bilgilendirilen birim
@@ -248,26 +248,26 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
 - **Süre Hedefleri** (`/admin/sla-rules`): bir bildirimin kabul ve çözüm süresi. Türü boş kural "Varsayılan
   (tüm türler)" adıyla en üstte, önceliğe göre durur; türe özel kurallar tür adına göre dizilir. Süreler dakika
   yerine okunur yazılır ("30 dk", "4 saat", "1 gün", "1 saat 30 dk"); uyarı eşiği "%75". Arama tür adında; öncelik ve
-  durum süzgeci. Panelde süre **sayı + birim** (dakika, saat, gün) olarak girilir. Tür ve öncelik yalnız eklerken
+  durum filtresi. Panelde süre **sayı + birim** (dakika, saat, gün) olarak girilir. Tür ve öncelik yalnız eklerken
   seçilir. Aynı tür ve öncelik için ikinci kural gönderilmeden açıklanır (pasif kural varsa "onu aktifleştirin");
   çözüm hedefi kabul hedefinden kısa olamaz; uyarı eşiği 1–99.
 - **Yapay Zekâ Politikaları** (`/admin/agent-policies`): tür başına bir satır; ekleme ve pasifleştirme yok (politika,
-  tür eklenince kendiliğinden açılır), bu yüzden "ekle" düğmesi ve durum süzgeci bulunmaz. Seviyeler düz Türkçe
+  tür eklenince kendiliğinden açılır), bu yüzden "ekle" düğmesi ve durum filtresi bulunmaz. Seviyeler düz Türkçe
   yazılır: `L1_AUTONOMOUS` "Kendi uygular", `L2_NOTIFY` "Uygular, müdüre haber verir", `L3_ESCALATE` "Müdür karar
   verir". Güven eşiği yüzde olarak gösterilir ve girilir ("%70"; API'de 0–1). Panelde seviye, açıklamalı üç
-  seçenekten seçilir; arama tür adı ya da kodda, süzgeç karar yetkisinde.
+  seçenekten seçilir; arama tür adı ya da kodda, filtre karar yetkisinde.
 - **İşlem Kayıtları** (`/admin/audit-logs`): yalnız okunur; en yeni üstte, 50'şer kayıt ("1–50 / 312 kayıt",
   Önceki / Sonraki). Sütunlar: zaman, kim, işlem ("Birim güncellendi" + kaydın adı), değişiklik. Değişiklik
   ekranların kendi sözcükleriyle yazılır ("Çözüm hedefi: 2 saat → 3 saat", "Durum: Aktif → Pasif"); kod ve numaralar
-  ada çevrilir (`lib/auditLogs.ts`). Yeni kayıtta alanlar "Alanları göster" ile açılır. Kayıt türü süzgeci sunucuda
+  ada çevrilir (`lib/auditLogs.ts`). Yeni kayıtta alanlar "Alanları göster" ile açılır. Kayıt türü filtresi sunucuda
   uygulanır; uyan kayıt yoksa "Farklı bir kayıt türü seçin…" önerilir (bu ekranda arama kutusu yok). Kaydın adı güncel listelerden bulunur; bulunamazsa kayıttaki ad ya da "#12" yazılır.
   Diğer sekmelerdeki düzenleme panellerinde **"Geçmişi gör"** bağlantısı o kaydın geçmişini açar
   (`?entity_type=…&entity_id=…`); üstte "… kaydının geçmişi" şeridi ve "Tüm kayıtları göster" bağlantısı çıkar.
 - **Sekmeler ve panel:** telefonda sekme şeridi yana kayar, seçili sekme açılışta görünür yere gelir. Ekle/düzenle
   paneli telefonda tam genişlik, masaüstünde 440 px (`SHEET_CLASS`, `components/admin/AdminParts.tsx`).
-- **Kullanıcılar** (`/admin/users`): ad ya da e-posta araması, rol ve durum süzgeci. Masaüstünde tablo; telefonda
+- **Kullanıcılar** (`/admin/users`): ad ya da e-posta araması, rol ve durum filtresi. Masaüstünde tablo; telefonda
   aynı tablo kart olarak görünür (ad ve durum üstte, diğer değerler başlıklarıyla alt alta), yana kaydırma olmaz.
-  Süzgeçlere uyan kullanıcı yoksa "Süzgeçleri temizle" düğmesi çıkar. Bölümler arası geçiş üstteki sekmelerle
+  Filtrelere uyan kullanıcı yoksa "Filtreleri temizle" düğmesi çıkar. Bölümler arası geçiş üstteki sekmelerle
   (`ADMIN_SECTIONS`, `lib/navigation.ts`); menüdeki "Yönetim" ilk sekmeye açılır.
 
 ## 6. Metin ve Dil

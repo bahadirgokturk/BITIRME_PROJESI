@@ -97,7 +97,7 @@ describe("SlaRulesScreen", () => {
 
     await user.selectOptions(screen.getByLabelText("Öncelik"), "Kritik");
     expect(screen.getByText("Aramanıza uyan kural yok.")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Süzgeçleri temizle" }));
+    await user.click(screen.getByRole("button", { name: "Filtreleri temizle" }));
 
     expect(screen.getByRole("row", { name: /Elektrik arızası/ })).toBeInTheDocument();
   });

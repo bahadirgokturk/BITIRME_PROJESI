@@ -80,7 +80,7 @@ describe("AgentPoliciesScreen", () => {
 
     await user.type(screen.getByLabelText("Politika ara"), "sabun");
     expect(screen.getByText("Aramanıza uyan politika yok.")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Süzgeçleri temizle" }));
+    await user.click(screen.getByRole("button", { name: "Filtreleri temizle" }));
 
     expect(screen.getByRole("row", { name: /Sabun bitti/ })).toBeInTheDocument();
   });

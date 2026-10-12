@@ -62,7 +62,7 @@ describe("UsersScreen", () => {
 
     await user.type(screen.getByLabelText("Kullanıcı ara"), "olmayan biri");
     expect(screen.getByText("Aramanıza uyan kullanıcı yok.")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Süzgeçleri temizle" }));
+    await user.click(screen.getByRole("button", { name: "Filtreleri temizle" }));
 
     expect(screen.getByLabelText("Kullanıcı ara")).toHaveValue("");
     expect(screen.getByRole("row", { name: /Mehmet Demir/ })).toBeInTheDocument();
