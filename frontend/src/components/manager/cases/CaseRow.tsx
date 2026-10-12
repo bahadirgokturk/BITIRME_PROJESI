@@ -15,7 +15,7 @@ const NO_VALUE = "–";
 
 export const COLUMN_HEADERS = ["Bildirim no", "Başlık, tür ve konum", "Birim", "Durum", "Öncelik", "Kalan süre", "Açılış"];
 
-function StatusBadge({ status }: { status: CaseRead["status"] }) {
+export function StatusBadge({ status }: { status: CaseRead["status"] }) {
   return (
     <span className="inline-flex h-6 shrink-0 items-center rounded-md border px-2 text-xs font-medium">
       {CASE_STATUS_LABELS[status]}
@@ -27,7 +27,7 @@ export function CaseRow({ item }: { item: CaseRead }) {
   const sla = caseSla(item);
   return (
     <Link
-      href={`/cases/${item.id}`}
+      href={`/manager/cases/${item.id}`}
       className={`${ROW_CLASS} ${COLUMNS_CLASS} transition-colors outline-none hover:bg-muted/40 focus-visible:ring-3 focus-visible:ring-ring/50`}
     >
       <span className="text-xs text-muted-foreground md:text-sm">{item.case_number}</span>

@@ -223,9 +223,20 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   döner), ekran metni de "Kurumdaki bütün bildirimler" der. Arama kutusu (numara, başlık, konum; yazmayı bıraktıktan 300 ms sonra arar),
   öncelik seçimi ve durum grubu düğmeleri. 14 durum beş gruba toplanır: Tümü, Açık, Kapanan, Reddedilen ve
   birleştirilen, Geciken (hedef süresi aşılan açık bildirimler). Her satırda numara, başlık (altında tür ve okunur
-  konum adı), birim, durum, öncelik, kalan süre ve açılış zamanı; satır bildirimin detayına gider. Masaüstünde tablo,
+  konum adı), birim, durum, öncelik, kalan süre ve açılış zamanı; satır müdürün detay ekranına gider. Masaüstünde tablo,
   telefonda her bildirim ayrı kart (tek DOM, iki yerleşim). Liste 20'şer yüklenir ("Daha fazla göster"). Filtreyle
   sonuç çıkmazsa "Filtreleri temizle" düğmesi, hiç bildirim yoksa düz açıklama gösterilir. Kurallar: `lib/caseList.ts`.
+- **Bildirim detayı (`/manager/cases/[id]`):** müdürün yalnız okuduğu ekran; bildirenin sade ekranı (`/cases/[id]`)
+  değişmedi. Üstte numara, başlık ve üç rozet (durum, öncelik, kalan süre). **Bildirim bilgileri** kartı: açıklama,
+  konum, tür · kategori, birim, açılış; varsa hedef süre, çözüm, kapanış, bildirenin puanı, aynı sorunu bildirenler,
+  yeniden açılma (olmayan şey gösterilmez). **Yapay zekâ kararları:** İnceleme Kuyruğu'ndaki gerekçe panelinin aynısı,
+  burada hep açık; kendiliğinden atanan bildirimde de görünür. Sıfır ağırlık yazılmaz. **Zaman çizelgesi:** müdür bütün
+  olayları görür; her satırda ne olduğu, kimin yaptığı ("Yapay zekâ · Sınıflandırma", "Sistem", "Bildiren", "Personel",
+  "Müdür") ve zamanı. Olayda kişi adı gelmediği için kişi türü olayın türünden anlaşılır. **Fotoğraflar:** bildirenin
+  fotoğrafları ve personelin kanıtları; yoksa bölüm çıkmaz, video küçük resim olarak gösterilmez. Bildirim İnceleme
+  Kuyruğu'ndaysa üstte "Bu bildirim kararınızı bekliyor." notu ve kuyruğa bağlantı çıkar; karar düğmeleri bu ekranda
+  yoktur. Geniş ekranda iki sütun (solda kararlar ve çizelge, sağda bilgiler ve fotoğraflar), dar ekranda önce
+  bilgiler. Kurallar: `lib/managerCase.ts`.
 
 ### 5.5 Admin
 

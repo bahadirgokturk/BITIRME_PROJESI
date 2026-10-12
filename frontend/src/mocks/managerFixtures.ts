@@ -132,7 +132,7 @@ export const DECISIONS: Record<number, Decision[]> = {
     }),
     decision(4, {
       agent_name: "supervisor",
-      agent_label: "Karar (Supervisor)",
+      agent_label: "Karar",
       decision: "ESCALATE",
       decision_label: "Müdüre yükseltildi",
       confidence: null,

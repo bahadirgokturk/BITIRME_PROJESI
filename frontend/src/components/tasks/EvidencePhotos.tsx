@@ -5,7 +5,8 @@ import { useAttachmentImage, useCaseEvidence, type AttachmentRead } from "@/hook
 
 const THUMB_CLASS = "size-20 rounded-md";
 
-function EvidencePhoto({ attachment, label }: { attachment: AttachmentRead; label: string }) {
+// Mudurun bildirim detayi da ayni kucuk resmi kullanir
+export function EvidencePhoto({ attachment, label }: { attachment: AttachmentRead; label: string }) {
   const image = useAttachmentImage(attachment.id);
   if (image.isPending) {
     return <Skeleton className={THUMB_CLASS} />;

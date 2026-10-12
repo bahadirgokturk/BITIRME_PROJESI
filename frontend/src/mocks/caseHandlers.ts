@@ -6,6 +6,7 @@ import type { components } from "@/lib/api/types";
 
 import { CASES, EMPTY_CASE, timelineFor } from "./caseFixtures";
 import { LOCATIONS, USERS } from "./fixtures";
+import { managerEventsFor } from "./managerCaseDetailFixtures";
 import { MANAGER_CASES } from "./managerCaseFixtures";
 import { TASKS } from "./taskFixtures";
 import { taskEventsFor } from "./taskHandlers";
@@ -154,6 +155,10 @@ export const caseHandlers = [
     const taskEvents = taskEventsFor(Number(params.id));
     if (!item && !taskEvents) {
       return error(404, "NOT_FOUND", "Kayıt bulunamadı.");
+    }
+    // Mudur listesindeki bildirimler mudurun gordugu ayrintili olaylarla doner
+    if (item && MANAGER_CASES.includes(item)) {
+      return HttpResponse.json(managerEventsFor(item));
     }
     return HttpResponse.json([...(item ? timelineFor(item) : []), ...(taskEvents ?? [])]);
   }),

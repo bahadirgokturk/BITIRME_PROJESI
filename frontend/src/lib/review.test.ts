@@ -89,7 +89,9 @@ describe("labels", () => {
     ["classification", "Sınıflandırma"],
     ["priority", "Öncelik"],
     ["routing", "Yönlendirme"],
-    ["supervisor", "Karar (Supervisor)"],
+    ["supervisor", "Karar"],
+    ["intake", "Ön inceleme"],
+    ["resolution", "İş kontrolü"],
     ["something_new", "something_new"],
   ])("names the %s agent", (name, label) => {
     expect(agentLabel(name)).toBe(label);
@@ -109,6 +111,10 @@ describe("labels", () => {
 });
 
 describe("decisionReasons", () => {
+  it("drops a zero weight: it says nothing to the reader", () => {
+    expect(decisionReasons([{ code: "NO_SIMILAR_CASE", message: "Benzer bildirim yok.", weight: 0 }])[0]?.weight).toBeNull();
+  });
+
   it("reads code, message and weight from the agent reasons", () => {
     const reasons = [{ code: "SAFETY", message: "‘kıvılcım’ kelimesi", weight: 30, evidence: {} }];
 

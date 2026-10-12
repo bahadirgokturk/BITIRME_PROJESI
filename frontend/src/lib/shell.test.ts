@@ -14,6 +14,11 @@ describe("mobileBarFor", () => {
     expect(mobileBarFor("/cases/101")).toEqual({ kind: "back", title: "Bildirim", backHref: "/my-cases" });
   });
 
+  it("sends a manager back to the full case list from a case detail page", () => {
+    expect(mobileBarFor("/manager/cases/301")).toEqual({ kind: "back", title: "Bildirim", backHref: "/manager/cases" });
+    expect(mobileBarFor("/manager/cases")).toEqual({ kind: "menu" });
+  });
+
   it("shows a back bar on a task detail page but not on the task list", () => {
     expect(mobileBarFor("/staff/tasks/201")).toEqual({ kind: "back", title: "Görev", backHref: "/staff/tasks" });
     expect(mobileBarFor("/staff/tasks")).toEqual({ kind: "menu" });

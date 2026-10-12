@@ -18,7 +18,7 @@ function weightText(weight: number | null): string {
 function DecisionRow({ decision }: { decision: AgentDecision }) {
   const titles = decisionTitles(decision);
   return (
-    <li className="grid grid-cols-[12rem_1fr_6rem] gap-6 border-t py-3 first:border-t-0">
+    <li className="grid gap-2 border-t py-3 first:border-t-0 md:grid-cols-[12rem_1fr_6rem] md:gap-6">
       <div>
         <p className="text-xs text-muted-foreground">{titles.agent}</p>
         <p className="text-sm font-semibold break-words">{titles.decision}</p>

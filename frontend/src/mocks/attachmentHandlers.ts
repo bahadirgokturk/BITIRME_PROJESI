@@ -6,6 +6,7 @@ import { apiUrl } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
 
 import { USERS } from "./fixtures";
+import { MANAGER_CASE_PHOTOS } from "./managerCaseDetailFixtures";
 
 type Attachment = components["schemas"]["AttachmentRead"];
 
@@ -27,7 +28,7 @@ const PIXEL_PNG = Uint8Array.from(
 );
 
 // Oturum boyunca yuklenenler; sayfa yenilenince sifirlanir
-const attachments: Attachment[] = [];
+const attachments: Attachment[] = [...MANAGER_CASE_PHOTOS];
 
 function error(status: number, code: string, message: string) {
   const body: components["schemas"]["ErrorRead"] = {

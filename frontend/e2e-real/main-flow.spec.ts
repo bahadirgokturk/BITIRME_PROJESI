@@ -9,7 +9,9 @@ const TOP_RATING = "5 yıldız";
 // Uygun personel bossa dogrudan ona (AUTO_ASSIGN), degilse birim havuzuna (CREATE_TASK): ikisi de insansiz karar
 const AUTOMATED = ["AUTO_ASSIGN", "CREATE_TASK"];
 const AGENTS = ["intake", "classification", "priority", "routing", "supervisor"];
-const LIFECYCLE = ["Bildiriminiz alındı", "Görevli çalışmaya başladı", "Görevli işi tamamladı", "Değerlendirmeniz alındı"];
+// Mudurun detay ekranindaki adlar (lib/managerCase.ts); bildiren ayni olaylari sade haliyle gorur
+const LIFECYCLE = ["Bildirim açıldı", "Çalışma başladı", "İş tamamlandı", "Bildiren 5 puan verdi"];
+const AI_STEPS = ["Sınıflandırma", "Öncelik", "Yönlendirme", "Karar"];
 
 async function expectAgentsDecided(request: APIRequestContext, caseId: string) {
   const decisions = await agentDecisions(request, caseId);
@@ -58,6 +60,12 @@ test("a reported problem is assigned by the agents, done by staff, closed and ra
   await signIn(page, "manager");
   const closed = await findInAllCases(page, reported.number);
   await closed.getByRole("link").click();
+  // Mudur kararlarin gerekcesini ekranda da gorur (yalniz API'de degil)
+  const decisions = page.getByRole("list", { name: "Yapay zekâ kararları" });
+  await expect(decisions.getByText("Sabun bitti")).toBeVisible();
+  for (const step of AI_STEPS) {
+    await expect(decisions.getByText(step, { exact: true })).toBeVisible();
+  }
   const timeline = page.getByRole("list", { name: "Zaman çizelgesi" });
   for (const label of LIFECYCLE) {
     await expect(timeline.getByText(label, { exact: true }).first()).toBeVisible();

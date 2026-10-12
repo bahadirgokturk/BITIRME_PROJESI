@@ -16,6 +16,14 @@ export function useCaseEvidence(caseId: number) {
   });
 }
 
+// Mudur detayinda bildirenin fotograflari ve personelin kanitlari birlikte gosterilir
+export function useCaseAttachments(caseId: number) {
+  return useQuery({
+    queryKey: caseAttachmentsKey(caseId),
+    queryFn: () => apiGet<AttachmentRead[]>(`/cases/${caseId}/attachments`),
+  });
+}
+
 // Indirme yetki ister: <img src> dogrudan kullanilamaz, dosya Bearer ile alinip gecici adrese cevrilir
 // (docs/API.md). Adres sorgu onbelleginde durdugu surece gecerlidir; sayfa kapaninca tarayici siler.
 export function useAttachmentImage(attachmentId: number) {
