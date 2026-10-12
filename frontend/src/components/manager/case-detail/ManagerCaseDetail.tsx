@@ -2,6 +2,7 @@
 
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 import { ErrorState } from "@/components/states/ErrorState";
 import { buttonVariants } from "@/components/ui/button";
@@ -11,8 +12,9 @@ import { ApiError } from "@/lib/api/client";
 import { awaitsManager } from "@/lib/managerCase";
 
 import { DecisionPanel } from "../DecisionPanel";
+import { CaseDecision } from "./CaseDecision";
 import { CasePhotos } from "./CasePhotos";
-import { CaseHeader, CaseInfo, ReviewNotice } from "./CaseSummary";
+import { CaseHeader, CaseInfo } from "./CaseSummary";
 import { ManagerTimeline } from "./ManagerTimeline";
 
 const NOT_FOUND = 404;
@@ -37,10 +39,15 @@ function AiDecisions({ caseId }: { caseId: number }) {
 // Genis ekranda iki sutun: solda kararlar ve zaman cizelgesi, sagda bilgiler ve fotograflar.
 // Dar ekranda once bilgiler gelir (Figma: 05 Manager > /manager/cases/[id])
 function CaseView({ item }: { item: CaseRead }) {
+  // Karardan sonra karar kutusu kaybolur; onay notu burada kalir
+  const [lastAction, setLastAction] = useState<string | null>(null);
   return (
     <>
       <CaseHeader item={item} />
-      {awaitsManager(item) ? <ReviewNotice /> : null}
+      <p role="status" className={lastAction ? "rounded-md bg-muted px-3 py-2 text-sm" : "sr-only"}>
+        {lastAction}
+      </p>
+      {awaitsManager(item) ? <CaseDecision item={item} onDone={setLastAction} /> : null}
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-4 xl:order-2">
           <CaseInfo item={item} />
@@ -88,7 +95,8 @@ function CaseBody({ query }: { query: CaseQuery }) {
   return <CaseView item={query.data} />;
 }
 
-// Mudurun bildirim detayi: bilgiler, yapay zeka kararlari, zaman cizelgesi, fotograflar (yalniz okunur)
+// Mudurun bildirim detayi: bilgiler, yapay zeka kararlari, zaman cizelgesi, fotograflar;
+// inceleme bekleyen bildirimde karar dugmeleri (kuyruktakiyle ayni)
 export function ManagerCaseDetail({ caseId }: { caseId: string }) {
   const query = useCase(caseId);
   return (

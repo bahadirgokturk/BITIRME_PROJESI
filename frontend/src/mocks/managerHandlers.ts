@@ -14,10 +14,13 @@ type CaseStatus = Schemas["CaseStatus"];
 const PRIORITIES: readonly Schemas["Priority"][] = ["LOW", "MEDIUM", "HIGH", "CRITICAL"];
 
 let queue: Schemas["ReviewItemRead"][] = [];
+// Karar verilen bildirimler kuyruktan cikar ama detay ekrani icin yeni durumuyla okunabilir kalir
+let decided: Schemas["CaseRead"][] = [];
 
 // Testler her seferinde ayni kuyrukla baslar (islemler kuyruktan kayit cikarir)
 export function resetReviewQueue(): void {
   queue = structuredClone(REVIEW_ITEMS);
+  decided = [];
 }
 resetReviewQueue();
 
@@ -37,7 +40,15 @@ function resolve(id: string | readonly string[] | undefined, status: CaseStatus)
     return error(404, "NOT_FOUND", "Kayıt bulunamadı.");
   }
   queue = queue.filter((other) => other !== item);
-  return HttpResponse.json({ ...item.case, status });
+  // Karar verilince insan incelemesi biter (backend/app/services/review_service.py)
+  const updated = { ...item.case, status, needs_human_review: false };
+  decided.push(updated);
+  return HttpResponse.json(updated);
+}
+
+// GET /cases/{id}: kuyruktaki ya da az once karar verilen bildirim (caseHandlers.ts kullanir)
+export function findReviewCase(id: string | readonly string[] | undefined): Schemas["CaseRead"] | undefined {
+  return find(id)?.case ?? decided.find((item) => String(item.id) === id);
 }
 
 const reasonMissing = () => error(422, "VALIDATION_ERROR", "Gerekçe zorunludur.");
