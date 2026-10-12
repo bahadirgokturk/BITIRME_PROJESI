@@ -21,6 +21,16 @@ async function expectAgentsDecided(request: APIRequestContext, caseId: string) {
   expect(AUTOMATED).toContain(decisionOf("supervisor"));
 }
 
+const CLOSED_COUNT = /(\d+) bildirim kapandı/;
+
+// Genel Bakis'taki grafik basligi donemde kapanan bildirim sayisini soyler ("12 bildirim acildi, 9 bildirim kapandi")
+async function closedOnDashboard(page: Page): Promise<number> {
+  await openFromMenu(page, "Genel Bakış");
+  const headline = page.getByRole("heading", { name: CLOSED_COUNT });
+  await expect(headline).toBeVisible();
+  return Number(CLOSED_COUNT.exec(await headline.innerText())?.[1]);
+}
+
 async function findInAllCases(page: Page, caseNumber: string) {
   await openFromMenu(page, "Tüm Bildirimler");
   await page.getByRole("searchbox", { name: "Bildirim ara" }).fill(caseNumber);
@@ -47,6 +57,7 @@ test("a reported problem is assigned by the agents, done by staff, closed and ra
   await expectAgentsDecided(request, reported.id);
 
   await signIn(page, "manager");
+  const closedBefore = await closedOnDashboard(page);
   const rows = await findInAllCases(page, reported.number);
   await expect(rows.getByText(DEPARTMENT)).toBeVisible();
 
@@ -58,6 +69,7 @@ test("a reported problem is assigned by the agents, done by staff, closed and ra
   await rateClosedCase(page, reported.number);
 
   await signIn(page, "manager");
+  expect(await closedOnDashboard(page)).toBe(closedBefore + 1);
   const closed = await findInAllCases(page, reported.number);
   await closed.getByRole("link").click();
   // Mudur kararlarin gerekcesini ekranda da gorur (yalniz API'de degil)

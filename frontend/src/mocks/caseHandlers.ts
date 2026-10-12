@@ -8,6 +8,7 @@ import { CASES, EMPTY_CASE, timelineFor } from "./caseFixtures";
 import { LOCATIONS, USERS } from "./fixtures";
 import { managerEventsFor } from "./managerCaseDetailFixtures";
 import { MANAGER_CASES } from "./managerCaseFixtures";
+import { findReviewCase } from "./managerHandlers";
 import { TASKS } from "./taskFixtures";
 import { taskEventsFor } from "./taskHandlers";
 
@@ -47,7 +48,7 @@ function titleFrom(description: string): string {
 }
 
 export function findCase(id: string | readonly string[] | undefined) {
-  return [...cases, ...MANAGER_CASES].find((item) => String(item.id) === id);
+  return [...cases, ...MANAGER_CASES].find((item) => String(item.id) === id) ?? findReviewCase(id);
 }
 
 const fold = (text: string) => text.toLocaleLowerCase("tr");

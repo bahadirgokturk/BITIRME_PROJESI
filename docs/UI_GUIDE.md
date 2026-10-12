@@ -226,7 +226,7 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   konum adı), birim, durum, öncelik, kalan süre ve açılış zamanı; satır müdürün detay ekranına gider. Masaüstünde tablo,
   telefonda her bildirim ayrı kart (tek DOM, iki yerleşim). Liste 20'şer yüklenir ("Daha fazla göster"). Filtreyle
   sonuç çıkmazsa "Filtreleri temizle" düğmesi, hiç bildirim yoksa düz açıklama gösterilir. Kurallar: `lib/caseList.ts`.
-- **Bildirim detayı (`/manager/cases/[id]`):** müdürün yalnız okuduğu ekran; bildirenin sade ekranı (`/cases/[id]`)
+- **Bildirim detayı (`/manager/cases/[id]`):** müdürün ayrıntılı ekranı; bildirenin sade ekranı (`/cases/[id]`)
   değişmedi. Üstte numara, başlık ve üç rozet (durum, öncelik, kalan süre). **Bildirim bilgileri** kartı: açıklama,
   konum, tür · kategori, birim, açılış; varsa hedef süre, çözüm, kapanış, bildirenin puanı, aynı sorunu bildirenler,
   yeniden açılma (olmayan şey gösterilmez). **Yapay zekâ kararları:** İnceleme Kuyruğu'ndaki gerekçe panelinin aynısı,
@@ -234,8 +234,10 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   olayları görür; her satırda ne olduğu, kimin yaptığı ("Yapay zekâ · Sınıflandırma", "Sistem", "Bildiren", "Personel",
   "Müdür") ve zamanı. Olayda kişi adı gelmediği için kişi türü olayın türünden anlaşılır. **Fotoğraflar:** bildirenin
   fotoğrafları ve personelin kanıtları; yoksa bölüm çıkmaz, video küçük resim olarak gösterilmez. Bildirim İnceleme
-  Kuyruğu'ndaysa üstte "Bu bildirim kararınızı bekliyor." notu ve kuyruğa bağlantı çıkar; karar düğmeleri bu ekranda
-  yoktur. Geniş ekranda iki sütun (solda kararlar ve çizelge, sağda bilgiler ve fotoğraflar), dar ekranda önce
+  Kuyruğu'ndaysa üstte **"Bu bildirim kararınızı bekliyor"** kutusu çıkar: neden burada, varsa benzer bildirim ve
+  kuyruktaki kartla aynı düğmeler (onayla ve ata · birleştir · düzelt · reddet · kapat; kurallar `lib/review.ts`).
+  Karardan sonra kutu kaybolur, onay notu ("CASE-… atandı.") ekranda kalır. Kuyruk kaydı okunamazsa yalnız kuyruğa
+  bağlantı gösterilir. Kuyrukta olmayan bildirimde düğme yoktur. Geniş ekranda iki sütun (solda kararlar ve çizelge, sağda bilgiler ve fotoğraflar), dar ekranda önce
   bilgiler. Kurallar: `lib/managerCase.ts`.
 
 ### 5.5 Admin
