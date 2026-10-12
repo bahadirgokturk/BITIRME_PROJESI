@@ -64,7 +64,7 @@ describe("DepartmentsScreen", () => {
 
     await user.type(screen.getByLabelText("Birim ara"), " yok böyle");
     expect(screen.getByText("Aramanıza uyan birim yok.")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Süzgeçleri temizle" }));
+    await user.click(screen.getByRole("button", { name: "Filtreleri temizle" }));
 
     expect(screen.getByRole("row", { name: /Destek Hizmetleri Şube Müdürlüğü/ })).toBeInTheDocument();
   });

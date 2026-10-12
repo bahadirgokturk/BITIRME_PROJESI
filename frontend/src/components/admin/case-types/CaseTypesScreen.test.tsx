@@ -85,7 +85,7 @@ describe("CaseTypesScreen", () => {
 
     await user.selectOptions(screen.getByLabelText("Kategori"), "Temizlik");
     expect(screen.getByText("Aramanıza uyan tür yok.")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Süzgeçleri temizle" }));
+    await user.click(screen.getByRole("button", { name: "Filtreleri temizle" }));
 
     expect(screen.getByRole("row", { name: /Sabun bitti/ })).toBeInTheDocument();
   });

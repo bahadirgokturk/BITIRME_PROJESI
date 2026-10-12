@@ -70,7 +70,7 @@ describe("LocationsScreen", () => {
 
     await user.type(screen.getByLabelText("Konum ara"), "olmayan yer");
     expect(screen.getByText("Aramanıza uyan konum yok.")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Süzgeçleri temizle" }));
+    await user.click(screen.getByRole("button", { name: "Filtreleri temizle" }));
 
     expect(screen.getByRole("listitem", { name: "B Blok" })).toBeInTheDocument();
   });

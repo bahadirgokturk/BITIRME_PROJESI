@@ -99,9 +99,12 @@ describe("AuditLogsScreen", () => {
 
     server.use(http.get(apiUrl("/admin/audit-logs"), () => HttpResponse.json({ items: [], total: 0, page: 1 })));
     await user.selectOptions(screen.getByLabelText("Kayıt türü"), "Konum");
-    expect(await screen.findByText("Bu süzgece uyan kayıt yok.")).toBeInTheDocument();
+    expect(await screen.findByText("Bu filtreye uyan kayıt yok.")).toBeInTheDocument();
+    // Bu ekranda arama kutusu yok: "farkli bir kelime deneyin" denmez
+    expect(screen.getByText("Farklı bir kayıt türü seçin ya da filtreleri temizleyin.")).toBeInTheDocument();
+    expect(screen.queryByText(/kelime/)).not.toBeInTheDocument();
     server.resetHandlers();
-    await user.click(screen.getByRole("button", { name: "Süzgeçleri temizle" }));
+    await user.click(screen.getByRole("button", { name: "Filtreleri temizle" }));
 
     expect(await row(/Birim güncellendi/)).toBeInTheDocument();
   });
@@ -140,7 +143,7 @@ describe("AuditLogsScreen", () => {
     renderScreen();
 
     expect(await screen.findByText("Henüz işlem kaydı yok.")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Süzgeçleri temizle" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Filtreleri temizle" })).not.toBeInTheDocument();
   });
 
   it("shows an error with retry when entries cannot be loaded", async () => {

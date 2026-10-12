@@ -55,6 +55,15 @@ describe("filterCaseTypes", () => {
     expect(filterCaseTypes(ALL, NO_CASE_TYPE_FILTERS)).toHaveLength(3);
   });
 
+  it("lists by name in Turkish alphabetical order, whatever order the API uses", () => {
+    const garden = caseType({ id: 4, code: "GREEN_AREA", name: "Bahçe" });
+    const trash = caseType({ id: 5, code: "TRASH_FULL", name: "Çöp dolu" });
+    const heating = caseType({ id: 6, code: "AIR_CONDITIONER_FAILURE", name: "Isıtma arızası" });
+    const wifi = caseType({ id: 7, code: "WIFI_FAILURE", name: "İnternet sorunu" });
+    const listed = filterCaseTypes([wifi, heating, SOAP, trash, garden], NO_CASE_TYPE_FILTERS);
+    expect(names(listed)).toEqual(["Bahçe", "Çöp dolu", "Isıtma arızası", "İnternet sorunu", "Sabun bitti"]);
+  });
+
   it("searches the name, the code and the keywords", () => {
     expect(names(filterCaseTypes(ALL, { ...NO_CASE_TYPE_FILTERS, search: "ELEKTRİK" }))).toEqual(["Elektrik arızası"]);
     expect(names(filterCaseTypes(ALL, { ...NO_CASE_TYPE_FILTERS, search: "lost item" }))).toEqual(["Kayıp eşya"]);

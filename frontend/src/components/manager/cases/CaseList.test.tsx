@@ -100,7 +100,7 @@ describe("CaseList", () => {
 
     expect(await screen.findByText("Aramanıza uyan bildirim yok.")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Süzgeçleri temizle" }));
+    await user.click(screen.getByRole("button", { name: "Filtreleri temizle" }));
 
     await waitForRows(20);
     expect(screen.getByRole("searchbox", { name: "Bildirim ara" })).toHaveValue("");
@@ -118,7 +118,7 @@ describe("CaseList", () => {
 
     expect(await screen.findByText("Henüz bildirim yok.")).toBeInTheDocument();
     expect(screen.getByText("Bir bildirim geldiğinde burada görünür.")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Süzgeçleri temizle" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Filtreleri temizle" })).not.toBeInTheDocument();
   });
 
   it("shows the backend error and loads again on retry", async () => {

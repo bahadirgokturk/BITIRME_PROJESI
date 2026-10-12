@@ -30,16 +30,19 @@ const lower = (text: string) => text.toLocaleLowerCase(LOCALE);
 
 // Liste API'de aranmiyor (yalniz sayfalama); turler az, hepsi tek istekte gelir. Ad ve anahtar kelimeler
 // Turkce kurallarla, kod ise kod bicimine cevrilerek aranir ("lost item" yazinca "LOST_ITEM" bulunur).
+// API koda gore siralar; ekranda diger yonetim listeleri gibi ada gore (Turkce alfabe) siralanir.
 export function filterCaseTypes(types: readonly CaseType[], filters: CaseTypeFilters): CaseType[] {
   const text = filters.search.trim();
   const query = lower(text);
   const codeQuery = normalizeCode(text);
-  return types.filter(
-    (type) =>
-      (filters.category === null || type.category === filters.category) &&
-      matchesStatus(filters.status, type.is_active) &&
-      (lower(`${type.name} ${type.keywords.join(" ")}`).includes(query) || type.code.includes(codeQuery)),
-  );
+  return types
+    .filter(
+      (type) =>
+        (filters.category === null || type.category === filters.category) &&
+        matchesStatus(filters.status, type.is_active) &&
+        (lower(`${type.name} ${type.keywords.join(" ")}`).includes(query) || type.code.includes(codeQuery)),
+    )
+    .sort((a, b) => a.name.localeCompare(b.name, LOCALE));
 }
 
 // Kural tabanli siniflandirma kucuk harfle eslestirir; tekrar eden kelime bir kez gonderilir

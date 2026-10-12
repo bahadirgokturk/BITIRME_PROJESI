@@ -40,7 +40,7 @@ function Message({ title, text, onClear }: { title: string; text: string; onClea
       <p className="text-sm text-muted-foreground">{text}</p>
       {onClear && (
         <Button variant="outline" className="mt-2 h-11 px-4" onClick={onClear}>
-          Süzgeçleri temizle
+          Filtreleri temizle
         </Button>
       )}
     </div>
@@ -99,7 +99,7 @@ function CaseListBody({ query, filtered, onClear }: { query: CaseListQuery; filt
     return filtered ? (
       <Message
         title="Aramanıza uyan bildirim yok."
-        text="Farklı bir kelime deneyin ya da süzgeçleri temizleyin."
+        text="Farklı bir kelime deneyin ya da filtreleri temizleyin."
         onClear={onClear}
       />
     ) : (
