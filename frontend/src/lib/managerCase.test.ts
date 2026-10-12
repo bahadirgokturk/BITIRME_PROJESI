@@ -116,6 +116,11 @@ describe("managerEventLabel", () => {
     expect(managerEventLabel(event({ event_type: "CASE_MERGED" }))).toBe("Başka bir bildirimle birleştirildi");
   });
 
+  it("tells a comment from an internal note", () => {
+    expect(managerEventLabel(event({ event_type: "COMMENT_ADDED", metadata: { is_internal: false } }))).toBe("Yorum yazıldı");
+    expect(managerEventLabel(event({ event_type: "COMMENT_ADDED", metadata: { is_internal: true } }))).toBe("İç not eklendi");
+  });
+
   it("does not hide an event it does not know", () => {
     expect(managerEventLabel(event({ event_type: "SOMETHING_NEW" }))).toBe("Bildirim güncellendi");
   });

@@ -37,7 +37,7 @@
 | Takım | Komut (`frontend/`) | API | Ne dener? |
 |---|---|---|---|
 | `e2e/` | `npm run test:e2e` | Sahte (uygulama içi) | Ekranların telefon ve masaüstünde işlediği: bildirim yapan, müdür, yönetici. Backend gerekmez. |
-| `e2e-real/` | `npm run test:e2e:real` | **Gerçek backend + agent'lar** | Ana senaryo ve iki alternatif. Önce `docker compose up -d`, `alembic upgrade head`, `seeds.run --demo`. |
+| `e2e-real/` | `npm run test:e2e:real` | **Gerçek backend + agent'lar** | Ana senaryo, iki alternatif ve yorumlar. Önce `docker compose up -d`, `alembic upgrade head`, `seeds.run --demo`. |
 
 `e2e-real/` senaryoları:
 
@@ -47,6 +47,8 @@
 2. **Alternatif — yetki** (`alternative-flows.spec.ts`): başka bir bildiren aynı bildirimi açamaz ("Kayıt bulunamadı").
 3. **Alternatif — insan kararı**: "priz kıvılcım çıkarıyor" bildirimi kritik sayılır, agent'lar atamaz; müdür
    İnceleme Kuyruğu'nda yapay zekâ gerekçesini görür, bildirimin kendi ekranından onaylar; teknisyen tamamlar.
+4. **Yorumlar** (`comments.spec.ts`): bildiren yorum yazar → personel görev ekranında görür ve iç not ekler →
+   bildiren iç notu görmez → müdür ikisini de görür.
 
 Dikkat edilecekler:
 

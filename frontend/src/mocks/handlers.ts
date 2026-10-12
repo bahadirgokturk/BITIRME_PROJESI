@@ -19,29 +19,13 @@ import { caseHandlers } from "./caseHandlers";
 import { interactionHandlers } from "./interactionHandlers";
 import { managerHandlers } from "./managerHandlers";
 import { taskHandlers } from "./taskHandlers";
-import {
-  MOCK_PASSWORD,
-  USERS,
-  type Role,
-} from "./fixtures";
+import { MOCK_PASSWORD, USERS } from "./fixtures";
+import { currentUser, signInAs } from "./session";
 
 type Schemas = components["schemas"];
 
 // Sahte token omru; backend JWT_ACCESS_TTL_MIN=30 ile ayni (docs/DEPLOYMENT.md)
 const ACCESS_TOKEN_TTL_SECONDS = 30 * 60;
-
-function mockRole(): Role {
-  const role = process.env.NEXT_PUBLIC_MOCK_ROLE as Role | undefined;
-  return role && role in USERS ? role : "REPORTER";
-}
-
-// Giris yapan fixture kullanicisi; sayfa yenilenince sifirlanir ve NEXT_PUBLIC_MOCK_ROLE'e donulur.
-// Boylece her rol, sunucuyu yeniden baslatmadan o rolun e-postasiyla giris yaparak denenebilir (e2e/).
-let signedIn: Schemas["UserRead"] | null = null;
-
-function currentUser(): Schemas["UserRead"] {
-  return signedIn ?? USERS[mockRole()];
-}
 
 function error(status: number, code: string, message: string) {
   const body: Schemas["ErrorRead"] = { error: { code, message, details: {} } };
@@ -69,13 +53,13 @@ export const handlers = [
       if (!user || password !== MOCK_PASSWORD) {
         return error(401, "UNAUTHORIZED", "E-posta veya parola hatalı.");
       }
-      signedIn = user;
+      signInAs(user);
       return HttpResponse.json(token);
     },
   ),
   http.post(apiUrl("/auth/refresh"), () => HttpResponse.json(token)),
   http.post(apiUrl("/auth/logout"), () => {
-    signedIn = null;
+    signInAs(null);
     return new HttpResponse(null, { status: 204 });
   }),
   http.get(apiUrl("/auth/me"), () => HttpResponse.json(currentUser())),

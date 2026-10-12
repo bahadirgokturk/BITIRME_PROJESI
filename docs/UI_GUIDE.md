@@ -170,6 +170,13 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
 - Kapanıştan sonraki 72 saat içinde puan kartı: 1–5 yıldız + isteğe bağlı yorum (bir kez) ve aynı kartta
   "Sorun devam ediyor" (reopen; gerekçe zorunlu). Telefonda alttan açılan panel, masaüstünde ortada pencere.
   72 saat geçince kart gösterilmez; puan verildiyse yalnız verilen puan görünür. Kurallar: `lib/caseActions.ts`.
+- **Yorumlar** (bildirim detayı, görev detayı ve müdürün bildirim detayı; tek bileşen `CaseComments`): yorum listesi
+  (ad, rol, zaman, metin) ve altında "Yorum yaz" kutusu + "Gönder". Bildirim yapan yalnız herkese açık yorum yazar ve
+  görür. Personel ve müdür "İç not (bildirim yapan görmez)" kutusunu işaretleyerek iç not yazabilir; iç not gri
+  kutuda ve "İç not" etiketiyle gösterilir (yalnız renkle değil). Yönetici yorumları okur, yazma kutusu çıkmaz
+  (backend `403`). Yorum en fazla 2000 karakter; boşken "Gönder" kapalıdır, gönderilince kutu boşalır, hata olursa
+  yazılan durur. Yorum yoksa "Henüz yorum yok.". Ek bilgi yanıtı da yorum olarak listede görünür. Kurallar:
+  `lib/comments.ts`.
 
 ### 5.3 Staff — `/staff/tasks`, `/staff/tasks/[id]`
 

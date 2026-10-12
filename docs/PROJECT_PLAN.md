@@ -59,7 +59,7 @@ Her fazın başında iş şu sırayla ilerler (ayrıntı: [UI_GUIDE.md](UI_GUIDE
 | E2 | **Kimlik & Yönetim** | | |
 | E2-1 | Login/refresh/logout, argon2, JWT | 3 | A |
 | E2-2 | RBAC dependency + ownership yardımcıları + testleri | 3 | A |
-| E2-3 | Admin CRUD: users, departments, locations (hiyerarşi), case types, SLA, agent policies | 3–4 | A (API ✅) + B/C (ekran: kullanıcı, birim, lokasyon ✅; tür, SLA, politika bekliyor) |
+| E2-3 | Admin CRUD: users, departments, locations (hiyerarşi), case types, SLA, agent policies | 3–4 | A (API ✅) + B/C (ekran ✅: kullanıcı, birim, lokasyon, tür, SLA, politika, işlem kayıtları) |
 | E2-4 | Campus template seed (YAML → DB, idempotent), [DEPARTMENTS.md](DEPARTMENTS.md) matrisinden | 3 | A |
 | E2-5 | Audit log | 4 | A ✅ |
 | E3 | **Case Yönetimi** | | |
@@ -67,7 +67,7 @@ Her fazın başında iş şu sırayla ilerler (ayrıntı: [UI_GUIDE.md](UI_GUIDE
 | E3-2 | WorkflowService + transition tablosu + event yazımı (%100 test) | 4 | A |
 | E3-3 | Attachment upload (validation, local storage adapter) | 4 | A |
 | E3-4 | `/report` formu (lokasyon seçici, foto) ve `/my-cases`, `/cases/[id]` | 4 | B/C |
-| E3-5 | Yorumlar, geri bildirim, reopen | 8 | A (API) + B/C (ekran) |
+| E3-5 | Yorumlar, geri bildirim, reopen | 8 | A (API ✅) + B/C (ekran ✅) |
 | E4 | **Task & SLA** | | |
 | E4-1 | Task modeli + case senkronizasyonu | 5 | A |
 | E4-2 | SLA kural eşleşmesi, `due_at`, SLA status hesabı | 5 | A |

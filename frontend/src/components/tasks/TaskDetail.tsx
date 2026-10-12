@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { PageTitle } from "@/components/layout/PageTitle";
+import { CaseComments } from "@/components/cases/CaseComments";
 import { ErrorState } from "@/components/states/ErrorState";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -84,6 +85,8 @@ function TaskDetailView({ task }: { task: TaskRead }) {
         ) : null}
         <Field label="Atanma">{formatDateTime(task.created_at)}</Field>
       </dl>
+      {/* Bildirenle yazisma ve ekip ici notlar (ic not bildirene gorunmez) */}
+      <CaseComments caseId={task.case_id} />
       <TaskActionBar task={task} />
     </>
   );

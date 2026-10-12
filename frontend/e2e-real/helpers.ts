@@ -187,3 +187,13 @@ export async function agentDecisions(request: APIRequestContext, caseId: string)
   expect(response.ok()).toBe(true);
   return (await response.json()) as AgentDecision[];
 }
+
+// Acik olan bildirim ya da gorev ekranindaki "Yorumlar" bolumune yazar; ic notu yalniz personel ve mudur gorur
+export async function writeComment(page: Page, text: string, internal = false) {
+  await page.getByLabel("Yorum yaz").fill(text);
+  if (internal) {
+    await page.getByLabel("İç not (bildirim yapan görmez)").check();
+  }
+  await page.getByRole("button", { name: "Gönder" }).click();
+  await expect(page.getByRole("list", { name: "Yorumlar" }).getByText(text)).toBeVisible();
+}
