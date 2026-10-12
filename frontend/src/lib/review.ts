@@ -49,14 +49,14 @@ export function reviewActions(item: ReviewItem): ReviewActions {
 
 // Agent adlari backend'deki sinif adlari (backend/app/agents/*.py name)
 const AGENT_LABELS: Readonly<Record<string, string | undefined>> = {
-  intake: "Ön kontrol",
+  intake: "Ön inceleme",
   classification: "Sınıflandırma",
   priority: "Öncelik",
   verification: "Doğrulama",
   duplicate: "Tekrar kontrolü",
   routing: "Yönlendirme",
-  supervisor: "Karar (Supervisor)",
-  resolution: "Çözüm kontrolü",
+  supervisor: "Karar",
+  resolution: "İş kontrolü",
   monitoring: "İzleme",
 };
 
@@ -95,7 +95,8 @@ export function decisionReasons(reasons: readonly Record<string, unknown>[]): De
     .map((reason) => ({
       code: typeof reason.code === "string" ? reason.code : "",
       message: reason.message as string,
-      weight: typeof reason.weight === "number" ? reason.weight : null,
+      // Sifir agirlik okuyana bir sey soylemez ("... yok. 0" gibi gorunur)
+      weight: typeof reason.weight === "number" && reason.weight !== 0 ? reason.weight : null,
     }));
 }
 

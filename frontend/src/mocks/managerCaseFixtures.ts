@@ -25,6 +25,18 @@ const ELEVATOR = { id: 7, code: "ELEVATOR_FAILURE", name: "Asansör arızası" }
 const ELECTRIC = { id: 6, code: "ELECTRICAL_FAILURE", name: "Elektrik arızası" };
 const INTERNET = { id: 9, code: "INTERNET_DOWN", name: "İnternet yok" };
 
+// Kategori turden gelir (gercek backend bildirimle birlikte doner)
+const CATEGORIES: Record<string, CaseRead["category"] | undefined> = {
+  SOAP_EMPTY: "CONSUMABLE",
+  TRASH_FULL: "CLEANING",
+  PROJECTOR_FAILURE: "TECHNICAL",
+  ELEVATOR_FAILURE: "TECHNICAL",
+  ELECTRICAL_FAILURE: "TECHNICAL",
+  INTERNET_DOWN: "IT",
+};
+
+const categoryOf = (sample: Sample) => CATEGORIES[sample.case_type?.code ?? ""] ?? null;
+
 interface Sample {
   title: string;
   place: string;
@@ -66,6 +78,7 @@ function build(sample: Sample, index: number): CaseRead {
     reporter_id: OTHER_REPORTER_ID,
     status: sample.status,
     case_type: sample.case_type ?? null,
+    category: categoryOf(sample),
     department: sample.department ?? null,
     priority: sample.priority ?? null,
     created_at: minutesFromNow(-(index + 1) * MINUTES_BETWEEN_CASES),

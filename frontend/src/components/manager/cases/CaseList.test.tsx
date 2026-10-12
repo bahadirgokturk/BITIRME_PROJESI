@@ -36,7 +36,7 @@ describe("CaseList", () => {
     await screen.findByRole("list", { name: "Bildirimler" });
     expect(rows()).toHaveLength(20);
     const first = rows()[0]!;
-    expect(within(first).getByRole("link")).toHaveAttribute("href", "/cases/301");
+    expect(within(first).getByRole("link")).toHaveAttribute("href", "/manager/cases/301");
     expect(first).toHaveTextContent("CASE-000301");
     expect(first).toHaveTextContent("B Blok Zemin Kat WC'de sabun bitmiş");
     expect(first).toHaveTextContent("Sabun bitti · B Blok Zemin Kat WC");

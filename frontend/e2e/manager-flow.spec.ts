@@ -37,3 +37,17 @@ test("a manager finds a case in the full list by searching", async ({ page }) =>
   await expect(list.getByRole("listitem")).toHaveCount(1);
   await expect(list.getByText(firstNumber)).toBeVisible();
 });
+
+// Kendiliginden atanan bildirimde de yapay zekanin gerekcesi gorulur (mocks/managerCaseDetailFixtures.ts)
+test("a manager opens a case from the list and reads why the AI decided so", async ({ page }) => {
+  await signIn(page, "MANAGER");
+  await openFromMenu(page, "Tüm Bildirimler");
+  await page.getByRole("list", { name: "Bildirimler" }).getByRole("link").first().click();
+
+  await expect(page).toHaveURL(/\/manager\/cases\/\d+$/);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("sabun bitmiş");
+  const decisions = page.getByRole("list", { name: "Yapay zekâ kararları" });
+  await expect(decisions.getByText("Model tahmini: Sabun bitti (%94)")).toBeVisible();
+  await expect(decisions.getByText("Görev personele atandı")).toBeVisible();
+  await expect(page.getByRole("list", { name: "Zaman çizelgesi" }).getByText("Görev açıldı")).toBeVisible();
+});

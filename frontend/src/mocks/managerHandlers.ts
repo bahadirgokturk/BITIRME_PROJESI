@@ -5,6 +5,7 @@ import { http, HttpResponse } from "msw";
 import { apiUrl } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
 
+import { MANAGER_DECISIONS } from "./managerCaseDetailFixtures";
 import { CASE_TYPE_OPTIONS, DECISIONS, DEPARTMENT_OPTIONS, REVIEW_ITEMS } from "./managerFixtures";
 
 type Schemas = components["schemas"];
@@ -78,7 +79,7 @@ export const managerHandlers = [
     HttpResponse.json({ items: queue, total: queue.length, page: 1 }),
   ),
 
-  http.get(apiUrl("/cases/:id/decisions"), ({ params }) => HttpResponse.json(DECISIONS[Number(params.id)] ?? [])),
+  http.get(apiUrl("/cases/:id/decisions"), ({ params }) => HttpResponse.json(DECISIONS[Number(params.id)] ?? MANAGER_DECISIONS[Number(params.id)] ?? [])),
 
   http.post(apiUrl("/cases/:id/assign"), ({ params }) => resolve(params.id, "ASSIGNED")),
 

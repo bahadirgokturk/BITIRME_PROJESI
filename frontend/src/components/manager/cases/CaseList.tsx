@@ -134,7 +134,7 @@ export function CaseList() {
       <header className="space-y-2">
         <PageTitle>Tüm Bildirimler</PageTitle>
         <p className="text-sm text-muted-foreground">
-          Kurumdaki bütün bildirimler. Aramak ya da süzmek için aşağıdaki alanları kullanın.
+          Kurumdaki bütün bildirimler. Aramak ya da filtrelemek için aşağıdaki alanları kullanın.
         </p>
       </header>
       <CaseFilters value={filters} onChange={setFilters} />
