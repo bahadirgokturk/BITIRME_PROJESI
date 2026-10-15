@@ -20,7 +20,10 @@ function KpiCard({ card, days }: { card: KpiCardView; days: number }) {
       <p className="text-sm font-medium">{card.label}</p>
       <p className="mt-1 text-2xl font-semibold md:text-3xl">{card.value}</p>
       <p className="mt-1 flex flex-col text-xs text-muted-foreground md:flex-row md:items-center md:gap-1.5">
-        <span className={cn("text-sm font-medium", TONE_CLASS[card.delta.tone])}>{card.delta.text}</span>
+        {/* Karsilastirma yoksa tek basina duran tire gosterilmez */}
+        {card.hasPrevious ? (
+          <span className={cn("text-sm font-medium", TONE_CLASS[card.delta.tone])}>{card.delta.text}</span>
+        ) : null}
         {card.hasPrevious ? `önceki ${days} güne göre` : "önceki dönemde veri yok"}
       </p>
     </li>

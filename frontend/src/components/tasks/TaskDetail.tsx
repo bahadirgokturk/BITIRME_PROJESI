@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTask } from "@/hooks/useTasks";
 import { ApiError } from "@/lib/api/client";
 import { formatDateTime } from "@/lib/dates";
-import { slaView, type TaskRead } from "@/lib/tasks";
+import { showsTaskTitle, slaView, type TaskRead } from "@/lib/tasks";
 
 import { EvidencePhotos } from "./EvidencePhotos";
 import { EvidenceRequestNote } from "./EvidenceRequestNote";
@@ -75,7 +75,7 @@ function TaskDetailView({ task }: { task: TaskRead }) {
       {task.status === "IN_PROGRESS" ? <EvidenceRequestNote task={task} /> : null}
       <TaskResult task={task} />
       <dl className={CARD_CLASS}>
-        <Field label="İş">{task.title}</Field>
+        {showsTaskTitle(task) ? <Field label="İş">{task.title}</Field> : null}
         <Field label="Açıklama">{task.description}</Field>
         <Field label="Birim">{task.department.name}</Field>
         {task.priority ? (

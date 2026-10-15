@@ -18,6 +18,9 @@ import {
 describe("formatting", () => {
   it("writes minutes as hours and minutes", () => {
     expect(formatMinutes(42)).toBe("42 dk");
+    // Dakikanin altindaki sure "0 dk" degil (is bir dakikadan kisa surdu)
+    expect(formatMinutes(0.3)).toBe("1 dk'dan kısa");
+    expect(formatMinutes(0)).toBe("1 dk'dan kısa");
     expect(formatMinutes(300)).toBe("5 sa");
     expect(formatMinutes(310)).toBe("5 sa 10 dk");
     expect(formatMinutes(2900)).toBe("2 gün");

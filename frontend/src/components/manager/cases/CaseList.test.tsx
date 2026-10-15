@@ -44,7 +44,7 @@ describe("CaseList", () => {
     expect(first).toHaveTextContent("Düşük");
     expect(first).toHaveTextContent("Atandı");
     expect(first).toHaveTextContent(/1 sa \d+ dk kaldı/);
-    expect(rows()[2]).toHaveTextContent("Müdüre yükseltildi");
+    expect(rows()[2]).toHaveTextContent("Yöneticiye iletildi");
     expect(rows()[2]).toHaveTextContent(/\d+ dk gecikti/);
   });
 

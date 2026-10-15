@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { TASKS } from "@/mocks/taskFixtures";
 
 import {
+  showsTaskTitle,
   addEvidence,
   evidenceRequest,
   EVIDENCE_MAX_BYTES,
@@ -132,5 +133,14 @@ describe("isValidTaskNote", () => {
     expect(isValidTaskNote("   ")).toBe(false);
     expect(isValidTaskNote("Bu iş teknik ekibin.")).toBe(true);
     expect(isValidTaskNote("a".repeat(TASK_NOTE_MAX_LENGTH + 1))).toBe(false);
+  });
+});
+
+describe("showsTaskTitle", () => {
+  const task = TASKS[0]!;
+
+  it("hides the job line when it only repeats the description", () => {
+    expect(showsTaskTitle({ ...task, title: "Sabun bitmiş.", description: "Sabun bitmiş." })).toBe(false);
+    expect(showsTaskTitle({ ...task, title: "Sabunluğu doldur", description: "Sabun bitmiş." })).toBe(true);
   });
 });

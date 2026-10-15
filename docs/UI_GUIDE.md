@@ -101,20 +101,20 @@ Figma değişkenleri (Variables) **koddaki CSS değişkenleriyle aynı adla** ta
 ### 4.1 Durum, öncelik ve SLA gösterimi
 
 Değerler backend enum'larıdır ([DATABASE.md](DATABASE.md) bölüm 2); etiket ve renk eşlemesi kodda **tek dosyada**
-(`frontend/src/lib/status.ts`) tutulur. Figma'daki Badge bileşeni bu tabloyla birebir çizilir.
+(`frontend/src/lib/caseList.ts`, `CASE_STATUS_LABELS`) tutulur. Figma'daki Badge bileşeni bu tabloyla birebir çizilir.
 Renkler öneridir; ekip değiştirebilir ama tabloyu ve kodu birlikte günceller.
 
 | `case_status` | Etiket (manager/staff) | Renk |
 |---|---|---|
 | NEW | Yeni | gri |
-| ANALYZING | Analiz ediliyor | mavi |
+| ANALYZING | İnceleniyor | mavi |
 | NEEDS_INFO | Bilgi bekleniyor | amber |
 | CLASSIFIED | Sınıflandırıldı | mavi |
 | ASSIGNED | Atandı | indigo |
 | ACCEPTED | Kabul edildi | indigo |
 | IN_PROGRESS | Çalışılıyor | mor |
 | RESOLVED | Çözüldü | yeşil |
-| VERIFICATION | Doğrulamada | yeşil (açık) |
+| VERIFICATION | Doğrulanıyor | yeşil (açık) |
 | CLOSED | Kapandı | gri (koyu) |
 | REOPENED | Yeniden açıldı | amber |
 | ESCALATED | Yöneticiye iletildi | kırmızı |
