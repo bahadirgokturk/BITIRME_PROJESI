@@ -11,6 +11,7 @@ export type SummaryPeriod = Schemas["SummaryPeriod"];
 type Granularity = Schemas["Granularity"];
 
 const NO_DATA = "–";
+const UNDER_A_MINUTE = "1 dk'dan kısa";
 const MINUTES_PER_HOUR = 60;
 const MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -40,6 +41,10 @@ export function formatMinutes(value: number | null): string {
     return NO_DATA;
   }
   const minutes = Math.round(value);
+  // Dakikanin altindaki is "0 dk" diye yazilmaz; okuyan sureyi yanlis anlar
+  if (minutes < 1) {
+    return UNDER_A_MINUTE;
+  }
   if (minutes < MINUTES_PER_HOUR) {
     return `${minutes} dk`;
   }

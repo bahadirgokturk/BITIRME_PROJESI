@@ -102,7 +102,7 @@ describe("managerEventLabel", () => {
   it("names the step in plain words", () => {
     expect(managerEventLabel(event({}))).toBe("Bildirim açıldı");
     expect(managerEventLabel(event({ event_type: "TASK_CREATED" }))).toBe("Görev açıldı");
-    expect(managerEventLabel(event({ event_type: "ESCALATED" }))).toBe("Müdüre yükseltildi");
+    expect(managerEventLabel(event({ event_type: "ESCALATED" }))).toBe("Yöneticiye iletildi");
     expect(managerEventLabel(event({ event_type: "DECISION_OVERRIDDEN" }))).toBe("Yapay zekâ kararı düzeltildi");
   });
 

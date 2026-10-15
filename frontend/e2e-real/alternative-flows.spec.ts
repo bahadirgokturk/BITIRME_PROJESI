@@ -46,7 +46,7 @@ test("a safety problem waits for the manager, who sees the AI reasoning and assi
   await decision.getByRole("button", { name: "Onayla ve ata" }).click();
   await expect(page.getByRole("status").filter({ hasText: "atandı." })).toBeVisible();
   await expect(decision).toBeHidden();
-  await expect(page.getByRole("list", { name: "Durum" }).getByText("Müdüre yükseltildi")).toBeHidden();
+  await expect(page.getByRole("list", { name: "Durum" }).getByText("Yöneticiye iletildi")).toBeHidden();
 
   await signIn(page, "technician");
   await completeTask(page, reported.number, COMPLETION_NOTE);

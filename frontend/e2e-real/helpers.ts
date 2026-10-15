@@ -194,6 +194,7 @@ export async function writeComment(page: Page, text: string, internal = false) {
   if (internal) {
     await page.getByLabel("İç not (bildirim yapan görmez)").check();
   }
-  await page.getByRole("button", { name: "Gönder" }).click();
+  // Tam ad: ayni ekranda puan gonderme ya da "gonderiliyor" dugmesi de olabilir
+  await page.getByRole("button", { name: "Gönder", exact: true }).click();
   await expect(page.getByRole("list", { name: "Yorumlar" }).getByText(text)).toBeVisible();
 }

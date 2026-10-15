@@ -24,7 +24,7 @@ export const CASE_STATUS_LABELS: Record<CaseStatus, string> = {
   VERIFICATION: "Doğrulanıyor",
   CLOSED: "Kapandı",
   REOPENED: "Yeniden açıldı",
-  ESCALATED: "Müdüre yükseltildi",
+  ESCALATED: "Yöneticiye iletildi",
   REJECTED: "Reddedildi",
   MERGED: "Birleştirildi",
 };

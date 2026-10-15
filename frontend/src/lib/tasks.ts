@@ -82,6 +82,11 @@ export interface SlaView {
 
 // SLA rozeti: renk backend'in sla_status degerinden, metin bitis zamanina kalan sureden gelir.
 // Bitis zamani olmayan ya da ana eylemi kalmayan (bitmis) gorevde rozet gosterilmez.
+// Is basligi aciklamadan uretilmisse ayni metin iki kez yazilmaz (backend title_from)
+export function showsTaskTitle(task: Pick<TaskRead, "title" | "description">): boolean {
+  return task.title.trim() !== task.description.trim();
+}
+
 export function slaView(task: TaskRead, now: Date = new Date()): SlaView | null {
   if (!task.due_at || !task.sla_status || ACTIONS[task.status].primary === null) {
     return null;

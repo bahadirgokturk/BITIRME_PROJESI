@@ -40,6 +40,8 @@ describe("Dashboard", () => {
     expect(card("Ortalama Çözüm Süresi")).toHaveTextContent("5 sa 10 dk");
     expect(card("Otomasyon Oranı")).toHaveTextContent("%78");
     expect(card("Müdür İncelemesi Oranı")).toHaveTextContent("önceki dönemde veri yok");
+    // Karsilastirma yoksa tek basina duran tire gosterilmez
+    expect(card("Müdür İncelemesi Oranı")).not.toHaveTextContent("–");
   });
 
   it("answers the question in each chart title and lists the numbers as text", async () => {

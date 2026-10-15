@@ -107,6 +107,8 @@ describe("labels", () => {
   it("rounds confidence to a whole percent", () => {
     expect(confidencePercent(0.914)).toBe("%91");
     expect(confidencePercent(null)).toBeNull();
+    // Sifir guven ("benzer bildirim yok" gibi) okuyana bir sey soylemez
+    expect(confidencePercent(0)).toBeNull();
   });
 });
 

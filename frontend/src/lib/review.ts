@@ -13,7 +13,7 @@ export interface ReviewBadge {
   tone: BadgeTone;
 }
 
-// Ilk eslesen kazanir. ESCALATED kirmizi: UI_GUIDE 4.1'de "Yoneticiye iletildi" kirmizi
+// Ilk eslesen kazanir. ESCALATED kirmizi; etiket durum etiketiyle ayni (UI_GUIDE 4.1, lib/caseList.ts)
 const BADGE_RULES: readonly { applies: (item: ReviewItem) => boolean; badge: ReviewBadge }[] = [
   { applies: (item) => item.case.status === "VERIFICATION", badge: { label: "Çözüm doğrulama", tone: "neutral" } },
   { applies: (item) => item.case.status === "ESCALATED", badge: { label: "Yöneticiye iletildi", tone: "danger" } },
@@ -79,7 +79,8 @@ export function priorityLabel(priority: Priority): string {
 const PERCENT = 100;
 
 export function confidencePercent(value: number | null): string | null {
-  return value === null ? null : `%${Math.round(value * PERCENT)}`;
+  // Sifir guven (ornegin "benzer bildirim yok") okuyana bir sey soylemez; cubuk da cizilmez
+  return value === null || value === 0 ? null : `%${Math.round(value * PERCENT)}`;
 }
 
 export interface DecisionReason {

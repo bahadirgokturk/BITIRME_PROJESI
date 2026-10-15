@@ -83,7 +83,7 @@ const EVENT_LABELS: Readonly<Record<string, string | undefined>> = {
   SLA_WARNING: "Hedef süre dolmak üzere",
   SLA_BREACHED: "Hedef süre aşıldı",
   REASSIGN_RECOMMENDED: "Yeniden atama önerildi",
-  ESCALATED: "Müdüre yükseltildi",
+  ESCALATED: "Yöneticiye iletildi",
   DECISION_OVERRIDDEN: "Yapay zekâ kararı düzeltildi",
   COMMENT_ADDED: "Yorum yazıldı",
   FEEDBACK_SUBMITTED: "Bildiren değerlendirdi",
