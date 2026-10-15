@@ -27,3 +27,5 @@ uv run python -m training.evaluate_model --model models/classifier/v1/model.jobl
   `evaluate_model.py` ile ölçülür.
 - **Tekrarlanabilirlik:** Üretim ve eğitim tohumla (`--seed`, varsayılan 42) aynı sonucu verir.
 - **Etiketli CSV biçimi:** `text,label` (label = case type kodu, [DEPARTMENTS.md](../docs/DEPARTMENTS.md)).
+- **Gerçek veri:** anonim Google Form metni, temizleme ve iki kişilik etiketleme adımları
+  [docs/DATA_COLLECTION.md](../docs/DATA_COLLECTION.md) (`training/form_data.py prepare` / `merge`).

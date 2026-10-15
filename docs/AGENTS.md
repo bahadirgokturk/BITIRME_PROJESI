@@ -352,6 +352,7 @@ Tam liste, kategoriler ve birim eşleşmesi: [DEPARTMENTS.md](DEPARTMENTS.md) (�
    Hedef ~3.000 örnek.
 2. **Gerçek veri (küçük ama değerli):** Sınıf arkadaşlarından anonim Google Form ile ~300–500 serbest
    metin bildirim toplanır, ekip tarafından 2 kişi bağımsız etiketler (Cohen's kappa raporlanır).
+   Form metni, KVKK bilgilendirmesi ve etiketleme adımları: [DATA_COLLECTION.md](DATA_COLLECTION.md).
 3. **Değerlendirme dürüstlüğü:** Test seti **yalnızca gerçek veriden** oluşur (sentetik veri ile test
    etmek başarıyı şişirir). Eğitim: sentetik + gerçeğin eğitim kısmı.
    **Uygulandı (E5-3):** `ai/generators/synthesize.py` (19 tür × 160 = 3.040 örnek, tohumlu), `ai/training/`.
