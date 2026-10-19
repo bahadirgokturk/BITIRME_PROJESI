@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { PROGRESS_STEPS, reporterView, stepState } from "./status";
+import { MY_CASES_FILTERS, PROGRESS_STEPS, myCasesPath, reporterView, stepState } from "./status";
 
 describe("stepState", () => {
   it.each([
@@ -49,5 +49,24 @@ describe("reporterView", () => {
     const view = reporterView("NEEDS_INFO", "Hangi katta?");
 
     expect(view).toEqual({ kind: "notice", message: "Ek bilgi gerekiyor: Hangi katta?" });
+  });
+});
+
+describe("myCasesPath", () => {
+  it("asks for every case of the reporter when nothing is filtered", () => {
+    expect(myCasesPath("all", 1)).toBe("/cases/mine?page=1&page_size=20");
+  });
+
+  // Bildirenin /cases kapsami yalniz kendi bildirimleridir (backend case_service.scope_for)
+  it("asks for the open or solved ones by the same steps the reporter sees", () => {
+    expect(myCasesPath("solved", 2)).toBe(
+      "/cases?page=2&page_size=20&status=RESOLVED&status=VERIFICATION&status=CLOSED",
+    );
+    const open = new URLSearchParams(myCasesPath("open", 1).split("?")[1]).getAll("status");
+    expect(open).toEqual(["NEW", "ANALYZING", "CLASSIFIED", "REOPENED", "ASSIGNED", "ACCEPTED", "ESCALATED", "IN_PROGRESS", "NEEDS_INFO"]);
+  });
+
+  it("offers three plain choices", () => {
+    expect(MY_CASES_FILTERS.map((item) => item.label)).toEqual(["Tümü", "Açık", "Çözülen"]);
   });
 });

@@ -83,15 +83,35 @@ export function deltaView(deltaPct: number | null, better: Better): DeltaView {
 }
 
 type KpiKey = Exclude<keyof KpisRead, "period">;
+type KpiValue = Schemas["KpiValue"];
+type Format = (value: number | null) => string;
 
-const KPI_CARDS: readonly { key: KpiKey; label: string; format: (value: number | null) => string; better: Better }[] = [
-  { key: "open_cases", label: "Açık Bildirim", format: formatCount, better: "lower" },
-  { key: "sla_compliance_pct", label: "SLA Uyumu", format: formatPercent, better: "higher" },
-  { key: "avg_resolution_min", label: "Ortalama Çözüm Süresi", format: formatMinutes, better: "lower" },
-  { key: "automation_pct", label: "Otomasyon Oranı", format: formatPercent, better: "higher" },
-  { key: "cases_today", label: "Bugün Açılan", format: formatCount, better: "none" },
-  { key: "human_review_pct", label: "Müdür İncelemesi Oranı", format: formatPercent, better: "lower" },
+// Bundan buyuk yuzde okunmaz ("%2000"): onceki donem cok kucuktur, fark kartin kendi biriminde yazilir
+const READABLE_CHANGE_PCT = 100;
+
+const formatPoints: Format = (value) => `${formatCount(value)} puan`;
+
+const KPI_CARDS: readonly { key: KpiKey; label: string; format: Format; difference: Format; better: Better }[] = [
+  { key: "open_cases", label: "Açık Bildirim", format: formatCount, difference: formatCount, better: "lower" },
+  { key: "sla_compliance_pct", label: "SLA Uyumu", format: formatPercent, difference: formatPoints, better: "higher" },
+  { key: "avg_resolution_min", label: "Ortalama Çözüm Süresi", format: formatMinutes, difference: formatMinutes, better: "lower" },
+  { key: "automation_pct", label: "Otomasyon Oranı", format: formatPercent, difference: formatPoints, better: "higher" },
+  { key: "cases_today", label: "Bugün Açılan", format: formatCount, difference: formatCount, better: "none" },
+  { key: "human_review_pct", label: "Müdür İncelemesi Oranı", format: formatPercent, difference: formatPoints, better: "lower" },
 ];
+
+// Cok buyuk degisimde yuzde yerine fark: "%2000 artti" yerine "40 artti", oranlarda "12 puan"
+function kpiDelta(kpi: KpiValue, better: Better, difference: Format): DeltaView {
+  const view = deltaView(kpi.delta_pct, better);
+  if (kpi.delta_pct === null || kpi.value === null || kpi.previous === null) {
+    return view;
+  }
+  if (Math.abs(kpi.delta_pct) <= READABLE_CHANGE_PCT) {
+    return view;
+  }
+  const change = kpi.value - kpi.previous;
+  return { ...view, text: `${change > 0 ? "▲" : "▼"} ${difference(Math.abs(change))}` };
+}
 
 export interface KpiCardView {
   label: string;
@@ -107,7 +127,7 @@ export function kpiCards(kpis: KpisRead): KpiCardView[] {
     return {
       label: card.label,
       value: card.format(kpi.value),
-      delta: deltaView(kpi.delta_pct, card.better),
+      delta: kpiDelta(kpi, card.better, card.difference),
       hasPrevious: kpi.delta_pct !== null,
     };
   });

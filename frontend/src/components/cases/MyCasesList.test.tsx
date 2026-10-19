@@ -142,4 +142,56 @@ describe("MyCasesList", () => {
     expect(within(alert).getByRole("button", { name: "Tekrar dene" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Bildirim 1\b/ })).toBeInTheDocument();
   });
+
+  it("filters the reporter's own cases into open and solved", async () => {
+    const asked: string[][] = [];
+    server.use(
+      http.get(apiUrl("/cases"), ({ request }) => {
+        const statuses = new URL(request.url).searchParams.getAll("status");
+        asked.push(statuses);
+        const solved = statuses.includes("CLOSED");
+        const item = { ...CASES[0]!, id: 2001, title: solved ? "Çözülen bildirim" : "Açık bildirim" };
+        return HttpResponse.json({ items: [item], total: 1, page: 1 });
+      }),
+    );
+    renderList();
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Açık" }));
+
+    expect(await screen.findByText("Açık bildirim")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Açık" })).toHaveAttribute("aria-pressed", "true");
+    expect(asked.at(-1)).toContain("IN_PROGRESS");
+    expect(asked.at(-1)).not.toContain("CLOSED");
+
+    await user.click(screen.getByRole("button", { name: "Çözülen" }));
+
+    expect(await screen.findByText("Çözülen bildirim")).toBeInTheDocument();
+    expect(asked.at(-1)).toEqual(["RESOLVED", "VERIFICATION", "CLOSED"]);
+  });
+
+  it("says when no case matches the filter and offers to show them all", async () => {
+    server.use(http.get(apiUrl("/cases"), () => HttpResponse.json({ items: [], total: 0, page: 1 })));
+    renderList();
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Açık" }));
+
+    expect(await screen.findByText("Açık bildiriminiz yok.")).toBeInTheDocument();
+    // Bildirim yap dugmesi ustte kalir: bildirenin baska bildirimleri var
+    expect(screen.getByRole("link", { name: "Bildirim yap" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Tümünü göster" }));
+
+    expect(screen.getByRole("button", { name: "Tümü" })).toHaveAttribute("aria-pressed", "true");
+    expect(await screen.findAllByRole("link", { name: /CASE-/ })).not.toHaveLength(0);
+  });
+
+  it("offers no filter before the reporter has any case", async () => {
+    server.use(http.get(apiUrl("/cases/mine"), () => HttpResponse.json({ items: [], total: 0, page: 1 })));
+    renderList();
+
+    expect(await screen.findByText("Henüz bildiriminiz yok.")).toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Durum" })).not.toBeInTheDocument();
+  });
 });

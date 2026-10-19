@@ -1,3 +1,5 @@
+"use client";
+
 import { barPercent, formatMinutes } from "@/lib/analytics";
 import {
   agingHeadline,
@@ -17,6 +19,7 @@ import {
 
 import { BarList, type BarItem } from "../BarList";
 import { ChartCard } from "../dashboard/ChartCard";
+import { ShowAllButton, useShowAll } from "./ShowAll";
 
 const NOTE_CLASS = "text-xs text-muted-foreground";
 const EMPTY_CLASS = "text-sm text-muted-foreground";
@@ -30,9 +33,11 @@ export function LocationsCard({ locations }: { locations: LocationsRead }) {
     percent: row.percent,
     hint: row.hint,
   }));
+  const { visible, showAll, hasMore, toggle } = useShowAll(items);
   return (
     <ChartCard title={busiestLocationHeadline(locations)} subtitle={subtitle} className="h-full">
-      {items.length === 0 ? <p className={EMPTY_CLASS}>Bu dönemde bildirim yok.</p> : <BarList label={subtitle} items={items} />}
+      {items.length === 0 ? <p className={EMPTY_CLASS}>Bu dönemde bildirim yok.</p> : <BarList label={subtitle} items={visible} />}
+      {hasMore && <ShowAllButton showAll={showAll} totalText={`${items.length} binanın`} onClick={toggle} />}
     </ChartCard>
   );
 }

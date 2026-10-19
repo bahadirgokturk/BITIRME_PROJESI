@@ -42,6 +42,16 @@ describe("TaskDetail", () => {
     expect(screen.getByText("Düşük")).toBeInTheDocument();
   });
 
+  // Gorevli ana dugmeleri kaydirmadan gorur; yorumlar dugmelerin altinda kalir
+  it("puts the task actions above the comments", async () => {
+    renderDetail(PENDING[0]!.id);
+
+    const accept = await screen.findByRole("button", { name: "Kabul et" });
+    const comments = screen.getByRole("heading", { name: "Yorumlar" });
+
+    expect(accept.compareDocumentPosition(comments) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it("walks a pending task: accept, then start", async () => {
     const user = renderDetail(PENDING[0]!.id);
 

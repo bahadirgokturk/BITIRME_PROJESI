@@ -52,3 +52,40 @@ export function stepState(step: ProgressStep, current: ProgressStep): StepState 
   }
   return position < 0 ? "done" : "todo";
 }
+
+// Bildirimlerim filtresi: bildirenin gordugu adimlarla ayni ayrim. "Cozulen" = Cozuldu adimi;
+// "Acik" = henuz cozulmemis olanlar (ek bilgi bekleyen dahil). Reddedilen ve birlestirilen yalniz "Tumu"nde.
+export type MyCasesFilter = "all" | "open" | "solved";
+
+export const MY_CASES_FILTERS: readonly { value: MyCasesFilter; label: string; empty: string }[] = [
+  { value: "all", label: "Tümü", empty: "Henüz bildiriminiz yok." },
+  { value: "open", label: "Açık", empty: "Açık bildiriminiz yok." },
+  { value: "solved", label: "Çözülen", empty: "Çözülen bildiriminiz yok." },
+];
+
+// Backend varsayilani ile ayni (backend/app/core/constants.py PAGE_SIZE_DEFAULT)
+export const MY_CASES_PAGE_SIZE = 20;
+
+const STATUSES = Object.keys(REPORTER_VIEWS) as CaseStatus[];
+const SET_ASIDE: readonly CaseStatus[] = ["MERGED", "REJECTED"];
+
+function isSolved(status: CaseStatus): boolean {
+  const view = REPORTER_VIEWS[status];
+  return view.kind === "progress" && view.step === "Çözüldü";
+}
+
+const FILTER_STATUSES: Record<Exclude<MyCasesFilter, "all">, CaseStatus[]> = {
+  open: STATUSES.filter((status) => !isSolved(status) && !SET_ASIDE.includes(status)),
+  solved: STATUSES.filter(isSolved),
+};
+
+// "Tumu" bildirenin kendi listesidir; filtrede /cases kullanilir, cunku backend bildirenin /cases kapsamini
+// yalniz kendi bildirimleriyle sinirlar (backend/app/services/case_service.py scope_for) ve durum filtresi alir
+export function myCasesPath(filter: MyCasesFilter, page: number): string {
+  const params = new URLSearchParams({ page: String(page), page_size: String(MY_CASES_PAGE_SIZE) });
+  if (filter === "all") {
+    return `/cases/mine?${params.toString()}`;
+  }
+  FILTER_STATUSES[filter].forEach((status) => params.append("status", status));
+  return `/cases?${params.toString()}`;
+}
