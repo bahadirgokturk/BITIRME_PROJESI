@@ -9,6 +9,7 @@ import { LOCATIONS, USERS } from "./fixtures";
 import { managerEventsFor } from "./managerCaseDetailFixtures";
 import { MANAGER_CASES } from "./managerCaseFixtures";
 import { findReviewCase } from "./managerHandlers";
+import { currentUser } from "./session";
 import { TASKS } from "./taskFixtures";
 import { taskEventsFor } from "./taskHandlers";
 
@@ -27,6 +28,12 @@ const cases: Schemas["CaseRead"][] = [...CASES];
 function error(status: number, code: string, message: string) {
   const body: Schemas["ErrorRead"] = { error: { code, message, details: {} } };
   return HttpResponse.json(body, { status });
+}
+
+// Backend scope_for gibi: bildiren /cases'te yalniz kendi bildirimlerini gorur, mudur ve yonetici hepsini
+function inScope(item: Schemas["CaseRead"]): boolean {
+  const user = currentUser();
+  return user.role !== "REPORTER" || item.reporter_id === user.id;
 }
 
 function page<T>(items: T[]) {
@@ -136,7 +143,7 @@ export const caseHandlers = [
   // Mudur listesi (/manager/cases): gercek API'deki suzgecler ve sayfalama (docs/API.md "Cases")
   http.get(apiUrl("/cases"), ({ request }) => {
     const params = new URL(request.url).searchParams;
-    const items = [...MANAGER_CASES, ...cases].filter((item) => matches(item, params));
+    const items = [...MANAGER_CASES, ...cases].filter((item) => inScope(item) && matches(item, params));
     const pageNumber = Number(params.get("page") ?? 1);
     const size = Number(params.get("page_size") ?? PAGE_SIZE_DEFAULT);
     const start = (pageNumber - 1) * size;

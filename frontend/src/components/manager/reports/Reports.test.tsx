@@ -36,7 +36,8 @@ describe("Reports", () => {
 
     expect(await heading("En yoğun bina: B Blok (21 bildirim)")).toBeInTheDocument();
     const buildings = screen.getByRole("list", { name: "Binaya göre bildirim sayısı" });
-    expect(within(buildings).getAllByRole("listitem")).toHaveLength(6);
+    // Uzun liste karti uzatmasin: once en yogun 5 bina, kalani istenince
+    expect(within(buildings).getAllByRole("listitem")).toHaveLength(5);
     expect(firstItem("Binaya göre bildirim sayısı")).toHaveTextContent("B Blok");
     expect(firstItem("Binaya göre bildirim sayısı")).toHaveTextContent("En çok: Temizlik");
 
@@ -113,6 +114,21 @@ describe("Reports", () => {
     await user.click(screen.getByRole("button", { name: "Daha az göster" }));
 
     expect(list.getAllByRole("listitem")).toHaveLength(5);
+  });
+
+  it("shows the five busiest buildings first and the rest on request", async () => {
+    const user = renderReports();
+
+    await heading("En yoğun bina: B Blok (21 bildirim)");
+    const buildings = within(screen.getByRole("list", { name: "Binaya göre bildirim sayısı" }));
+
+    await user.click(screen.getByRole("button", { name: "6 binanın hepsini göster" }));
+
+    expect(buildings.getAllByRole("listitem")).toHaveLength(6);
+
+    await user.click(screen.getByRole("button", { name: "Daha az göster" }));
+
+    expect(buildings.getAllByRole("listitem")).toHaveLength(5);
   });
 
   it("loads the last 30 days when the period is switched", async () => {

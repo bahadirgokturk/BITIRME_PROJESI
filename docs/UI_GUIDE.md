@@ -104,21 +104,26 @@ Değerler backend enum'larıdır ([DATABASE.md](DATABASE.md) bölüm 2); etiket 
 (`frontend/src/lib/caseList.ts`, `CASE_STATUS_LABELS`) tutulur. Figma'daki Badge bileşeni bu tabloyla birebir çizilir.
 Renkler öneridir; ekip değiştirebilir ama tabloyu ve kodu birlikte günceller.
 
-| `case_status` | Etiket (manager/staff) | Renk |
+Durum rozeti gri zeminde renkli nokta + durum adıdır; renkler görev rozetleriyle aynı **renk yolculuğunu** izler
+(beklerken turuncu, çalışırken geçişli, çözülünce turkuaz). Yalnız "Yöneticiye iletildi" kırmızı zeminde ikonla
+gösterilir. Kod: `CASE_STATUS_TONES` (`lib/caseList.ts`) ve `CaseStatusBadge` (`components/tasks/TaskBadges.tsx`);
+Figma: 02 Components > CaseStatusBadge.
+
+| `case_status` | Etiket (manager/staff) | Renk (token) |
 |---|---|---|
-| NEW | Yeni | gri |
-| ANALYZING | İnceleniyor | mavi |
-| NEEDS_INFO | Bilgi bekleniyor | amber |
-| CLASSIFIED | Sınıflandırıldı | mavi |
-| ASSIGNED | Atandı | indigo |
-| ACCEPTED | Kabul edildi | indigo |
-| IN_PROGRESS | Çalışılıyor | mor |
-| RESOLVED | Çözüldü | yeşil |
-| VERIFICATION | Doğrulanıyor | yeşil (açık) |
-| CLOSED | Kapandı | gri (koyu) |
-| REOPENED | Yeniden açıldı | amber |
-| ESCALATED | Yöneticiye iletildi | kırmızı |
-| REJECTED | Reddedildi | gri (üstü çizili değil, ikonlu) |
+| NEW | Yeni | gri (`muted-foreground`) |
+| ANALYZING | İnceleniyor | mavi (`info`) |
+| NEEDS_INFO | Bilgi bekleniyor | amber (`warning`) |
+| CLASSIFIED | Sınıflandırıldı | mavi (`info`) |
+| ASSIGNED | Atandı | koyu turuncu (`brand-accent-strong`) |
+| ACCEPTED | Kabul edildi | turuncu (`brand-accent`) |
+| IN_PROGRESS | Çalışılıyor | turuncudan turkuaza geçişli |
+| RESOLVED | Çözüldü | turkuaz (`primary`) |
+| VERIFICATION | Doğrulanıyor | turkuaz (`primary`) |
+| CLOSED | Kapandı | koyu turkuaz (`primary-strong`) |
+| REOPENED | Yeniden açıldı | amber (`warning`) |
+| ESCALATED | Yöneticiye iletildi | kırmızı zemin + ikon (`destructive`) |
+| REJECTED | Reddedildi | gri |
 | MERGED | Birleştirildi | gri |
 
 **Reporter için sadeleştirilmiş ilerleme** (kesinleşti, kod: `REPORTER_VIEWS` in `frontend/src/lib/status.ts`):
@@ -164,6 +169,11 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
 ### 5.2 Reporter — `/my-cases`, `/cases/[id]`
 
 - Liste kartı: kısa metin, konum, tarih, **4 adımlı ilerleme** (bölüm 4.1).
+- Listenin üstünde filtre: **Tümü / Açık / Çözülen**. "Çözülen" ilerlemedeki Çözüldü adımıdır; "Açık" henüz
+  çözülmemiş olanlar (ek bilgi bekleyen dahil); reddedilen ve birleştirilen yalnız "Tümü"nde. Filtreye uyan bildirim
+  yoksa "Açık bildiriminiz yok." ve "Tümünü göster". Hiç bildirimi olmayana filtre gösterilmez. Filtre `GET /cases`
+  ile durum süzerek istenir (backend bildirenin bu listesini yalnız kendi bildirimleriyle sınırlar); bu yüzden
+  yalnız bildiren rolünde çıkar. Kurallar: `lib/status.ts` (`myCasesPath`).
 - Detay: zaman çizelgesi reporter'a sade dilde ("Temizlik birimine yönlendirildi", "Görevli çalışmaya başladı").
   Agent adları, güven skorları, iç notlar reporter'a **gösterilmez**.
 - Ek bilgi istenen bildirimde (NEEDS_INFO) ilerleme çubuğu yerine soru + yanıt kutusu gösterilir.
@@ -182,6 +192,7 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
 
 - Liste sıralaması: SLA'ya kalan süre (en acil üstte). Kartta **konum** en büyük metin, sonra iş tanımı ve kalan süre.
 - Ana eylem butonu duruma göre tek ve büyük: **Kabul et** → **Başlat** → **Tamamla**. Dokunma alanı en az 44×44 px.
+  Detayda eylem butonları bilgilerin hemen altında, yorumların **üstünde** durur; görevli kaydırmadan görür.
 - Tamamla: not (isteğe bağlı) + kanıt fotoğrafı. Reddetme (decline) ikincil buton ve gerekçe ister.
 - Kartta ve detayda üç rozet: durum (renk yolculuğu: beklerken turuncu, çalışırken geçişli, bitince turkuaz nokta),
   öncelik ve SLA'ya kalan süre ("42 dk kaldı" / "25 dk gecikti"; yeşil `--success`, sarı `--warning`, kırmızı
@@ -209,7 +220,9 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   **Kodda olan (`/manager/dashboard`, menüde "Genel Bakış"):** dönem düğmesi (Son 7 gün / Son 30 gün), 6 KPI kartı
   (açık bildirim, SLA uyumu, ortalama çözüm süresi, otomasyon oranı, bugün açılan, müdür incelemesi oranı),
   açılan/kapanan çubuk grafiği, kategori çubukları ve yapay zekâ yönetim özeti. Değişim oku yöne göre değil iyi/kötü
-  olmasına göre renklenir (açık bildirim artarsa kırmızı ▲); önceki dönemde veri yoksa "–". Grafik kütüphanesi
+  olmasına göre renklenir (açık bildirim artarsa kırmızı ▲); önceki dönemde veri yoksa "önceki dönemde veri yok".
+  Değişim %100'den büyükse yüzde yerine fark kartın kendi biriminde yazılır ("▲ %2000" yerine "▲ 40", oranlarda
+  "▲ 12 puan", sürede "▲ 2 sa 10 dk"); önceki dönem çok küçükken yüzde anlamsız büyür. Grafik kütüphanesi
   kullanılmaz: çubuklar düz HTML/CSS, açılan turuncu ve kapanan turkuaz (renk yolculuğu); durum renkleri grafikte
   kullanılmaz. Sayılar ekran okuyucuya metin olarak da verilir. Telefonda kartlar ikişerli, grafikler alt alta.
   Kurallar: `lib/analytics.ts`.
@@ -219,8 +232,8 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   satır açıklama gösterilir. İstatistik terimi yazılmaz: medyan "Tipik süre", p90 "10 işten 9'u" diye geçer ve
   tablonun altında açıklanır. Çubuklar turkuaz; yalnız en eski bekleyenler (24+ sa) kırmızı, en yavaş adım turuncu ve
   "En yavaş" etiketli. Tablolar (`StatTable`) masaüstünde klasik tablo, telefonda her satır ikili ızgarada küçük bir
-  kart olur (sütun başlığı değerin üstüne yazılır). Tekrarlayan sorunlarda önce en çok tekrar eden 5 sorun görünür,
-  kalanı "N sorunun hepsini göster" düğmesiyle açılır; konum okunur adıyla (`location.name`) yazılır, kod yolu
+  kart olur (sütun başlığı değerin üstüne yazılır). Bina yoğunluğunda ve tekrarlayan sorunlarda önce ilk 5 satır görünür,
+  kalanı "N binanın / N sorunun hepsini göster" düğmesiyle açılır; konum okunur adıyla (`location.name`) yazılır, kod yolu
   (`path`) gösterilmez. Kurallar: `lib/reports.ts`.
 - **Yapay zekâ performansı (`/manager/agents`):** dört oran kutusu (otomasyon, müdür incelemesi, doğru tür tahmini,
   doğru tekrar tespiti; her birinin altında bir cümlelik açıklama) ve adım tablosu (karar sayısı, ortalama güven,

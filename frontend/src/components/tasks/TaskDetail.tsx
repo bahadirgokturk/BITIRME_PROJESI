@@ -85,9 +85,10 @@ function TaskDetailView({ task }: { task: TaskRead }) {
         ) : null}
         <Field label="Atanma">{formatDateTime(task.created_at)}</Field>
       </dl>
+      {/* Ana dugmeler yorumlarin ustunde: gorevli kaydirmadan gorur (Figma: 04 Staff > yorumlar) */}
+      <TaskActionBar task={task} />
       {/* Bildirenle yazisma ve ekip ici notlar (ic not bildirene gorunmez) */}
       <CaseComments caseId={task.case_id} />
-      <TaskActionBar task={task} />
     </>
   );
 }

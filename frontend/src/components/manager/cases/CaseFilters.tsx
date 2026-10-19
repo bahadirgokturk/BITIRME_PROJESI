@@ -1,5 +1,6 @@
 import { cn } from "cn";
 
+import { FilterChips } from "@/components/filters/FilterChips";
 import { STATUS_GROUPS, type CaseFilters as Filters } from "@/lib/caseList";
 import { PRIORITY_LABELS, type Priority } from "@/lib/tasks";
 
@@ -14,28 +15,7 @@ interface CaseFiltersProps {
   onChange: (filters: Filters) => void;
 }
 
-function StatusGroups({ value, onChange }: CaseFiltersProps) {
-  return (
-    <div role="group" aria-label="Durum" className="flex flex-wrap gap-2">
-      {STATUS_GROUPS.map((group) => (
-        <button
-          key={group.value}
-          type="button"
-          aria-pressed={group.value === value.group}
-          onClick={() => onChange({ ...value, group: group.value })}
-          className={cn(
-            "h-11 rounded-full border bg-background px-3.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50 md:h-9",
-            group.value === value.group && "border-primary bg-primary font-medium text-primary-foreground",
-          )}
-        >
-          {group.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-// Arama, oncelik ve durum grubu suzgecleri (Figma: 05 Manager > /manager/cases)
+// Arama, oncelik ve durum grubu filtreleri (Figma: 05 Manager > /manager/cases)
 export function CaseFilters({ value, onChange }: CaseFiltersProps) {
   return (
     <div className="space-y-3">
@@ -63,7 +43,12 @@ export function CaseFilters({ value, onChange }: CaseFiltersProps) {
           ))}
         </select>
       </div>
-      <StatusGroups value={value} onChange={onChange} />
+      <FilterChips
+        label="Durum"
+        options={STATUS_GROUPS}
+        value={value.group}
+        onChange={(group) => onChange({ ...value, group })}
+      />
     </div>
   );
 }

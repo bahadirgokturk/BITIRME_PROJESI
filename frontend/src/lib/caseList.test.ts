@@ -4,6 +4,7 @@ import { MANAGER_CASES } from "@/mocks/managerCaseFixtures";
 
 import {
   CASE_STATUS_LABELS,
+  CASE_STATUS_TONES,
   DEFAULT_FILTERS,
   STATUS_GROUPS,
   caseListQuery,
@@ -96,5 +97,23 @@ describe("shownSummary", () => {
     expect(shownSummary(20, 64)).toBe("64 bildirimin ilk 20 tanesi gösteriliyor");
     expect(shownSummary(64, 64)).toBe("64 bildirim");
     expect(shownSummary(1, 1)).toBe("1 bildirim");
+  });
+});
+
+describe("status tones", () => {
+  it("colours statuses along the journey from orange (waiting) to teal (solved)", () => {
+    expect(CASE_STATUS_TONES.ASSIGNED).toBe("waiting");
+    expect(CASE_STATUS_TONES.ACCEPTED).toBe("accepted");
+    expect(CASE_STATUS_TONES.IN_PROGRESS).toBe("working");
+    expect(CASE_STATUS_TONES.RESOLVED).toBe("solved");
+    expect(CASE_STATUS_TONES.CLOSED).toBe("closed");
+  });
+
+  it("marks what needs attention and greys out what is set aside", () => {
+    expect(CASE_STATUS_TONES.ESCALATED).toBe("alert");
+    expect(CASE_STATUS_TONES.NEEDS_INFO).toBe("warning");
+    expect(CASE_STATUS_TONES.ANALYZING).toBe("info");
+    expect(CASE_STATUS_TONES.MERGED).toBe("neutral");
+    expect(CASE_STATUS_TONES.REJECTED).toBe("neutral");
   });
 });

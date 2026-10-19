@@ -1,5 +1,5 @@
 // Mudurun "Tum Bildirimler" listesinin kurallari (/manager/cases; docs/UI_GUIDE.md bolum 5.4):
-// durum adlari, suzgec gruplari, istek sorgusu ve satir metinleri.
+// durum adlari ve renkleri, filtre gruplari, istek sorgusu ve satir metinleri.
 import type { components } from "@/lib/api/types";
 import { duration, type Priority, type SlaView } from "@/lib/tasks";
 
@@ -27,6 +27,36 @@ export const CASE_STATUS_LABELS: Record<CaseStatus, string> = {
   ESCALATED: "Yöneticiye iletildi",
   REJECTED: "Reddedildi",
   MERGED: "Birleştirildi",
+};
+
+// Durum rozetinin rengi (docs/UI_GUIDE.md bolum 4.1): gorev rozetleriyle ayni renk yolculugu;
+// beklerken turuncu, calisirken gecisli, cozulunce turkuaz. Mudure iletilen kirmizi ve ikonlu.
+export type StatusTone =
+  | "neutral"
+  | "info"
+  | "warning"
+  | "waiting"
+  | "accepted"
+  | "working"
+  | "solved"
+  | "closed"
+  | "alert";
+
+export const CASE_STATUS_TONES: Record<CaseStatus, StatusTone> = {
+  NEW: "neutral",
+  ANALYZING: "info",
+  NEEDS_INFO: "warning",
+  CLASSIFIED: "info",
+  ASSIGNED: "waiting",
+  ACCEPTED: "accepted",
+  IN_PROGRESS: "working",
+  RESOLVED: "solved",
+  VERIFICATION: "solved",
+  CLOSED: "closed",
+  REOPENED: "warning",
+  ESCALATED: "alert",
+  REJECTED: "neutral",
+  MERGED: "neutral",
 };
 
 // Kapanana kadar gecen butun durumlar; kalan sure rozeti yalniz bunlarda gosterilir
