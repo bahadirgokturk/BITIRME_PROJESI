@@ -42,6 +42,7 @@ Tasarım sırası: **REPORTER ve STAFF önce mobil** (375 px), sonra masaüstü;
 | `/staff/cases`, `/staff/cases/[id]` | STAFF | E7-5 | Birim Bildirimleri: aynı liste ve detay, personelin kapsamıyla |
 | `/manager/dashboard`, `/manager/analytics` | MANAGER, ADMIN | FAZ 9–10 | KPI kartları, grafikler |
 | `/manager/agents` | MANAGER, ADMIN | FAZ 10 | Agent performansı |
+| `/manager/departments`, `/manager/departments/[id]` | MANAGER, ADMIN | E7-5 | Birim Performansı: birim kartları, tikli birim filtresi, birim detayı |
 
 Rol bazlı menü kodda tek tabloda durur: `frontend/src/lib/navigation.ts`. Menü değişikliği Figma'da ve bu tabloda birlikte yapılır.
 Menüler: bildiren *Bildirim Yap · Bildirimlerim*; personel *Bildirim Yap · Görevlerim · Birim Bildirimleri · Bildirimlerim*;
@@ -249,6 +250,13 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   kart olur (sütun başlığı değerin üstüne yazılır). Bina yoğunluğunda ve tekrarlayan sorunlarda önce ilk 5 satır görünür,
   kalanı "N binanın / N sorunun hepsini göster" düğmesiyle açılır; konum okunur adıyla (`location.name`) yazılır, kod yolu
   (`path`) gösterilmez. Kurallar: `lib/reports.ts`.
+- **Birim Performansı (`/manager/departments`, menüde Raporlar'ın altında):** dönem düğmesi, tikli birim filtresi
+  (`CheckboxFilter`: açılır pencerede birimler işaretlenir, seçim hemen uygulanır, "Seçimi temizle"; boş seçim
+  "hepsi"), her birim bir kare kart: bildirim, zamanında (SLA), tipik çözüm, açık görev ve "N personel · kişi başı
+  N açık görev". En çok bildirim alan birim önce. Kartın tamamı birimin detayına gider; 30 gün seçiliyse detay da 30
+  günle açılır (`?period=30d`). **Detay (`/manager/departments/[id]`):** birim özeti (kartla aynı sayılar), Genel
+  Bakış göstergeleri, açılan/kapanan grafiği, sorun türleri ve tekrarlayan sorunlar; hepsi yalnız o birim için
+  (`department_id`). Listede olmayan birim "Birim bulunamadı" der. Kurallar: `lib/departments.ts`.
 - **Yapay zekâ performansı (`/manager/agents`):** dört oran kutusu (otomasyon, müdür incelemesi, doğru tür tahmini,
   doğru tekrar tespiti; her birinin altında bir cümlelik açıklama) ve adım tablosu (karar sayısı, ortalama güven,
   düzeltilme oranı). "Agent" yerine "adım", "override" yerine "düzeltilme" denir; adım adları backend'den gelir.

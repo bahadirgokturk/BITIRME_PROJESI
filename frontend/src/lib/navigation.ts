@@ -18,6 +18,7 @@ const REPORT: NavItem = { href: "/report", label: "Bildirim Yap" };
 const DASHBOARD: NavItem = { href: "/manager/dashboard", label: "Genel Bakış" };
 const INSIGHTS: NavItem[] = [
   { href: "/manager/analytics", label: "Raporlar" },
+  { href: "/manager/departments", label: "Birim Performansı" },
   { href: "/manager/agents", label: "Yapay Zekâ Performansı" },
 ];
 const MANAGEMENT_VIEWS: NavItem[] = [DASHBOARD, ...INSIGHTS];
