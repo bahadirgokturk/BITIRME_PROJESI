@@ -54,6 +54,18 @@ describe("CaseList", () => {
     expect(rows()[2]).toHaveTextContent(/\d+ dk gecikti/);
   });
 
+  it("shows staff the cases of their unit, each linking to the staff detail", async () => {
+    render(
+      <QueryClientProvider client={createQueryClient()}>
+        <CaseList view="unit" />
+      </QueryClientProvider>,
+    );
+
+    expect(screen.getByRole("heading", { level: 1, name: "Birim Bildirimleri" })).toBeInTheDocument();
+    await screen.findByRole("list", { name: "Bildirimler" });
+    expect(within(rows()[0]!).getByRole("link")).toHaveAttribute("href", "/staff/cases/301");
+  });
+
   it("loads the rest on request and says how many are shown", async () => {
     const user = renderList();
 

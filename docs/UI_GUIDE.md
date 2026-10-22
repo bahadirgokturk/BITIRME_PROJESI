@@ -34,15 +34,19 @@ Tasarım sırası: **REPORTER ve STAFF önce mobil** (375 px), sonra masaüstü;
 | `/` | herkes | FAZ 2 | Role göre yönlendirme (reporter → `/report`, staff → `/staff/tasks`, manager → `/manager/dashboard`) |
 | `/admin/*` | ADMIN | FAZ 2 | users, departments, locations (ağaç), case-types, sla-rules, agent-policies, audit-logs |
 | `/report` | herkes | FAZ 3 | **En kritik ekran** — bkz. bölüm 5.1 |
-| `/my-cases` | REPORTER | FAZ 3 | Kendi bildirimleri |
+| `/my-cases` | herkes | FAZ 3 | Kendi bildirimleri (menüde "Bildirimlerim"; Açık/Çözülen filtresi yalnız REPORTER'da) |
 | `/cases/[id]` | kapsam | FAZ 3 | Detay + zaman çizelgesi (reporter'a sadeleştirilmiş) |
 | `/staff/tasks`, `/staff/tasks/[id]` | STAFF | FAZ 4–7 | Görev listesi ve yaşam döngüsü |
 | `/manager/review-queue` | MANAGER | FAZ 7 | AI'ın emin olmadığı / escalate edilen kayıtlar |
-| `/manager/cases` | MANAGER | FAZ 7 | Filtreli liste (✅ kodda) |
+| `/manager/cases`, `/manager/cases/[id]` | MANAGER, ADMIN | FAZ 7 | Tüm Bildirimler: filtreli liste ve detay |
+| `/staff/cases`, `/staff/cases/[id]` | STAFF | E7-5 | Birim Bildirimleri: aynı liste ve detay, personelin kapsamıyla |
 | `/manager/dashboard`, `/manager/analytics` | MANAGER, ADMIN | FAZ 9–10 | KPI kartları, grafikler |
 | `/manager/agents` | MANAGER, ADMIN | FAZ 10 | Agent performansı |
 
 Rol bazlı menü kodda tek tabloda durur: `frontend/src/lib/navigation.ts`. Menü değişikliği Figma'da ve bu tabloda birlikte yapılır.
+Menüler: bildiren *Bildirim Yap · Bildirimlerim*; personel *Bildirim Yap · Görevlerim · Birim Bildirimleri · Bildirimlerim*;
+müdür *Bildirim Yap · Genel Bakış · İnceleme Kuyruğu · Raporlar · Yapay Zekâ Performansı · Tüm Bildirimler · Bildirimlerim*;
+yönetici *Bildirim Yap · Genel Bakış · Raporlar · Yapay Zekâ Performansı · Tüm Bildirimler · Bildirimlerim · Yönetim*.
 
 ## 3. Figma Dosyası Kurulumu
 
@@ -245,7 +249,11 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   döner), ekran metni de "Kurumdaki bütün bildirimler" der. Arama kutusu (numara, başlık, konum; yazmayı bıraktıktan 300 ms sonra arar),
   öncelik seçimi ve durum grubu düğmeleri. 14 durum beş gruba toplanır: Tümü, Açık, Kapanan, Reddedilen ve
   birleştirilen, Geciken (hedef süresi aşılan açık bildirimler). Her satırda numara, başlık (altında tür ve okunur
-  konum adı), birim, durum, öncelik, kalan süre ve açılış zamanı; satır müdürün detay ekranına gider. Masaüstünde tablo,
+  konum adı), birim, durum, öncelik, kalan süre ve açılış zamanı; satır detay ekranına gider. Yönetici aynı listeyi
+  görür. Personel aynı listeyi **Birim Bildirimleri** (`/staff/cases`) adıyla görür; backend personele yalnız kendi
+  biriminin ve kendisine atanan bildirimleri döndürür. Detay ekranı role göre bölüm gösterir (`caseDetailSections`,
+  `lib/managerCase.ts`): yapay zekâ kararları yalnız müdür ve yöneticiye, karar kutusu (onayla, düzelt, reddet)
+  yalnız müdüre; personel bilgileri, zaman çizelgesini, fotoğrafları ve yorumları görür. Masaüstünde tablo,
   telefonda her bildirim ayrı kart (tek DOM, iki yerleşim). Liste 20'şer yüklenir ("Daha fazla göster"). Filtreyle
   sonuç çıkmazsa "Filtreleri temizle" düğmesi, hiç bildirim yoksa düz açıklama gösterilir. Kurallar: `lib/caseList.ts`.
 - **Bildirim detayı (`/manager/cases/[id]`):** müdürün ayrıntılı ekranı; bildirenin sade ekranı (`/cases/[id]`)

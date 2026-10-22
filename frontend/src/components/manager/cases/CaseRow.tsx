@@ -15,11 +15,12 @@ const NO_VALUE = "–";
 
 export const COLUMN_HEADERS = ["Bildirim no", "Başlık, tür ve konum", "Birim", "Durum", "Öncelik", "Kalan süre", "Açılış"];
 
-export function CaseRow({ item }: { item: CaseRead }) {
+// listPath: satirin ait oldugu liste (/manager/cases ya da /staff/cases); detay onun altinda acilir
+export function CaseRow({ item, listPath }: { item: CaseRead; listPath: string }) {
   const sla = caseSla(item);
   return (
     <Link
-      href={`/manager/cases/${item.id}`}
+      href={`${listPath}/${item.id}`}
       className={`${ROW_CLASS} ${COLUMNS_CLASS} transition-colors outline-none hover:bg-muted/40 focus-visible:ring-3 focus-visible:ring-ring/50`}
     >
       <span className="text-xs text-muted-foreground md:text-sm">{item.case_number}</span>
