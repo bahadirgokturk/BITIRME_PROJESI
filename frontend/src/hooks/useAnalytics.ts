@@ -22,31 +22,33 @@ import type {
 
 type Schemas = components["schemas"];
 
-// Ortak filtre (docs/API.md "Analytics"): ?from=&to=; donem degisince uc sorgu da yeniden okunur
-function rangeQuery(period: SummaryPeriod): string {
+// Ortak filtre (docs/API.md "Analytics"): ?from=&to=[&department_id=]; donem ya da birim degisince
+// sorgular yeniden okunur. Birim verilmezse butun birimler.
+function rangeQuery(period: SummaryPeriod, departmentId?: number): string {
   const { from, to } = periodRange(period);
-  return `from=${from}&to=${to}`;
+  const unit = departmentId === undefined ? "" : `&department_id=${departmentId}`;
+  return `from=${from}&to=${to}${unit}`;
 }
 
-export function useKpis(period: SummaryPeriod) {
+export function useKpis(period: SummaryPeriod, departmentId?: number) {
   return useQuery({
-    queryKey: ["analytics", "kpis", period],
-    queryFn: () => apiGet<KpisRead>(`/analytics/kpis?${rangeQuery(period)}`),
+    queryKey: ["analytics", "kpis", period, departmentId],
+    queryFn: () => apiGet<KpisRead>(`/analytics/kpis?${rangeQuery(period, departmentId)}`),
   });
 }
 
-export function useTrend(period: SummaryPeriod) {
+export function useTrend(period: SummaryPeriod, departmentId?: number) {
   return useQuery({
-    queryKey: ["analytics", "trend", period],
+    queryKey: ["analytics", "trend", period, departmentId],
     queryFn: () =>
-      apiGet<TrendRead>(`/analytics/trend?${rangeQuery(period)}&granularity=${granularityFor(period)}`),
+      apiGet<TrendRead>(`/analytics/trend?${rangeQuery(period, departmentId)}&granularity=${granularityFor(period)}`),
   });
 }
 
-export function useCategories(period: SummaryPeriod) {
+export function useCategories(period: SummaryPeriod, departmentId?: number) {
   return useQuery({
-    queryKey: ["analytics", "categories", period],
-    queryFn: () => apiGet<CategoriesRead>(`/analytics/categories?${rangeQuery(period)}`),
+    queryKey: ["analytics", "categories", period, departmentId],
+    queryFn: () => apiGet<CategoriesRead>(`/analytics/categories?${rangeQuery(period, departmentId)}`),
   });
 }
 
@@ -65,10 +67,10 @@ export function useSummary(period: SummaryPeriod, enabled: boolean) {
 }
 
 // Raporlar ekraninin sorgulari ayni kalipta: donem araligiyla tek bir GET
-function useReport<T>(name: string, path: string, period: SummaryPeriod) {
+function useReport<T>(name: string, path: string, period: SummaryPeriod, departmentId?: number) {
   return useQuery({
-    queryKey: ["analytics", name, period],
-    queryFn: () => apiGet<T>(`${path}?${rangeQuery(period)}`),
+    queryKey: ["analytics", name, period, departmentId],
+    queryFn: () => apiGet<T>(`${path}?${rangeQuery(period, departmentId)}`),
   });
 }
 
@@ -80,8 +82,8 @@ export const useSla = (period: SummaryPeriod) => useReport<SlaRead>("sla", "/ana
 export const useAging = (period: SummaryPeriod) => useReport<AgingRead>("aging", "/analytics/aging", period);
 export const useDepartments = (period: SummaryPeriod) =>
   useReport<DepartmentsRead>("departments", "/analytics/departments", period);
-export const useRecurring = (period: SummaryPeriod) =>
-  useReport<RecurringRead>("recurring", "/analytics/recurring", period);
+export const useRecurring = (period: SummaryPeriod, departmentId?: number) =>
+  useReport<RecurringRead>("recurring", "/analytics/recurring", period, departmentId);
 export const useProcess = (period: SummaryPeriod) => useReport<ProcessRead>("process", "/analytics/process", period);
 export const useAgentMetrics = (period: SummaryPeriod) =>
   useReport<Schemas["AgentMetricsRead"]>("agent-metrics", "/agents/metrics", period);

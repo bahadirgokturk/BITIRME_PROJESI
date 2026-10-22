@@ -64,6 +64,7 @@ describe("menu labels", () => {
       "/manager/dashboard": "Genel Bakış",
       "/manager/review-queue": "İnceleme Kuyruğu",
       "/manager/analytics": "Raporlar",
+      "/manager/departments": "Birim Performansı",
       "/manager/agents": "Yapay Zekâ Performansı",
       "/manager/cases": "Tüm Bildirimler",
     });
@@ -90,12 +91,21 @@ describe("menus after the advisor meeting", () => {
       "Bildirim Yap",
       "Genel Bakış",
       "Raporlar",
+      "Birim Performansı",
       "Yapay Zekâ Performansı",
       "Tüm Bildirimler",
       "Bildirimlerim",
       "Yönetim",
     ]);
     expect(labels("MANAGER").at(-1)).toBe("Bildirimlerim");
+  });
+
+  it("puts unit performance right below the reports for managers and admins", () => {
+    for (const role of ["MANAGER", "ADMIN"] as const) {
+      const list = labels(role);
+      expect(list[list.indexOf("Raporlar") + 1]).toBe("Birim Performansı");
+    }
+    expect(activeNavHref("MANAGER", "/manager/departments/2")).toBe("/manager/departments");
   });
 });
 

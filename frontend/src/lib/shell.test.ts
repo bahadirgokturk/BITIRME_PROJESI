@@ -19,6 +19,10 @@ describe("mobileBarFor", () => {
     expect(mobileBarFor("/manager/cases")).toEqual({ kind: "menu" });
   });
 
+  it("sends a manager back to the unit list from a unit detail page", () => {
+    expect(mobileBarFor("/manager/departments/2")).toEqual({ kind: "back", title: "Birim", backHref: "/manager/departments" });
+  });
+
   it("sends staff back to the unit's cases from a case detail page", () => {
     expect(mobileBarFor("/staff/cases/301")).toEqual({ kind: "back", title: "Bildirim", backHref: "/staff/cases" });
     expect(mobileBarFor("/staff/cases")).toEqual({ kind: "menu" });
