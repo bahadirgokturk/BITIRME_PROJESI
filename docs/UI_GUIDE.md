@@ -93,6 +93,14 @@ Figma değişkenleri (Variables) **koddaki CSS değişkenleriyle aynı adla** ta
   beyaz üniversite logosu. Su katmanlarında beyaz kullanılmaz (beyaz zeminde logo bölünmüş görünür). Yazı: "Bakırçay" metin renginde, "Flow" turkuaz. `public/brand/logo-art.svg` +
   `components/brand/Logo.tsx`; uygulama simgeleri `public/icons/` ve `src/app/icon.png`, `apple-icon.png`
   (Figma: 02 Components > Logo/Simge, Logo/Yatay).
+- **Koyu mod:** Her ekran açık ve koyu temada çalışır; renkler `globals.css` içinde `:root` ve `.dark` altındadır
+  (koyu temada durum renklerinin açık tonları, `--primary-strong` yerine ana turkuaz). Tema düğmesi (`ThemeToggle`)
+  masaüstünde menünün altında "Çıkış yap"ın yanında, telefonda üst çubuğun sağ köşesinde, giriş ekranında sağ üstte.
+  Açık temada güneş, koyu temada ay ve yıldız simgesi; simge dönerek değişir (hareket azaltma ayarında animasyonsuz).
+  Ekran okuyucuya "Koyu mod" düğmesi ve basılı/basılı değil (`aria-pressed`) olarak söylenir. Seçim tarayıcıda
+  saklanır; hiç seçilmediyse cihazın ayarı geçerlidir. Tema sayfa çizilmeden uygulanır (açılışta beyaz parlama yok),
+  PWA'da telefonun durum çubuğu da temaya uyar. Kurallar: `lib/theme.ts`; Figma: 07 Koyu Mod sayfası, CampusFlow
+  değişkenlerinin "Koyu" modu.
 - **Uygulama kabuğu:** Masaüstünde sol kenar çubuğu (logo, kullanıcı, menü, çıkış). Telefonda üstte sabit çubuk:
   ana sayfalarda menü butonu + logo (menü soldan açılan panel, shadcn Sheet), alt sayfalarda (ör. `/cases/[id]`)
   geri butonu + başlık. Hangi sayfada hangi çubuğun çıkacağı `lib/shell.ts`, seçili menü öğesi `lib/navigation.ts`.

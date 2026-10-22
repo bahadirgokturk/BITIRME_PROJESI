@@ -1,4 +1,5 @@
 import { LogoMark, LogoWordmark } from "@/components/brand/Logo";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 import { LoginForm } from "./LoginForm";
 
@@ -18,7 +19,9 @@ function BrandPanel() {
 // Giris ekrani gorunumu; giris mantigi LoginForm'da (Figma: /login - mobil, /login - masaustu)
 export function LoginScreen() {
   return (
-    <div className="flex min-h-dvh flex-1">
+    <div className="relative flex min-h-dvh flex-1">
+      {/* Giristen once de tema secilebilir; sag ust kosede (Figma: 07 Koyu Mod > /login) */}
+      <ThemeToggle className="absolute top-3 right-3" />
       <BrandPanel />
       <main className="flex flex-1 flex-col px-6 pt-18 pb-6 md:items-center md:justify-center md:p-8">
         <div className="flex w-full flex-col gap-10 md:max-w-[380px] md:gap-8">

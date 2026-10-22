@@ -31,6 +31,12 @@ describe("LoginScreen", () => {
     expect(screen.getByLabelText("Parola")).toBeInTheDocument();
   });
 
+  it("lets the user switch to dark mode before signing in", () => {
+    renderScreen();
+
+    expect(screen.getByRole("button", { name: "Koyu mod" })).toBeInTheDocument();
+  });
+
   it("tells the user where to go when the password is forgotten", () => {
     renderScreen();
 

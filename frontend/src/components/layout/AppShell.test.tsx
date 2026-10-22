@@ -45,6 +45,13 @@ describe("AppShell", () => {
     expect(screen.getByText("Mehmet Demir")).toBeInTheDocument();
   });
 
+  // Telefon ust cubugunda ve masaustu menusunde birer tane
+  it("offers the dark mode switch on phone and desktop", () => {
+    renderShell(<p>içerik</p>);
+
+    expect(screen.getAllByRole("button", { name: "Koyu mod" })).toHaveLength(2);
+  });
+
   it("highlights the current page in the menu", () => {
     renderShell(<p>içerik</p>);
 
