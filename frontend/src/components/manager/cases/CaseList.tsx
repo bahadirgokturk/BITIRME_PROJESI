@@ -8,7 +8,14 @@ import { Button } from "@/components/ui/button";
 import { useCaseList } from "@/hooks/useCases";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { ApiError } from "@/lib/api/client";
-import { DEFAULT_FILTERS, isFiltered, shownSummary, type CaseFilters as Filters } from "@/lib/caseList";
+import {
+  CASE_LIST_VIEWS,
+  DEFAULT_FILTERS,
+  isFiltered,
+  shownSummary,
+  type CaseFilters as Filters,
+  type CaseListView,
+} from "@/lib/caseList";
 
 import { CaseFilters } from "./CaseFilters";
 import { CaseRow, CaseRowSkeleton, COLUMN_HEADERS, COLUMNS_CLASS } from "./CaseRow";
@@ -86,7 +93,14 @@ function Skeletons() {
   );
 }
 
-function CaseListBody({ query, filtered, onClear }: { query: CaseListQuery; filtered: boolean; onClear: () => void }) {
+interface CaseListBodyProps {
+  query: CaseListQuery;
+  filtered: boolean;
+  onClear: () => void;
+  listPath: string;
+}
+
+function CaseListBody({ query, filtered, onClear, listPath }: CaseListBodyProps) {
   if (query.isPending) {
     return <Skeletons />;
   }
@@ -113,7 +127,7 @@ function CaseListBody({ query, filtered, onClear }: { query: CaseListQuery; filt
         <ul aria-label="Bildirimler" className="contents">
           {items.map((item) => (
             <li key={item.id}>
-              <CaseRow item={item} />
+              <CaseRow item={item} listPath={listPath} />
             </li>
           ))}
         </ul>
@@ -123,22 +137,27 @@ function CaseListBody({ query, filtered, onClear }: { query: CaseListQuery; filt
   );
 }
 
-// Mudurun butun bildirimleri: arama, suzgec ve sayfalama (docs/UI_GUIDE.md bolum 5.4; Figma: 05 Manager > /manager/cases)
-export function CaseList() {
+// Butun bildirimler (mudur, yonetici) ya da birim bildirimleri (personel): arama, filtre ve sayfalama
+// (docs/UI_GUIDE.md bolum 5.4; Figma: 05 Manager > /manager/cases, 04 Staff > /staff/cases)
+export function CaseList({ view = "all" }: { view?: CaseListView }) {
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const search = useDebouncedValue(filters.search, SEARCH_DELAY_MS);
   const applied = { ...filters, search };
   const query = useCaseList(applied);
+  const { title, description, path } = CASE_LIST_VIEWS[view];
   return (
     <div className="mx-auto w-full max-w-[1152px] space-y-4 md:space-y-6">
       <header className="space-y-2">
-        <PageTitle>Tüm Bildirimler</PageTitle>
-        <p className="text-sm text-muted-foreground">
-          Kurumdaki bütün bildirimler. Aramak ya da filtrelemek için aşağıdaki alanları kullanın.
-        </p>
+        <PageTitle>{title}</PageTitle>
+        <p className="text-sm text-muted-foreground">{description}</p>
       </header>
       <CaseFilters value={filters} onChange={setFilters} />
-      <CaseListBody query={query} filtered={isFiltered(applied)} onClear={() => setFilters(DEFAULT_FILTERS)} />
+      <CaseListBody
+        query={query}
+        filtered={isFiltered(applied)}
+        onClear={() => setFilters(DEFAULT_FILTERS)}
+        listPath={path}
+      />
     </div>
   );
 }

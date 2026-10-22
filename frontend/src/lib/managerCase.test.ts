@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { components } from "@/lib/api/types";
 
-import { awaitsManager, caseInfoFields, eventActor, managerEventLabel, photoList } from "./managerCase";
+import { awaitsManager, caseDetailSections, caseInfoFields, eventActor, managerEventLabel, photoList } from "./managerCase";
 
 type Schemas = components["schemas"];
 type CaseRead = Schemas["CaseRead"];
@@ -166,5 +166,14 @@ describe("photoList", () => {
     expect(photos.map((photo) => photo.label)).toEqual(["Bildirim fotoğrafı 1", "Kanıt fotoğrafı 1", "Bildirim fotoğrafı 2"]);
     expect(photos.map((photo) => photo.caption)).toEqual(["Bildirim fotoğrafı", "Kanıt fotoğrafı", "Bildirim fotoğrafı"]);
     expect(photos[1]?.attachment.id).toBe(3);
+  });
+});
+
+describe("caseDetailSections", () => {
+  // Backend: kararlar yalniz mudur ve yoneticiye, karar vermek yalniz mudure acik
+  it("shows the AI decisions to managers and admins and lets only the manager decide", () => {
+    expect(caseDetailSections("MANAGER")).toEqual({ aiDecisions: true, decide: true });
+    expect(caseDetailSections("ADMIN")).toEqual({ aiDecisions: true, decide: false });
+    expect(caseDetailSections("STAFF")).toEqual({ aiDecisions: false, decide: false });
   });
 });

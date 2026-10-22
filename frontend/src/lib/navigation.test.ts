@@ -70,6 +70,35 @@ describe("menu labels", () => {
   });
 });
 
+describe("menus after the advisor meeting", () => {
+  const labels = (role: (typeof ROLES)[number]) => navigationFor(role).map((item) => item.label);
+
+  it("gives every role its own cases", () => {
+    for (const role of ROLES) {
+      expect(navigationFor(role).map((item) => item.href)).toContain("/my-cases");
+      expect(activeNavHref(role, "/cases/101")).toBe("/my-cases");
+    }
+  });
+
+  it("gives staff the cases of their unit", () => {
+    expect(labels("STAFF")).toEqual(["Bildirim Yap", "Görevlerim", "Birim Bildirimleri", "Bildirimlerim"]);
+    expect(activeNavHref("STAFF", "/staff/cases/301")).toBe("/staff/cases");
+  });
+
+  it("gives the admin the full case list too", () => {
+    expect(labels("ADMIN")).toEqual([
+      "Bildirim Yap",
+      "Genel Bakış",
+      "Raporlar",
+      "Yapay Zekâ Performansı",
+      "Tüm Bildirimler",
+      "Bildirimlerim",
+      "Yönetim",
+    ]);
+    expect(labels("MANAGER").at(-1)).toBe("Bildirimlerim");
+  });
+});
+
 describe("ADMIN_SECTIONS", () => {
   it("lists the admin tabs in order, all under /admin", () => {
     expect(ADMIN_SECTIONS.map((section) => section.label)).toEqual(["Kullanıcılar", "Birimler", "Konumlar", "Bildirim Türleri", "Süre Hedefleri", "Yapay Zekâ Politikaları", "İşlem Kayıtları"]);

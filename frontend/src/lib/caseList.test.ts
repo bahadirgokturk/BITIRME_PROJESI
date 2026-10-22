@@ -5,6 +5,7 @@ import { MANAGER_CASES } from "@/mocks/managerCaseFixtures";
 import {
   CASE_STATUS_LABELS,
   CASE_STATUS_TONES,
+  CASE_LIST_VIEWS,
   DEFAULT_FILTERS,
   STATUS_GROUPS,
   caseListQuery,
@@ -115,5 +116,14 @@ describe("status tones", () => {
     expect(CASE_STATUS_TONES.ANALYZING).toBe("info");
     expect(CASE_STATUS_TONES.MERGED).toBe("neutral");
     expect(CASE_STATUS_TONES.REJECTED).toBe("neutral");
+  });
+});
+
+describe("case list views", () => {
+  it("names the list by whose cases it shows and links rows under its own address", () => {
+    expect(CASE_LIST_VIEWS.all).toMatchObject({ title: "Tüm Bildirimler", path: "/manager/cases" });
+    expect(CASE_LIST_VIEWS.unit).toMatchObject({ title: "Birim Bildirimleri", path: "/staff/cases" });
+    expect(CASE_LIST_VIEWS.unit.description).toMatch(/size atanan/);
+    expect(CASE_LIST_VIEWS.unit.backText).toBe("Birim Bildirimleri'ne dön");
   });
 });

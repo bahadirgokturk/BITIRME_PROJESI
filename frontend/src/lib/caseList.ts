@@ -74,6 +74,33 @@ const OPEN_STATUSES: readonly CaseStatus[] = [
   "ESCALATED",
 ];
 
+// Ayni liste iki yerde: mudur ve yonetici kurumun butun bildirimlerini, personel kendi biriminin
+// bildirimlerini gorur (backend scope_for). Satirlar listenin kendi adresi altindaki detaya gider.
+export type CaseListView = "all" | "unit";
+
+interface CaseListViewText {
+  title: string;
+  description: string;
+  path: string;
+  // Turkce ek basliga gore degisir ("Bildirimler'e", "Bildirimleri'ne")
+  backText: string;
+}
+
+export const CASE_LIST_VIEWS: Record<CaseListView, CaseListViewText> = {
+  all: {
+    title: "Tüm Bildirimler",
+    description: "Kurumdaki bütün bildirimler. Aramak ya da filtrelemek için aşağıdaki alanları kullanın.",
+    path: "/manager/cases",
+    backText: "Tüm Bildirimler'e dön",
+  },
+  unit: {
+    title: "Birim Bildirimleri",
+    description: "Biriminize gelen ve size atanan bildirimler. Aramak ya da filtrelemek için aşağıdaki alanları kullanın.",
+    path: "/staff/cases",
+    backText: "Birim Bildirimleri'ne dön",
+  },
+};
+
 export type StatusGroup = "all" | "open" | "closed" | "dismissed" | "late";
 
 interface StatusGroupOption {
