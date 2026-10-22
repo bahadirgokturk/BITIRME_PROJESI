@@ -23,3 +23,16 @@ const UNKNOWN_EVENT_LABEL = "Bildiriminiz güncellendi";
 export function timelineLabel(eventType: string): string {
   return LABELS[eventType] ?? UNKNOWN_EVENT_LABEL;
 }
+
+// Uzun zaman cizelgesi kapali gelir: once en son adimlar (bildirim su an nerede), oncekiler istenince.
+// Bir iki adimi gizlemek icin dugme koymaya degmez; esigin altindaki cizelge butun gosterilir.
+const COLLAPSED_STEPS = 3;
+const COLLAPSE_FROM = COLLAPSED_STEPS + 2;
+
+export function collapsedTimeline<T>(steps: readonly T[], expanded: boolean): { visible: readonly T[]; hidden: number } {
+  if (steps.length < COLLAPSE_FROM) {
+    return { visible: steps, hidden: 0 };
+  }
+  const hidden = steps.length - COLLAPSED_STEPS;
+  return { visible: expanded ? steps : steps.slice(hidden), hidden };
+}

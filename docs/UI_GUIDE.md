@@ -176,6 +176,8 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   yalnız bildiren rolünde çıkar. Kurallar: `lib/status.ts` (`myCasesPath`).
 - Detay: zaman çizelgesi reporter'a sade dilde ("Temizlik birimine yönlendirildi", "Görevli çalışmaya başladı").
   Agent adları, güven skorları, iç notlar reporter'a **gösterilmez**.
+  Zaman çizelgesi 5 ya da daha fazla adımsa kapalı gelir: son 3 adım görünür, üstte "N önceki adımı göster";
+  açılınca "Önceki adımları gizle". Kural: `collapsedTimeline` (`lib/timeline.ts`).
 - Ek bilgi istenen bildirimde (NEEDS_INFO) ilerleme çubuğu yerine soru + yanıt kutusu gösterilir.
 - Kapanıştan sonraki 72 saat içinde puan kartı: 1–5 yıldız + isteğe bağlı yorum (bir kez) ve aynı kartta
   "Sorun devam ediyor" (reopen; gerekçe zorunlu). Telefonda alttan açılan panel, masaüstünde ortada pencere.
