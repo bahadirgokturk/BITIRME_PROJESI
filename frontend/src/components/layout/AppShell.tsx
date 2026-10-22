@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { LogoWordmark } from "@/components/brand/Logo";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { activeNavHref, navigationFor, type Role } from "@/lib/navigation";
 import { mobileBarFor } from "@/lib/shell";
 
@@ -39,7 +40,14 @@ export function AppShell({ role, userName, userDetail, children }: AppShellProps
         <div className="flex-1">
           <NavLinks items={items} activeHref={activeHref} size="desktop" />
         </div>
-        <LogoutButton size="desktop" />
+        {/* Cikis ve tema dugmesi menunun altinda yan yana (Figma: ManagerSidebar, ThemeToggle) */}
+        <div className="flex items-center gap-1">
+          {/* Cikis dugmesi kalan yeri kaplar; tema dugmesi menunun icinde kalir */}
+          <div className="min-w-0 flex-1">
+            <LogoutButton size="desktop" />
+          </div>
+          <ThemeToggle />
+        </div>
       </aside>
       <main className="flex-1 p-4 md:px-8 md:py-10">{children}</main>
     </div>
