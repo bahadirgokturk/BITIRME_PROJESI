@@ -10,6 +10,7 @@ import {
   type SummaryPeriod,
   type TrendRead,
 } from "@/lib/analytics";
+import { LIVE_QUERY } from "@/lib/queryClient";
 import type {
   AgingRead,
   DepartmentsRead,
@@ -34,6 +35,8 @@ export function useKpis(period: SummaryPeriod, departmentId?: number) {
   return useQuery({
     queryKey: ["analytics", "kpis", period, departmentId],
     queryFn: () => apiGet<KpisRead>(`/analytics/kpis?${rangeQuery(period, departmentId)}`),
+    // Pano acik duran bir ekran; rapor sorgulari ise elle bakilir ve tazelenmez
+    ...LIVE_QUERY,
   });
 }
 

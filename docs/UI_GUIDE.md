@@ -176,6 +176,11 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   30 sn ve 50 MB (toplam 5 dosya). Yükleme sırasında önizleme ve ilerleme; video için süre aşımı mesajı
   (`VIDEO_TOO_LONG`) Türkçe gösterilir.
 - **Gönder butonu** ekranın altında, başparmak erişiminde, tam genişlik.
+- **Taslak:** Açıklama ve seçilen konum yazıldıkça (yarım saniye bekleyerek) bu cihazda, giriş yapan kişiye özel
+  saklanır. Form yeniden açılınca geri gelir ve başlığın altında "Taslağınız geri yüklendi." notu ile **Taslağı sil**
+  düğmesi görünür. Fotoğraf ve videolar saklanamaz; taslakta dosya varsa not "Fotoğrafları yeniden eklemelisiniz."
+  diye hatırlatır. Bildirim gönderilince ve çıkış yapılınca taslak silinir (`lib/reportDraft.ts`,
+  `hooks/useReportDraft.ts`; Figma: DraftNotice, `/report - mobil/masaüstü - taslak geri yüklendi`).
 - **Onay ekranı:** Bildirim numarası (`CASE-000124`), "Bildiriminiz alındı, inceleniyor" ve "Bildirimlerim" bağlantısı.
 - Başarı ölçütü: yeni bir kullanıcı ilk denemesinde 30 sn içinde gönderebilmeli (ekip içi kullanılabilirlik testi, bölüm 10).
 
@@ -358,6 +363,16 @@ Her ekran ve liste için Figma'da ve kodda şu durumlar çizilir/uygulanır:
 | Hata | Anlaşılır mesaj + "Tekrar dene"; **asla sessiz boş liste** (KOD_KURALLARI kural 1) |
 | Başarı | Kısa toast ("Görev tamamlandı") veya onay ekranı |
 | Yetkisiz / bulunamadı | Aynı "Kayıt bulunamadı" ekranı (güvenlik: varlık sızdırılmaz) |
+
+**Bağlantı yok:** İnternet kopunca içeriğin üstünde uyarı renginde bir şerit çıkar: "İnternet bağlantınız yok. Bağlanınca sayfa
+yenilenir." Telefonda üst çubuğun hemen altında, masaüstünde içerik sütununun en üstünde yapışık durur; giriş ekranında
+da en üsttedir. Bağlantı gelince şerit kalkar ve sorgular kendiliğinden yeniden okunur (`OfflineBanner`, `hooks/useOnline.ts`;
+Figma: OfflineBanner, `/report - … - bağlantı yok`, `/login - mobil - bağlantı yok`).
+
+**Kendini yenileme:** İş listeleri ve detaylar dakikada bir yeniden okunur; böylece başkasının yaptığı değişiklik sayfa
+yenilenmeden görünür: Görevlerim ve görev detayı, İnceleme Kuyruğu, Bildirimlerim, Tüm/Birim Bildirimleri, bildirim
+detayı, zaman çizelgesi, yorumlar ve Pano KPI'ları. Sekme arka plandayken ya da bağlantı yokken sayaç durur; sekmeye
+dönünce sorgular yine yenilenir. Raporlar ekranı elle bakıldığı için yenilenmez (`LIVE_REFRESH_MS`, `lib/queryClient.ts`).
 
 ## 8. Erişilebilirlik (WCAG 2.2 AA)
 

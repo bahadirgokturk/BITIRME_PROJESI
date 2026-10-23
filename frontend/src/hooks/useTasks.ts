@@ -3,6 +3,7 @@ import { useRef } from "react";
 
 import { apiGet, apiPost, apiRequest } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
+import { LIVE_QUERY } from "@/lib/queryClient";
 import type { TaskRead } from "@/lib/tasks";
 
 import { caseAttachmentsKey } from "./useAttachments";
@@ -15,6 +16,7 @@ export function useMyTasks() {
   return useQuery({
     queryKey: ["tasks", "mine"],
     queryFn: () => apiGet<TaskPage>("/tasks/mine"),
+    ...LIVE_QUERY,
   });
 }
 
@@ -23,6 +25,7 @@ export function useTask(taskId: string) {
   return useQuery({
     queryKey: ["tasks", taskId],
     queryFn: () => apiGet<TaskRead>(`/tasks/${encodeURIComponent(taskId)}`),
+    ...LIVE_QUERY,
   });
 }
 

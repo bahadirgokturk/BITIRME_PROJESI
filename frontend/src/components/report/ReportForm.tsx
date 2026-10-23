@@ -8,9 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { useCreateReport } from "@/hooks/useReport";
+import { clearReportDraft, readReportDraft, useSaveReportDraft } from "@/hooks/useReportDraft";
 import { addFiles, DESCRIPTION_MAX_LENGTH, descriptionProblem } from "@/lib/report";
 
 import { AttachmentField } from "./AttachmentField";
+import { DraftNotice } from "./DraftNotice";
 import { LocationField } from "./LocationField";
 
 const DESCRIPTION_ID = "report-description";
@@ -72,14 +74,47 @@ function useFileList() {
     remove(index: number) {
       setFiles(files.filter((_, i) => i !== index));
     },
+    reset() {
+      setFiles([]);
+      setProblem(null);
+    },
   };
 }
 
+// Aciklama ve konum taslaktan baslar ve degistikce taslaga yazilir (hooks/useReportDraft.ts)
+function useReportFields(draftKey: string | null, fileList: ReturnType<typeof useFileList>) {
+  const [restored, setRestored] = useState(() => readReportDraft(draftKey));
+  const [description, setDescription] = useState(restored?.description ?? "");
+  const [locationId, setLocationId] = useState(restored?.locationId ?? "");
+  // Geri yuklenen taslakta dosya vardiysa, yenisi eklenmese de hatirlatma bir sonraki acilista da kalir
+  const hadFiles = fileList.files.length > 0 || (restored?.hadFiles ?? false);
+  useSaveReportDraft(draftKey, { description, locationId, hadFiles });
+  return {
+    description,
+    setDescription,
+    locationId,
+    setLocationId,
+    restored,
+    discard() {
+      setDescription("");
+      setLocationId("");
+      setRestored(null);
+      fileList.reset();
+      clearReportDraft(draftKey);
+    },
+  };
+}
+
+interface ReportFormProps {
+  mutation: ReturnType<typeof useCreateReport>;
+  draftKey: string | null;
+}
+
 // Kategori/oncelik alani yok: onlari agent'lar belirler (docs/UI_GUIDE.md bolum 1 ve 5.1)
-export function ReportForm({ mutation }: { mutation: ReturnType<typeof useCreateReport> }) {
-  const [description, setDescription] = useState("");
-  const [locationId, setLocationId] = useState("");
+export function ReportForm({ mutation, draftKey }: ReportFormProps) {
   const fileList = useFileList();
+  const fields = useReportFields(draftKey, fileList);
+  const { description, locationId } = fields;
   // Hatalar ilk gonderme denemesinden sonra gosterilir; kullanici yazarken kizarmasin
   const [submitted, setSubmitted] = useState(false);
 
@@ -95,15 +130,16 @@ export function ReportForm({ mutation }: { mutation: ReturnType<typeof useCreate
   return (
     <form noValidate onSubmit={submit} className="mx-auto flex w-full max-w-[720px] flex-col gap-6">
       <ReportIntro />
+      {fields.restored ? <DraftNotice hadFiles={fields.restored.hadFiles} onDiscard={fields.discard} /> : null}
       <div className="flex flex-col gap-5 md:rounded-xl md:border md:p-8">
         <DescriptionField
           value={description}
-          onChange={setDescription}
+          onChange={fields.setDescription}
           error={submitted ? descriptionProblem(description) : null}
         />
         <LocationField
           value={locationId}
-          onChange={setLocationId}
+          onChange={fields.setLocationId}
           error={submitted && locationId === "" ? LOCATION_REQUIRED : null}
         />
         <AttachmentField files={fileList.files} problem={fileList.problem} onPick={fileList.pick} onRemove={fileList.remove} />
