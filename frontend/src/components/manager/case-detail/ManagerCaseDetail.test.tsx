@@ -90,15 +90,31 @@ describe("ManagerCaseDetail", () => {
   });
 
   it("lists what happened with who did it", async () => {
-    renderDetail(AUTO_ASSIGNED);
+    const user = renderDetail(AUTO_ASSIGNED);
+    await user.click(await screen.findByRole("button", { name: /önceki adımı göster/ }));
 
-    const events = within(await screen.findByRole("list", { name: "Zaman çizelgesi" })).getAllByRole("listitem");
+    const events = within(screen.getByRole("list", { name: "Zaman çizelgesi" })).getAllByRole("listitem");
     expect(events[0]).toHaveTextContent("Bildirim açıldı");
     expect(events[0]).toHaveTextContent("Bildiren");
     expect(events[1]).toHaveTextContent("Sistem");
     expect(events[2]).toHaveTextContent("Tür belirlendi");
     expect(events[2]).toHaveTextContent("Yapay zekâ · Sınıflandırma");
     expect(events.at(-1)).toHaveTextContent("Görev açıldı");
+  });
+
+  it("shows the latest three steps first and opens the earlier ones on request", async () => {
+    const user = renderDetail(AUTO_ASSIGNED);
+
+    const list = await screen.findByRole("list", { name: "Zaman çizelgesi" });
+    expect(within(list).getAllByRole("listitem")).toHaveLength(3);
+    expect(within(list).getAllByRole("listitem").at(-1)).toHaveTextContent("Görev açıldı");
+    const toggle = screen.getByRole("button", { name: /önceki adımı göster/ });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+
+    await user.click(toggle);
+
+    expect(within(list).getAllByRole("listitem")[0]).toHaveTextContent("Bildirim açıldı");
+    expect(screen.getByRole("button", { name: "Önceki adımları gizle" })).toHaveAttribute("aria-expanded", "true");
   });
 
   it("shows the photos of the case and hides the section when there are none", async () => {

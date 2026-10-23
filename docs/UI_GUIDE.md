@@ -245,7 +245,11 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   "▲ 12 puan", sürede "▲ 2 sa 10 dk"); önceki dönem çok küçükken yüzde anlamsız büyür. Grafik kütüphanesi
   kullanılmaz: çubuklar düz HTML/CSS, açılan turuncu ve kapanan turkuaz (renk yolculuğu); durum renkleri grafikte
   kullanılmaz. Sayılar ekran okuyucuya metin olarak da verilir. Telefonda kartlar ikişerli, grafikler alt alta.
-  Kurallar: `lib/analytics.ts`.
+  **Kartlar tıklanır** (sağ üstte ok): Açık Bildirim → Tüm Bildirimler "Açık" filtresiyle (`?group=open`), SLA Uyumu →
+  "Geciken" filtresiyle (`?group=late`), Ortalama Çözüm Süresi → Raporlar, Otomasyon Oranı → Yapay Zekâ Performansı,
+  Bugün Açılan → Tüm Bildirimler, Müdür İncelemesi Oranı → İnceleme Kuyruğu. Kart yalnız rolün menüsündeki ekrana
+  bağlanır: yöneticide İnceleme Kuyruğu olmadığı için o kart düz kalır. Birim detayındaki göstergeler bağlantı değildir
+  (liste birime göre süzülemez). Kurallar: `lib/analytics.ts` (`KPI_LINKS`).
 - **Raporlar (`/manager/analytics`):** dönem düğmesi ve yedi kart: bina yoğunluğu, zamanında çözülen (SLA),
   çözüm süreleri, bekleyen bildirimler, birim performansı, tekrarlayan sorunlar, süreç adımları. Her kartın başlığı
   sonucu söyler ("En yoğun bina: B Blok (21 bildirim)", "En yavaş adım: Atamadan kabule"); veri yoksa düz ad ve tek
@@ -255,6 +259,11 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   kart olur (sütun başlığı değerin üstüne yazılır). Bina yoğunluğunda ve tekrarlayan sorunlarda önce ilk 5 satır görünür,
   kalanı "N binanın / N sorunun hepsini göster" düğmesiyle açılır; konum okunur adıyla (`location.name`) yazılır, kod yolu
   (`path`) gösterilmez. Kurallar: `lib/reports.ts`.
+- **Yazdırma (Raporlar, Birim Performansı, birim detayı):** dönem düğmesinin yanında **Yazdır** düğmesi tarayıcının
+  yazdırma penceresini açar ("PDF olarak kaydet" de oradan). Kağıtta menü, üst çubuk, dönem düğmesi, Yazdır ve
+  "hepsini göster" düğmeleri gizlenir; başlığın altına "Son 7 gün · BakırçayFlow · Yazdırıldı: <tarih saat>" yazılır.
+  Kartlar sayfa arasında bölünmez, çubuk renkleri basılır (`print-color-adjust: exact`), koyu moddayken de açık temayla
+  basılır (`usePrintLightTheme`). Figma: Button/Outline Yazdır, `/manager/analytics - yazdırma (A4)`.
 - **Birim Performansı (`/manager/departments`, menüde Raporlar'ın altında):** dönem düğmesi, tikli birim filtresi
   (`CheckboxFilter`: açılır pencerede birimler işaretlenir, seçim hemen uygulanır, "Seçimi temizle"; boş seçim
   "hepsi"), her birim bir kare kart: bildirim, zamanında (SLA), tipik çözüm, açık görev ve "N personel · kişi başı
@@ -282,7 +291,8 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   konum, tür · kategori, birim, açılış; varsa hedef süre, çözüm, kapanış, bildirenin puanı, aynı sorunu bildirenler,
   yeniden açılma (olmayan şey gösterilmez). **Yapay zekâ kararları:** İnceleme Kuyruğu'ndaki gerekçe panelinin aynısı,
   burada hep açık; kendiliğinden atanan bildirimde de görünür. Sıfır ağırlık yazılmaz. **Zaman çizelgesi:** müdür bütün
-  olayları görür; her satırda ne olduğu, kimin yaptığı ("Yapay zekâ · Sınıflandırma", "Sistem", "Bildiren", "Personel",
+  olayları görür; bildirenin ekranındaki gibi 5 ya da daha fazla adımda kapalı gelir (son 3 adım + "N önceki adımı
+  göster", `CollapsibleTimeline`); personelin Birim Bildirimleri detayında da aynısı; her satırda ne olduğu, kimin yaptığı ("Yapay zekâ · Sınıflandırma", "Sistem", "Bildiren", "Personel",
   "Müdür") ve zamanı. Olayda kişi adı gelmediği için kişi türü olayın türünden anlaşılır. **Fotoğraflar:** bildirenin
   fotoğrafları ve personelin kanıtları; yoksa bölüm çıkmaz, video küçük resim olarak gösterilmez. Bildirim İnceleme
   Kuyruğu'ndaysa üstte **"Bu bildirim kararınızı bekliyor"** kutusu çıkar: neden burada, varsa benzer bildirim ve

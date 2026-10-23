@@ -9,6 +9,7 @@ import {
   DEFAULT_FILTERS,
   STATUS_GROUPS,
   caseListQuery,
+  groupFromParam,
   caseSla,
   caseSubtitle,
   isFiltered,
@@ -125,5 +126,18 @@ describe("case list views", () => {
     expect(CASE_LIST_VIEWS.unit).toMatchObject({ title: "Birim Bildirimleri", path: "/staff/cases" });
     expect(CASE_LIST_VIEWS.unit.description).toMatch(/size atanan/);
     expect(CASE_LIST_VIEWS.unit.backText).toBe("Birim Bildirimleri'ne dön");
+  });
+});
+
+describe("groupFromParam", () => {
+  it("opens the list on a known status group from the address", () => {
+    expect(groupFromParam("open")).toBe("open");
+    expect(groupFromParam("late")).toBe("late");
+  });
+
+  it("falls back to all cases for a missing or unknown value", () => {
+    expect(groupFromParam(undefined)).toBe("all");
+    expect(groupFromParam("hepsi")).toBe("all");
+    expect(groupFromParam(["open", "late"])).toBe("all");
   });
 });

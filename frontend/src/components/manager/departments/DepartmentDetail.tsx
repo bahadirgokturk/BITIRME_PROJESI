@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { PageTitle } from "@/components/layout/PageTitle";
+import { PrintMeta } from "@/components/print/PrintButton";
 import { ErrorState } from "@/components/states/ErrorState";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,7 +18,7 @@ import { CategoryBars } from "../dashboard/CategoryBars";
 import { PanelSkeleton } from "../dashboard/ChartCard";
 import { KpiGrid, KpiGridSkeleton } from "../dashboard/KpiGrid";
 import { TrendChart } from "../dashboard/TrendChart";
-import { PeriodSwitch } from "../PeriodSwitch";
+import { PeriodActions } from "../PeriodActions";
 import { RecurringCard } from "../reports/RecurringCard";
 import { CARD_CLASS, StatGrid } from "./DepartmentCard";
 
@@ -130,8 +131,11 @@ function DetailBody({ query, item, period, onPeriod }: DetailBodyProps) {
   return (
     <>
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <PageTitle>{item.department.name}</PageTitle>
-        <PeriodSwitch value={period} onChange={onPeriod} />
+        <div className="space-y-2">
+          <PageTitle>{item.department.name}</PageTitle>
+          <PrintMeta period={period} />
+        </div>
+        <PeriodActions value={period} onChange={onPeriod} />
       </header>
       <UnitSummary item={item} />
       <UnitAnalytics period={period} departmentId={item.department.id} />

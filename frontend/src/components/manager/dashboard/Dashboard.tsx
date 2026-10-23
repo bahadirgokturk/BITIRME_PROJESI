@@ -5,6 +5,7 @@ import { useState } from "react";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { ErrorState } from "@/components/states/ErrorState";
 import { useCategories, useKpis, useTrend } from "@/hooks/useAnalytics";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { periodDays, type SummaryPeriod } from "@/lib/analytics";
 
 import { AiSummary, AiSummaryEmpty } from "./AiSummary";
@@ -34,6 +35,7 @@ function DashboardBody({ period }: { period: SummaryPeriod }) {
   const kpis = useKpis(period);
   const trend = useTrend(period);
   const categories = useCategories(period);
+  const role = useCurrentUser().data?.role;
   const failed = [kpis, trend, categories].find((query) => query.isError);
   if (failed?.error) {
     const retry = () => [kpis, trend, categories].forEach((query) => void query.refetch());
@@ -45,7 +47,7 @@ function DashboardBody({ period }: { period: SummaryPeriod }) {
   const isEmpty = kpis.data.total_cases.value === 0;
   return (
     <div className="space-y-4 md:space-y-6">
-      <KpiGrid kpis={kpis.data} days={periodDays(period)} />
+      <KpiGrid kpis={kpis.data} days={periodDays(period)} role={role} />
       <div className={CHARTS_CLASS}>
         <div className={TREND_SPAN}>
           <TrendChart trend={trend.data} />
