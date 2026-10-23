@@ -37,7 +37,7 @@ export function AppShell({ role, userName, userDetail, children }: AppShellProps
       />
       <aside className="hidden border-r bg-muted p-4 md:sticky md:top-0 md:flex md:h-dvh md:w-56 md:flex-col md:gap-4 print:hidden">
         <div className="space-y-2">
-          <LogoWordmark />
+          <LogoWordmark onMuted />
           <p className="text-xs text-muted-foreground">{userName}</p>
         </div>
         <div className="flex-1">

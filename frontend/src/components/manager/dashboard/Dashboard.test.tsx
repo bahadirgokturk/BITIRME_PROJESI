@@ -27,6 +27,15 @@ const card = (label: string) => screen.getByRole("group", { name: label });
 describe("Dashboard", () => {
   afterEach(() => signInAs(null));
 
+  // Liste ogesine rol verilemez (axe: aria-allowed-role, list); kart grubu ogenin icinde
+  it("keeps the KPI cards as plain list items with a named group inside", async () => {
+    renderDashboard();
+
+    const list = await screen.findByRole("list", { name: "Temel göstergeler" });
+    expect(within(list).getAllByRole("listitem")).toHaveLength(6);
+    expect(within(list).getByRole("group", { name: "Açık Bildirim" })).toBeInTheDocument();
+  });
+
   it("opens the matching list or report from a KPI card", async () => {
     signInAs(USERS.MANAGER);
     renderDashboard();

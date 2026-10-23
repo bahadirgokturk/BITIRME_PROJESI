@@ -36,7 +36,7 @@ export function AttachmentField({ files, problem, onPick, onRemove }: Attachment
           className="sr-only"
         />
         <ImagePlusIcon aria-hidden className="size-6 text-primary" />
-        <span className="text-sm font-medium text-primary">Fotoğraf ya da video ekle</span>
+        <span className="text-sm font-medium text-primary-text">Fotoğraf ya da video ekle</span>
         <span id={HINT_ID} className="text-xs text-muted-foreground">
           JPG, PNG, WEBP en fazla 10 MB · MP4, MOV en fazla 30 sn ve 50 MB · en fazla {REPORT_MAX_FILES} dosya
         </span>

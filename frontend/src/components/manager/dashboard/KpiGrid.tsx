@@ -41,19 +41,24 @@ function KpiCardBody({ card, days }: { card: KpiCardView; days: number }) {
   );
 }
 
+// Liste ogesine rol verilmez (axe: aria-allowed-role); adli grup ogenin icindeki kutudur
 function KpiCard({ card, days }: { card: KpiCardView; days: number }) {
   if (!card.href) {
     return (
-      <li role="group" aria-label={card.label} className={CARD_CLASS}>
-        <KpiCardBody card={card} days={days} />
+      <li>
+        <div role="group" aria-label={card.label} className={cn(CARD_CLASS, "h-full")}>
+          <KpiCardBody card={card} days={days} />
+        </div>
       </li>
     );
   }
   return (
-    <li role="group" aria-label={card.label} className="rounded-lg border bg-card break-inside-avoid">
-      <Link href={card.href} className={LINK_CLASS}>
-        <KpiCardBody card={card} days={days} />
-      </Link>
+    <li>
+      <div role="group" aria-label={card.label} className="h-full rounded-lg border bg-card break-inside-avoid">
+        <Link href={card.href} className={LINK_CLASS}>
+          <KpiCardBody card={card} days={days} />
+        </Link>
+      </div>
     </li>
   );
 }
