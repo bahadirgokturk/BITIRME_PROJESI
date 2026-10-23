@@ -4,6 +4,7 @@ import { apiGet } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
 import { caseListQuery, type CaseFilters } from "@/lib/caseList";
 import { nextPage } from "@/lib/pagination";
+import { LIVE_QUERY } from "@/lib/queryClient";
 import { myCasesPath, type MyCasesFilter } from "@/lib/status";
 
 export type CaseRead = components["schemas"]["CaseRead"];
@@ -19,6 +20,7 @@ export function useMyCases(filter: MyCasesFilter = "all") {
     initialPageParam: 1,
     getNextPageParam: nextPage,
     select: (data) => data.pages.flatMap((page) => page.items),
+    ...LIVE_QUERY,
   });
 }
 
@@ -27,6 +29,7 @@ export function useCase(caseId: string) {
   return useQuery({
     queryKey: ["cases", caseId],
     queryFn: () => apiGet<CaseRead>(`/cases/${encodeURIComponent(caseId)}`),
+    ...LIVE_QUERY,
   });
 }
 
@@ -34,6 +37,7 @@ export function useCaseEvents(caseId: string) {
   return useQuery({
     queryKey: ["cases", caseId, "events"],
     queryFn: () => apiGet<CaseEventRead[]>(`/cases/${encodeURIComponent(caseId)}/events`),
+    ...LIVE_QUERY,
   });
 }
 
@@ -50,5 +54,6 @@ export function useCaseList(filters: CaseFilters) {
       items: data.pages.flatMap((page) => page.items),
       total: data.pages[0]?.total ?? 0,
     }),
+    ...LIVE_QUERY,
   });
 }

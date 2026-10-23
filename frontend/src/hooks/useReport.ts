@@ -57,7 +57,8 @@ async function uploadAll(caseId: number, files: File[]): Promise<UploadFailure[]
   return failures;
 }
 
-export function useCreateReport() {
+// onCreated bildirim kaydedilince cagrilir (taslagi silmek icin); form o anda ekrandan kalkar
+export function useCreateReport(onCreated?: () => void) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ description, locationId, files }: ReportInput): Promise<ReportResult> => {
@@ -66,6 +67,9 @@ export function useCreateReport() {
       return { created, failedUploads: await uploadAll(created.id, files) };
     },
     // Bildirimlerim listesi yeni kaydi gostersin
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cases", "mine"] }),
+    onSuccess: () => {
+      onCreated?.();
+      return queryClient.invalidateQueries({ queryKey: ["cases", "mine"] });
+    },
   });
 }
