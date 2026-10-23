@@ -26,7 +26,7 @@ interface ShowAllButtonProps {
 
 export function ShowAllButton({ showAll, totalText, onClick }: ShowAllButtonProps) {
   return (
-    <Button variant="outline" className="h-11 w-full md:h-9 md:w-auto" onClick={onClick}>
+    <Button variant="outline" className="h-11 w-full md:h-9 md:w-auto print:hidden" onClick={onClick}>
       {showAll ? "Daha az göster" : `${totalText} hepsini göster`}
     </Button>
   );

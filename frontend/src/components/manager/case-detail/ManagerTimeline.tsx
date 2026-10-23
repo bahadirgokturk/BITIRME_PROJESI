@@ -1,5 +1,6 @@
 "use client";
 
+import { CollapsibleTimeline } from "@/components/cases/CollapsibleTimeline";
 import { ErrorState } from "@/components/states/ErrorState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCaseEvents, type CaseEventRead } from "@/hooks/useCases";
@@ -36,13 +37,8 @@ function TimelineBody({ query }: { query: EventsQuery }) {
   if (query.isError) {
     return <ErrorState title="Zaman çizelgesi yüklenemedi." error={query.error} onRetry={() => void query.refetch()} />;
   }
-  return (
-    <ol aria-label="Zaman çizelgesi">
-      {query.data.map((event) => (
-        <TimelineItem key={event.id} event={event} />
-      ))}
-    </ol>
-  );
+  // Uzun cizelgede once son uc adim; oncekiler dugmeyle acilir (Figma: /manager/cases/[id])
+  return <CollapsibleTimeline events={query.data} renderItem={(event) => <TimelineItem key={event.id} event={event} />} />;
 }
 
 // Mudurun zaman cizelgesi: bildirenin gordugunden ayrintili (Figma: 05 Manager > /manager/cases/[id])

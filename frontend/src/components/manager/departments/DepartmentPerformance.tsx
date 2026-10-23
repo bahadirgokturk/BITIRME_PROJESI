@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { CheckboxFilter } from "@/components/filters/CheckboxFilter";
 import { PageTitle } from "@/components/layout/PageTitle";
+import { PrintMeta } from "@/components/print/PrintButton";
 import { ErrorState } from "@/components/states/ErrorState";
 import { useDepartments } from "@/hooks/useAnalytics";
 import type { SummaryPeriod } from "@/lib/analytics";
@@ -17,7 +18,7 @@ import {
 import type { DepartmentsRead } from "@/lib/reports";
 
 import { PanelSkeleton } from "../dashboard/ChartCard";
-import { PeriodSwitch } from "../PeriodSwitch";
+import { PeriodActions } from "../PeriodActions";
 import { DepartmentCard } from "./DepartmentCard";
 
 const GRID_CLASS = "grid gap-4 sm:grid-cols-2 xl:grid-cols-3";
@@ -85,11 +86,12 @@ export function DepartmentPerformance() {
       <header className="space-y-2">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <PageTitle>Birim Performansı</PageTitle>
-          <PeriodSwitch value={period} onChange={setPeriod} />
+          <PeriodActions value={period} onChange={setPeriod} />
         </div>
         <p className="text-sm text-muted-foreground">
           Her birimin bu dönemdeki bildirim, süre ve iş yükü durumu. Ayrıntılar için birime tıklayın.
         </p>
+        <PrintMeta period={period} />
       </header>
       <DepartmentBody period={period} />
     </div>

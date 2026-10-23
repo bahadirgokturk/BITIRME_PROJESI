@@ -78,6 +78,8 @@ test("a reported problem is assigned by the agents, done by staff, closed and ra
   for (const step of AI_STEPS) {
     await expect(decisions.getByText(step, { exact: true })).toBeVisible();
   }
+  // Uzun cizelgede once son adimlar gelir; butun yasam dongusu icin oncekiler acilir
+  await page.getByRole("button", { name: /önceki adımı göster/ }).click();
   const timeline = page.getByRole("list", { name: "Zaman çizelgesi" });
   for (const label of LIFECYCLE) {
     await expect(timeline.getByText(label, { exact: true }).first()).toBeVisible();

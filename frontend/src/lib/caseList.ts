@@ -120,6 +120,11 @@ export const STATUS_GROUPS: readonly StatusGroupOption[] = [
   { value: "late", label: "Geciken", statuses: OPEN_STATUSES, lateOnly: true },
 ];
 
+// Adresten gelen durum grubu (?group=open): Pano kartlari listeyi filtreli acar; bilinmeyen deger "Tumu"
+export function groupFromParam(value: string | string[] | undefined): StatusGroup {
+  return STATUS_GROUPS.find((item) => item.value === value)?.value ?? "all";
+}
+
 export interface CaseFilters {
   group: StatusGroup;
   priority: Priority | null;

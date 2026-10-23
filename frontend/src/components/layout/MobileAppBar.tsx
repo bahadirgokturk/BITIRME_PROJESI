@@ -22,7 +22,7 @@ const ICON_BUTTON = buttonVariants({ variant: "ghost", className: "size-11" });
 // alt sayfalarda geri + baslik (Figma: MobileAppBar, Tur=Menu / Tur=Geri)
 export function MobileAppBar({ bar, items, activeHref, user }: MobileAppBarProps) {
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center gap-1 border-b bg-background pr-4 pl-1.5 md:hidden">
+    <header className="sticky top-0 z-40 flex h-14 items-center gap-1 border-b bg-background pr-4 pl-1.5 md:hidden print:hidden">
       {bar.kind === "back" ? (
         <>
           <Link href={bar.backHref} aria-label="Geri" className={ICON_BUTTON}>

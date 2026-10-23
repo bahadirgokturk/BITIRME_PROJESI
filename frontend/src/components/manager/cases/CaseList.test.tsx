@@ -5,6 +5,7 @@ import { http, HttpResponse } from "msw";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
+import type { StatusGroup } from "@/lib/caseList";
 import { createQueryClient } from "@/lib/queryClient";
 import { USERS } from "@/mocks/fixtures";
 import { server } from "@/mocks/node";
@@ -12,10 +13,10 @@ import { signInAs } from "@/mocks/session";
 
 import { CaseList } from "./CaseList";
 
-function renderList() {
+function renderList(initialGroup?: StatusGroup) {
   render(
     <QueryClientProvider client={createQueryClient()}>
-      <CaseList />
+      <CaseList initialGroup={initialGroup} />
     </QueryClientProvider>,
   );
   return userEvent.setup();
@@ -92,6 +93,13 @@ describe("CaseList", () => {
     await user.click(screen.getByRole("button", { name: "Reddedilen ve birleştirilen" }));
 
     await waitForRows(6);
+  });
+
+  it("opens already narrowed when a dashboard card sends the manager here", async () => {
+    renderList("late");
+
+    await waitForRows(3);
+    expect(screen.getByRole("button", { name: "Geciken" })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("narrows the list by priority and by search text", async () => {

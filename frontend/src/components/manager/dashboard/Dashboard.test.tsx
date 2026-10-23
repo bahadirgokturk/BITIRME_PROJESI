@@ -2,12 +2,14 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
 import { createQueryClient } from "@/lib/queryClient";
 import { KPIS_EMPTY } from "@/mocks/analyticsFixtures";
+import { USERS } from "@/mocks/fixtures";
 import { server } from "@/mocks/node";
+import { signInAs } from "@/mocks/session";
 
 import { Dashboard } from "./Dashboard";
 
@@ -23,6 +25,17 @@ function renderDashboard() {
 const card = (label: string) => screen.getByRole("group", { name: label });
 
 describe("Dashboard", () => {
+  afterEach(() => signInAs(null));
+
+  it("opens the matching list or report from a KPI card", async () => {
+    signInAs(USERS.MANAGER);
+    renderDashboard();
+
+    const open = await screen.findByRole("link", { name: /Açık Bildirim/ });
+    expect(open).toHaveAttribute("href", "/manager/cases?group=open");
+    expect(within(card("Müdür İncelemesi Oranı")).getByRole("link")).toHaveAttribute("href", "/manager/review-queue");
+  });
+
   it("shows a skeleton while the numbers load", () => {
     renderDashboard();
 

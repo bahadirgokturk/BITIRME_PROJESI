@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 export function OfflineBanner({ className }: { className?: string }) {
   const online = useOnline();
   return (
-    <div role="status" className={cn("z-30 bg-background", className)}>
+    <div role="status" className={cn("z-30 bg-background print:hidden", className)}>
       {online ? null : (
         <p className="flex items-center gap-2 border-b bg-warning/10 px-4 py-2.5 text-[13px] font-medium">
           <WifiOffIcon aria-hidden className="size-[18px] shrink-0 text-warning" />

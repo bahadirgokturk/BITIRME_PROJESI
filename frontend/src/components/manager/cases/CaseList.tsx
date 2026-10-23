@@ -15,6 +15,7 @@ import {
   shownSummary,
   type CaseFilters as Filters,
   type CaseListView,
+  type StatusGroup,
 } from "@/lib/caseList";
 
 import { CaseFilters } from "./CaseFilters";
@@ -139,8 +140,14 @@ function CaseListBody({ query, filtered, onClear, listPath }: CaseListBodyProps)
 
 // Butun bildirimler (mudur, yonetici) ya da birim bildirimleri (personel): arama, filtre ve sayfalama
 // (docs/UI_GUIDE.md bolum 5.4; Figma: 05 Manager > /manager/cases, 04 Staff > /staff/cases)
-export function CaseList({ view = "all" }: { view?: CaseListView }) {
-  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+interface CaseListProps {
+  view?: CaseListView;
+  // Pano kartindan gelince liste o durum grubuyla acilir
+  initialGroup?: StatusGroup;
+}
+
+export function CaseList({ view = "all", initialGroup = "all" }: CaseListProps) {
+  const [filters, setFilters] = useState<Filters>({ ...DEFAULT_FILTERS, group: initialGroup });
   const search = useDebouncedValue(filters.search, SEARCH_DELAY_MS);
   const applied = { ...filters, search };
   const query = useCaseList(applied);
