@@ -106,11 +106,12 @@ tutulur; backend şeması değişince `npm run gen:api` + fixture düzeltmesi ye
 
 - `session.ts` — `login()`, `logout()`. Access token **yalnız bellekte** (`tokenStore.ts`); `localStorage`'a
   yazılmaz (XSS ile çalınamasın). Sayfa yenilenince bellek boşalır.
-- `client.ts` — her isteğe `Authorization: Bearer` ekler. `401` gelirse backend'in HttpOnly refresh çereziyle
-  **bir kez** `POST /auth/refresh` yapar ve isteği tekrarlar; o da `401` ise oturum biter. Aynı anda gelen
-  401'ler **tek** yenilemeyi bekler (aynı çerez iki kez kullanılırsa backend bunu çalınma sayabilir).
-  `/auth/login`, `/auth/refresh`, `/auth/logout` için yenileme denenmez; `/auth/me` için denenir (sayfa
-  yenilenince ilk istek odur).
+- `client.ts` — her isteğe `Authorization: Bearer` ekler. Bellekte token yoksa (sayfa açıldı/yenilendi) istekten
+  **önce** HttpOnly refresh çereziyle `POST /auth/refresh` yapar; böylece sunucu 401 dönmez ve bir istek azalır.
+  Çerez de geçersizse istek tokensiz bir kez gider ve dönen `401` kesindir. Token varken `401` gelirse **bir kez**
+  yeniler ve isteği tekrarlar. Aynı anda gelen istekler **tek** yenilemeyi bekler (aynı çerez iki kez kullanılırsa
+  backend bunu çalınma sayabilir). `/auth/login`, `/auth/refresh`, `/auth/logout` ve herkese açık `/health` için
+  yenileme denenmez.
 - `CurrentUserShell` — oturum yoksa `/login`'e yönlendirir. `LogoutButton` — çıkışta sorgu önbelleğini de siler.
 - Ekranlarda veri için `apiGet` / `apiPost` kullan; token'la hiç uğraşma.
 

@@ -7,6 +7,7 @@ import { cn } from "cn";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useLocations, type LocationOption } from "@/hooks/useReport";
 import { ApiError } from "@/lib/api/client";
 import { LOCATION_RESULT_LIMIT, searchLocations } from "@/lib/report";
@@ -79,6 +80,20 @@ function LocationResults({ matches, onPick }: { matches: LocationOption[]; onPic
   );
 }
 
+// Konumlar gelene kadar sonuc listesiyle ayni yukseklikte yer tutulur: liste gelince altindaki alanlar
+// asagi kaymaz (Lighthouse CLS)
+function LocationResultsSkeleton() {
+  return (
+    <ul aria-label="Konumlar yükleniyor" aria-busy="true" className="divide-y overflow-hidden rounded-lg border">
+      {Array.from({ length: LOCATION_RESULT_LIMIT }, (_, index) => (
+        <li key={index} className="flex min-h-11 items-center gap-2 px-3">
+          <Skeleton className="h-4 w-1/2" />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 interface LocationSearchProps {
   options: LocationOption[] | undefined;
   error: string | null;
@@ -108,7 +123,11 @@ function LocationSearch({ options, error, onPick }: LocationSearchProps) {
           className={INPUT_CLASS}
         />
       </div>
-      {options ? <LocationResults matches={searchLocations(options, query)} onPick={onPick} /> : null}
+      {options ? (
+        <LocationResults matches={searchLocations(options, query)} onPick={onPick} />
+      ) : (
+        <LocationResultsSkeleton />
+      )}
     </div>
   );
 }

@@ -84,6 +84,7 @@ Figma değişkenleri (Variables) **koddaki CSS değişkenleriyle aynı adla** ta
   | `brand-accent` | turuncu `#FF8901` | aynı | Süsleme (başlık altı çizgi, seçili menü çizgisi, logodaki bakır rengi su) ve **renk yolculuğu** (aşağıda). Metin ya da buton rengi olarak kullanılmaz |
   | `brand-accent-strong` | koyu turuncu `#D96A00` | aynı | Renk yolculuğunun en başı (1. yıldız) |
   | `primary-strong` | koyu turkuaz `#005F68` | `#00818D` | Renk yolculuğunun en sonu (5. yıldız) |
+  | `primary-text` | koyu turkuaz `#005F68` | `#00A5B5` | Gri zeminde ya da turkuaz rozette turkuaz **yazı** (ana turkuaz orada 4.1–4.3:1 kalır); beyaz zemindeki bağlantılar `primary` |
 
   **Renk yolculuğu:** turuncu "yolda", turkuaz "çözüldü" demektir; soldan sağa turuncudan turkuaza geçilir.
   İlerleme çubuğu: Alındı ve Yönlendirildi turuncu, Çalışılıyor turuncudan turkuaza geçişli, Çözüldü turkuaz.
@@ -389,7 +390,12 @@ dönünce sorgular yine yenilenir. Raporlar ekranı elle bakıldığı için yen
 
 ## 8. Erişilebilirlik (WCAG 2.2 AA)
 
-- Metin kontrastı en az 4.5:1 (büyük metin 3:1). Figma'da kontrast eklentisiyle kontrol edilir.
+- Metin kontrastı en az 4.5:1 (büyük metin 3:1). Figma'da kontrast eklentisiyle kontrol edilir. Lighthouse ölçümünden
+  (Ekim 2026) sonra `muted-foreground` (`#6C6C6C`), `destructive` ve `warning` biraz koyulaştırıldı ve gri zemindeki
+  turkuaz yazı için `primary-text` eklendi; token çiftleri `src/app/colorContrast.test.ts` ile açık ve koyu temada
+  denetlenir (gri zeminde soluk yazı, rozetler kendi %10 tonunda, turkuaz üstünde buton yazısı). Figma'da kütüphanenin
+  `muted-foreground` ve `destructive` değişkenleri yerine yerel `muted-foreground-aa` ve `destructive-aa` kullanılır.
+- Liste öğesine (`li`) rol verilmez; adlı grup gerekiyorsa öğenin içindeki kutuya verilir (Genel Bakış kartları).
 - Dokunma alanı en az 44×44 px; butonlar arası en az 8 px.
 - Her form alanının görünür etiketi var (yalnız placeholder yetmez).
 - Klavye ile tüm akış tamamlanabilir; odak halkası (`--ring`) görünür.

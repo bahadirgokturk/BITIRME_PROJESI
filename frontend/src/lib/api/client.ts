@@ -13,7 +13,8 @@ const UNAUTHORIZED = 401;
 const NO_CONTENT = 204;
 // Oturumu kuran/bitiren uclarin 401'i kesindir: yenileme denenmez (sonsuz dongu olmasin).
 // /auth/me bu listede DEGIL: sayfa yenilenince ilk istek odur ve cerezle kurtarilmalidir.
-const NO_REFRESH_PATHS = new Set(["/auth/login", "/auth/refresh", "/auth/logout"]);
+// /health herkese aciktir: oturum gerekmez, once yenileme de yapilmaz.
+const NO_REFRESH_PATHS = new Set(["/auth/login", "/auth/refresh", "/auth/logout", "/health"]);
 
 export class ApiError extends Error {
   constructor(
@@ -128,11 +129,17 @@ export function refreshAccessToken(): Promise<boolean> {
   return refreshInFlight;
 }
 
+// Sayfa acilinca/yenilenince access token bellekte yoktur: istek once 401 alip sonra yenilemek yerine
+// once cerezle yenilenir (bir istek az, konsolda 401 hatasi yok). Cerez de yoksa istek tokensiz bir kez
+// gider; donen 401 kesindir, ikinci kez yenileme denenmez.
 async function send(path: string, init: RequestInit): Promise<Response> {
+  const canRefresh = !NO_REFRESH_PATHS.has(path);
+  if (canRefresh && getAccessToken() === null) {
+    await refreshAccessToken();
+    return deliver(buildRequest(path, init));
+  }
   const response = await deliver(buildRequest(path, init));
-  const canRefresh =
-    response.status === UNAUTHORIZED && !NO_REFRESH_PATHS.has(path);
-  if (canRefresh && (await refreshAccessToken())) {
+  if (canRefresh && response.status === UNAUTHORIZED && (await refreshAccessToken())) {
     return deliver(buildRequest(path, init));
   }
   return response;

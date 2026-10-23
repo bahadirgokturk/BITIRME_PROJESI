@@ -43,7 +43,8 @@ function DecisionRow({ decision }: { decision: AgentDecision }) {
 export function DecisionPanel({ caseId }: { caseId: number }) {
   const decisions = useCaseDecisions(caseId, true);
   if (decisions.isPending) {
-    return <Skeleton aria-label="Yapay zekâ kararları yükleniyor" className="h-24 w-full" />;
+    // Tipik agent hatti 4-6 adim (~300 px): yuklenirken ayni yer tutulur, alttaki zaman cizelgesi kaymaz (CLS)
+    return <Skeleton aria-label="Yapay zekâ kararları yükleniyor" className="h-72 w-full" />;
   }
   if (decisions.isError) {
     return (

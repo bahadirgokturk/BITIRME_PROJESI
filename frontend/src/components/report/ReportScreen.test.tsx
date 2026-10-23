@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
 import { createQueryClient } from "@/lib/queryClient";
+import { LOCATION_RESULT_LIMIT } from "@/lib/report";
 import { server } from "@/mocks/node";
 
 import { ReportScreen } from "./ReportScreen";
@@ -171,6 +172,15 @@ describe("ReportScreen", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Beklenmeyen bir hata oluştu.");
     expect(screen.getByLabelText("Ne oldu?")).toHaveValue("B blok 2. kat erkek tuvalette sabun bitmiş");
+  });
+
+  // Liste yuklenince altindaki alanlar kaymasin (Lighthouse CLS): yuklenirken ayni yukseklikte yer tutulur
+  it("keeps room for the location list while it loads", () => {
+    renderScreen();
+
+    const placeholder = screen.getByRole("list", { name: "Konumlar yükleniyor" });
+    expect(placeholder).toHaveAttribute("aria-busy", "true");
+    expect(within(placeholder).getAllByRole("listitem")).toHaveLength(LOCATION_RESULT_LIMIT);
   });
 
   it("offers a retry when the locations cannot be loaded", async () => {

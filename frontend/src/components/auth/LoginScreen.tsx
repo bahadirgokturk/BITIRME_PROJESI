@@ -12,7 +12,7 @@ function BrandPanel() {
       <LogoMark className="size-24 ring-1 ring-white" />
       <p className="text-4xl leading-tight font-semibold">Kampüsteki sorunları bildir, çözülene kadar takip et.</p>
       <span aria-hidden className="block h-1 w-8 rounded-[2px] bg-brand-accent" />
-      <p className="opacity-85">İzmir Bakırçay Üniversitesi · BakırçayFlow</p>
+      <p>İzmir Bakırçay Üniversitesi · BakırçayFlow</p>
     </section>
   );
 }

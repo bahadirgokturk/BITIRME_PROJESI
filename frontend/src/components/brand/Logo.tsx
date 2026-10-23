@@ -18,13 +18,19 @@ const WORDMARK_SIZES = {
   lg: { mark: "size-[50px]", gap: "gap-3", text: "text-[25px]" },
 } as const;
 
-export function LogoWordmark({ size = "md" }: { size?: keyof typeof WORDMARK_SIZES }) {
+interface LogoWordmarkProps {
+  size?: keyof typeof WORDMARK_SIZES;
+  // Gri zeminde (masaustu kenar cubugu) "Flow" koyu turkuazla yazilir; ana turkuaz orada 4.25:1 kalir
+  onMuted?: boolean;
+}
+
+export function LogoWordmark({ size = "md", onMuted = false }: LogoWordmarkProps) {
   const classes = WORDMARK_SIZES[size];
   return (
     <span className={cn("flex items-center", classes.gap)}>
       <LogoMark className={classes.mark} />
       <span className={cn("font-semibold tracking-tight", classes.text)}>
-        Bakırçay<span className="text-primary">Flow</span>
+        Bakırçay<span className={onMuted ? "text-primary-text" : "text-primary"}>Flow</span>
       </span>
     </span>
   );

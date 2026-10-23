@@ -136,6 +136,37 @@ describe("session", () => {
 });
 
 describe("session after a page reload", () => {
+  it("renews the session from the cookie first, so the server never answers 401", async () => {
+    let anonymous = 0;
+    server.use(
+      http.post(apiUrl("/auth/refresh"), () => token("restored")),
+      http.get(apiUrl("/auth/me"), ({ request }) => {
+        if (request.headers.get("Authorization") !== "Bearer restored") {
+          anonymous += 1;
+          return unauthorized();
+        }
+        return HttpResponse.json({ id: 1, full_name: "Demo Öğrenci" });
+      }),
+    );
+
+    await expect(apiGet("/auth/me")).resolves.toMatchObject({ id: 1 });
+    expect(anonymous).toBe(0);
+  });
+
+  it("asks once and stops when there is no session cookie", async () => {
+    let refreshes = 0;
+    server.use(
+      http.post(apiUrl("/auth/refresh"), () => {
+        refreshes += 1;
+        return unauthorized();
+      }),
+      http.get(apiUrl("/auth/me"), unauthorized),
+    );
+
+    await expect(apiGet("/auth/me")).rejects.toMatchObject({ status: 401 });
+    expect(refreshes).toBe(1);
+  });
+
   it("restores the session from the refresh cookie when /auth/me answers 401", async () => {
     // Sayfa yenilenince bellekteki token yoktur; ilk istek /auth/me'dir
     server.use(
