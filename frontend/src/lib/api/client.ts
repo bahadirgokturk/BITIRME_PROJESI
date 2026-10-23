@@ -3,6 +3,7 @@
 // bir kez yenilenip istek tekrarlanir (docs/API.md "Auth").
 import type { components } from "@/lib/api/types";
 
+import { markServerReachable } from "./reachability";
 import { getAccessToken, setAccessToken } from "./tokenStore";
 
 type ErrorEnvelope = components["schemas"]["ErrorRead"];
@@ -89,12 +90,27 @@ async function parse<T>(response: Response): Promise<T> {
   );
 }
 
+// Her istek buradan gecer: ag hatasi (fetch TypeError) baglantinin koptugunu, gelen her cevap sunucuya
+// ulasildigini bildirir (reachability.ts). Iptal edilen istek (AbortError) baglanti sorunu sayilmaz.
+async function deliver(request: Request): Promise<Response> {
+  try {
+    const response = await transport(request);
+    markServerReachable(true);
+    return response;
+  } catch (error) {
+    if (error instanceof TypeError) {
+      markServerReachable(false);
+    }
+    throw error;
+  }
+}
+
 // Ayni anda gelen 401'ler tek yenilemeyi bekler: ayni cerezin iki kez kullanilmasi backend'de
 // calinma belirtisi sayilabilir (docs/API.md "Rotasyon")
 let refreshInFlight: Promise<boolean> | null = null;
 
 async function refreshOnce(): Promise<boolean> {
-  const response = await transport(
+  const response = await deliver(
     buildRequest("/auth/refresh", { method: "POST" }),
   );
   if (!response.ok) {
@@ -113,11 +129,11 @@ export function refreshAccessToken(): Promise<boolean> {
 }
 
 async function send(path: string, init: RequestInit): Promise<Response> {
-  const response = await transport(buildRequest(path, init));
+  const response = await deliver(buildRequest(path, init));
   const canRefresh =
     response.status === UNAUTHORIZED && !NO_REFRESH_PATHS.has(path);
   if (canRefresh && (await refreshAccessToken())) {
-    return transport(buildRequest(path, init));
+    return deliver(buildRequest(path, init));
   }
   return response;
 }

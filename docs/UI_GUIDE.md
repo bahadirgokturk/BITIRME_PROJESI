@@ -376,7 +376,10 @@ Her ekran ve liste için Figma'da ve kodda şu durumlar çizilir/uygulanır:
 
 **Bağlantı yok:** İnternet kopunca içeriğin üstünde uyarı renginde bir şerit çıkar: "İnternet bağlantınız yok. Bağlanınca sayfa
 yenilenir." Telefonda üst çubuğun hemen altında, masaüstünde içerik sütununun en üstünde yapışık durur; giriş ekranında
-da en üsttedir. Bağlantı gelince şerit kalkar ve sorgular kendiliğinden yeniden okunur (`OfflineBanner`, `hooks/useOnline.ts`;
+da en üsttedir. Bağlantı yalnız tarayıcının bilgisinden anlaşılmaz (Windows'ta Docker/WSL gibi sanal ağ kartları açıkken
+Wi-Fi kapansa da tarayıcı "bağlıyım" der): sunucuya giden bir istek ağ hatasıyla düşerse de şerit çıkar ve sunucu 10 sn'de
+bir yoklanır; herhangi bir cevap gelince şerit kalkar (`lib/api/reachability.ts`). Bağlantı gelince şerit kalkar ve
+sorgular kendiliğinden yeniden okunur (`OfflineBanner`, `hooks/useOnline.ts`;
 Figma: OfflineBanner, `/report - … - bağlantı yok`, `/login - mobil - bağlantı yok`).
 
 **Kendini yenileme:** İş listeleri ve detaylar dakikada bir yeniden okunur; böylece başkasının yaptığı değişiklik sayfa
