@@ -1,10 +1,12 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
 import { createQueryClient } from "@/lib/queryClient";
+import { CASES, timelineFor } from "@/mocks/caseFixtures";
 import { server } from "@/mocks/node";
 
 import { CaseDetail } from "./CaseDetail";
@@ -46,6 +48,34 @@ describe("CaseDetail", () => {
 
     const timeline = await screen.findByRole("list", { name: "Zaman çizelgesi" });
     expect(within(timeline).getByText("Bildiriminiz alındı")).toBeInTheDocument();
+  });
+
+  it("opens the earlier steps of a long timeline on request", async () => {
+    const events = Array.from({ length: 9 }, (_, index) => ({
+      ...timelineFor(CASES[0]!)[0]!,
+      id: 9000 + index,
+      event_type: index === 0 ? "CASE_CREATED" : "ROUTED",
+    }));
+    events[8] = { ...events[8]!, event_type: "CASE_CLOSED" };
+    server.use(http.get(apiUrl("/cases/:id/events"), () => HttpResponse.json(events)));
+    renderDetail("101");
+    const user = userEvent.setup();
+
+    const timeline = await screen.findByRole("list", { name: "Zaman çizelgesi" });
+    expect(within(timeline).getAllByRole("listitem")).toHaveLength(3);
+    expect(within(timeline).queryByText("Bildiriminiz alındı")).not.toBeInTheDocument();
+    const toggle = screen.getByRole("button", { name: "6 önceki adımı göster" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+
+    await user.click(toggle);
+
+    expect(within(timeline).getAllByRole("listitem")).toHaveLength(9);
+    expect(within(timeline).getByText("Bildiriminiz alındı")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Önceki adımları gizle" })).toHaveAttribute("aria-expanded", "true");
+
+    await user.click(screen.getByRole("button", { name: "Önceki adımları gizle" }));
+
+    expect(within(timeline).getAllByRole("listitem")).toHaveLength(3);
   });
 
   it("links back to the reporter's cases", async () => {
@@ -100,5 +130,20 @@ describe("CaseDetail", () => {
 
     expect(await screen.findByRole("heading", { name: "Tuvalette sabun bitmiş" })).toBeInTheDocument();
     expect(await screen.findByRole("alert")).toHaveTextContent("Zaman çizelgesi yüklenemedi.");
+  });
+
+  it("tells the reporter how many people reported the same problem", async () => {
+    server.use(http.get(apiUrl("/cases/101"), () => HttpResponse.json({ ...CASES.find((c) => c.id === 101)!, duplicate_count: 2 })));
+    renderDetail("101");
+
+    expect(await screen.findByText("Bu sorunu siz dahil 3 kişi bildirdi.")).toBeInTheDocument();
+  });
+
+  it("says nothing extra when only the reporter reported it", async () => {
+    server.use(http.get(apiUrl("/cases/101"), () => HttpResponse.json({ ...CASES.find((c) => c.id === 101)!, duplicate_count: 0 })));
+    renderDetail("101");
+
+    await screen.findByRole("heading", { name: "Tuvalette sabun bitmiş" });
+    expect(screen.queryByText(/kişi bildirdi/)).not.toBeInTheDocument();
   });
 });

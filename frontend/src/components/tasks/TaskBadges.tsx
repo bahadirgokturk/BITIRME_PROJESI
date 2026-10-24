@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { cn } from "cn";
 
+import { CASE_STATUS_LABELS, CASE_STATUS_TONES, type CaseStatus, type StatusTone } from "@/lib/caseList";
 import {
   PRIORITY_LABELS,
   TASK_STATUS_LABELS,
@@ -39,6 +40,31 @@ const STATUS_DOT: Record<TaskStatus, string> = {
 
 export function TaskStatusBadge({ status }: { status: TaskStatus }) {
   return <NeutralBadge dot={STATUS_DOT[status]}>{TASK_STATUS_LABELS[status]}</NeutralBadge>;
+}
+
+const TONE_DOT: Record<Exclude<StatusTone, "alert">, string> = {
+  neutral: "bg-muted-foreground",
+  info: "bg-info",
+  warning: "bg-warning",
+  waiting: STATUS_DOT.PENDING,
+  accepted: STATUS_DOT.ACCEPTED,
+  working: STATUS_DOT.IN_PROGRESS,
+  solved: "bg-primary",
+  closed: "bg-primary-strong",
+};
+
+// Bildirim durumu (mudur ekranlari); renk yaninda her zaman durum adi da yazilir (UI_GUIDE bolum 4.1)
+export function CaseStatusBadge({ status }: { status: CaseStatus }) {
+  const tone = CASE_STATUS_TONES[status];
+  if (tone === "alert") {
+    return (
+      <span className={cn(BADGE_CLASS, "gap-1 bg-destructive/10 text-destructive")}>
+        <TriangleAlertIcon aria-hidden className="size-3.5" />
+        {CASE_STATUS_LABELS[status]}
+      </span>
+    );
+  }
+  return <NeutralBadge dot={TONE_DOT[tone]}>{CASE_STATUS_LABELS[status]}</NeutralBadge>;
 }
 
 const PRIORITY_DOT: Record<Exclude<Priority, "CRITICAL">, string> = {

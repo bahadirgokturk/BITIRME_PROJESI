@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPost } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
 import type { CommentRead } from "@/lib/comments";
+import { LIVE_QUERY } from "@/lib/queryClient";
 
 type CommentCreate = components["schemas"]["CommentCreate"];
 
@@ -13,6 +14,7 @@ export function useCaseComments(caseId: number) {
   return useQuery({
     queryKey: commentsKey(caseId),
     queryFn: () => apiGet<CommentRead[]>(`/cases/${caseId}/comments`),
+    ...LIVE_QUERY,
   });
 }
 

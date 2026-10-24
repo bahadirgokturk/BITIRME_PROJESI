@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
 import { createQueryClient } from "@/lib/queryClient";
+import { MY_CASES_PAGE_SIZE } from "@/lib/status";
 import { CASES } from "@/mocks/caseFixtures";
 import { server } from "@/mocks/node";
 
@@ -44,13 +45,18 @@ function servePaged({ failPage }: { failPage?: number } = {}) {
   );
 }
 
+// Yalniz listenin sayfa istegi duser; "yanit bekleniyor" kutusunun istegi (page_size=100) normal cevap alir
 function failOnce(status: number, message: string) {
+  let failed = false;
   server.use(
-    http.get(
-      apiUrl("/cases/mine"),
-      () => HttpResponse.json({ error: { code: "INTERNAL", message, details: {} } }, { status }),
-      { once: true },
-    ),
+    http.get(apiUrl("/cases/mine"), ({ request }) => {
+      const isListPage = new URL(request.url).searchParams.get("page_size") === String(MY_CASES_PAGE_SIZE);
+      if (failed || !isListPage) {
+        return undefined;
+      }
+      failed = true;
+      return HttpResponse.json({ error: { code: "INTERNAL", message, details: {} } }, { status });
+    }),
   );
 }
 
@@ -81,7 +87,8 @@ describe("MyCasesList", () => {
   it("explains a case waiting for more information instead of a progress bar", async () => {
     renderList();
 
-    const link = await screen.findByRole("link", { name: /Amfide garip bir koku var/ });
+    const list = await screen.findByRole("list", { name: "Bildirimleriniz" });
+    const link = within(list).getByRole("link", { name: /Amfide garip bir koku var/ });
     expect(within(link).getByText(/Ek bilgi gerekiyor/)).toBeInTheDocument();
     expect(within(link).queryByRole("list", { name: "İlerleme" })).not.toBeInTheDocument();
   });
@@ -141,5 +148,57 @@ describe("MyCasesList", () => {
     expect(alert).toHaveTextContent("Beklenmeyen bir hata oluştu.");
     expect(within(alert).getByRole("button", { name: "Tekrar dene" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Bildirim 1\b/ })).toBeInTheDocument();
+  });
+
+  it("filters the reporter's own cases into open and solved", async () => {
+    const asked: string[][] = [];
+    server.use(
+      http.get(apiUrl("/cases"), ({ request }) => {
+        const statuses = new URL(request.url).searchParams.getAll("status");
+        asked.push(statuses);
+        const solved = statuses.includes("CLOSED");
+        const item = { ...CASES[0]!, id: 2001, title: solved ? "Çözülen bildirim" : "Açık bildirim" };
+        return HttpResponse.json({ items: [item], total: 1, page: 1 });
+      }),
+    );
+    renderList();
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Açık" }));
+
+    expect(await screen.findByText("Açık bildirim")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Açık" })).toHaveAttribute("aria-pressed", "true");
+    expect(asked.at(-1)).toContain("IN_PROGRESS");
+    expect(asked.at(-1)).not.toContain("CLOSED");
+
+    await user.click(screen.getByRole("button", { name: "Çözülen" }));
+
+    expect(await screen.findByText("Çözülen bildirim")).toBeInTheDocument();
+    expect(asked.at(-1)).toEqual(["RESOLVED", "VERIFICATION", "CLOSED"]);
+  });
+
+  it("says when no case matches the filter and offers to show them all", async () => {
+    server.use(http.get(apiUrl("/cases"), () => HttpResponse.json({ items: [], total: 0, page: 1 })));
+    renderList();
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Açık" }));
+
+    expect(await screen.findByText("Açık bildiriminiz yok.")).toBeInTheDocument();
+    // Bildirim yap dugmesi ustte kalir: bildirenin baska bildirimleri var
+    expect(screen.getByRole("link", { name: "Bildirim yap" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Tümünü göster" }));
+
+    expect(screen.getByRole("button", { name: "Tümü" })).toHaveAttribute("aria-pressed", "true");
+    expect(await screen.findAllByRole("link", { name: /CASE-/ })).not.toHaveLength(0);
+  });
+
+  it("offers no filter before the reporter has any case", async () => {
+    server.use(http.get(apiUrl("/cases/mine"), () => HttpResponse.json({ items: [], total: 0, page: 1 })));
+    renderList();
+
+    expect(await screen.findByText("Henüz bildiriminiz yok.")).toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Durum" })).not.toBeInTheDocument();
   });
 });

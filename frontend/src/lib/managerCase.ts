@@ -147,6 +147,20 @@ export function awaitsManager(item: CaseRead): boolean {
   return item.status === "ESCALATED" || (item.needs_human_review && UNSURE_STATUSES.includes(item.status));
 }
 
+type Role = Schemas["UserRole"];
+
+export interface CaseDetailSections {
+  // Yapay zeka kararlari ve gerekceleri (GET /cases/{id}/decisions: MANAGER, ADMIN)
+  aiDecisions: boolean;
+  // Inceleme bekleyen bildirimde onayla / duzelt / reddet (karar endpoint'leri yalniz MANAGER)
+  decide: boolean;
+}
+
+// Ayni detay ekrani personel, mudur ve yoneticiye acilir; her rol backend'in izin verdigi bolumleri gorur
+export function caseDetailSections(role: Role | undefined): CaseDetailSections {
+  return { aiDecisions: role === "MANAGER" || role === "ADMIN", decide: role === "MANAGER" };
+}
+
 type Attachment = Schemas["AttachmentRead"];
 
 export interface CasePhoto {

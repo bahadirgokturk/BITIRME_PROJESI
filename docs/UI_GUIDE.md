@@ -34,15 +34,20 @@ Tasarım sırası: **REPORTER ve STAFF önce mobil** (375 px), sonra masaüstü;
 | `/` | herkes | FAZ 2 | Role göre yönlendirme (reporter → `/report`, staff → `/staff/tasks`, manager → `/manager/dashboard`) |
 | `/admin/*` | ADMIN | FAZ 2 | users, departments, locations (ağaç), case-types, sla-rules, agent-policies, audit-logs |
 | `/report` | herkes | FAZ 3 | **En kritik ekran** — bkz. bölüm 5.1 |
-| `/my-cases` | REPORTER | FAZ 3 | Kendi bildirimleri |
+| `/my-cases` | herkes | FAZ 3 | Kendi bildirimleri (menüde "Bildirimlerim"; Açık/Çözülen filtresi yalnız REPORTER'da) |
 | `/cases/[id]` | kapsam | FAZ 3 | Detay + zaman çizelgesi (reporter'a sadeleştirilmiş) |
 | `/staff/tasks`, `/staff/tasks/[id]` | STAFF | FAZ 4–7 | Görev listesi ve yaşam döngüsü |
 | `/manager/review-queue` | MANAGER | FAZ 7 | AI'ın emin olmadığı / escalate edilen kayıtlar |
-| `/manager/cases` | MANAGER | FAZ 7 | Filtreli liste (✅ kodda) |
+| `/manager/cases`, `/manager/cases/[id]` | MANAGER, ADMIN | FAZ 7 | Tüm Bildirimler: filtreli liste ve detay |
+| `/staff/cases`, `/staff/cases/[id]` | STAFF | E7-5 | Birim Bildirimleri: aynı liste ve detay, personelin kapsamıyla |
 | `/manager/dashboard`, `/manager/analytics` | MANAGER, ADMIN | FAZ 9–10 | KPI kartları, grafikler |
 | `/manager/agents` | MANAGER, ADMIN | FAZ 10 | Agent performansı |
+| `/manager/departments`, `/manager/departments/[id]` | MANAGER, ADMIN | E7-5 | Birim Performansı: birim kartları, tikli birim filtresi, birim detayı |
 
 Rol bazlı menü kodda tek tabloda durur: `frontend/src/lib/navigation.ts`. Menü değişikliği Figma'da ve bu tabloda birlikte yapılır.
+Menüler: bildiren *Bildirim Yap · Bildirimlerim*; personel *Bildirim Yap · Görevlerim · Birim Bildirimleri · Bildirimlerim*;
+müdür *Bildirim Yap · Genel Bakış · İnceleme Kuyruğu · Raporlar · Yapay Zekâ Performansı · Tüm Bildirimler · Bildirimlerim*;
+yönetici *Bildirim Yap · Genel Bakış · Raporlar · Yapay Zekâ Performansı · Tüm Bildirimler · Bildirimlerim · Yönetim*.
 
 ## 3. Figma Dosyası Kurulumu
 
@@ -79,6 +84,7 @@ Figma değişkenleri (Variables) **koddaki CSS değişkenleriyle aynı adla** ta
   | `brand-accent` | turuncu `#FF8901` | aynı | Süsleme (başlık altı çizgi, seçili menü çizgisi, logodaki bakır rengi su) ve **renk yolculuğu** (aşağıda). Metin ya da buton rengi olarak kullanılmaz |
   | `brand-accent-strong` | koyu turuncu `#D96A00` | aynı | Renk yolculuğunun en başı (1. yıldız) |
   | `primary-strong` | koyu turkuaz `#005F68` | `#00818D` | Renk yolculuğunun en sonu (5. yıldız) |
+  | `primary-text` | koyu turkuaz `#005F68` | `#00A5B5` | Gri zeminde ya da turkuaz rozette turkuaz **yazı** (ana turkuaz orada 4.1–4.3:1 kalır); beyaz zemindeki bağlantılar `primary` |
 
   **Renk yolculuğu:** turuncu "yolda", turkuaz "çözüldü" demektir; soldan sağa turuncudan turkuaza geçilir.
   İlerleme çubuğu: Alındı ve Yönlendirildi turuncu, Çalışılıyor turuncudan turkuaza geçişli, Çözüldü turkuaz.
@@ -89,6 +95,14 @@ Figma değişkenleri (Variables) **koddaki CSS değişkenleriyle aynı adla** ta
   beyaz üniversite logosu. Su katmanlarında beyaz kullanılmaz (beyaz zeminde logo bölünmüş görünür). Yazı: "Bakırçay" metin renginde, "Flow" turkuaz. `public/brand/logo-art.svg` +
   `components/brand/Logo.tsx`; uygulama simgeleri `public/icons/` ve `src/app/icon.png`, `apple-icon.png`
   (Figma: 02 Components > Logo/Simge, Logo/Yatay).
+- **Koyu mod:** Her ekran açık ve koyu temada çalışır; renkler `globals.css` içinde `:root` ve `.dark` altındadır
+  (koyu temada durum renklerinin açık tonları, `--primary-strong` yerine ana turkuaz). Tema düğmesi (`ThemeToggle`)
+  masaüstünde menünün altında "Çıkış yap"ın yanında, telefonda üst çubuğun sağ köşesinde, giriş ekranında sağ üstte.
+  Açık temada güneş, koyu temada ay ve yıldız simgesi; simge dönerek değişir (hareket azaltma ayarında animasyonsuz).
+  Ekran okuyucuya "Koyu mod" düğmesi ve basılı/basılı değil (`aria-pressed`) olarak söylenir. Seçim tarayıcıda
+  saklanır; hiç seçilmediyse cihazın ayarı geçerlidir. Tema sayfa çizilmeden uygulanır (açılışta beyaz parlama yok),
+  PWA'da telefonun durum çubuğu da temaya uyar. Kurallar: `lib/theme.ts`; Figma: 07 Koyu Mod sayfası, CampusFlow
+  değişkenlerinin "Koyu" modu.
 - **Uygulama kabuğu:** Masaüstünde sol kenar çubuğu (logo, kullanıcı, menü, çıkış). Telefonda üstte sabit çubuk:
   ana sayfalarda menü butonu + logo (menü soldan açılan panel, shadcn Sheet), alt sayfalarda (ör. `/cases/[id]`)
   geri butonu + başlık. Hangi sayfada hangi çubuğun çıkacağı `lib/shell.ts`, seçili menü öğesi `lib/navigation.ts`.
@@ -104,21 +118,26 @@ Değerler backend enum'larıdır ([DATABASE.md](DATABASE.md) bölüm 2); etiket 
 (`frontend/src/lib/caseList.ts`, `CASE_STATUS_LABELS`) tutulur. Figma'daki Badge bileşeni bu tabloyla birebir çizilir.
 Renkler öneridir; ekip değiştirebilir ama tabloyu ve kodu birlikte günceller.
 
-| `case_status` | Etiket (manager/staff) | Renk |
+Durum rozeti gri zeminde renkli nokta + durum adıdır; renkler görev rozetleriyle aynı **renk yolculuğunu** izler
+(beklerken turuncu, çalışırken geçişli, çözülünce turkuaz). Yalnız "Yöneticiye iletildi" kırmızı zeminde ikonla
+gösterilir. Kod: `CASE_STATUS_TONES` (`lib/caseList.ts`) ve `CaseStatusBadge` (`components/tasks/TaskBadges.tsx`);
+Figma: 02 Components > CaseStatusBadge.
+
+| `case_status` | Etiket (manager/staff) | Renk (token) |
 |---|---|---|
-| NEW | Yeni | gri |
-| ANALYZING | İnceleniyor | mavi |
-| NEEDS_INFO | Bilgi bekleniyor | amber |
-| CLASSIFIED | Sınıflandırıldı | mavi |
-| ASSIGNED | Atandı | indigo |
-| ACCEPTED | Kabul edildi | indigo |
-| IN_PROGRESS | Çalışılıyor | mor |
-| RESOLVED | Çözüldü | yeşil |
-| VERIFICATION | Doğrulanıyor | yeşil (açık) |
-| CLOSED | Kapandı | gri (koyu) |
-| REOPENED | Yeniden açıldı | amber |
-| ESCALATED | Yöneticiye iletildi | kırmızı |
-| REJECTED | Reddedildi | gri (üstü çizili değil, ikonlu) |
+| NEW | Yeni | gri (`muted-foreground`) |
+| ANALYZING | İnceleniyor | mavi (`info`) |
+| NEEDS_INFO | Bilgi bekleniyor | amber (`warning`) |
+| CLASSIFIED | Sınıflandırıldı | mavi (`info`) |
+| ASSIGNED | Atandı | koyu turuncu (`brand-accent-strong`) |
+| ACCEPTED | Kabul edildi | turuncu (`brand-accent`) |
+| IN_PROGRESS | Çalışılıyor | turuncudan turkuaza geçişli |
+| RESOLVED | Çözüldü | turkuaz (`primary`) |
+| VERIFICATION | Doğrulanıyor | turkuaz (`primary`) |
+| CLOSED | Kapandı | koyu turkuaz (`primary-strong`) |
+| REOPENED | Yeniden açıldı | amber (`warning`) |
+| ESCALATED | Yöneticiye iletildi | kırmızı zemin + ikon (`destructive`) |
+| REJECTED | Reddedildi | gri |
 | MERGED | Birleştirildi | gri |
 
 **Reporter için sadeleştirilmiş ilerleme** (kesinleşti, kod: `REPORTER_VIEWS` in `frontend/src/lib/status.ts`):
@@ -156,17 +175,40 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   arama tarayıcıda yapılır. Seçilen konum "Değiştir" ile temizlenir. Son kullanılanlar, ağaç ve AI önerisi henüz yok.
 - **Fotoğraf / video:** Kamera veya galeri; fotoğraf jpg/png/webp en fazla 10 MB, video mp4/mov en fazla
   30 sn ve 50 MB (toplam 5 dosya). Yükleme sırasında önizleme ve ilerleme; video için süre aşımı mesajı
-  (`VIDEO_TOO_LONG`) Türkçe gösterilir.
+  (`VIDEO_TOO_LONG`) Türkçe gösterilir. Telefonda seçim kutusunun altında **Fotoğraf çek** düğmesi kamerayı doğrudan açar
+  (`capture="environment"`); masaüstünde gizlidir. Kurallar galeriyle aynıdır (Figma: Button/Outline Fotoğraf çek).
 - **Gönder butonu** ekranın altında, başparmak erişiminde, tam genişlik.
+- **Taslak:** Açıklama ve seçilen konum yazıldıkça (yarım saniye bekleyerek) bu cihazda, giriş yapan kişiye özel
+  saklanır. Form yeniden açılınca geri gelir ve başlığın altında "Taslağınız geri yüklendi." notu ile **Taslağı sil**
+  düğmesi görünür. Fotoğraf ve videolar saklanamaz; taslakta dosya varsa not "Fotoğrafları yeniden eklemelisiniz."
+  diye hatırlatır. Bildirim gönderilince ve çıkış yapılınca taslak silinir (`lib/reportDraft.ts`,
+  `hooks/useReportDraft.ts`; Figma: DraftNotice, `/report - mobil/masaüstü - taslak geri yüklendi`).
 - **Onay ekranı:** Bildirim numarası (`CASE-000124`), "Bildiriminiz alındı, inceleniyor" ve "Bildirimlerim" bağlantısı.
 - Başarı ölçütü: yeni bir kullanıcı ilk denemesinde 30 sn içinde gönderebilmeli (ekip içi kullanılabilirlik testi, bölüm 10).
 
 ### 5.2 Reporter — `/my-cases`, `/cases/[id]`
 
 - Liste kartı: kısa metin, konum, tarih, **4 adımlı ilerleme** (bölüm 4.1).
+- **Bildirim zili (Sizden yanıt bekleniyor):** Telefonda üst çubukta tema düğmesinin solunda (her sayfada),
+  masaüstünde Bildirimlerim'de "Bildirim yap"ın solunda. Bildirenin bir şey yapması gereken bildirim varsa zil açık
+  turuncu (`bg-warning/15`, simge turuncu), yoksa açık gri. Tıklayınca telefon bildirimi gibi pencere açılır: ek bilgi
+  istenenler ("Sizden ek bilgi istendi") önce, sonra kapandıktan sonraki 72 saat içinde puan verilmemişler ("Çözüldü ·
+  değerlendirmenizi bekliyor"); uzunsa pencere kaydırılır. Bildirime tıklayınca detayı açılır ve pencere kapanır.
+  Bekleyen yoksa "Şu an sizden yanıt bekleyen bildirim yok." Ekran okuyucuya "Bildirimler: N yanıt bekliyor" denir.
+  Kendi bildirimlerinin ilk 100'ü taranır (`GET /cases/mine?page_size=100`), her rolde çalışır. Kural: `actionNeeded`
+  (`lib/caseActions.ts`); Figma: WaitingBell, NotificationPanel, MobileAppBar > Actions.
+- Listenin üstünde filtre: **Tümü / Açık / Çözülen**. "Çözülen" ilerlemedeki Çözüldü adımıdır; "Açık" henüz
+  çözülmemiş olanlar (ek bilgi bekleyen dahil); reddedilen ve birleştirilen yalnız "Tümü"nde. Filtreye uyan bildirim
+  yoksa "Açık bildiriminiz yok." ve "Tümünü göster". Hiç bildirimi olmayana filtre gösterilmez. Filtre `GET /cases`
+  ile durum süzerek istenir (backend bildirenin bu listesini yalnız kendi bildirimleriyle sınırlar); bu yüzden
+  yalnız bildiren rolünde çıkar. Kurallar: `lib/status.ts` (`myCasesPath`).
 - Detay: zaman çizelgesi reporter'a sade dilde ("Temizlik birimine yönlendirildi", "Görevli çalışmaya başladı").
   Agent adları, güven skorları, iç notlar reporter'a **gösterilmez**.
+  Zaman çizelgesi 5 ya da daha fazla adımsa kapalı gelir: son 3 adım görünür, üstte "N önceki adımı göster";
+  açılınca "Önceki adımları gizle". Kural: `collapsedTimeline` (`lib/timeline.ts`).
 - Ek bilgi istenen bildirimde (NEEDS_INFO) ilerleme çubuğu yerine soru + yanıt kutusu gösterilir.
+- Aynı sorunu başkaları da bildirdiyse (bildirimlerin bu bildirime eklendiyse) durumun altında "Bu sorunu siz dahil
+  N kişi bildirdi." yazar (`duplicate_count + 1`; `reportedByText`, Figma: DuplicateNote).
 - Kapanıştan sonraki 72 saat içinde puan kartı: 1–5 yıldız + isteğe bağlı yorum (bir kez) ve aynı kartta
   "Sorun devam ediyor" (reopen; gerekçe zorunlu). Telefonda alttan açılan panel, masaüstünde ortada pencere.
   72 saat geçince kart gösterilmez; puan verildiyse yalnız verilen puan görünür. Kurallar: `lib/caseActions.ts`.
@@ -182,6 +224,7 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
 
 - Liste sıralaması: SLA'ya kalan süre (en acil üstte). Kartta **konum** en büyük metin, sonra iş tanımı ve kalan süre.
 - Ana eylem butonu duruma göre tek ve büyük: **Kabul et** → **Başlat** → **Tamamla**. Dokunma alanı en az 44×44 px.
+  Detayda eylem butonları bilgilerin hemen altında, yorumların **üstünde** durur; görevli kaydırmadan görür.
 - Tamamla: not (isteğe bağlı) + kanıt fotoğrafı. Reddetme (decline) ikincil buton ve gerekçe ister.
 - Kartta ve detayda üç rozet: durum (renk yolculuğu: beklerken turuncu, çalışırken geçişli, bitince turkuaz nokta),
   öncelik ve SLA'ya kalan süre ("42 dk kaldı" / "25 dk gecikti"; yeşil `--success`, sarı `--warning`, kırmızı
@@ -209,19 +252,37 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   **Kodda olan (`/manager/dashboard`, menüde "Genel Bakış"):** dönem düğmesi (Son 7 gün / Son 30 gün), 6 KPI kartı
   (açık bildirim, SLA uyumu, ortalama çözüm süresi, otomasyon oranı, bugün açılan, müdür incelemesi oranı),
   açılan/kapanan çubuk grafiği, kategori çubukları ve yapay zekâ yönetim özeti. Değişim oku yöne göre değil iyi/kötü
-  olmasına göre renklenir (açık bildirim artarsa kırmızı ▲); önceki dönemde veri yoksa "–". Grafik kütüphanesi
+  olmasına göre renklenir (açık bildirim artarsa kırmızı ▲); önceki dönemde veri yoksa "önceki dönemde veri yok".
+  Değişim %100'den büyükse yüzde yerine fark kartın kendi biriminde yazılır ("▲ %2000" yerine "▲ 40", oranlarda
+  "▲ 12 puan", sürede "▲ 2 sa 10 dk"); önceki dönem çok küçükken yüzde anlamsız büyür. Grafik kütüphanesi
   kullanılmaz: çubuklar düz HTML/CSS, açılan turuncu ve kapanan turkuaz (renk yolculuğu); durum renkleri grafikte
   kullanılmaz. Sayılar ekran okuyucuya metin olarak da verilir. Telefonda kartlar ikişerli, grafikler alt alta.
-  Kurallar: `lib/analytics.ts`.
+  **Kartlar tıklanır** (sağ üstte ok): Açık Bildirim → Tüm Bildirimler "Açık" filtresiyle (`?group=open`), SLA Uyumu →
+  "Geciken" filtresiyle (`?group=late`), Ortalama Çözüm Süresi → Raporlar, Otomasyon Oranı → Yapay Zekâ Performansı,
+  Bugün Açılan → Tüm Bildirimler, Müdür İncelemesi Oranı → İnceleme Kuyruğu. Kart yalnız rolün menüsündeki ekrana
+  bağlanır: yöneticide İnceleme Kuyruğu olmadığı için o kart düz kalır. Birim detayındaki göstergeler bağlantı değildir
+  (liste birime göre süzülemez). Kurallar: `lib/analytics.ts` (`KPI_LINKS`).
 - **Raporlar (`/manager/analytics`):** dönem düğmesi ve yedi kart: bina yoğunluğu, zamanında çözülen (SLA),
   çözüm süreleri, bekleyen bildirimler, birim performansı, tekrarlayan sorunlar, süreç adımları. Her kartın başlığı
   sonucu söyler ("En yoğun bina: B Blok (21 bildirim)", "En yavaş adım: Atamadan kabule"); veri yoksa düz ad ve tek
   satır açıklama gösterilir. İstatistik terimi yazılmaz: medyan "Tipik süre", p90 "10 işten 9'u" diye geçer ve
   tablonun altında açıklanır. Çubuklar turkuaz; yalnız en eski bekleyenler (24+ sa) kırmızı, en yavaş adım turuncu ve
   "En yavaş" etiketli. Tablolar (`StatTable`) masaüstünde klasik tablo, telefonda her satır ikili ızgarada küçük bir
-  kart olur (sütun başlığı değerin üstüne yazılır). Tekrarlayan sorunlarda önce en çok tekrar eden 5 sorun görünür,
-  kalanı "N sorunun hepsini göster" düğmesiyle açılır; konum okunur adıyla (`location.name`) yazılır, kod yolu
+  kart olur (sütun başlığı değerin üstüne yazılır). Bina yoğunluğunda ve tekrarlayan sorunlarda önce ilk 5 satır görünür,
+  kalanı "N binanın / N sorunun hepsini göster" düğmesiyle açılır; konum okunur adıyla (`location.name`) yazılır, kod yolu
   (`path`) gösterilmez. Kurallar: `lib/reports.ts`.
+- **Yazdırma (Raporlar, Birim Performansı, birim detayı):** dönem düğmesinin yanında **Yazdır** düğmesi tarayıcının
+  yazdırma penceresini açar ("PDF olarak kaydet" de oradan). Kağıtta menü, üst çubuk, dönem düğmesi, Yazdır ve
+  "hepsini göster" düğmeleri gizlenir; başlığın altına "Son 7 gün · BakırçayFlow · Yazdırıldı: <tarih saat>" yazılır.
+  Kartlar sayfa arasında bölünmez, çubuk renkleri basılır (`print-color-adjust: exact`), koyu moddayken de açık temayla
+  basılır (`usePrintLightTheme`). Figma: Button/Outline Yazdır, `/manager/analytics - yazdırma (A4)`.
+- **Birim Performansı (`/manager/departments`, menüde Raporlar'ın altında):** dönem düğmesi, tikli birim filtresi
+  (`CheckboxFilter`: açılır pencerede birimler işaretlenir, seçim hemen uygulanır, "Seçimi temizle"; boş seçim
+  "hepsi"), her birim bir kare kart: bildirim, zamanında (SLA), tipik çözüm, açık görev ve "N personel · kişi başı
+  N açık görev". En çok bildirim alan birim önce. Kartın tamamı birimin detayına gider; 30 gün seçiliyse detay da 30
+  günle açılır (`?period=30d`). **Detay (`/manager/departments/[id]`):** birim özeti (kartla aynı sayılar), Genel
+  Bakış göstergeleri, açılan/kapanan grafiği, sorun türleri ve tekrarlayan sorunlar; hepsi yalnız o birim için
+  (`department_id`). Listede olmayan birim "Birim bulunamadı" der. Kurallar: `lib/departments.ts`.
 - **Yapay zekâ performansı (`/manager/agents`):** dört oran kutusu (otomasyon, müdür incelemesi, doğru tür tahmini,
   doğru tekrar tespiti; her birinin altında bir cümlelik açıklama) ve adım tablosu (karar sayısı, ortalama güven,
   düzeltilme oranı). "Agent" yerine "adım", "override" yerine "düzeltilme" denir; adım adları backend'den gelir.
@@ -230,7 +291,11 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   döner), ekran metni de "Kurumdaki bütün bildirimler" der. Arama kutusu (numara, başlık, konum; yazmayı bıraktıktan 300 ms sonra arar),
   öncelik seçimi ve durum grubu düğmeleri. 14 durum beş gruba toplanır: Tümü, Açık, Kapanan, Reddedilen ve
   birleştirilen, Geciken (hedef süresi aşılan açık bildirimler). Her satırda numara, başlık (altında tür ve okunur
-  konum adı), birim, durum, öncelik, kalan süre ve açılış zamanı; satır müdürün detay ekranına gider. Masaüstünde tablo,
+  konum adı), birim, durum, öncelik, kalan süre ve açılış zamanı; satır detay ekranına gider. Yönetici aynı listeyi
+  görür. Personel aynı listeyi **Birim Bildirimleri** (`/staff/cases`) adıyla görür; backend personele yalnız kendi
+  biriminin ve kendisine atanan bildirimleri döndürür. Detay ekranı role göre bölüm gösterir (`caseDetailSections`,
+  `lib/managerCase.ts`): yapay zekâ kararları yalnız müdür ve yöneticiye, karar kutusu (onayla, düzelt, reddet)
+  yalnız müdüre; personel bilgileri, zaman çizelgesini, fotoğrafları ve yorumları görür. Masaüstünde tablo,
   telefonda her bildirim ayrı kart (tek DOM, iki yerleşim). Liste 20'şer yüklenir ("Daha fazla göster"). Filtreyle
   sonuç çıkmazsa "Filtreleri temizle" düğmesi, hiç bildirim yoksa düz açıklama gösterilir. Kurallar: `lib/caseList.ts`.
 - **Bildirim detayı (`/manager/cases/[id]`):** müdürün ayrıntılı ekranı; bildirenin sade ekranı (`/cases/[id]`)
@@ -238,7 +303,8 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   konum, tür · kategori, birim, açılış; varsa hedef süre, çözüm, kapanış, bildirenin puanı, aynı sorunu bildirenler,
   yeniden açılma (olmayan şey gösterilmez). **Yapay zekâ kararları:** İnceleme Kuyruğu'ndaki gerekçe panelinin aynısı,
   burada hep açık; kendiliğinden atanan bildirimde de görünür. Sıfır ağırlık yazılmaz. **Zaman çizelgesi:** müdür bütün
-  olayları görür; her satırda ne olduğu, kimin yaptığı ("Yapay zekâ · Sınıflandırma", "Sistem", "Bildiren", "Personel",
+  olayları görür; bildirenin ekranındaki gibi 5 ya da daha fazla adımda kapalı gelir (son 3 adım + "N önceki adımı
+  göster", `CollapsibleTimeline`); personelin Birim Bildirimleri detayında da aynısı; her satırda ne olduğu, kimin yaptığı ("Yapay zekâ · Sınıflandırma", "Sistem", "Bildiren", "Personel",
   "Müdür") ve zamanı. Olayda kişi adı gelmediği için kişi türü olayın türünden anlaşılır. **Fotoğraflar:** bildirenin
   fotoğrafları ve personelin kanıtları; yoksa bölüm çıkmaz, video küçük resim olarak gösterilmez. Bildirim İnceleme
   Kuyruğu'ndaysa üstte **"Bu bildirim kararınızı bekliyor"** kutusu çıkar: neden burada, varsa benzer bildirim ve
@@ -320,9 +386,27 @@ Her ekran ve liste için Figma'da ve kodda şu durumlar çizilir/uygulanır:
 | Başarı | Kısa toast ("Görev tamamlandı") veya onay ekranı |
 | Yetkisiz / bulunamadı | Aynı "Kayıt bulunamadı" ekranı (güvenlik: varlık sızdırılmaz) |
 
+**Bağlantı yok:** İnternet kopunca içeriğin üstünde uyarı renginde bir şerit çıkar: "İnternet bağlantınız yok. Bağlanınca sayfa
+yenilenir." Telefonda üst çubuğun hemen altında, masaüstünde içerik sütununun en üstünde yapışık durur; giriş ekranında
+da en üsttedir. Bağlantı yalnız tarayıcının bilgisinden anlaşılmaz (Windows'ta Docker/WSL gibi sanal ağ kartları açıkken
+Wi-Fi kapansa da tarayıcı "bağlıyım" der): sunucuya giden bir istek ağ hatasıyla düşerse de şerit çıkar ve sunucu 10 sn'de
+bir yoklanır; herhangi bir cevap gelince şerit kalkar (`lib/api/reachability.ts`). Bağlantı gelince şerit kalkar ve
+sorgular kendiliğinden yeniden okunur (`OfflineBanner`, `hooks/useOnline.ts`;
+Figma: OfflineBanner, `/report - … - bağlantı yok`, `/login - mobil - bağlantı yok`).
+
+**Kendini yenileme:** İş listeleri ve detaylar dakikada bir yeniden okunur; böylece başkasının yaptığı değişiklik sayfa
+yenilenmeden görünür: Görevlerim ve görev detayı, İnceleme Kuyruğu, Bildirimlerim, Tüm/Birim Bildirimleri, bildirim
+detayı, zaman çizelgesi, yorumlar ve Pano KPI'ları. Sekme arka plandayken ya da bağlantı yokken sayaç durur; sekmeye
+dönünce sorgular yine yenilenir. Raporlar ekranı elle bakıldığı için yenilenmez (`LIVE_REFRESH_MS`, `lib/queryClient.ts`).
+
 ## 8. Erişilebilirlik (WCAG 2.2 AA)
 
-- Metin kontrastı en az 4.5:1 (büyük metin 3:1). Figma'da kontrast eklentisiyle kontrol edilir.
+- Metin kontrastı en az 4.5:1 (büyük metin 3:1). Figma'da kontrast eklentisiyle kontrol edilir. Lighthouse ölçümünden
+  (Ekim 2026) sonra `muted-foreground` (`#6C6C6C`), `destructive` ve `warning` biraz koyulaştırıldı ve gri zemindeki
+  turkuaz yazı için `primary-text` eklendi; token çiftleri `src/app/colorContrast.test.ts` ile açık ve koyu temada
+  denetlenir (gri zeminde soluk yazı, rozetler kendi %10 tonunda, turkuaz üstünde buton yazısı). Figma'da kütüphanenin
+  `muted-foreground` ve `destructive` değişkenleri yerine yerel `muted-foreground-aa` ve `destructive-aa` kullanılır.
+- Liste öğesine (`li`) rol verilmez; adlı grup gerekiyorsa öğenin içindeki kutuya verilir (Genel Bakış kartları).
 - Dokunma alanı en az 44×44 px; butonlar arası en az 8 px.
 - Her form alanının görünür etiketi var (yalnız placeholder yetmez).
 - Klavye ile tüm akış tamamlanabilir; odak halkası (`--ring`) görünür.

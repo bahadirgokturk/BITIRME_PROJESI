@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { clearReportDrafts } from "@/hooks/useReportDraft";
 import { logout } from "@/lib/api/session";
 
 // Menu ogeleriyle ayni yukseklik: masaustu 40 px, telefon paneli 44 px (Figma: MobileMenuSheet)
@@ -24,8 +25,9 @@ export function LogoutButton({ size }: { size: keyof typeof SIZE_CLASS }) {
     try {
       await logout();
     } finally {
-      // Cikis istegi basarisiz olsa da bu cihazdaki oturum ve onbellekteki veriler silinir
+      // Cikis istegi basarisiz olsa da bu cihazdaki oturum, onbellekteki veriler ve taslaklar silinir
       queryClient.clear();
+      clearReportDrafts();
       router.replace("/login");
     }
   }

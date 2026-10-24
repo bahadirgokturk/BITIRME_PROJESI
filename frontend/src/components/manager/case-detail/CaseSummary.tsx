@@ -1,12 +1,10 @@
 import Link from "next/link";
 
 import { PageTitle } from "@/components/layout/PageTitle";
-import { PriorityBadge, SlaBadge } from "@/components/tasks/TaskBadges";
+import { CaseStatusBadge, PriorityBadge, SlaBadge } from "@/components/tasks/TaskBadges";
 import { caseSla, type CaseRead } from "@/lib/caseList";
 import { formatDateTime, relativeTime } from "@/lib/dates";
 import { caseInfoFields } from "@/lib/managerCase";
-
-import { StatusBadge } from "../cases/CaseRow";
 
 export const CARD_CLASS = "rounded-lg border bg-card p-4";
 const INFO_TITLE_ID = "case-info-title";
@@ -26,7 +24,7 @@ export function CaseHeader({ item }: { item: CaseRead }) {
       <PageTitle size="md">{item.title}</PageTitle>
       <ul aria-label="Durum" className="flex flex-wrap gap-2">
         <li>
-          <StatusBadge status={item.status} />
+          <CaseStatusBadge status={item.status} />
         </li>
         {item.priority ? (
           <li>

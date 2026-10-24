@@ -1,10 +1,7 @@
 "use client";
 
-import { useState } from "react";
-
 import { cn } from "cn";
 
-import { Button } from "@/components/ui/button";
 import type { DeltaTone } from "@/lib/analytics";
 import {
   recurringHeadline,
@@ -15,9 +12,7 @@ import {
 } from "@/lib/reports";
 
 import { ChartCard } from "../dashboard/ChartCard";
-
-// Gercek veride onlarca tekrarlayan sorun cikabilir; kart uzamasin diye once en cok tekrar edenler gosterilir
-const VISIBLE_COUNT = 5;
+import { ShowAllButton, useShowAll } from "./ShowAll";
 
 // Artan sorun kirmizi, azalan yesil; yon okla ve kelimeyle de yazilir (UI_GUIDE bolum 8)
 const TONE_CLASS: Record<DeltaTone, string> = {
@@ -43,10 +38,9 @@ function RecurringItem({ problem }: { problem: RecurringProblem }) {
 }
 
 export function RecurringCard({ recurring }: { recurring: RecurringRead }) {
-  const [showAll, setShowAll] = useState(false);
+  const { visible, showAll, hasMore, toggle } = useShowAll(recurring.items);
   const subtitle = recurringSubtitle(recurring);
   const total = recurring.items.length;
-  const visible = showAll ? recurring.items : recurring.items.slice(0, VISIBLE_COUNT);
   return (
     <ChartCard title={recurringHeadline(total)} subtitle={subtitle} className="h-full">
       {total === 0 ? (
@@ -58,11 +52,7 @@ export function RecurringCard({ recurring }: { recurring: RecurringRead }) {
           ))}
         </ul>
       )}
-      {total > VISIBLE_COUNT && (
-        <Button variant="outline" className="h-11 w-full md:h-9 md:w-auto" onClick={() => setShowAll(!showAll)}>
-          {showAll ? "Daha az göster" : `${total} sorunun hepsini göster`}
-        </Button>
-      )}
+      {hasMore && <ShowAllButton showAll={showAll} totalText={`${total} sorunun`} onClick={toggle} />}
     </ChartCard>
   );
 }

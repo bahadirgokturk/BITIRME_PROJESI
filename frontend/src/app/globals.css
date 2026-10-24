@@ -40,6 +40,7 @@
   --color-primary-strong: var(--primary-strong);
   --color-success: var(--success);
   --color-warning: var(--warning);
+  --color-primary-text: var(--primary-text);
   --color-info: var(--info);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
@@ -61,10 +62,13 @@
   --brand-accent: oklch(0.746 0.181 56.865);
   --brand-accent-strong: oklch(0.645 0.166 52.049);
   --primary-strong: oklch(0.443 0.076 206.051);
-  /* Durum renkleri (SLA ve oncelik rozetleri): yesil #15803D, sari-turuncu #B45309, mavi #2563EB.
-     Acik zeminde metin olarak WCAG AA; "gecikti/kritik" icin --destructive kullanilir */
+  /* Gri zeminde ve turkuaz rozette turkuaz yazi: ana turkuaz orada 4.1-4.3:1 kalir, koyu ton 6.5:1.
+     Beyaz zemindeki baglantilar text-primary ile kalir (4.64:1). Kontrol: app/colorContrast.test.ts */
+  --primary-text: oklch(0.443 0.076 206.051);
+  /* Durum renkleri (SLA ve oncelik rozetleri): yesil #15803D, turuncu #B24500, mavi #2563EB.
+     Acik zeminde ve kendi %10 tonundaki rozette metin olarak WCAG AA; "gecikti/kritik" icin --destructive */
   --success: oklch(0.527 0.154 150.069);
-  --warning: oklch(0.555 0.163 48.998);
+  --warning: oklch(0.53 0.163 48.998);
   --info: oklch(0.546 0.245 262.881);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -77,10 +81,12 @@
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  /* Gri zemin (--muted) uzerinde de 4.5:1 ustu kalsin diye shadcn varsayilanindan (0.556) biraz koyu */
+  --muted-foreground: oklch(0.53 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
+  /* "Gecikti/Kritik" rozeti kendi %10 tonunda okunsun diye varsayilandan (0.577) biraz koyu */
+  --destructive: oklch(0.53 0.22 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.551 0.094 206.232);
@@ -105,6 +111,8 @@
   --brand-accent-strong: oklch(0.645 0.166 52.049);
   /* Koyu zeminde "koyu turkuaz" ayirt edilsin diye acik temanin ana turkuazi kullanilir */
   --primary-strong: oklch(0.551 0.094 206.232);
+  /* Koyu zeminde ana turkuaz zaten okunur (gri panelde 5.1:1) */
+  --primary-text: oklch(0.66 0.113 206.962);
   /* Koyu zeminde okunabilsin diye durum renklerinin acik tonlari */
   --success: oklch(0.792 0.209 151.711);
   --warning: oklch(0.828 0.189 84.429);
@@ -140,6 +148,18 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* Yazdirma (Raporlar, Birim Performansi): grafik cubuklari arka plan rengidir; tarayici bunlari varsayilan
+   olarak basmaz, exact ile renkler korunur. Kenar boslugu A4'te icerige yer birakir. */
+@media print {
+  @page {
+    margin: 12mm;
+  }
+  html {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
 }
 
 @layer base {

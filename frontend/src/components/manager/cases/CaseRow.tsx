@@ -1,8 +1,8 @@
 import Link from "next/link";
 
-import { PriorityBadge, SlaBadge } from "@/components/tasks/TaskBadges";
+import { CaseStatusBadge, PriorityBadge, SlaBadge } from "@/components/tasks/TaskBadges";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CASE_STATUS_LABELS, caseSla, caseSubtitle, type CaseRead } from "@/lib/caseList";
+import { caseSla, caseSubtitle, type CaseRead } from "@/lib/caseList";
 import { formatDateTime, relativeTime } from "@/lib/dates";
 
 // Masaustunde tablo sutunlari: numara, baslik, birim, durum, oncelik, kalan sure, acilis.
@@ -15,19 +15,12 @@ const NO_VALUE = "–";
 
 export const COLUMN_HEADERS = ["Bildirim no", "Başlık, tür ve konum", "Birim", "Durum", "Öncelik", "Kalan süre", "Açılış"];
 
-export function StatusBadge({ status }: { status: CaseRead["status"] }) {
-  return (
-    <span className="inline-flex h-6 shrink-0 items-center rounded-md border px-2 text-xs font-medium">
-      {CASE_STATUS_LABELS[status]}
-    </span>
-  );
-}
-
-export function CaseRow({ item }: { item: CaseRead }) {
+// listPath: satirin ait oldugu liste (/manager/cases ya da /staff/cases); detay onun altinda acilir
+export function CaseRow({ item, listPath }: { item: CaseRead; listPath: string }) {
   const sla = caseSla(item);
   return (
     <Link
-      href={`/manager/cases/${item.id}`}
+      href={`${listPath}/${item.id}`}
       className={`${ROW_CLASS} ${COLUMNS_CLASS} transition-colors outline-none hover:bg-muted/40 focus-visible:ring-3 focus-visible:ring-ring/50`}
     >
       <span className="text-xs text-muted-foreground md:text-sm">{item.case_number}</span>
@@ -40,7 +33,7 @@ export function CaseRow({ item }: { item: CaseRead }) {
       </span>
       {/* Telefonda durum rozeti kartin sag ust kosesinde, numaranin karsisinda durur */}
       <span className="col-start-2 row-start-1 justify-self-end md:col-start-auto md:row-start-auto md:justify-self-start">
-        <StatusBadge status={item.status} />
+        <CaseStatusBadge status={item.status} />
       </span>
       <span className="col-span-2 flex items-center gap-1.5 md:contents">
         <span>{item.priority ? <PriorityBadge priority={item.priority} /> : <span className="hidden text-sm text-muted-foreground md:inline">{NO_VALUE}</span>}</span>

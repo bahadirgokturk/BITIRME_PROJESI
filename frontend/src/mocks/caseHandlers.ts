@@ -5,10 +5,11 @@ import { apiUrl } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
 
 import { CASES, EMPTY_CASE, timelineFor } from "./caseFixtures";
-import { LOCATIONS, USERS } from "./fixtures";
+import { LOCATIONS } from "./fixtures";
 import { managerEventsFor } from "./managerCaseDetailFixtures";
 import { MANAGER_CASES } from "./managerCaseFixtures";
 import { findReviewCase } from "./managerHandlers";
+import { currentUser } from "./session";
 import { TASKS } from "./taskFixtures";
 import { taskEventsFor } from "./taskHandlers";
 
@@ -27,6 +28,12 @@ const cases: Schemas["CaseRead"][] = [...CASES];
 function error(status: number, code: string, message: string) {
   const body: Schemas["ErrorRead"] = { error: { code, message, details: {} } };
   return HttpResponse.json(body, { status });
+}
+
+// Backend scope_for gibi: bildiren /cases'te yalniz kendi bildirimlerini gorur, mudur ve yonetici hepsini
+function inScope(item: Schemas["CaseRead"]): boolean {
+  const user = currentUser();
+  return user.role !== "REPORTER" || item.reporter_id === user.id;
 }
 
 function page<T>(items: T[]) {
@@ -93,7 +100,7 @@ function newCase(
       path: location.path,
     },
     status: "ANALYZING",
-    reporter_id: USERS.REPORTER.id,
+    reporter_id: currentUser().id,
     needs_human_review: false,
     created_at: new Date().toISOString(),
   };
@@ -127,16 +134,15 @@ export const caseHandlers = [
     },
   ),
 
+  // Backend gibi: giris yapan kisinin kendi bildirimleri (her rol Bildirimlerim'i gorur)
   http.get(apiUrl("/cases/mine"), () =>
-    HttpResponse.json(
-      page(cases.filter((item) => item.reporter_id === USERS.REPORTER.id)),
-    ),
+    HttpResponse.json(page(cases.filter((item) => item.reporter_id === currentUser().id))),
   ),
 
   // Mudur listesi (/manager/cases): gercek API'deki suzgecler ve sayfalama (docs/API.md "Cases")
   http.get(apiUrl("/cases"), ({ request }) => {
     const params = new URL(request.url).searchParams;
-    const items = [...MANAGER_CASES, ...cases].filter((item) => matches(item, params));
+    const items = [...MANAGER_CASES, ...cases].filter((item) => inScope(item) && matches(item, params));
     const pageNumber = Number(params.get("page") ?? 1);
     const size = Number(params.get("page_size") ?? PAGE_SIZE_DEFAULT);
     const start = (pageNumber - 1) * size;

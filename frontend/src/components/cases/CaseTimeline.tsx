@@ -6,6 +6,8 @@ import { useCaseEvents, type CaseEventRead } from "@/hooks/useCases";
 import { formatDateTime } from "@/lib/dates";
 import { timelineLabel } from "@/lib/timeline";
 
+import { CollapsibleTimeline } from "./CollapsibleTimeline";
+
 type EventsQuery = ReturnType<typeof useCaseEvents>;
 
 function TimelineItem({ event }: { event: CaseEventRead }) {
@@ -39,13 +41,7 @@ function TimelineBody({ query }: { query: EventsQuery }) {
       />
     );
   }
-  return (
-    <ol aria-label="Zaman çizelgesi">
-      {query.data.map((event) => (
-        <TimelineItem key={event.id} event={event} />
-      ))}
-    </ol>
-  );
+  return <CollapsibleTimeline events={query.data} renderItem={(event) => <TimelineItem key={event.id} event={event} />} />;
 }
 
 export function CaseTimeline({ caseId }: { caseId: string }) {

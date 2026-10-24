@@ -2,18 +2,21 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
+import type { StatusGroup } from "@/lib/caseList";
 import { createQueryClient } from "@/lib/queryClient";
+import { USERS } from "@/mocks/fixtures";
 import { server } from "@/mocks/node";
+import { signInAs } from "@/mocks/session";
 
 import { CaseList } from "./CaseList";
 
-function renderList() {
+function renderList(initialGroup?: StatusGroup) {
   render(
     <QueryClientProvider client={createQueryClient()}>
-      <CaseList />
+      <CaseList initialGroup={initialGroup} />
     </QueryClientProvider>,
   );
   return userEvent.setup();
@@ -23,6 +26,10 @@ const rows = () => within(screen.getByRole("list", { name: "Bildirimler" })).get
 const waitForRows = (count: number) => waitFor(() => expect(rows()).toHaveLength(count));
 
 describe("CaseList", () => {
+  // Sahte API de backend gibi kapsami role gore daraltir; bu liste mudurun
+  beforeEach(() => signInAs(USERS.MANAGER));
+  afterEach(() => signInAs(null));
+
   it("shows a skeleton while the cases load", () => {
     renderList();
 
@@ -46,6 +53,18 @@ describe("CaseList", () => {
     expect(first).toHaveTextContent(/1 sa \d+ dk kaldı/);
     expect(rows()[2]).toHaveTextContent("Yöneticiye iletildi");
     expect(rows()[2]).toHaveTextContent(/\d+ dk gecikti/);
+  });
+
+  it("shows staff the cases of their unit, each linking to the staff detail", async () => {
+    render(
+      <QueryClientProvider client={createQueryClient()}>
+        <CaseList view="unit" />
+      </QueryClientProvider>,
+    );
+
+    expect(screen.getByRole("heading", { level: 1, name: "Birim Bildirimleri" })).toBeInTheDocument();
+    await screen.findByRole("list", { name: "Bildirimler" });
+    expect(within(rows()[0]!).getByRole("link")).toHaveAttribute("href", "/staff/cases/301");
   });
 
   it("loads the rest on request and says how many are shown", async () => {
@@ -74,6 +93,13 @@ describe("CaseList", () => {
     await user.click(screen.getByRole("button", { name: "Reddedilen ve birleştirilen" }));
 
     await waitForRows(6);
+  });
+
+  it("opens already narrowed when a dashboard card sends the manager here", async () => {
+    renderList("late");
+
+    await waitForRows(3);
+    expect(screen.getByRole("button", { name: "Geciken" })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("narrows the list by priority and by search text", async () => {

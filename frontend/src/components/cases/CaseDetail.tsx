@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, UsersIcon } from "lucide-react";
 import Link from "next/link";
 
 import { PageTitle } from "@/components/layout/PageTitle";
@@ -9,6 +9,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCase, type CaseRead } from "@/hooks/useCases";
 import { ApiError } from "@/lib/api/client";
+import { reportedByText } from "@/lib/caseActions";
 import { formatDateTime } from "@/lib/dates";
 import { reporterView } from "@/lib/status";
 
@@ -31,6 +32,20 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
+// Ayni sorunu baskalari da bildirdiyse (Figma: DuplicateNote); yalniz bildiren varsa satir cikmaz
+function ReportedBy({ count }: { count: number }) {
+  const text = reportedByText(count);
+  if (text === null) {
+    return null;
+  }
+  return (
+    <p className="flex items-center gap-2 text-[13px] text-muted-foreground">
+      <UsersIcon aria-hidden className="size-4 shrink-0" />
+      {text}
+    </p>
+  );
+}
+
 function CaseDetailView({ item }: { item: CaseRead }) {
   return (
     <>
@@ -46,6 +61,7 @@ function CaseDetailView({ item }: { item: CaseRead }) {
           <CaseStatusView view={reporterView(item.status, item.info_request)} />
         )}
       </header>
+      <ReportedBy count={item.duplicate_count} />
       <CaseFeedback item={item} />
       <dl className="space-y-3 rounded-lg border bg-card p-4">
         <Field label="Açıklama" value={item.description} />

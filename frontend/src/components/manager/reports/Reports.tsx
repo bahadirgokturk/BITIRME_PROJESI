@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { PageTitle } from "@/components/layout/PageTitle";
+import { PrintMeta } from "@/components/print/PrintButton";
 import { ErrorState } from "@/components/states/ErrorState";
 import {
   useAging,
@@ -16,7 +17,7 @@ import {
 import type { SummaryPeriod } from "@/lib/analytics";
 
 import { PanelSkeleton } from "../dashboard/ChartCard";
-import { PeriodSwitch } from "../PeriodSwitch";
+import { PeriodActions } from "../PeriodActions";
 import { AgingCard, LocationsCard, ProcessCard, SlaCard } from "./BarCards";
 import { RecurringCard } from "./RecurringCard";
 import { DepartmentsCard, ResolutionCard } from "./TableCards";
@@ -110,8 +111,11 @@ export function Reports() {
   return (
     <div className="mx-auto w-full max-w-[1152px] space-y-4 md:space-y-6">
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <PageTitle>Raporlar</PageTitle>
-        <PeriodSwitch value={period} onChange={setPeriod} />
+        <div className="space-y-2">
+          <PageTitle>Raporlar</PageTitle>
+          <PrintMeta period={period} />
+        </div>
+        <PeriodActions value={period} onChange={setPeriod} />
       </header>
       <ReportsBody period={period} />
     </div>

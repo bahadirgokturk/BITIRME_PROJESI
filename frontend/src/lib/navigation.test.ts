@@ -64,9 +64,48 @@ describe("menu labels", () => {
       "/manager/dashboard": "Genel Bakış",
       "/manager/review-queue": "İnceleme Kuyruğu",
       "/manager/analytics": "Raporlar",
+      "/manager/departments": "Birim Performansı",
       "/manager/agents": "Yapay Zekâ Performansı",
       "/manager/cases": "Tüm Bildirimler",
     });
+  });
+});
+
+describe("menus after the advisor meeting", () => {
+  const labels = (role: (typeof ROLES)[number]) => navigationFor(role).map((item) => item.label);
+
+  it("gives every role its own cases", () => {
+    for (const role of ROLES) {
+      expect(navigationFor(role).map((item) => item.href)).toContain("/my-cases");
+      expect(activeNavHref(role, "/cases/101")).toBe("/my-cases");
+    }
+  });
+
+  it("gives staff the cases of their unit", () => {
+    expect(labels("STAFF")).toEqual(["Bildirim Yap", "Görevlerim", "Birim Bildirimleri", "Bildirimlerim"]);
+    expect(activeNavHref("STAFF", "/staff/cases/301")).toBe("/staff/cases");
+  });
+
+  it("gives the admin the full case list too", () => {
+    expect(labels("ADMIN")).toEqual([
+      "Bildirim Yap",
+      "Genel Bakış",
+      "Raporlar",
+      "Birim Performansı",
+      "Yapay Zekâ Performansı",
+      "Tüm Bildirimler",
+      "Bildirimlerim",
+      "Yönetim",
+    ]);
+    expect(labels("MANAGER").at(-1)).toBe("Bildirimlerim");
+  });
+
+  it("puts unit performance right below the reports for managers and admins", () => {
+    for (const role of ["MANAGER", "ADMIN"] as const) {
+      const list = labels(role);
+      expect(list[list.indexOf("Raporlar") + 1]).toBe("Birim Performansı");
+    }
+    expect(activeNavHref("MANAGER", "/manager/departments/2")).toBe("/manager/departments");
   });
 });
 

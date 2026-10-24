@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { apiGet, apiPost } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
+import { LIVE_QUERY } from "@/lib/queryClient";
 
 type Schemas = components["schemas"];
 export type ReviewItem = Schemas["ReviewItemRead"];
@@ -16,6 +17,7 @@ export function useReviewQueue() {
   return useQuery({
     queryKey: REVIEW_QUEUE_KEY,
     queryFn: () => apiGet<Schemas["Page_ReviewItemRead_"]>(`/manager/review-queue?page_size=${REVIEW_PAGE_SIZE}`),
+    ...LIVE_QUERY,
   });
 }
 

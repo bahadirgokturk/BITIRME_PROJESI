@@ -2,6 +2,7 @@
 // basliklari (docs/UI_GUIDE.md bolum 5.4). Backend sureleri dakika, oranlari yuzde (0-100) gonderir;
 // veri yoksa null gelir ve ekranda tire (NO_DATA) gosterilir.
 import type { components } from "@/lib/api/types";
+import { navigationFor, type Role } from "@/lib/navigation";
 
 type Schemas = components["schemas"];
 export type KpisRead = Schemas["KpisRead"];
@@ -23,6 +24,10 @@ export const PERIODS: readonly { value: SummaryPeriod; label: string; days: numb
   { value: "7d", label: "Son 7 gün", days: 7 },
   { value: "30d", label: "Son 30 gün", days: 30 },
 ];
+
+export function periodLabel(period: SummaryPeriod): string {
+  return PERIODS.find((item) => item.value === period)?.label ?? PERIODS[0]!.label;
+}
 
 export function periodDays(period: SummaryPeriod): number {
   return PERIODS.find((item) => item.value === period)?.days ?? PERIODS[0]!.days;
@@ -83,15 +88,56 @@ export function deltaView(deltaPct: number | null, better: Better): DeltaView {
 }
 
 type KpiKey = Exclude<keyof KpisRead, "period">;
+type KpiValue = Schemas["KpiValue"];
+type Format = (value: number | null) => string;
 
-const KPI_CARDS: readonly { key: KpiKey; label: string; format: (value: number | null) => string; better: Better }[] = [
-  { key: "open_cases", label: "Açık Bildirim", format: formatCount, better: "lower" },
-  { key: "sla_compliance_pct", label: "SLA Uyumu", format: formatPercent, better: "higher" },
-  { key: "avg_resolution_min", label: "Ortalama Çözüm Süresi", format: formatMinutes, better: "lower" },
-  { key: "automation_pct", label: "Otomasyon Oranı", format: formatPercent, better: "higher" },
-  { key: "cases_today", label: "Bugün Açılan", format: formatCount, better: "none" },
-  { key: "human_review_pct", label: "Müdür İncelemesi Oranı", format: formatPercent, better: "lower" },
+// Bundan buyuk yuzde okunmaz ("%2000"): onceki donem cok kucuktur, fark kartin kendi biriminde yazilir
+const READABLE_CHANGE_PCT = 100;
+
+const formatPoints: Format = (value) => `${formatCount(value)} puan`;
+
+const KPI_CARDS: readonly { key: KpiKey; label: string; format: Format; difference: Format; better: Better }[] = [
+  { key: "open_cases", label: "Açık Bildirim", format: formatCount, difference: formatCount, better: "lower" },
+  { key: "sla_compliance_pct", label: "SLA Uyumu", format: formatPercent, difference: formatPoints, better: "higher" },
+  { key: "avg_resolution_min", label: "Ortalama Çözüm Süresi", format: formatMinutes, difference: formatMinutes, better: "lower" },
+  { key: "automation_pct", label: "Otomasyon Oranı", format: formatPercent, difference: formatPoints, better: "higher" },
+  { key: "cases_today", label: "Bugün Açılan", format: formatCount, difference: formatCount, better: "none" },
+  { key: "human_review_pct", label: "Müdür İncelemesi Oranı", format: formatPercent, difference: formatPoints, better: "lower" },
 ];
+
+// Kart tiklaninca acilan ekran: sayinin arkasindaki liste ya da rapor. SLA uyumu gecikenlerle,
+// cozum suresi Raporlar'la, otomasyon Yapay Zeka Performansi'yla, mudur incelemesi kuyrukla aciklanir.
+const KPI_LINKS: Partial<Record<KpiKey, string>> = {
+  open_cases: "/manager/cases?group=open",
+  sla_compliance_pct: "/manager/cases?group=late",
+  avg_resolution_min: "/manager/analytics",
+  automation_pct: "/manager/agents",
+  cases_today: "/manager/cases",
+  human_review_pct: "/manager/review-queue",
+};
+
+// Baglanti yalniz rolun menusundeki bir ekrana gider (ornek: inceleme kuyrugu yalniz mudurde).
+// Rol verilmezse (birim detayi: liste birim filtresi almaz) kart baglanti olmaz.
+function kpiHref(href: string | undefined, role?: Role): string | null {
+  if (href === undefined || role === undefined) {
+    return null;
+  }
+  const path = href.split("?")[0];
+  return navigationFor(role).some((item) => item.href === path) ? href : null;
+}
+
+// Cok buyuk degisimde yuzde yerine fark: "%2000 artti" yerine "40 artti", oranlarda "12 puan"
+function kpiDelta(kpi: KpiValue, better: Better, difference: Format): DeltaView {
+  const view = deltaView(kpi.delta_pct, better);
+  if (kpi.delta_pct === null || kpi.value === null || kpi.previous === null) {
+    return view;
+  }
+  if (Math.abs(kpi.delta_pct) <= READABLE_CHANGE_PCT) {
+    return view;
+  }
+  const change = kpi.value - kpi.previous;
+  return { ...view, text: `${change > 0 ? "▲" : "▼"} ${difference(Math.abs(change))}` };
+}
 
 export interface KpiCardView {
   label: string;
@@ -99,16 +145,18 @@ export interface KpiCardView {
   delta: DeltaView;
   // Onceki donemde veri yoksa karsilastirma yapilamaz
   hasPrevious: boolean;
+  href: string | null;
 }
 
-export function kpiCards(kpis: KpisRead): KpiCardView[] {
+export function kpiCards(kpis: KpisRead, role?: Role): KpiCardView[] {
   return KPI_CARDS.map((card) => {
     const kpi = kpis[card.key];
     return {
       label: card.label,
       value: card.format(kpi.value),
-      delta: deltaView(kpi.delta_pct, card.better),
+      delta: kpiDelta(kpi, card.better, card.difference),
       hasPrevious: kpi.delta_pct !== null,
+      href: kpiHref(KPI_LINKS[card.key], role),
     };
   });
 }

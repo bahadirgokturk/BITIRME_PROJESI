@@ -15,6 +15,8 @@ export type MobileBar =
 const BACK_BARS: readonly { prefix: string; bar: MobileBar }[] = [
   { prefix: "/cases/", bar: { kind: "back", title: "Bildirim", backHref: "/my-cases" } },
   { prefix: "/manager/cases/", bar: { kind: "back", title: "Bildirim", backHref: "/manager/cases" } },
+  { prefix: "/manager/departments/", bar: { kind: "back", title: "Birim", backHref: "/manager/departments" } },
+  { prefix: "/staff/cases/", bar: { kind: "back", title: "Bildirim", backHref: "/staff/cases" } },
   { prefix: "/staff/tasks/", bar: { kind: "back", title: "Görev", backHref: "/staff/tasks" } },
 ];
 

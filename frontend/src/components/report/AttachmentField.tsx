@@ -1,6 +1,6 @@
 "use client";
 
-import { ImagePlusIcon } from "lucide-react";
+import { CameraIcon, ImagePlusIcon } from "lucide-react";
 import type { ChangeEvent } from "react";
 
 import { FileThumbs } from "@/components/files/FileThumb";
@@ -14,6 +14,18 @@ interface AttachmentFieldProps {
 }
 
 const HINT_ID = "report-files-hint";
+
+// Telefonda kamerayi dogrudan acar (capture); masaustunde capture dosya penceresi actigi icin gizli
+// (Figma: Button/Outline Fotograf cek). Kamera JPEG verir; tur ve boyut kurali galeriyle ayni (addFiles)
+function CameraButton({ onChange }: { onChange: (event: ChangeEvent<HTMLInputElement>) => void }) {
+  return (
+    <label className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-lg border bg-card text-[15px] font-medium has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50 md:hidden">
+      <input type="file" accept="image/*" capture="environment" aria-label="Fotoğraf çek" onChange={onChange} className="sr-only" />
+      <CameraIcon aria-hidden className="size-[18px]" />
+      Fotoğraf çek
+    </label>
+  );
+}
 
 export function AttachmentField({ files, problem, onPick, onRemove }: AttachmentFieldProps) {
   function pick(event: ChangeEvent<HTMLInputElement>) {
@@ -36,11 +48,12 @@ export function AttachmentField({ files, problem, onPick, onRemove }: Attachment
           className="sr-only"
         />
         <ImagePlusIcon aria-hidden className="size-6 text-primary" />
-        <span className="text-sm font-medium text-primary">Fotoğraf ya da video ekle</span>
+        <span className="text-sm font-medium text-primary-text">Fotoğraf ya da video ekle</span>
         <span id={HINT_ID} className="text-xs text-muted-foreground">
           JPG, PNG, WEBP en fazla 10 MB · MP4, MOV en fazla 30 sn ve 50 MB · en fazla {REPORT_MAX_FILES} dosya
         </span>
       </label>
+      <CameraButton onChange={pick} />
       {problem ? (
         <p aria-live="polite" className="text-xs text-destructive">
           {problem}

@@ -2,6 +2,8 @@ import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
 
 import { LogoWordmark } from "@/components/brand/Logo";
+import { WaitingBell } from "@/components/cases/WaitingBell";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { buttonVariants } from "@/components/ui/button";
 import type { NavItem } from "@/lib/navigation";
 import type { MobileBar } from "@/lib/shell";
@@ -21,7 +23,7 @@ const ICON_BUTTON = buttonVariants({ variant: "ghost", className: "size-11" });
 // alt sayfalarda geri + baslik (Figma: MobileAppBar, Tur=Menu / Tur=Geri)
 export function MobileAppBar({ bar, items, activeHref, user }: MobileAppBarProps) {
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center gap-1 border-b bg-background pr-4 pl-1.5 md:hidden">
+    <header className="sticky top-0 z-40 flex h-14 items-center gap-1 border-b bg-background pr-4 pl-1.5 md:hidden print:hidden">
       {bar.kind === "back" ? (
         <>
           <Link href={bar.backHref} aria-label="Geri" className={ICON_BUTTON}>
@@ -35,6 +37,11 @@ export function MobileAppBar({ bar, items, activeHref, user }: MobileAppBarProps
           <LogoWordmark />
         </>
       )}
+      {/* Sag kosede bildirim zili ve tema dugmesi, her iki cubukta da (Figma: MobileAppBar > Actions) */}
+      <div className="-mr-2.5 ml-auto flex items-center gap-1">
+        <WaitingBell />
+        <ThemeToggle />
+      </div>
     </header>
   );
 }

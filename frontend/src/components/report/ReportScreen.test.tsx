@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
 import { createQueryClient } from "@/lib/queryClient";
+import { LOCATION_RESULT_LIMIT } from "@/lib/report";
 import { server } from "@/mocks/node";
 
 import { ReportScreen } from "./ReportScreen";
@@ -171,6 +172,28 @@ describe("ReportScreen", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Beklenmeyen bir hata oluştu.");
     expect(screen.getByLabelText("Ne oldu?")).toHaveValue("B blok 2. kat erkek tuvalette sabun bitmiş");
+  });
+
+  // Telefonda kamera dogrudan acilsin; galeri secimi ayri kalir
+  it("offers a camera shortcut that takes a photo straight into the report", async () => {
+    const user = renderScreen();
+
+    const camera = screen.getByLabelText("Fotoğraf çek");
+    expect(camera).toHaveAttribute("capture", "environment");
+    expect(camera).toHaveAttribute("accept", "image/*");
+
+    await user.upload(camera, photo());
+
+    expect(await screen.findByRole("button", { name: "sabun.png dosyasını kaldır" })).toBeInTheDocument();
+  });
+
+  // Liste yuklenince altindaki alanlar kaymasin (Lighthouse CLS): yuklenirken ayni yukseklikte yer tutulur
+  it("keeps room for the location list while it loads", () => {
+    renderScreen();
+
+    const placeholder = screen.getByRole("list", { name: "Konumlar yükleniyor" });
+    expect(placeholder).toHaveAttribute("aria-busy", "true");
+    expect(within(placeholder).getAllByRole("listitem")).toHaveLength(LOCATION_RESULT_LIMIT);
   });
 
   it("offers a retry when the locations cannot be loaded", async () => {

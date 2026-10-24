@@ -73,6 +73,45 @@ describe("kpiCards", () => {
     expect(cards[2]).toMatchObject({ value: "5 sa 10 dk", delta: { text: "▼ %8", tone: "good" } });
     expect(cards[5]).toMatchObject({ value: "%14", delta: { text: "–", tone: "none" } });
   });
+
+  // Onceki donem cok kucukken yuzde anlamsiz buyur ("%2000"); fark kartin kendi biriminde yazilir
+  it("writes a very large change as the difference itself", () => {
+    const cards = kpiCards({
+      ...KPIS_WEEK,
+      open_cases: { value: 42, previous: 2, delta_pct: 2000 },
+      human_review_pct: { value: 23, previous: 10.7, delta_pct: 114.9 },
+      avg_resolution_min: { value: 180, previous: 50, delta_pct: 260 },
+    });
+
+    expect(cards[0]!.delta).toEqual({ text: "▲ 40", tone: "bad" });
+    expect(cards[5]!.delta).toEqual({ text: "▲ 12 puan", tone: "bad" });
+    expect(cards[2]!.delta).toEqual({ text: "▲ 2 sa 10 dk", tone: "bad" });
+  });
+
+  it("links each card to the screen that explains it, only where the role can go", () => {
+    const manager = kpiCards(KPIS_WEEK, "MANAGER").map((card) => card.href);
+    const admin = kpiCards(KPIS_WEEK, "ADMIN").map((card) => card.href);
+
+    expect(manager).toEqual([
+      "/manager/cases?group=open",
+      "/manager/cases?group=late",
+      "/manager/analytics",
+      "/manager/agents",
+      "/manager/cases",
+      "/manager/review-queue",
+    ]);
+    // Inceleme kuyrugu yalniz mudurde var
+    expect(admin.at(-1)).toBeNull();
+    expect(admin[0]).toBe("/manager/cases?group=open");
+    // Rol verilmezse (birim detayi) kartlar baglanti degil
+    expect(kpiCards(KPIS_WEEK).every((card) => card.href === null)).toBe(true);
+  });
+
+  it("keeps the percentage while the change stays readable", () => {
+    const cards = kpiCards({ ...KPIS_WEEK, open_cases: { value: 20, previous: 10, delta_pct: 100 } });
+
+    expect(cards[0]!.delta).toEqual({ text: "▲ %100", tone: "bad" });
+  });
 });
 
 describe("periodRange", () => {

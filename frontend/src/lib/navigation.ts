@@ -18,22 +18,28 @@ const REPORT: NavItem = { href: "/report", label: "Bildirim Yap" };
 const DASHBOARD: NavItem = { href: "/manager/dashboard", label: "Genel Bakış" };
 const INSIGHTS: NavItem[] = [
   { href: "/manager/analytics", label: "Raporlar" },
+  { href: "/manager/departments", label: "Birim Performansı" },
   { href: "/manager/agents", label: "Yapay Zekâ Performansı" },
 ];
 const MANAGEMENT_VIEWS: NavItem[] = [DASHBOARD, ...INSIGHTS];
+// Herkes kendi yaptigi bildirimleri gorur; detay sayfasi /cases altinda
+const MY_CASES: NavItem = { href: "/my-cases", label: "Bildirimlerim", subPaths: ["/cases"] };
+const ALL_CASES: NavItem = { href: "/manager/cases", label: "Tüm Bildirimler" };
 
 const NAVIGATION: Record<Role, NavItem[]> = {
-  REPORTER: [REPORT, { href: "/my-cases", label: "Bildirimlerim", subPaths: ["/cases"] }],
-  STAFF: [REPORT, { href: "/staff/tasks", label: "Görevlerim" }],
+  REPORTER: [REPORT, MY_CASES],
+  // Personelin backend kapsami kendi birimi ve kendisine atananlar: "tum" degil "birim" bildirimleri
+  STAFF: [REPORT, { href: "/staff/tasks", label: "Görevlerim" }, { href: "/staff/cases", label: "Birim Bildirimleri" }, MY_CASES],
   // Inceleme kuyrugu yalniz MANAGER'da: AI'in emin olamadigi bildirimlere birim muduru karar verir (UI_GUIDE 5.4)
   MANAGER: [
     REPORT,
     DASHBOARD,
     { href: "/manager/review-queue", label: "İnceleme Kuyruğu" },
     ...INSIGHTS,
-    { href: "/manager/cases", label: "Tüm Bildirimler" },
+    ALL_CASES,
+    MY_CASES,
   ],
-  ADMIN: [REPORT, ...MANAGEMENT_VIEWS, { href: "/admin", label: "Yönetim" }],
+  ADMIN: [REPORT, ...MANAGEMENT_VIEWS, ALL_CASES, MY_CASES, { href: "/admin", label: "Yönetim" }],
 };
 
 export function navigationFor(role: Role): NavItem[] {

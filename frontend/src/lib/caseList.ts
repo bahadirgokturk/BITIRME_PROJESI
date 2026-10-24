@@ -1,5 +1,5 @@
 // Mudurun "Tum Bildirimler" listesinin kurallari (/manager/cases; docs/UI_GUIDE.md bolum 5.4):
-// durum adlari, suzgec gruplari, istek sorgusu ve satir metinleri.
+// durum adlari ve renkleri, filtre gruplari, istek sorgusu ve satir metinleri.
 import type { components } from "@/lib/api/types";
 import { duration, type Priority, type SlaView } from "@/lib/tasks";
 
@@ -29,6 +29,36 @@ export const CASE_STATUS_LABELS: Record<CaseStatus, string> = {
   MERGED: "Birleştirildi",
 };
 
+// Durum rozetinin rengi (docs/UI_GUIDE.md bolum 4.1): gorev rozetleriyle ayni renk yolculugu;
+// beklerken turuncu, calisirken gecisli, cozulunce turkuaz. Mudure iletilen kirmizi ve ikonlu.
+export type StatusTone =
+  | "neutral"
+  | "info"
+  | "warning"
+  | "waiting"
+  | "accepted"
+  | "working"
+  | "solved"
+  | "closed"
+  | "alert";
+
+export const CASE_STATUS_TONES: Record<CaseStatus, StatusTone> = {
+  NEW: "neutral",
+  ANALYZING: "info",
+  NEEDS_INFO: "warning",
+  CLASSIFIED: "info",
+  ASSIGNED: "waiting",
+  ACCEPTED: "accepted",
+  IN_PROGRESS: "working",
+  RESOLVED: "solved",
+  VERIFICATION: "solved",
+  CLOSED: "closed",
+  REOPENED: "warning",
+  ESCALATED: "alert",
+  REJECTED: "neutral",
+  MERGED: "neutral",
+};
+
 // Kapanana kadar gecen butun durumlar; kalan sure rozeti yalniz bunlarda gosterilir
 const OPEN_STATUSES: readonly CaseStatus[] = [
   "NEW",
@@ -43,6 +73,33 @@ const OPEN_STATUSES: readonly CaseStatus[] = [
   "REOPENED",
   "ESCALATED",
 ];
+
+// Ayni liste iki yerde: mudur ve yonetici kurumun butun bildirimlerini, personel kendi biriminin
+// bildirimlerini gorur (backend scope_for). Satirlar listenin kendi adresi altindaki detaya gider.
+export type CaseListView = "all" | "unit";
+
+interface CaseListViewText {
+  title: string;
+  description: string;
+  path: string;
+  // Turkce ek basliga gore degisir ("Bildirimler'e", "Bildirimleri'ne")
+  backText: string;
+}
+
+export const CASE_LIST_VIEWS: Record<CaseListView, CaseListViewText> = {
+  all: {
+    title: "Tüm Bildirimler",
+    description: "Kurumdaki bütün bildirimler. Aramak ya da filtrelemek için aşağıdaki alanları kullanın.",
+    path: "/manager/cases",
+    backText: "Tüm Bildirimler'e dön",
+  },
+  unit: {
+    title: "Birim Bildirimleri",
+    description: "Biriminize gelen ve size atanan bildirimler. Aramak ya da filtrelemek için aşağıdaki alanları kullanın.",
+    path: "/staff/cases",
+    backText: "Birim Bildirimleri'ne dön",
+  },
+};
 
 export type StatusGroup = "all" | "open" | "closed" | "dismissed" | "late";
 
@@ -62,6 +119,11 @@ export const STATUS_GROUPS: readonly StatusGroupOption[] = [
   { value: "dismissed", label: "Reddedilen ve birleştirilen", statuses: ["REJECTED", "MERGED"] },
   { value: "late", label: "Geciken", statuses: OPEN_STATUSES, lateOnly: true },
 ];
+
+// Adresten gelen durum grubu (?group=open): Pano kartlari listeyi filtreli acar; bilinmeyen deger "Tumu"
+export function groupFromParam(value: string | string[] | undefined): StatusGroup {
+  return STATUS_GROUPS.find((item) => item.value === value)?.value ?? "all";
+}
 
 export interface CaseFilters {
   group: StatusGroup;
