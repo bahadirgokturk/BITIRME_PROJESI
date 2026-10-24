@@ -3,12 +3,15 @@
 Guvenlik kararlari (docs/ARCHITECTURE.md bolum 9):
 - Yanlis e-posta, yanlis parola ve pasif kullanici ayni hatayi alir; bilinmeyen e-postada da
   parola dogrulamasi yapilir ki cevap suresi kayitli e-postalari ele vermesin.
-- Refresh token her kullanimda yenilenir; iptal edilmis bir token tekrar gelirse kullanicinin
-  tum oturumlari kapatilir. Istisna: az once rotasyonla yenilenmis token kisa sure icinde tekrar
-  gelirse (iki sekme ayni anda) yalniz reddedilir (REFRESH_REUSE_GRACE_SECONDS).
+- Refresh token her kullanimda yenilenir; iptal edilmis bir token tekrar gelirse o oturum (ayni
+  giristen dogan zincir, family_id) kapatilir. Kullanicinin diger cihazlari acik kalir: yavas
+  agda kaybolan bir yenileme cevabi butun cihazlardan cikis yaptirmasin. Istisna: az once
+  rotasyonla yenilenmis token kisa sure icinde tekrar gelirse (iki sekme ayni anda) yalniz
+  reddedilir (REFRESH_REUSE_GRACE_SECONDS).
 """
 
 import logging
+import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
@@ -31,6 +34,7 @@ from app.core.security import (
 )
 from app.models import RefreshToken, User
 from app.repositories import refresh_token_repository, user_repository
+from app.repositories.refresh_token_repository import NewToken
 from app.services.login_rate_limiter import LoginRateLimiter
 
 logger = logging.getLogger(__name__)
@@ -68,7 +72,8 @@ class AuthService:
             raise UnauthorizedError(messages.INVALID_CREDENTIALS)
         self._limiter.record_success(email=email)
         user.last_login_at = now
-        tokens, _ = self._issue(user)
+        # Her giris yeni bir oturum zinciri baslatir
+        tokens, _ = self._issue(user, uuid.uuid4())
         self._session.commit()
         return tokens
 
@@ -80,7 +85,7 @@ class AuthService:
         if record.expires_at <= now:
             raise UnauthorizedError()
         user = self._active_user(record.user_id)
-        tokens, new_record = self._issue(user)
+        tokens, new_record = self._issue(user, record.family_id)
         record.revoked_at = now
         record.replaced_by_id = new_record.id
         self._session.commit()
@@ -105,16 +110,19 @@ class AuthService:
             raise UnauthorizedError() from error
         return self._active_user(claims.user_id)
 
-    def _issue(self, user: User) -> tuple[IssuedTokens, RefreshToken]:
+    def _issue(self, user: User, family_id: uuid.UUID) -> tuple[IssuedTokens, RefreshToken]:
         now = self._clock.now()
         access_ttl = timedelta(minutes=self._settings.jwt_access_ttl_min)
         refresh_expires_at = now + timedelta(days=self._settings.jwt_refresh_ttl_days)
         raw_refresh = generate_refresh_token()
         record = refresh_token_repository.add(
             self._session,
-            user_id=user.id,
-            token_hash=hash_refresh_token(raw_refresh),
-            expires_at=refresh_expires_at,
+            NewToken(
+                user_id=user.id,
+                token_hash=hash_refresh_token(raw_refresh),
+                expires_at=refresh_expires_at,
+                family_id=family_id,
+            ),
         )
         access = create_access_token(
             AccessTokenClaims(user_id=user.id, role=user.role.value),
@@ -152,13 +160,14 @@ class AuthService:
             and now - record.revoked_at <= timedelta(seconds=REFRESH_REUSE_GRACE_SECONDS)
         )
         if not rotated_just_now:
-            self._revoke_all_sessions(record.user_id, now)
+            self._revoke_session(record, now)
         raise UnauthorizedError()
 
-    def _revoke_all_sessions(self, user_id: int, now: datetime) -> None:
+    def _revoke_session(self, record: RefreshToken, now: datetime) -> None:
         # Calinma belirtisi: iptal kaydi hata firlatilmadan once kalici olmali
         logger.warning(
-            "refresh token reuse detected; revoking all sessions", extra={"user_id": user_id}
+            "refresh token reuse detected; revoking that session",
+            extra={"user_id": record.user_id, "family_id": str(record.family_id)},
         )
-        refresh_token_repository.revoke_all_for_user(self._session, user_id, now)
+        refresh_token_repository.revoke_family(self._session, record.family_id, now)
         self._session.commit()

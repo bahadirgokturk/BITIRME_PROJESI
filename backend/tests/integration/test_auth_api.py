@@ -193,11 +193,11 @@ def test_refresh_rotates_the_refresh_token(client: TestClient, db_session: Sessi
     assert client.cookies[REFRESH_COOKIE_NAME] != first_cookie
 
 
-def test_reusing_an_old_refresh_token_revokes_every_session(
+def test_reusing_an_old_refresh_token_closes_that_session(
     client: TestClient, db_session: Session, clock: FrozenClock
 ) -> None:
     # Senaryo: saldirgan eski (calinmis) refresh token'i kullanir. Rotasyondan sonra eski token
-    # tekrar gelirse bu calinma belirtisidir: kullanicinin tum oturumlari kapatilir.
+    # tekrar gelirse bu calinma belirtisidir: o oturumun butun zinciri kapatilir.
     make_user(db_session)
     _login(client)
     stolen = client.cookies[REFRESH_COOKIE_NAME]
@@ -211,6 +211,30 @@ def test_reusing_an_old_refresh_token_revokes_every_session(
 
     client.cookies.set(REFRESH_COOKIE_NAME, legit_new, path="/api/v1/auth")
     assert client.post(REFRESH).status_code == 401
+
+
+def test_reuse_in_one_session_leaves_other_devices_signed_in(
+    client: TestClient, db_session: Session, clock: FrozenClock
+) -> None:
+    # Yavas ag: yenileme cevabi telefona ulasmadi, telefon eski token'la kaldi. Tolerans gectikten
+    # sonra eski token gelir: telefonun oturumu kapanir, ayni kullanicinin bilgisayari etkilenmez.
+    make_user(db_session)
+    _login(client)
+    laptop = client.cookies[REFRESH_COOKIE_NAME]
+    client.cookies.clear()
+    _login(client)
+    phone_old = client.cookies[REFRESH_COOKIE_NAME]
+    client.post(REFRESH)
+    phone_new = client.cookies[REFRESH_COOKIE_NAME]
+    clock.advance(timedelta(seconds=REFRESH_REUSE_GRACE_SECONDS + 1))
+
+    client.cookies.set(REFRESH_COOKIE_NAME, phone_old, path="/api/v1/auth")
+    assert client.post(REFRESH).status_code == 401
+    client.cookies.set(REFRESH_COOKIE_NAME, phone_new, path="/api/v1/auth")
+    assert client.post(REFRESH).status_code == 401
+
+    client.cookies.set(REFRESH_COOKIE_NAME, laptop, path="/api/v1/auth")
+    assert client.post(REFRESH).status_code == 200
 
 
 def test_two_tabs_refreshing_at_once_do_not_log_the_user_out(
