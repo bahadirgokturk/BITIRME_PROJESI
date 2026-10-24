@@ -182,6 +182,12 @@ class RecurringProblem(BaseModel):
     trend: TrendDirection
     # Turkce oneri: "Kalici cozum (dispenser kapasitesi / periyodik kontrol) degerlendirilebilir."
     suggestion: str
+    # Onleyici bakim: ardisik bildirimler arasi ortanca sure ve onerilen rutin kontrol sikligi
+    # (varsayilanli: eski istemciler ve sahte API verileri bu alanlar olmadan da gecerli)
+    median_interval_hours: float | None = None
+    routine_every_days: int | None = None
+    # "Genellikle 2 gunde bir tekrarliyor; 2 gunde bir rutin kontrol planlanabilir."
+    routine_suggestion: str | None = None
 
 
 class RecurringRead(BaseModel):
