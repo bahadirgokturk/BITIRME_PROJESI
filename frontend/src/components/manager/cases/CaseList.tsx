@@ -8,24 +8,29 @@ import { Button } from "@/components/ui/button";
 import { useCaseList } from "@/hooks/useCases";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { ApiError } from "@/lib/api/client";
+import type { ListView } from "@/lib/listTools";
 import {
   CASE_LIST_VIEWS,
   DEFAULT_FILTERS,
   isFiltered,
   shownSummary,
   type CaseFilters as Filters,
+  type CaseRead,
   type CaseListView,
   type StatusGroup,
 } from "@/lib/caseList";
 
 import { CaseFilters } from "./CaseFilters";
 import { CaseRow, CaseRowSkeleton, COLUMN_HEADERS, COLUMNS_CLASS } from "./CaseRow";
+import { ManagerCaseTile } from "./CaseTile";
 
 // Yazmayi biraktiktan bu kadar sonra aranir (her tus vurusunda istek atilmaz)
 const SEARCH_DELAY_MS = 300;
 const SKELETON_KEYS = ["s1", "s2", "s3", "s4", "s5", "s6"];
 // Masaustunde satirlar tek bir kartin icinde, telefonda her satir ayri kart
 const LIST_CLASS = "grid gap-3 md:gap-0 md:rounded-lg md:border md:bg-card md:px-5";
+// Kart gorunumu: telefonda iki, tablette uc, genis ekranda dort sutun kare kart
+const GRID_CLASS = "grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4";
 // Backend cevap vermediyse (ag sorunu) gosterilen metin; cevap verdiyse onun mesaji (UI_GUIDE bolum 6)
 const NETWORK_HINT = "Bağlantınızı kontrol edip tekrar deneyin.";
 
@@ -99,9 +104,10 @@ interface CaseListBodyProps {
   filtered: boolean;
   onClear: () => void;
   listPath: string;
+  layout: ListView;
 }
 
-function CaseListBody({ query, filtered, onClear, listPath }: CaseListBodyProps) {
+function CaseListBody({ query, filtered, onClear, listPath, layout }: CaseListBodyProps) {
   if (query.isPending) {
     return <Skeletons />;
   }
@@ -123,17 +129,34 @@ function CaseListBody({ query, filtered, onClear, listPath }: CaseListBodyProps)
   }
   return (
     <div className="space-y-3">
-      <div className={LIST_CLASS}>
-        <ColumnHeaders />
-        <ul aria-label="Bildirimler" className="contents">
-          {items.map((item) => (
-            <li key={item.id}>
-              <CaseRow item={item} listPath={listPath} />
-            </li>
-          ))}
-        </ul>
-      </div>
+      <CaseItems items={items} listPath={listPath} layout={layout} />
       <Footer query={query} shown={items.length} total={total} />
+    </div>
+  );
+}
+
+function CaseItems({ items, listPath, layout }: { items: CaseRead[]; listPath: string; layout: ListView }) {
+  if (layout === "grid") {
+    return (
+      <ul aria-label="Bildirimler" data-view="grid" className={GRID_CLASS}>
+        {items.map((item) => (
+          <li key={item.id}>
+            <ManagerCaseTile item={item} listPath={listPath} />
+          </li>
+        ))}
+      </ul>
+    );
+  }
+  return (
+    <div className={LIST_CLASS}>
+      <ColumnHeaders />
+      <ul aria-label="Bildirimler" data-view="list" className="contents">
+        {items.map((item) => (
+          <li key={item.id}>
+            <CaseRow item={item} listPath={listPath} />
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -148,6 +171,7 @@ interface CaseListProps {
 
 export function CaseList({ view = "all", initialGroup = "all" }: CaseListProps) {
   const [filters, setFilters] = useState<Filters>({ ...DEFAULT_FILTERS, group: initialGroup });
+  const [layout, setLayout] = useState<ListView>("list");
   const search = useDebouncedValue(filters.search, SEARCH_DELAY_MS);
   const applied = { ...filters, search };
   const query = useCaseList(applied);
@@ -158,12 +182,13 @@ export function CaseList({ view = "all", initialGroup = "all" }: CaseListProps) 
         <PageTitle>{title}</PageTitle>
         <p className="text-sm text-muted-foreground">{description}</p>
       </header>
-      <CaseFilters value={filters} onChange={setFilters} />
+      <CaseFilters value={filters} view={layout} onChange={setFilters} onView={setLayout} />
       <CaseListBody
         query={query}
         filtered={isFiltered(applied)}
-        onClear={() => setFilters(DEFAULT_FILTERS)}
+        onClear={() => setFilters({ ...DEFAULT_FILTERS, order: filters.order })}
         listPath={path}
+        layout={layout}
       />
     </div>
   );

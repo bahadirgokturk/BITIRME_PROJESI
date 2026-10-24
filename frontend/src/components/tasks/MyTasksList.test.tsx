@@ -1,12 +1,13 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
 import { createQueryClient } from "@/lib/queryClient";
 import { server } from "@/mocks/node";
+import { TASKS } from "@/mocks/taskFixtures";
 
 import { MyTasksList } from "./MyTasksList";
 
@@ -17,6 +18,17 @@ function renderList() {
     </QueryClientProvider>,
   );
 }
+
+// Istek adreslerini sahte yaniti degistirmeden dinler (oncelik ve siralama parametreleri)
+function listenTo(path: string, asked: URLSearchParams[]) {
+  server.events.on("request:start", ({ request }) => {
+    const url = new URL(request.url);
+    if (url.pathname.endsWith(path)) {
+      asked.push(url.searchParams);
+    }
+  });
+}
+afterEach(() => server.events.removeAllListeners());
 
 describe("MyTasksList", () => {
   it("shows a skeleton while the tasks load", () => {
@@ -75,5 +87,56 @@ describe("MyTasksList", () => {
     await userEvent.click(within(alert).getByRole("button", { name: "Tekrar dene" }));
 
     expect((await screen.findAllByRole("link")).length).toBeGreaterThan(0);
+  });
+
+  describe("list tools", () => {
+    it("keeps the most urgent first, then sorts and narrows on request", async () => {
+      const asked: URLSearchParams[] = [];
+      listenTo("/tasks/mine", asked);
+      renderList();
+      const user = userEvent.setup();
+      await screen.findByText(/en acil olan üstte/);
+      expect(asked.at(-1)?.has("order")).toBe(false);
+
+      await user.selectOptions(screen.getByRole("combobox", { name: "Sıralama" }), "En yeni");
+      await user.click(screen.getByRole("button", { name: "Öncelik: Tümü" }));
+      await user.click(await screen.findByRole("checkbox", { name: "Yüksek" }));
+      await user.keyboard("{Escape}");
+
+      await waitFor(() => expect(asked.at(-1)?.getAll("priority")).toEqual(["HIGH"]));
+      expect(asked.at(-1)?.get("order")).toBe("newest");
+      expect(await screen.findByText(/en yeni olan üstte/)).toBeInTheDocument();
+    });
+
+    it("shows the tasks as square cards on request", async () => {
+      renderList();
+      const user = userEvent.setup();
+      await screen.findAllByRole("link");
+
+      await user.click(screen.getByRole("button", { name: "Kart görünümü" }));
+
+      expect(screen.getByRole("list", { name: "Görevlerin" })).toHaveAttribute("data-view", "grid");
+      expect(screen.getAllByRole("link")[0]).toHaveTextContent("B Blok 2. Kat Erkek WC");
+    });
+
+    it("says when no task has the chosen priority and clears it", async () => {
+      server.use(
+        http.get(apiUrl("/tasks/mine"), ({ request }) =>
+          new URL(request.url).searchParams.has("priority")
+            ? HttpResponse.json({ items: [], total: 0, page: 1 })
+            : HttpResponse.json({ items: TASKS.slice(0, 2), total: 2, page: 1 }),
+        ),
+      );
+      renderList();
+      const user = userEvent.setup();
+
+      await user.click(await screen.findByRole("button", { name: "Öncelik: Tümü" }));
+      await user.click(await screen.findByRole("checkbox", { name: "Düşük" }));
+      await user.keyboard("{Escape}");
+
+      expect(await screen.findByText("Seçtiğin önceliklerde görev yok.")).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: "Filtreyi temizle" }));
+      expect(await screen.findByRole("button", { name: "Öncelik: Tümü" })).toBeInTheDocument();
+    });
   });
 });

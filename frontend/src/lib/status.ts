@@ -1,6 +1,7 @@
 // Bildirim yapana gosterilen sade durum: 14 durum yerine 4 adimli ilerleme ya da bilgi kutusu
 // (docs/UI_GUIDE.md bolum 4.1)
 import type { components } from "@/lib/api/types";
+import { listParams, type ListTools } from "@/lib/listTools";
 
 type CaseStatus = components["schemas"]["CaseStatus"];
 
@@ -79,13 +80,34 @@ const FILTER_STATUSES: Record<Exclude<MyCasesFilter, "all">, CaseStatus[]> = {
   solved: STATUSES.filter(isSolved),
 };
 
-// "Tumu" bildirenin kendi listesidir; filtrede /cases kullanilir, cunku backend bildirenin /cases kapsamini
-// yalniz kendi bildirimleriyle sinirlar (backend/app/services/case_service.py scope_for) ve durum filtresi alir
-export function myCasesPath(filter: MyCasesFilter, page: number): string {
+export interface MyCasesQuery extends ListTools {
+  status: MyCasesFilter;
+}
+
+// Her rol kendi bildirimlerini /cases/mine ile suzer: ayni durum, oncelik ve siralama secenekleri (docs/API.md)
+export function myCasesPath({ status, ...tools }: MyCasesQuery, page: number): string {
   const params = new URLSearchParams({ page: String(page), page_size: String(MY_CASES_PAGE_SIZE) });
-  if (filter === "all") {
-    return `/cases/mine?${params.toString()}`;
+  if (status !== "all") {
+    FILTER_STATUSES[status].forEach((item) => params.append("status", item));
   }
-  FILTER_STATUSES[filter].forEach((status) => params.append("status", status));
-  return `/cases?${params.toString()}`;
+  return `/cases/mine?${listParams(tools, params).toString()}`;
+}
+
+// Durum ya da oncelik secildiyse liste daraltilmistir; siralama daraltmaz
+export function isMyCasesFiltered(query: MyCasesQuery): boolean {
+  return query.status !== "all" || query.priorities.length > 0;
+}
+
+const FILTERED_HINT: Record<Exclude<MyCasesFilter, "all">, string> = {
+  open: "Bildirdiğin sorunların hepsi çözülmüş görünüyor.",
+  solved: "Çözülen bildirimlerin burada görünecek.",
+};
+
+// Bos filtre sonucunun metni: once durum filtresi, yoksa oncelik filtresi anlatilir
+export function myCasesEmpty(query: MyCasesQuery): { title: string; hint: string } {
+  if (query.status !== "all") {
+    const title = MY_CASES_FILTERS.find((item) => item.value === query.status)?.empty ?? "";
+    return { title, hint: FILTERED_HINT[query.status] };
+  }
+  return { title: "Seçtiğin önceliklerde bildirim yok.", hint: "Başka bir öncelik seç ya da hepsini göster." };
 }

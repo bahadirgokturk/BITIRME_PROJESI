@@ -38,9 +38,32 @@ function CaseProgress({ step }: { step: ProgressStep }) {
   );
 }
 
-export function CaseStatusView({ view }: { view: ReporterView }) {
+// Kare kartta 4 etiket sigmaz: yalniz bulunulan adim yazilir, cubuklar altinda (Figma: CaseTile > Progress)
+function CompactProgress({ step }: { step: ProgressStep }) {
+  return (
+    <div className="space-y-1.5">
+      <p className="text-xs font-semibold">{step}</p>
+      <ol aria-label="İlerleme" className="grid grid-cols-4 gap-1">
+        {PROGRESS_STEPS.map((label) => {
+          const state = stepState(label, step);
+          return (
+            <li key={label} aria-current={state === "current" ? "step" : undefined}>
+              <span className="sr-only">{label}</span>
+              <span
+                aria-hidden
+                className={cn("block h-1 rounded-full", state === "todo" ? TODO_COLOR : STEP_COLOR[label])}
+              />
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+}
+
+export function CaseStatusView({ view, compact = false }: { view: ReporterView; compact?: boolean }) {
   if (view.kind === "notice") {
-    return <p className="rounded-md bg-muted p-3 text-sm">{view.message}</p>;
+    return <p className={cn("rounded-md bg-muted", compact ? "line-clamp-3 p-2 text-xs" : "p-3 text-sm")}>{view.message}</p>;
   }
-  return <CaseProgress step={view.step} />;
+  return compact ? <CompactProgress step={view.step} /> : <CaseProgress step={view.step} />;
 }

@@ -72,6 +72,15 @@ function byUrgency(a: Task, b: Task) {
   return (a.due_at ?? "9999").localeCompare(b.due_at ?? "9999");
 }
 
+// order yoksa en acil once; varsa gorevin acilisina gore en yeni ya da en eski once
+function sorter(order: string | null) {
+  if (order === null) {
+    return byUrgency;
+  }
+  const sign = order === "oldest" ? 1 : -1;
+  return (a: Task, b: Task) => sign * a.created_at.localeCompare(b.created_at);
+}
+
 async function note(request: Request): Promise<Partial<Task>> {
   const text = await request.text();
   if (!text) {
@@ -83,11 +92,14 @@ async function note(request: Request): Promise<Partial<Task>> {
 
 export const taskHandlers = [
   http.get(apiUrl("/tasks/mine"), ({ request }) => {
-    const requested = new URL(request.url).searchParams.getAll("status");
+    const params = new URL(request.url).searchParams;
+    const requested = params.getAll("status");
     const statuses: string[] = requested.length ? requested : ACTIVE;
+    const priorities = params.getAll("priority");
     const items = tasks
       .filter((task) => statuses.includes(task.status))
-      .sort(byUrgency);
+      .filter((task) => priorities.length === 0 || (task.priority !== null && priorities.includes(task.priority)))
+      .sort(sorter(params.get("order")));
     return HttpResponse.json({ items, total: items.length, page: 1 });
   }),
 

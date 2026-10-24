@@ -1,7 +1,8 @@
 // Mudurun "Tum Bildirimler" listesinin kurallari (/manager/cases; docs/UI_GUIDE.md bolum 5.4):
 // durum adlari ve renkleri, filtre gruplari, istek sorgusu ve satir metinleri.
 import type { components } from "@/lib/api/types";
-import { duration, type Priority, type SlaView } from "@/lib/tasks";
+import { listParams, type ListTools } from "@/lib/listTools";
+import { duration, type SlaView } from "@/lib/tasks";
 
 type Schemas = components["schemas"];
 export type CaseRead = Schemas["CaseRead"];
@@ -125,19 +126,19 @@ export function groupFromParam(value: string | string[] | undefined): StatusGrou
   return STATUS_GROUPS.find((item) => item.value === value)?.value ?? "all";
 }
 
-export interface CaseFilters {
+export interface CaseFilters extends ListTools {
   group: StatusGroup;
-  priority: Priority | null;
   search: string;
 }
 
-export const DEFAULT_FILTERS: CaseFilters = { group: "all", priority: null, search: "" };
+export const DEFAULT_FILTERS: CaseFilters = { group: "all", priorities: [], order: "newest", search: "" };
 
+// Siralama listeyi daraltmaz; bos sonucta yalniz gercek filtreler "temizle" onerir
 export function isFiltered(filters: CaseFilters): boolean {
-  return filters.group !== "all" || filters.priority !== null || filters.search.trim() !== "";
+  return filters.group !== "all" || filters.priorities.length > 0 || filters.search.trim() !== "";
 }
 
-// Ortak filtreler (docs/API.md "Cases"): status (tekrarlanir), priority, sla_status, q
+// Ortak filtreler (docs/API.md "Cases"): status (tekrarlanir), priority (tekrarlanir), sla_status, order, q
 export function caseListQuery(filters: CaseFilters, page: number): string {
   const params = new URLSearchParams({ page: String(page), page_size: String(CASE_LIST_PAGE_SIZE) });
   const group = STATUS_GROUPS.find((item) => item.value === filters.group);
@@ -145,9 +146,7 @@ export function caseListQuery(filters: CaseFilters, page: number): string {
   if (group?.lateOnly) {
     params.set("sla_status", "BREACHED");
   }
-  if (filters.priority) {
-    params.set("priority", filters.priority);
-  }
+  listParams(filters, params);
   const search = filters.search.trim();
   if (search) {
     params.set("q", search);
