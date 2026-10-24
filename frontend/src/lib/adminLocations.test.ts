@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  qrFileName,
   filterLocations,
   locationFormProblems,
   locationRows,
@@ -168,5 +169,13 @@ describe("toUpdateBody", () => {
     expect(toUpdateBody(same, original)).toEqual({ name: "B201 Amfi", importance_weight: 90, aliases: [] });
     expect(toUpdateBody({ ...same, parent_id: "2" }, original).parent_id).toBe(2);
     expect(toUpdateBody({ ...same, parent_id: "" }, original).parent_id).toBeNull();
+  });
+});
+
+describe("qrFileName", () => {
+  // Backend'in Content-Disposition adiyla ayni (docs/API.md: qr-<kod>.svg)
+  it("names the file after the location code", () => {
+    expect(qrFileName(location({ id: 5, path: "KMP/B/B-2/B-201", code: "B-201" }), "svg")).toBe("qr-B-201.svg");
+    expect(qrFileName(location({ id: 5, path: "KMP/B/B-2/B-201", code: "B-201" }), "png")).toBe("qr-B-201.png");
   });
 });

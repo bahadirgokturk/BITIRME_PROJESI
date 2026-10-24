@@ -19,6 +19,7 @@ import {
 
 import { ActiveToggle, HistoryLink, SHEET_CLASS } from "../AdminParts";
 import { LocationFormFields } from "./LocationFormFields";
+import { LocationQrSection } from "./LocationQrSection";
 
 export type LocationTarget = { mode: "create" } | { mode: "edit"; location: AdminLocation };
 
@@ -51,6 +52,16 @@ function StatusSection({ location, onDone }: { location: AdminLocation; onDone: 
         )
       }
     />
+  );
+}
+
+// Yalniz duzenlerken: kapi icin QR ve aktif/pasif
+function EditSections({ location, onDone }: { location: AdminLocation; onDone: (message: string) => void }) {
+  return (
+    <>
+      <LocationQrSection location={location} />
+      <StatusSection location={location} onDone={onDone} />
+    </>
   );
 }
 
@@ -100,7 +111,7 @@ export function LocationSheet({ target, locations, onClose, onDone }: LocationSh
             onChange={setForm}
           />
           <FormAlert error={saving.error} />
-          {editing ? <StatusSection location={target.location} onDone={onDone} /> : null}
+          {editing ? <EditSections location={target.location} onDone={onDone} /> : null}
           <div className="mt-auto flex justify-end gap-2 pt-2">
             {editing ? <HistoryLink entity="LOCATION" id={target.location.id} /> : null}
             <SheetClose render={<Button type="button" variant="outline" className="h-11 px-4" />}>Vazgeç</SheetClose>

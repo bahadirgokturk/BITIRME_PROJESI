@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { apiGet, apiPost, apiRequest } from "@/lib/api/client";
+import { qrFileName, type QrFormat } from "@/lib/adminLocations";
+import { apiGet, apiGetBlob, apiPost, apiRequest } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
 
 type Schemas = components["schemas"];
@@ -47,5 +48,31 @@ export function useUpdateLocation(locationId: number) {
         headers: { "Content-Type": "application/json" },
       }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: LOCATIONS_KEY }),
+  });
+}
+
+const qrPath = (id: number, format: QrFormat) => `/admin/locations/${id}/qr?format=${format}`;
+
+// QR onizlemesi: dosya yetki ister, <img src> dogrudan kullanilamaz; Bearer ile alinip gecici adrese cevrilir
+export function useLocationQrPreview(id: number, enabled: boolean) {
+  return useQuery({
+    queryKey: [...LOCATIONS_KEY, id, "qr"],
+    queryFn: async () => URL.createObjectURL(await apiGetBlob(qrPath(id, "svg"))),
+    enabled,
+    staleTime: Infinity,
+  });
+}
+
+// Kapiya asilacak dosyayi indirir: gecici adres, indirme adli bir baglanti uzerinden tiklanir ve birakilir
+export function useDownloadLocationQr(location: Pick<Location, "id" | "code">) {
+  return useMutation({
+    mutationFn: async (format: QrFormat) => {
+      const url = URL.createObjectURL(await apiGetBlob(qrPath(location.id, format)));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = qrFileName(location, format);
+      link.click();
+      URL.revokeObjectURL(url);
+    },
   });
 }

@@ -212,3 +212,10 @@ export function toUpdateBody(form: LocationForm, original: AdminLocation): Schem
   const parentId = parentIdOf(form);
   return parentId === original.parent_id ? body : { ...body, parent_id: parentId };
 }
+
+export type QrFormat = Schemas["QrFormat"];
+
+// Indirilen QR dosyasinin adi backend'in verdigi adla ayni (qr-<kod>.<bicim>)
+export function qrFileName(location: Pick<AdminLocation, "code">, format: QrFormat): string {
+  return `qr-${location.code}.${format}`;
+}

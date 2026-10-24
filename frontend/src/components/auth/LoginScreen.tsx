@@ -18,7 +18,7 @@ function BrandPanel() {
 }
 
 // Giris formu sutunu: telefonda tam ekran, masaustunde sag tarafta ortada
-function LoginMain() {
+function LoginMain({ next }: { next?: string }) {
   return (
     <main className="flex flex-1 flex-col px-6 pt-18 pb-6 md:items-center md:justify-center md:p-8">
       <div className="flex w-full flex-col gap-10 md:max-w-[380px] md:gap-8">
@@ -33,7 +33,7 @@ function LoginMain() {
             <h1 className="text-2xl font-semibold">Giriş yap</h1>
             <p className="text-sm text-muted-foreground">Kurum e-postan ve parolanla giriş yap.</p>
           </header>
-          <LoginForm />
+          <LoginForm next={next} />
           <p className="text-[13px] text-muted-foreground">
             Parolanı mı unuttun? Birim yöneticine ya da sistem yöneticisine başvur.
           </p>
@@ -48,7 +48,7 @@ function LoginMain() {
 
 // Giris ekrani gorunumu; giris mantigi LoginForm'da (Figma: /login - mobil, /login - masaustu).
 // Giris de internet ister: baglanti yoksa ekranin en ustunde soylenir (Figma: /login - mobil - baglanti yok)
-export function LoginScreen() {
+export function LoginScreen({ next }: { next?: string }) {
   return (
     <div className="flex min-h-dvh flex-1 flex-col">
       <OfflineBanner />
@@ -56,7 +56,7 @@ export function LoginScreen() {
         {/* Giristen once de tema secilebilir; sag ust kosede (Figma: 07 Koyu Mod > /login) */}
         <ThemeToggle className="absolute top-3 right-3" />
         <BrandPanel />
-        <LoginMain />
+        <LoginMain next={next} />
       </div>
     </div>
   );

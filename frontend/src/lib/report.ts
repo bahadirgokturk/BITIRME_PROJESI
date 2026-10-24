@@ -83,3 +83,10 @@ export function searchLocations<T extends SearchableLocation>(locations: readonl
     return words.every((word) => haystack.includes(word));
   });
 }
+
+// QR adresindeki ?location= degeri: yalniz pozitif tam sayi kabul edilir, gerisi "bulunamadi" sayilir
+const POSITIVE_INTEGER = /^[1-9]\d*$/;
+
+export function qrLocationId(param: string | undefined): number | null {
+  return param !== undefined && POSITIVE_INTEGER.test(param) ? Number(param) : null;
+}

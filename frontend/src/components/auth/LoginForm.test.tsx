@@ -19,10 +19,10 @@ afterEach(() => {
   replace.mockReset();
 });
 
-function renderForm() {
+function renderForm(next?: string) {
   render(
     <QueryClientProvider client={createQueryClient()}>
-      <LoginForm />
+      <LoginForm next={next} />
     </QueryClientProvider>,
   );
 }
@@ -34,7 +34,31 @@ async function submit(email: string, password: string) {
   await user.click(screen.getByRole("button", { name: "Giriş yap" }));
 }
 
+const okLogin = () =>
+  http.post(apiUrl("/auth/login"), () =>
+    HttpResponse.json({ access_token: "t-ok", token_type: "bearer", expires_in: 1800 }),
+  );
+
 describe("LoginForm", () => {
+  // QR'i okutan kisi giristen sonra formdaki konuma doner
+  it("goes back to the scanned report link after logging in", async () => {
+    server.use(okLogin());
+    renderForm("/report?location=4");
+
+    await submit("ogrenci@kampus.example.com", "dogru-parola");
+
+    expect(replace).toHaveBeenCalledWith("/report?location=4");
+  });
+
+  it("ignores any other return address", async () => {
+    server.use(okLogin());
+    renderForm("https://evil.example.com/");
+
+    await submit("ogrenci@kampus.example.com", "dogru-parola");
+
+    expect(replace).toHaveBeenCalledWith("/");
+  });
+
   it("logs in and goes to the home page", async () => {
     server.use(
       http.post(apiUrl("/auth/login"), () =>

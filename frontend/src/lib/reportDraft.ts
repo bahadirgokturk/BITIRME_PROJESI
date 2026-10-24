@@ -42,3 +42,12 @@ export function parseReportDraft(raw: string | null): ReportDraft | null {
 export function isBlankDraft(draft: ReportDraft): boolean {
   return draft.description.trim() === "" && draft.locationId === "";
 }
+
+// QR ile acilan form kapidaki yer icindir: taslaktaki eski konum kullanilmaz, aciklama yine taslaktan gelir.
+// Taslakta konumdan baska bir sey yoksa geri yuklenecek bir sey de yoktur
+export function draftForForm(draft: ReportDraft | null, fromQr: boolean): ReportDraft | null {
+  if (!draft || !fromQr) {
+    return draft;
+  }
+  return draft.description.trim() === "" && !draft.hadFiles ? null : { ...draft, locationId: "" };
+}

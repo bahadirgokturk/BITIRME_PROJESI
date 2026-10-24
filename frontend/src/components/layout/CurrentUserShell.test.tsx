@@ -91,4 +91,25 @@ describe("CurrentUserShell without a session", () => {
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/login"));
     expect(screen.queryByText("gizli içerik")).not.toBeInTheDocument();
   });
+
+  // Oturumu olmayan biri kapidaki QR'i okutursa giristen sonra ayni forma donsun
+  it("keeps a scanned report link for after login", async () => {
+    server.use(
+      http.get(apiUrl("/auth/me"), () => HttpResponse.json(UNAUTHORIZED, { status: 401 })),
+      http.post(apiUrl("/auth/refresh"), () => HttpResponse.json(UNAUTHORIZED, { status: 401 })),
+    );
+    window.history.pushState({}, "", "/report?location=4");
+    render(
+      <QueryClientProvider client={createQueryClient()}>
+        <CurrentUserShell>
+          <p>form</p>
+        </CurrentUserShell>
+      </QueryClientProvider>,
+    );
+
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/login?next=%2Freport%3Flocation%3D4"));
+    window.history.pushState({}, "", "/");
+  });
 });
+
+const UNAUTHORIZED = { error: { code: "UNAUTHORIZED", message: "Oturum yok.", details: {} } };

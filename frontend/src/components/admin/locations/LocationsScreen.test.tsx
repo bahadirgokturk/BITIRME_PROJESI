@@ -2,7 +2,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
 import { createQueryClient } from "@/lib/queryClient";
@@ -141,6 +141,47 @@ describe("LocationsScreen", () => {
 
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(within(await item("B Blok")).getByText("Pasif")).toBeInTheDocument();
+  });
+
+  describe("QR code for the door", () => {
+    // jsdom'da dosya indirme yok: blob adresi ve tiklama izlenir
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+    URL.createObjectURL = vi.fn(() => "blob:qr");
+    URL.revokeObjectURL = vi.fn();
+    afterEach(() => click.mockClear());
+
+    async function openPanel(user: ReturnType<typeof renderScreen>, name: string) {
+      await user.click(within(await item(name)).getByRole("button", { name: `${name} konumunu düzenle` }));
+      return screen.findByRole("dialog", { name: "Konumu düzenle" });
+    }
+
+    it("previews the code and downloads it as SVG or PNG", async () => {
+      let format: string | null = null;
+      server.use(
+        http.get(apiUrl("/admin/locations/:id/qr"), ({ request }) => {
+          format = new URL(request.url).searchParams.get("format");
+          return new HttpResponse("<svg/>", { headers: { "Content-Type": "image/svg+xml" } });
+        }),
+      );
+      const user = renderScreen();
+      const sheet = await openPanel(user, "B Blok");
+
+      expect(await within(sheet).findByRole("img", { name: "B Blok QR kodu" })).toHaveAttribute("src", "blob:qr");
+      await user.click(within(sheet).getByRole("button", { name: "PNG indir" }));
+
+      await waitFor(() => expect(click).toHaveBeenCalledTimes(1));
+      expect(format).toBe("png");
+      const link = click.mock.contexts[0] as HTMLAnchorElement;
+      expect(link.download).toBe("qr-B.png");
+    });
+
+    it("explains why an inactive location has no code", async () => {
+      const user = renderScreen();
+      const sheet = await openPanel(user, "A Blok Otoparkı");
+
+      expect(within(sheet).getByText("Pasif konumun QR kodu okutulunca form konumu bulamaz. Önce aktifleştirin.")).toBeInTheDocument();
+      expect(within(sheet).queryByRole("button", { name: "PNG indir" })).not.toBeInTheDocument();
+    });
   });
 
   it("shows an error with retry when locations cannot be loaded", async () => {

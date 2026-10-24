@@ -62,10 +62,26 @@ function isInvalidParent(current: Location, parentId: number | null): boolean {
   return parent !== undefined && (parent.id === current.id || parent.path.startsWith(`${current.path}/`));
 }
 
+const QR_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 7 7"><path d="M0 0h7v7H0z" fill="#fff"/>' +
+  '<path d="M0 0h3v3H0zM4 0h3v3H4zM0 4h3v3H0zM4 4h1v1H4zM6 6h1v1H6z"/></svg>';
+
 export const adminLocationHandlers = [
   http.get(apiUrl("/admin/locations"), () =>
     HttpResponse.json({ items: sorted(), total: locations.length, page: 1 }),
   ),
+
+  // Kapi icin QR: sahte API'de icerigi onemsiz bir kare; gercek kod backend'de uretilir (segno)
+  http.get<{ id: string }>(apiUrl("/admin/locations/:id/qr"), ({ params, request }) => {
+    const location = locations.find((item) => item.id === Number(params.id));
+    if (!location) {
+      return error(404, "NOT_FOUND", "Kayıt bulunamadı.");
+    }
+    const png = new URL(request.url).searchParams.get("format") === "png";
+    return new HttpResponse(png ? new Uint8Array([137, 80, 78, 71]) : QR_SVG, {
+      headers: { "Content-Type": png ? "image/png" : "image/svg+xml" },
+    });
+  }),
 
   http.post<never, Schemas["LocationCreate"]>(apiUrl("/admin/locations"), async ({ request }) => {
     const body = await request.json();

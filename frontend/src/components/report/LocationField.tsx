@@ -16,6 +16,12 @@ interface LocationFieldProps {
   value: string;
   onChange: (value: string) => void;
   error: string | null;
+  // Listede olmasa da secili gosterilecek konum (QR'dan tek tek okunan konum)
+  known?: LocationOption;
+  // Secili konumun altindaki kisa not (ornek: "QR koddan secildi")
+  hint?: string | null;
+  // Aramanin ustundeki bilgi (ornek: QR'daki konum bulunamadi)
+  notice?: string | null;
 }
 
 const FIELD_ID = "report-location";
@@ -132,22 +138,37 @@ function LocationSearch({ options, error, onPick }: LocationSearchProps) {
   );
 }
 
+// Secili konum once listede, yoksa tek basina okunan (QR) konumda aranir
+function findChosen(value: string, options: LocationOption[] | undefined, known?: LocationOption) {
+  return [...(known ? [known] : []), ...(options ?? [])].find((location) => String(location.id) === value);
+}
+
+function FieldNotice({ text }: { text?: string | null }) {
+  return text ? <p className="rounded-lg bg-muted px-3 py-2.5 text-sm text-muted-foreground">{text}</p> : null;
+}
+
+function FieldHint({ text }: { text?: string | null }) {
+  return text ? <p className="text-xs text-muted-foreground">{text}</p> : null;
+}
+
 // Konum secici (docs/UI_GUIDE.md bolum 5.1). Konumlar bir kez yuklenir, arama tarayicida yapilir:
 // her tusta sunucuya gitmez, telefonda aninda sonuc verir.
-export function LocationField({ value, onChange, error }: LocationFieldProps) {
+export function LocationField({ value, onChange, error, known, hint, notice }: LocationFieldProps) {
   const locations = useLocations();
   if (locations.isError) {
     return <LocationsError error={locations.error} onRetry={() => void locations.refetch()} />;
   }
-  const chosen = locations.data?.find((location) => String(location.id) === value);
+  const chosen = findChosen(value, locations.data, known);
   return (
     <div className="space-y-1.5">
       <Label htmlFor={FIELD_ID}>Konum</Label>
+      <FieldNotice text={notice} />
       {chosen ? (
         <ChosenLocation location={chosen} onClear={() => onChange("")} />
       ) : (
         <LocationSearch options={locations.data} error={error} onPick={(id) => onChange(String(id))} />
       )}
+      {chosen ? <FieldHint text={hint} /> : null}
       {error ? (
         <p id={ERROR_ID} className="text-xs text-destructive">
           {error}
