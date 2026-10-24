@@ -18,7 +18,7 @@ from app.core.constants import CASE_SEARCH_MAX_LENGTH
 from app.core.database import get_session
 from app.models.enums import CaseStatus, Priority, UserRole
 from app.schemas.case import AgentDecisionRead, CaseCreate, CaseEventRead, CaseRead, CaseSearch
-from app.schemas.common import Page, PageParams
+from app.schemas.common import ListOrder, Page, PageParams
 from app.services.case_service import CaseService
 
 router = APIRouter(prefix="/cases", tags=["cases"], responses=AUTHENTICATED_RESPONSES)
@@ -49,7 +49,7 @@ def create_case(
 
 def case_search(
     status: Annotated[list[CaseStatus] | None, Query()] = None,
-    priority: Priority | None = None,
+    priority: Annotated[list[Priority] | None, Query()] = None,
     sla_status: Annotated[
         Literal["BREACHED"] | None, Query(description="Yalniz SLA'si asilan bildirimler")
     ] = None,
@@ -60,13 +60,15 @@ def case_search(
             description="Numara, baslik ya da konum adinda arama (Turkce harflere duyarsiz)",
         ),
     ] = None,
+    order: ListOrder = ListOrder.NEWEST,
 ) -> CaseSearch:
     text = q.strip() if q else ""
     return CaseSearch(
         statuses=status or [],
-        priority=priority,
+        priorities=priority or [],
         breached_only=sla_status is not None,
         text=text or None,
+        order=order,
     )
 
 
@@ -80,8 +82,11 @@ def list_cases(
 
 # /mine, /{case_id}'den once tanimlanir; yoksa "mine" bir id sanilir
 @router.get("/mine")
-def list_my_cases(paging: Paging, service: Cases) -> Page[CaseRead]:
-    return service.list_mine(paging)
+def list_my_cases(
+    paging: Paging, service: Cases, search: Annotated[CaseSearch, Depends(case_search)]
+) -> Page[CaseRead]:
+    """Kendi bildirimlerim; GET /cases ile ayni suzgec ve siralama secenekleri."""
+    return service.list_mine(search, paging)
 
 
 @router.get("/{case_id}")

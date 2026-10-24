@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from enum import StrEnum
 
 from pydantic import BaseModel
 
@@ -16,6 +17,13 @@ class PageParams:
     @property
     def offset(self) -> int:
         return (self.page - 1) * self.page_size
+
+
+class ListOrder(StrEnum):
+    """Listelerde acilis zamanina gore siralama (?order=newest|oldest)."""
+
+    NEWEST = "newest"
+    OLDEST = "oldest"
 
 
 class Page[T](BaseModel):

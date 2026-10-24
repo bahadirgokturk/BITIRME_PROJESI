@@ -45,7 +45,8 @@ alanları dönmez. Bildirim formu bunu kullanır; yönetim `/admin/locations`'ta
 `GET /cases/{id}/events`.
 - `GET /cases` süzgeçleri (hepsi VE ile birleşir; `total` süzülmüş sayıdır, liste en yeni önce):
   - `status` tekrarlanabilir (`status=REJECTED&status=MERGED`)
-  - `priority`: `LOW | MEDIUM | HIGH | CRITICAL`
+  - `priority` tekrarlanabilir (`priority=LOW&priority=HIGH`): `LOW | MEDIUM | HIGH | CRITICAL`
+  - `order=newest|oldest`: açılış zamanına göre (varsayılan `newest`); başka değer → `422`
   - `sla_status=BREACHED`: listede `sla_status` rozeti `BREACHED` olanlar (çözülmüşse çözüm anına, açıksa
     şimdiki zamana göre). `AT_RISK`/`ON_TRACK` süzgeci yok → `422`.
   - `q` (en çok 100 karakter): bildirim numarası, başlık ya da konum adında geçen parça. Büyük/küçük harf ve
@@ -72,7 +73,7 @@ belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanı
 |---|---|---|---|
 | POST | `/cases` | tümü | case oluştur (JSON; foto ayrı istekle) → 201 `ANALYZING` |
 | GET | `/cases` | M/A (tümü), R (kendi), S (kapsam) | filtre: status, priority, sla_status (BREACHED), q ✅; category, location_id, department_id, from, to (planlı) |
-| GET | `/cases/mine` | R | kendi case'lerim |
+| GET | `/cases/mine` | tümü | kendi bildirimlerim; `/cases` ile aynı süzgeç ve `order` seçenekleri |
 | GET | `/cases/{id}` | kapsam | detay (+ SLA durumu hesaplanmış) |
 | GET | `/cases/{id}/events` | kapsam | zaman çizelgesi (reporter'a filtrelenmiş) |
 | GET | `/cases/{id}/decisions` | M/A | agent kararları + gerekçeler (koşu sırasıyla; `run_id`, `reasons`, `output`) ✅; Türkçe başlıklar `agent_label` ("Sınıflandırma") ve `decision_label` ("Sabun bitti", "Müdüre yükseltildi"; bilinmiyorsa `null`, kod gösterilir) |
@@ -136,6 +137,8 @@ Sözlükler (MANAGER, ADMIN; diğer roller `403`): `GET /case-types` → aktif t
 - **Kim görür:** STAFF kendisine atanan görevleri + departmanının **sahipsiz kuyruğunu**; MANAGER/ADMIN kurumdaki
   tüm görevleri (detay). Kapsam dışı → `404`. İşlemleri (kabul/başlat/tamamla/reddet) yalnız STAFF yapar (`403`).
 - `/tasks/mine` filtresiz çağrılınca yalnız aktif görevler (`PENDING`, `ACCEPTED`, `IN_PROGRESS`) döner.
+  `priority` tekrarlanabilir; sıralama varsayılanı en acil önce (SLA hedefi en yakın), `order=newest|oldest`
+  verilirse bildirimin açılış zamanına göre.
 - Kuyruktaki görevi **ilk kabul eden üstlenir** (`assigned_user_id` o kişi olur).
 - Yanlış sırada işlem → `409 INVALID_TRANSITION` (tablo: `workflow.py` `TASK_TRANSITIONS`).
 Yanıt `TaskRead`: görev + bildirim özeti (`case_number`, `title`, `description`, `location`, `priority`) ve
@@ -144,7 +147,7 @@ göre sıralanır (en acil üstte). `CaseRead` de `sla_status` alanını taşır
 
 | Method | Path | Açıklama |
 |---|---|---|
-| GET | `/tasks/mine` | atanan görevlerim (`?status=` tekrarlanabilir) |
+| GET | `/tasks/mine` | atanan görevlerim (`status`, `priority` tekrarlanabilir; `order=newest|oldest`) |
 | GET | `/tasks/{id}` | detay (+ bildirim özeti, lokasyon) |
 | POST | `/tasks/{id}/accept` | `PENDING` → `ACCEPTED` |
 | POST | `/tasks/{id}/decline` | `{reason}`; `PENDING`/`ACCEPTED` → `DECLINED` |

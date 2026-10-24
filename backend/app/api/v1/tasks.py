@@ -14,9 +14,9 @@ from app.api.v1.responses import AUTHENTICATED_RESPONSES
 from app.core.clock import Clock, get_clock
 from app.core.config import Settings
 from app.core.database import get_session
-from app.models.enums import TaskStatus
-from app.schemas.common import Page, PageParams
-from app.schemas.task import CompleteRequest, DeclineRequest, TaskRead
+from app.models.enums import Priority, TaskStatus
+from app.schemas.common import ListOrder, Page, PageParams
+from app.schemas.task import CompleteRequest, DeclineRequest, TaskListQuery, TaskRead
 from app.services.task_service import TaskService
 
 router = APIRouter(prefix="/tasks", tags=["tasks"], responses=AUTHENTICATED_RESPONSES)
@@ -40,8 +40,12 @@ def list_my_tasks(
     paging: Paging,
     service: Tasks,
     status: Annotated[list[TaskStatus] | None, Query()] = None,
+    priority: Annotated[list[Priority] | None, Query()] = None,
+    order: ListOrder | None = None,
 ) -> Page[TaskRead]:
-    return service.mine(status or [], paging)
+    """Varsayilan siralama en acil once; order=newest|oldest bildirimin acilis zamanina gore."""
+    query = TaskListQuery(statuses=status or [], priorities=priority or [], order=order)
+    return service.mine(query, paging)
 
 
 @router.get("/{task_id}")

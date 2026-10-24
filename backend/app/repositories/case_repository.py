@@ -1,6 +1,7 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import ColumnElement, Select, and_, false, func, or_, select
 from sqlalchemy.orm import Session, selectinload
@@ -9,7 +10,7 @@ from app.models import Case, CaseEvent, Location
 from app.models.case import CASE_NUMBER_SEQUENCE
 from app.models.enums import SLA_SETTLED_STATUSES, CaseStatus, Priority
 from app.repositories.text_search import fold, folded
-from app.schemas.common import PageParams
+from app.schemas.common import ListOrder, PageParams
 
 
 @dataclass(frozen=True)
@@ -39,9 +40,10 @@ class CaseFilter:
     # SLA asimi okuma aninda hesaplanir (services/sla.py); sorgu ayni ani kullanir
     now: datetime
     statuses: Sequence[CaseStatus] = ()
-    priority: Priority | None = None
+    priorities: Sequence[Priority] = ()
     breached_only: bool = False
     text: str | None = None
+    order: ListOrder = ListOrder.NEWEST
 
 
 # Yanittaki ozetler (CaseRead) tek sorguda; inceleme kuyrugu da kullanir
@@ -87,7 +89,7 @@ def list_page(
     total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
     items = session.scalars(
         query.options(*WITH_SUMMARIES)
-        .order_by(Case.created_at.desc(), Case.id.desc())
+        .order_by(*_ordering(filters.order))
         .offset(paging.offset)
         .limit(paging.page_size)
     ).all()
@@ -120,8 +122,8 @@ def _conditions(filters: CaseFilter) -> list[ColumnElement[bool]]:
     conditions: list[ColumnElement[bool]] = []
     if filters.statuses:
         conditions.append(Case.status.in_(filters.statuses))
-    if filters.priority is not None:
-        conditions.append(Case.priority == filters.priority)
+    if filters.priorities:
+        conditions.append(Case.priority.in_(filters.priorities))
     if filters.breached_only:
         conditions.append(_breached(filters.now))
     if filters.text:
@@ -150,3 +152,10 @@ def _matches(text: str) -> ColumnElement[bool]:
         folded(Case.title).contains(needle, autoescape=True),
         Case.location_id.in_(locations),
     )
+
+
+def _ordering(order: ListOrder) -> tuple[ColumnElement[Any], ...]:
+    """Acilis zamanina gore; ayni anda acilanlar id ile ayni sirada kalir."""
+    if order is ListOrder.OLDEST:
+        return Case.created_at.asc(), Case.id.asc()
+    return Case.created_at.desc(), Case.id.desc()

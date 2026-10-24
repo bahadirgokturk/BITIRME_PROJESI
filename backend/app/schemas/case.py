@@ -25,13 +25,15 @@ from app.models.enums import (
     SlaStatus,
     UserRole,
 )
+from app.schemas.common import ListOrder
 
 
 class CaseSearch(BaseModel):
     """GET /cases suzgecleri (docs/API.md "Cases"); hepsi bossa kapsamdaki tum bildirimler."""
 
     statuses: list[CaseStatus] = []
-    priority: Priority | None = None
+    priorities: list[Priority] = []
+    order: ListOrder = ListOrder.NEWEST
     # Yalniz SLA'si asilanlar (liste rozetindeki sla_status == BREACHED)
     breached_only: bool = False
     text: str | None = None

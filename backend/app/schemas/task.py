@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 from app.core.constants import TASK_NOTE_MAX_LENGTH
 from app.models.enums import Priority, SlaStatus, TaskStatus
 from app.schemas.case import DepartmentSummary, LocationSummary
+from app.schemas.common import ListOrder
 
 
 class TaskRead(BaseModel):
@@ -40,6 +41,14 @@ class DeclineRequest(BaseModel):
 
 class CompleteRequest(BaseModel):
     completion_note: str | None = Field(default=None, max_length=TASK_NOTE_MAX_LENGTH)
+
+
+class TaskListQuery(BaseModel):
+    """GET /tasks/mine secenekleri; siralama verilmezse en acil once (SLA hedefi en yakin)."""
+
+    statuses: list[TaskStatus] = []
+    priorities: list[Priority] = []
+    order: ListOrder | None = None
 
 
 class AssignRequest(BaseModel):
