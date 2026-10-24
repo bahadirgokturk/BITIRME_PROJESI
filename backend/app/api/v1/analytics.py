@@ -32,6 +32,7 @@ from app.schemas.analytics import (
     KpisRead,
     LocationLevel,
     LocationsRead,
+    ProcessMapRead,
     ProcessRead,
     RecurringRead,
     ResolutionTimesRead,
@@ -174,6 +175,12 @@ def departments(filters: Filter, service: Operations) -> DepartmentsRead:
 def recurring(filters: Filter, service: Operations) -> RecurringRead:
     """Tekrarlayan sorunlar: ayni yer + tur, donem sonuna kadarki 30 gunde esik ve ustu."""
     return service.recurring(filters)
+
+
+@router.get("/process-map")
+def process_map(filters: Filter, service: Operations) -> ProcessMapRead:
+    """Surec madenciligi: adimlar arasi gecisler, ortanca beklemeler ve en sik yollar."""
+    return service.process_map(filters)
 
 
 @router.get("/process")

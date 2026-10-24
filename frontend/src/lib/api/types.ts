@@ -800,6 +800,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/analytics/process-map": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Process Map
+         * @description Surec madenciligi: adimlar arasi gecisler, ortanca beklemeler ve en sik yollar.
+         */
+        get: operations["process_map_api_v1_analytics_process_map_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/analytics/process": {
         parameters: {
             query?: never;
@@ -2054,6 +2074,44 @@ export interface components {
          * @enum {string}
          */
         Priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+        /** ProcessActivity */
+        ProcessActivity: {
+            /** Code */
+            code: string;
+            /** Label */
+            label: string;
+            /** Cases */
+            cases: number;
+        };
+        /**
+         * ProcessEdge
+         * @description Dogrudan-takip oku: source olayindan hemen sonra target geldi.
+         */
+        ProcessEdge: {
+            /** Source */
+            source: string;
+            /** Target */
+            target: string;
+            /** Source Label */
+            source_label: string;
+            /** Target Label */
+            target_label: string;
+            /** Count */
+            count: number;
+            /** Median Min */
+            median_min: number | null;
+        };
+        /** ProcessMapRead */
+        ProcessMapRead: {
+            /** Case Count */
+            case_count: number;
+            /** Activities */
+            activities: components["schemas"]["ProcessActivity"][];
+            /** Edges */
+            edges: components["schemas"]["ProcessEdge"][];
+            /** Variants */
+            variants: components["schemas"]["ProcessVariant"][];
+        };
         /** ProcessRead */
         ProcessRead: {
             /** Steps */
@@ -2077,6 +2135,22 @@ export interface components {
             avg_min: number | null;
             /** Median Min */
             median_min: number | null;
+        };
+        /**
+         * ProcessVariant
+         * @description Ayni sirayla ilerleyen bildirimler (bir yol).
+         */
+        ProcessVariant: {
+            /** Steps */
+            steps: string[];
+            /** Labels */
+            labels: string[];
+            /** Count */
+            count: number;
+            /** Share Pct */
+            share_pct: number | null;
+            /** Median Total Min */
+            median_total_min: number | null;
         };
         /**
          * QrFormat
@@ -5566,6 +5640,77 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RecurringRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    process_map_api_v1_analytics_process_map_get: {
+        parameters: {
+            query?: {
+                from?: string | null;
+                to?: string | null;
+                department_id?: number | null;
+                /** @description Bina lokasyonunun id'si */
+                building_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProcessMapRead"];
                 };
             };
             /** @description Unauthorized */

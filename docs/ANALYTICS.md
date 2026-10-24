@@ -68,6 +68,14 @@ Her KPI önceki eşit uzunluktaki dönemle karşılaştırılır (`delta_pct`; �
   WORK_COMPLETED → CASE_CLOSED`. Adım süresi = başlangıç olayının ilk görülmesinden ondan sonraki ilk bitiş
   olayına (yeniden atama ilk süreyi bozmaz). Darboğaz = medyanı en uzun adım; departman karşılaştırması
   `department_id` filtresiyle yapılır.
+- **Süreç haritası (süreç madenciliği, `GET /analytics/process-map`):** dönemde açılan bildirimlerin (MERGED
+  hariç) iş olayları zaman sırasıyla bir iz oluşturur; arka arkaya aynı olay bir kez sayılır. Haritadaki
+  adımlar: bildirim, bilgi isteği/cevabı, müdür incelemesi, yöneticiye iletme, görev oluşturma/ret/yeniden
+  atama/kabul, işe başlama, ek kanıt, tamamlama, kapanış, yeniden açılma, ret. Agent'ların her bildirimde
+  aynı sırayla yazdığı iç olaylar, yorumlar ve SLA uyarıları girmez. Çıktı: doğrudan-takip okları (A'dan
+  hemen sonra B: kaç kez, A'nın görüldüğü andan ortanca bekleme) ve en sık 10 yol (varyant; pay ve ortanca
+  toplam süre). Örnek (60 günlük demo, 484 bildirim): düz yol %59,9 / 55 dk; yöneticiye iletilen yollar
+  7–25 saat sürüyor → darboğaz iletme sonrası bekleme.
 
 ## 3. Agent Performansı
 
