@@ -12,8 +12,14 @@ from app.analytics import durations, process, recurring, workload
 from app.analytics.case_kpis import DurationStats, percent, rounded
 from app.analytics.durations import SlaCounts
 from app.analytics.scope import AnalyticsFilter, days
+from app.core import messages
 from app.core.clock import Clock
-from app.core.constants import RECURRING_MIN_COUNT, RECURRING_WINDOW_DAYS
+from app.core.constants import (
+    HOURS_PER_DAY,
+    RECURRING_MIN_COUNT,
+    RECURRING_WINDOW_DAYS,
+    ROUTINE_MIN_EVERY_DAYS,
+)
 from app.core.messages import RECURRING_SUGGESTIONS
 from app.models import Case, Department, User
 from app.repositories import department_repository
@@ -77,7 +83,32 @@ def _problem(row: recurring.RecurringRow) -> RecurringProblem:
         avg_resolution_min=row.avg_resolution_min,
         trend=row.trend,
         suggestion=RECURRING_SUGGESTIONS[row.case_type.category.value],
+        median_interval_hours=row.routine.median_interval_hours,
+        routine_every_days=row.routine.every_days,
+        routine_suggestion=routine_text(row.routine),
     )
+
+
+def routine_text(plan: recurring.RoutinePlan) -> str | None:
+    if plan.median_interval_hours is None or plan.every_days is None:
+        return None
+    hours = plan.median_interval_hours
+    if hours < HOURS_PER_DAY:
+        gap = messages.ROUTINE_GAP_HOURS.format(hours=_number(hours))
+    else:
+        gap = messages.ROUTINE_GAP_DAYS.format(days=_number(hours / HOURS_PER_DAY))
+    every = (
+        messages.ROUTINE_EVERY_DAY
+        if plan.every_days == ROUTINE_MIN_EVERY_DAYS
+        else messages.ROUTINE_EVERY_DAYS.format(days=plan.every_days)
+    )
+    return messages.ROUTINE_SUGGESTION.format(gap=gap, every=every)
+
+
+def _number(value: float) -> str:
+    """Turkce yazim: 2 -> "2", 3.5 -> "3,5" (tek ondalik)."""
+    one_decimal = round(value, 1)
+    return str(int(one_decimal)) if one_decimal.is_integer() else f"{one_decimal}".replace(".", ",")
 
 
 class OperationsAnalyticsService:

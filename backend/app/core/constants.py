@@ -90,3 +90,6 @@ MIN_CONFIDENCE_AUTO_DEFAULT = "0.70"
 # gecmisine gomulu 4 oruntunun 4'u de bulundu (B Blok WC sabun 26 bildirimle ilk sirada)
 RECURRING_WINDOW_DAYS = 30
 RECURRING_MIN_COUNT = 5
+# Onleyici bakim: rutin kontrol en az gunde bir (gun icinde tekrarlayan sorun da gunluk rutin)
+ROUTINE_MIN_EVERY_DAYS = 1
+HOURS_PER_DAY = 24
