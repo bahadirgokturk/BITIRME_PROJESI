@@ -1,3 +1,5 @@
+from enum import StrEnum
+
 from pydantic import BaseModel, Field
 
 from app.core.constants import IMPORTANCE_WEIGHT_MAX, IMPORTANCE_WEIGHT_MIN
@@ -40,6 +42,13 @@ class LocationUpdate(BaseModel):
     )
     aliases: list[str] | None = None
     is_active: bool | None = None
+
+
+class QrFormat(StrEnum):
+    """SVG ekranda ve baskida keskin; PNG her yazicida ve belge programinda acilir."""
+
+    SVG = "svg"
+    PNG = "png"
 
 
 class LocationOption(BaseModel):

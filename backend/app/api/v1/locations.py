@@ -37,3 +37,11 @@ def list_location_options(
 ) -> Page[LocationOption]:
     """`q`: ad, kod ve takma adlarda arama; Turkce karakter ve buyuk/kucuk harf farketmez."""
     return service.list_options(paging, q)
+
+
+@router.get("/{location_id}")
+def get_location_option(
+    location_id: int, service: Annotated[LocationService, Depends(get_location_service)]
+) -> LocationOption:
+    """QR'dan gelen konum (/report?location=id): kendi kurumunun aktif konumu; degilse 404."""
+    return service.get_option(location_id)
