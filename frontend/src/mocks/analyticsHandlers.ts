@@ -23,6 +23,7 @@ import {
   LOCATIONS_MONTH,
   LOCATIONS_WEEK,
   PROCESS,
+  PROCESS_MAP,
   RECURRING,
   RESOLUTION_TIMES,
   SLA_MONTH,
@@ -65,6 +66,7 @@ export const analyticsHandlers = [
   http.get(apiUrl("/analytics/departments"), () => HttpResponse.json(DEPARTMENTS_REPORT)),
   http.get(apiUrl("/analytics/recurring"), () => HttpResponse.json(RECURRING)),
   http.get(apiUrl("/analytics/process"), () => HttpResponse.json(PROCESS)),
+  http.get(apiUrl("/analytics/process-map"), () => HttpResponse.json(PROCESS_MAP)),
 
   http.get(apiUrl("/agents/metrics"), ({ request }) =>
     HttpResponse.json(isMonth(request) ? AGENT_METRICS_MONTH : AGENT_METRICS_WEEK),

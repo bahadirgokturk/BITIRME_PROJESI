@@ -34,7 +34,7 @@ export function BarList({ label, items }: { label: string; items: readonly BarIt
                 <span className="rounded-md bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">{item.badge}</span>
               )}
             </span>
-            <span className="font-medium">{item.value}</span>
+            <span className="shrink-0 font-medium whitespace-nowrap">{item.value}</span>
           </div>
           <div aria-hidden className="h-2 rounded-full bg-muted">
             <div

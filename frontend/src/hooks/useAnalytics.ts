@@ -15,6 +15,7 @@ import type {
   AgingRead,
   DepartmentsRead,
   LocationsRead,
+  ProcessMapRead,
   ProcessRead,
   RecurringRead,
   ResolutionTimesRead,
@@ -88,5 +89,7 @@ export const useDepartments = (period: SummaryPeriod) =>
 export const useRecurring = (period: SummaryPeriod, departmentId?: number) =>
   useReport<RecurringRead>("recurring", "/analytics/recurring", period, departmentId);
 export const useProcess = (period: SummaryPeriod) => useReport<ProcessRead>("process", "/analytics/process", period);
+export const useProcessMap = (period: SummaryPeriod) =>
+  useReport<ProcessMapRead>("process-map", "/analytics/process-map", period);
 export const useAgentMetrics = (period: SummaryPeriod) =>
   useReport<Schemas["AgentMetricsRead"]>("agent-metrics", "/agents/metrics", period);

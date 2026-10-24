@@ -33,6 +33,10 @@ function RecurringItem({ problem }: { problem: RecurringProblem }) {
       <p className="text-xs">{problem.location.name}</p>
       <p className={cn("text-xs font-medium", TONE_CLASS[trend.tone])}>{trend.text}</p>
       <p className="text-xs text-muted-foreground">{problem.suggestion}</p>
+      {/* Onleyici bakim onerisi istege bagli alan: eski backend ya da tek araliklik grupta gelmez */}
+      {problem.routine_suggestion && (
+        <p className="text-xs font-medium text-primary-text">{problem.routine_suggestion}</p>
+      )}
     </li>
   );
 }

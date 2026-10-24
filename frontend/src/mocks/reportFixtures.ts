@@ -146,6 +146,9 @@ export const RECURRING: Schemas["RecurringRead"] = {
       avg_resolution_min: 95,
       trend: "up",
       suggestion: SUGGESTION,
+      median_interval_hours: 41,
+      routine_every_days: 1,
+      routine_suggestion: "Genellikle 1,7 günde bir tekrarlıyor; her gün rutin kontrol planlanabilir.",
     },
     {
       location: { id: 34, kind: "ROOM", name: "Kütüphane 1. Kat Çalışma Salonu", path: "KMP/KTP/KTP-1/KTP-1-SAL" },
@@ -155,6 +158,9 @@ export const RECURRING: Schemas["RecurringRead"] = {
       avg_resolution_min: 240,
       trend: "flat",
       suggestion: "Kalıcı çözüm (erişim noktası kontrolü) değerlendirilebilir.",
+      median_interval_hours: 77,
+      routine_every_days: 3,
+      routine_suggestion: "Genellikle 3,2 günde bir tekrarlıyor; 3 günde bir rutin kontrol planlanabilir.",
     },
     {
       location: { id: 11, kind: "CORRIDOR", name: "A Blok Zemin Kat Giriş", path: "KMP/A/A-Z/A-Z-GRS" },
@@ -188,6 +194,70 @@ export const PROCESS: Schemas["ProcessRead"] = {
     step("TASK_COMPLETED", "CASE_CLOSED", "Tamamlamadan kapanışa", 6),
   ],
   bottleneck: BOTTLENECK,
+};
+
+// Surec haritasi: 30 gunluk demo verisinden (GET /analytics/process-map); cevapta Turkce adlar hazir gelir
+const LABELS: Record<string, string> = {
+  CASE_CREATED: "Bildirim açıldı",
+  TASK_CREATED: "Görev oluşturuldu",
+  TASK_ACCEPTED: "Görev kabul edildi",
+  WORK_STARTED: "İşe başlandı",
+  WORK_COMPLETED: "İş tamamlandı",
+  CASE_CLOSED: "Kapatıldı",
+  ESCALATED: "Yöneticiye iletildi",
+  INFO_REQUESTED: "Bilgi istendi",
+  INFO_PROVIDED: "Bilgi verildi",
+  CASE_REJECTED: "Reddedildi",
+};
+
+type EdgeRow = [source: string, target: string, count: number, median: number | null];
+
+const edges = (rows: EdgeRow[]): Schemas["ProcessEdge"][] =>
+  rows.map(([source, target, count, median_min]) => ({
+    source,
+    target,
+    source_label: LABELS[source] ?? source,
+    target_label: LABELS[target] ?? target,
+    count,
+    median_min,
+  }));
+
+type VariantRow = [steps: string[], count: number, share: number, median: number | null];
+
+const variants = (rows: VariantRow[]): Schemas["ProcessVariant"][] =>
+  rows.map(([steps, count, share_pct, median_total_min]) => ({
+    steps,
+    labels: steps.map((step) => LABELS[step] ?? step),
+    count,
+    share_pct,
+    median_total_min,
+  }));
+
+const HAPPY = ["CASE_CREATED", "TASK_CREATED", "TASK_ACCEPTED", "WORK_STARTED", "WORK_COMPLETED", "CASE_CLOSED"];
+
+export const PROCESS_MAP: Schemas["ProcessMapRead"] = {
+  case_count: 262,
+  activities: Object.entries(LABELS).map(([code, label]) => ({ code, label, cases: 0 })),
+  edges: edges([
+    ["TASK_ACCEPTED", "WORK_STARTED", 223, 6],
+    ["WORK_STARTED", "WORK_COMPLETED", 221, 14],
+    ["WORK_COMPLETED", "CASE_CLOSED", 214, 0],
+    ["CASE_CREATED", "TASK_CREATED", 212, 0],
+    ["TASK_CREATED", "TASK_ACCEPTED", 195, 20],
+    ["TASK_CREATED", "ESCALATED", 58, 5612],
+    ["ESCALATED", "TASK_ACCEPTED", 30, 440.1],
+    ["INFO_REQUESTED", "INFO_PROVIDED", 3, 58],
+    // Iki kez gorulen gecis darbogaz sayilmaz (5622 dk olsa da)
+    ["INFO_REQUESTED", "CASE_REJECTED", 2, 5622],
+  ]),
+  variants: variants([
+    [HAPPY, 150, 57.3, 48],
+    [["CASE_CREATED", "TASK_CREATED", "ESCALATED"], 26, 9.9, 5665.5],
+    [["CASE_CREATED", "TASK_CREATED", "ESCALATED", ...HAPPY.slice(2)], 19, 7.3, 971],
+    [["CASE_CREATED", "ESCALATED", ...HAPPY.slice(1)], 15, 5.7, 0.2],
+    [["CASE_CREATED", "CASE_REJECTED"], 9, 3.4, 0],
+    [["CASE_CREATED", "ESCALATED"], 7, 2.7, 0],
+  ]),
 };
 
 type AgentRow = [code: string, label: string, decisions: number, confidence: number, overrideRate: number];
