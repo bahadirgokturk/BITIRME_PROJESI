@@ -9,6 +9,8 @@ import {
   formatDecimal,
   isBottleneck,
   locationRows,
+  processMapHeadline,
+  processMapSubtitle,
   recurringHeadline,
   recurringSubtitle,
   recurringTrend,
@@ -16,8 +18,11 @@ import {
   slaRows,
   slaSummary,
   slowestCategoryHeadline,
+  variantRows,
+  waitRows,
   type DepartmentPerformance,
   type LocationsRead,
+  type ProcessMapRead,
   type ProcessRead,
   type ResolutionTimeRow,
   type SlaRead,
@@ -174,5 +179,76 @@ describe("process", () => {
     expect(isBottleneck(process.steps[1]!, process)).toBe(true);
     expect(isBottleneck(process.steps[0]!, process)).toBe(false);
     expect(isBottleneck(process.steps[0]!, { ...process, bottleneck: null })).toBe(false);
+  });
+});
+
+describe("process map", () => {
+  const variant = (labels: string[], count: number, share_pct: number | null, median_total_min: number | null) => ({
+    steps: labels,
+    labels,
+    count,
+    share_pct,
+    median_total_min,
+  });
+  const edge = (source_label: string, target_label: string, count: number, median_min: number | null) => ({
+    source: source_label,
+    target: target_label,
+    source_label,
+    target_label,
+    count,
+    median_min,
+  });
+  const map: ProcessMapRead = {
+    case_count: 262,
+    activities: [],
+    variants: [
+      variant(["Bildirim açıldı", "Görev oluşturuldu", "Kapatıldı"], 150, 57.3, 48),
+      variant(["Bildirim açıldı", "Yöneticiye iletildi"], 26, 9.9, 5665.5),
+      variant(["Bildirim açıldı", "Reddedildi"], 9, 3.4, null),
+    ],
+    edges: [
+      edge("Görev oluşturuldu", "Görev kabul edildi", 195, 20),
+      edge("Görev oluşturuldu", "Yöneticiye iletildi", 58, 5612),
+      edge("Bilgi istendi", "Reddedildi", 2, 5622),
+      edge("İş tamamlandı", "Kapatıldı", 214, null),
+    ],
+  };
+  const empty: ProcessMapRead = { case_count: 0, activities: [], variants: [], edges: [] };
+
+  it("headlines the most common path with its share and typical time", () => {
+    expect(processMapHeadline(map)).toBe("En sık yol: bildirimlerin %57'si (tipik 48 dk)");
+    expect(processMapHeadline(empty)).toBe("Süreç haritası");
+    expect(processMapSubtitle(map)).toBe("Dönemde açılan 262 bildirimin izlediği yollar ve adımlar arasındaki bekleme");
+  });
+
+  it("writes each path as steps with arrows and marks the slowest one", () => {
+    const rows = variantRows(map);
+
+    expect(rows[0]).toMatchObject({
+      label: "Bildirim açıldı → Görev oluşturuldu → Kapatıldı",
+      value: "%57",
+      percent: 57.3,
+      hint: "150 bildirim · tipik 48 dk",
+      tone: "primary",
+    });
+    expect(rows[1]).toMatchObject({ badge: "En uzun", tone: "warning", hint: "26 bildirim · tipik 3 gün" });
+    expect(rows[2]).toMatchObject({ hint: "9 bildirim", badge: undefined });
+  });
+
+  it("does not single out a path when there is only one", () => {
+    expect(variantRows({ ...map, variants: map.variants.slice(0, 1) })[0]?.badge).toBeUndefined();
+  });
+
+  // Seyrek gecis (2 kez) tek bir uzun bekleme yuzunden darbogaz gibi gorunmesin
+  it("lists the waits between steps longest first and leaves out rare or unmeasured steps", () => {
+    const rows = waitRows(map);
+
+    expect(rows.map((row) => row.label)).toEqual([
+      "Görev oluşturuldu → Yöneticiye iletildi",
+      "Görev oluşturuldu → Görev kabul edildi",
+    ]);
+    expect(rows[0]).toMatchObject({ value: "3 gün", hint: "58 kez", badge: "Darboğaz", tone: "warning", percent: 100 });
+    expect(rows[1]).toMatchObject({ value: "20 dk", hint: "195 kez", badge: undefined, tone: "primary" });
+    expect(waitRows(empty)).toEqual([]);
   });
 });

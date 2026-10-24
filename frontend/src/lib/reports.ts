@@ -172,3 +172,68 @@ export function isBottleneck(step: ProcessStep, process: ProcessRead): boolean {
   const slowest = process.bottleneck;
   return slowest !== null && slowest.from_event === step.from_event && slowest.to_event === step.to_event;
 }
+
+export type ProcessMapRead = Schemas["ProcessMapRead"];
+
+// Bu sayidan az gorulen gecis darbogaz sayilmaz: tek tuk bir uzun bekleme (ornek: iki bildirimde 4 gun)
+// sureci temsil etmez ve muduru yanlis yere yonlendirir
+export const MIN_EDGE_COUNT = 3;
+
+export interface ProcessRowView {
+  key: string;
+  label: string;
+  value: string;
+  percent: number;
+  hint: string;
+  tone: "primary" | "warning";
+  badge?: string;
+}
+
+const STEP_ARROW = " → ";
+
+export function processMapHeadline(map: ProcessMapRead): string {
+  const top = map.variants[0];
+  if (!top) {
+    return "Süreç haritası";
+  }
+  return `En sık yol: bildirimlerin ${formatPercent(top.share_pct)}'si (tipik ${formatMinutes(top.median_total_min)})`;
+}
+
+export function processMapSubtitle(map: ProcessMapRead): string {
+  return `Dönemde açılan ${map.case_count} bildirimin izlediği yollar ve adımlar arasındaki bekleme`;
+}
+
+// Yollar en sik olandan baslar (API sirasi); en uzun suren yol tek basina degilse isaretlenir
+export function variantRows(map: ProcessMapRead): ProcessRowView[] {
+  const slowest = map.variants.length > 1 ? largest(map.variants, (variant) => variant.median_total_min) : undefined;
+  return map.variants.map((variant) => {
+    const isSlowest = variant === slowest;
+    const time = variant.median_total_min === null ? "" : ` · tipik ${formatMinutes(variant.median_total_min)}`;
+    return {
+      key: variant.steps.join(">"),
+      label: variant.labels.join(STEP_ARROW),
+      value: formatPercent(variant.share_pct),
+      percent: variant.share_pct ?? 0,
+      hint: `${variant.count} bildirim${time}`,
+      tone: isSlowest ? "warning" : "primary",
+      badge: isSlowest ? "En uzun" : undefined,
+    };
+  });
+}
+
+// Adimlar arasi bekleme en uzundan baslar; ilk satir darbogazdir
+export function waitRows(map: ProcessMapRead): ProcessRowView[] {
+  const measured = map.edges
+    .filter((edge) => edge.count >= MIN_EDGE_COUNT && edge.median_min !== null)
+    .sort((a, b) => (b.median_min ?? 0) - (a.median_min ?? 0));
+  const max = measured[0]?.median_min ?? 0;
+  return measured.map((edge, index) => ({
+    key: `${edge.source}>${edge.target}`,
+    label: `${edge.source_label}${STEP_ARROW}${edge.target_label}`,
+    value: formatMinutes(edge.median_min),
+    percent: barPercent(edge.median_min ?? 0, max),
+    hint: `${edge.count} kez`,
+    tone: index === 0 ? "warning" : "primary",
+    badge: index === 0 ? "Darboğaz" : undefined,
+  }));
+}

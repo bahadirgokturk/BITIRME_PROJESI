@@ -10,6 +10,7 @@ import {
   useDepartments,
   useLocations,
   useProcess,
+  useProcessMap,
   useRecurring,
   useResolutionTimes,
   useSla,
@@ -19,6 +20,7 @@ import type { SummaryPeriod } from "@/lib/analytics";
 import { PanelSkeleton } from "../dashboard/ChartCard";
 import { PeriodActions } from "../PeriodActions";
 import { AgingCard, LocationsCard, ProcessCard, SlaCard } from "./BarCards";
+import { ProcessMapCard } from "./ProcessMapCard";
 import { RecurringCard } from "./RecurringCard";
 import { DepartmentsCard, ResolutionCard } from "./TableCards";
 
@@ -38,6 +40,7 @@ function ReportsSkeleton() {
         <PanelSkeleton className={WIDE} />
         <PanelSkeleton />
       </div>
+      <PanelSkeleton />
       <PanelSkeleton />
     </div>
   );
@@ -63,6 +66,7 @@ function useReports(period: SummaryPeriod) {
     departments: useDepartments(period),
     recurring: useRecurring(period),
     process: useProcess(period),
+    processMap: useProcessMap(period),
   };
   const all = Object.values(queries);
   return {
@@ -101,6 +105,7 @@ function ReportsBody({ period }: { period: SummaryPeriod }) {
         </div>
         <ProcessCard process={data.process} />
       </div>
+      <ProcessMapCard map={data.processMap} />
     </div>
   );
 }

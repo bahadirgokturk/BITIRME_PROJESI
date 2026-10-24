@@ -93,6 +93,44 @@ describe("Reports", () => {
     expect(steps.getAllByText("En yavaş")).toHaveLength(1);
   });
 
+  it("suggests a routine check when a problem keeps coming back", async () => {
+    renderReports();
+
+    await heading("3 sorun tekrar ediyor");
+    const list = within(screen.getByRole("list", { name: "Son 30 günde aynı yerde 5 ve daha fazla kez bildirilenler" }));
+    const items = list.getAllByRole("listitem");
+    expect(items[0]).toHaveTextContent("Genellikle 1,7 günde bir tekrarlıyor; her gün rutin kontrol planlanabilir.");
+    expect(items[1]).toHaveTextContent("3 günde bir rutin kontrol planlanabilir.");
+    // Oneri alani istege bagli: gelmezse satir cikmaz
+    expect(items[2]).not.toHaveTextContent("rutin kontrol");
+  });
+
+  it("maps the paths cases follow and points at the longest wait", async () => {
+    const user = renderReports();
+
+    expect(await heading("En sık yol: bildirimlerin %57'si (tipik 48 dk)")).toBeInTheDocument();
+    expect(
+      screen.getByText("Dönemde açılan 262 bildirimin izlediği yollar ve adımlar arasındaki bekleme"),
+    ).toBeInTheDocument();
+
+    const paths = within(screen.getByRole("list", { name: "En sık yollar" }));
+    expect(paths.getAllByRole("listitem")).toHaveLength(5);
+    expect(paths.getAllByRole("listitem")[0]).toHaveTextContent(
+      "Bildirim açıldı → Görev oluşturuldu → Görev kabul edildi → İşe başlandı → İş tamamlandı → Kapatıldı",
+    );
+    expect(paths.getAllByRole("listitem")[1]).toHaveTextContent("En uzun");
+    await user.click(screen.getByRole("button", { name: "6 yolun hepsini göster" }));
+    expect(paths.getAllByRole("listitem")).toHaveLength(6);
+
+    const waits = within(screen.getByRole("list", { name: "Adımlar arası bekleme" }));
+    const longest = waits.getAllByRole("listitem")[0];
+    expect(longest).toHaveTextContent("Görev oluşturuldu → Yöneticiye iletildi");
+    expect(longest).toHaveTextContent("Darboğaz");
+    expect(longest).toHaveTextContent("3 gün");
+    expect(longest).toHaveTextContent("58 kez");
+    expect(waits.queryByText(/Bilgi istendi → Reddedildi/)).not.toBeInTheDocument();
+  });
+
   it("shows the five most repeated problems first and the rest on request", async () => {
     const problem = RECURRING.items[0]!;
     const items = Array.from({ length: 7 }, (_, index) => ({
@@ -152,6 +190,9 @@ describe("Reports", () => {
       http.get(apiUrl("/analytics/departments"), () => HttpResponse.json({ items: [] })),
       http.get(apiUrl("/analytics/recurring"), () => HttpResponse.json({ threshold: 5, window_days: 30, items: [] })),
       http.get(apiUrl("/analytics/process"), () => HttpResponse.json({ steps: [], bottleneck: null })),
+      http.get(apiUrl("/analytics/process-map"), () =>
+        HttpResponse.json({ case_count: 0, activities: [], edges: [], variants: [] }),
+      ),
     );
     renderReports();
 
@@ -165,6 +206,8 @@ describe("Reports", () => {
     expect(screen.getByRole("heading", { name: "Tekrar eden sorun yok" })).toBeInTheDocument();
     expect(screen.getByText("Aynı yerde tekrar tekrar bildirilen bir sorun görülmedi.")).toBeInTheDocument();
     expect(screen.getByText("Bu dönemde ölçülecek adım yok.")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Süreç haritası" })).toBeInTheDocument();
+    expect(screen.getByText("Bu dönemde izlenecek bildirim yok.")).toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
   });
 

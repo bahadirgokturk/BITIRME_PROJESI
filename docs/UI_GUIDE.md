@@ -262,15 +262,22 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   Bugün Açılan → Tüm Bildirimler, Müdür İncelemesi Oranı → İnceleme Kuyruğu. Kart yalnız rolün menüsündeki ekrana
   bağlanır: yöneticide İnceleme Kuyruğu olmadığı için o kart düz kalır. Birim detayındaki göstergeler bağlantı değildir
   (liste birime göre süzülemez). Kurallar: `lib/analytics.ts` (`KPI_LINKS`).
-- **Raporlar (`/manager/analytics`):** dönem düğmesi ve yedi kart: bina yoğunluğu, zamanında çözülen (SLA),
-  çözüm süreleri, bekleyen bildirimler, birim performansı, tekrarlayan sorunlar, süreç adımları. Her kartın başlığı
+- **Raporlar (`/manager/analytics`):** dönem düğmesi ve sekiz kart: bina yoğunluğu, zamanında çözülen (SLA),
+  çözüm süreleri, bekleyen bildirimler, birim performansı, tekrarlayan sorunlar, süreç adımları, süreç haritası. Her kartın başlığı
   sonucu söyler ("En yoğun bina: B Blok (21 bildirim)", "En yavaş adım: Atamadan kabule"); veri yoksa düz ad ve tek
   satır açıklama gösterilir. İstatistik terimi yazılmaz: medyan "Tipik süre", p90 "10 işten 9'u" diye geçer ve
   tablonun altında açıklanır. Çubuklar turkuaz; yalnız en eski bekleyenler (24+ sa) kırmızı, en yavaş adım turuncu ve
   "En yavaş" etiketli. Tablolar (`StatTable`) masaüstünde klasik tablo, telefonda her satır ikili ızgarada küçük bir
   kart olur (sütun başlığı değerin üstüne yazılır). Bina yoğunluğunda ve tekrarlayan sorunlarda önce ilk 5 satır görünür,
   kalanı "N binanın / N sorunun hepsini göster" düğmesiyle açılır; konum okunur adıyla (`location.name`) yazılır, kod yolu
-  (`path`) gösterilmez. Kurallar: `lib/reports.ts`.
+  (`path`) gösterilmez. Tekrarlayan sorunda backend önleyici bakım önerisi verdiyse (`routine_suggestion`) önerinin
+  altında turkuaz bir satır çıkar ("Genellikle 2 günde bir tekrarlıyor; 2 günde bir rutin kontrol planlanabilir.").
+  **Süreç haritası** (süreç madenciliği, `GET /analytics/process-map`) en altta tam genişlikte durur; başlık en sık
+  yolu söyler ("En sık yol: bildirimlerin %57'si (tipik 48 dk)"). Solda **En sık yollar**: adımlar okla yazılır
+  ("Bildirim açıldı → Görev oluşturuldu → …"), çubuk bildirimlerin payı, altında bildirim sayısı ve tipik toplam süre;
+  en uzun süren yol turuncu ve "En uzun" etiketli. Sağda **Adımlar arası bekleme**: en uzun bekleme üstte, turuncu ve
+  "Darboğaz" etiketli; altında kaç kez görüldüğü. 3'ten az görülen geçiş listeye girmez (tek tük bir uzun bekleme
+  darboğaz gibi görünmesin). İki liste de önce 5 satır gösterir; telefonda alt alta. Kurallar: `lib/reports.ts`.
 - **Yazdırma (Raporlar, Birim Performansı, birim detayı):** dönem düğmesinin yanında **Yazdır** düğmesi tarayıcının
   yazdırma penceresini açar ("PDF olarak kaydet" de oradan). Kağıtta menü, üst çubuk, dönem düğmesi, Yazdır ve
   "hepsini göster" düğmeleri gizlenir; başlığın altına "Son 7 gün · BakırçayFlow · Yazdırıldı: <tarih saat>" yazılır.
