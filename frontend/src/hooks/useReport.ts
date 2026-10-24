@@ -17,6 +17,17 @@ export function useLocations() {
   });
 }
 
+// Kapidaki QR'in gosterdigi konum (GET /locations/{id}); pasif ya da baska kurumun konumu 404 doner.
+// Kod okunamadiysa (id null) hic istenmez
+export function useQrLocation(id: number | null) {
+  return useQuery({
+    queryKey: ["locations", id],
+    queryFn: () => apiGet<LocationOption>(`/locations/${id}`),
+    enabled: id !== null,
+    retry: false,
+  });
+}
+
 export interface ReportInput {
   description: string;
   locationId: number;

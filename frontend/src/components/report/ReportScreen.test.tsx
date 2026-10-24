@@ -1,5 +1,5 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
@@ -11,12 +11,12 @@ import { server } from "@/mocks/node";
 
 import { ReportScreen } from "./ReportScreen";
 
-function renderScreen() {
+function renderScreen(qrLocation?: string) {
   // applyAccept kapali: input'un accept filtresini atlayip yanlis turdeki dosyayi da deneyebilmek icin
   const user = userEvent.setup({ applyAccept: false });
   render(
     <QueryClientProvider client={createQueryClient()}>
-      <ReportScreen />
+      <ReportScreen qrLocation={qrLocation} />
     </QueryClientProvider>,
   );
   return user;
@@ -222,5 +222,45 @@ describe("ReportScreen", () => {
     await user.click(screen.getByRole("button", { name: "Yeni bildirim yap" }));
 
     expect(screen.getByLabelText("Ne oldu?")).toHaveValue("");
+  });
+
+  describe("opened from a location QR code", () => {
+    const QR_HINT = "QR koddan seçildi. Başka bir yerse Değiştir'e basın.";
+    const NOT_FOUND = "QR koddaki konum bulunamadı ya da artık kullanılmıyor. Konumu aşağıdan arayın.";
+
+    it("starts with the scanned location chosen and sends it", async () => {
+      let sentLocation: unknown = null;
+      server.use(
+        http.post(apiUrl("/cases"), async ({ request }) => {
+          sentLocation = ((await request.json()) as { location_id: number }).location_id;
+          return HttpResponse.json({ id: 900, case_number: "CASE-000900", status: "ANALYZING" }, { status: 201 });
+        }),
+      );
+      const user = renderScreen("4");
+
+      expect(await screen.findByText(QR_HINT)).toBeInTheDocument();
+      expect(screen.getByText("B Blok 2. Kat Erkek WC")).toBeInTheDocument();
+      await user.type(screen.getByLabelText("Ne oldu?"), "Tuvalette sabun bitmiş, lütfen doldurun");
+      await user.click(screen.getByRole("button", { name: "Gönder" }));
+
+      await waitFor(() => expect(sentLocation).toBe(4));
+    });
+
+    it("lets the reporter pick another place", async () => {
+      const user = renderScreen("4");
+
+      await screen.findByText(QR_HINT);
+      await user.click(screen.getByRole("button", { name: "Değiştir" }));
+
+      expect(screen.getByLabelText("Konum")).toHaveValue("");
+      expect(screen.queryByText(QR_HINT)).not.toBeInTheDocument();
+    });
+
+    it.each(["99", "abc"])("explains when the code %j points nowhere", async (code) => {
+      renderScreen(code);
+
+      expect(await screen.findByText(NOT_FOUND)).toBeInTheDocument();
+      expect(await screen.findByRole("button", { name: "B Blok 2. Kat Erkek WC" })).toBeInTheDocument();
+    });
   });
 });

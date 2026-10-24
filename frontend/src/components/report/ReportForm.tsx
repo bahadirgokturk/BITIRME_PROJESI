@@ -7,9 +7,11 @@ import { FormAlert } from "@/components/states/FormAlert";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import type { useCreateReport } from "@/hooks/useReport";
+import { useQrLocation, type useCreateReport } from "@/hooks/useReport";
 import { clearReportDraft, readReportDraft, useSaveReportDraft } from "@/hooks/useReportDraft";
-import { addFiles, DESCRIPTION_MAX_LENGTH, descriptionProblem } from "@/lib/report";
+import { ApiError } from "@/lib/api/client";
+import { addFiles, DESCRIPTION_MAX_LENGTH, descriptionProblem, qrLocationId } from "@/lib/report";
+import { draftForForm } from "@/lib/reportDraft";
 
 import { AttachmentField } from "./AttachmentField";
 import { DraftNotice } from "./DraftNotice";
@@ -18,6 +20,9 @@ import { LocationField } from "./LocationField";
 const DESCRIPTION_ID = "report-description";
 const DESCRIPTION_HINT_ID = "report-description-hint";
 const LOCATION_REQUIRED = "Konum seçmelisiniz.";
+const QR_HINT = "QR koddan seçildi. Başka bir yerse Değiştir'e basın.";
+const QR_NOT_FOUND = "QR koddaki konum bulunamadı ya da artık kullanılmıyor. Konumu aşağıdan arayın.";
+const NOT_FOUND_STATUS = 404;
 
 interface DescriptionFieldProps {
   value: string;
@@ -81,23 +86,51 @@ function useFileList() {
   };
 }
 
+// Kapidaki QR'in konumu (?location=<id>), kullanici baska bir yer secene kadar secili kalir; konum yoksa
+// (pasif, baska kurum ya da bozuk kod) bir not gosterilir ve konum elle aranir
+function useQrChoice(qrLocation: string | undefined) {
+  const id = qrLocation === undefined ? null : qrLocationId(qrLocation);
+  const query = useQrLocation(id);
+  const [dismissed, setDismissed] = useState(false);
+  const active = qrLocation !== undefined && !dismissed;
+  const missing = id === null || (query.error instanceof ApiError && query.error.status === NOT_FOUND_STATUS);
+  return {
+    location: active ? query.data : undefined,
+    notFound: active && missing,
+    dismiss: () => setDismissed(true),
+  };
+}
+
+// Taslak yoksa alanlar bos baslar
+function draftStart(draft: ReturnType<typeof readReportDraft>) {
+  return { description: draft?.description ?? "", locationId: draft?.locationId ?? "", hadFiles: draft?.hadFiles ?? false };
+}
+
 // Aciklama ve konum taslaktan baslar ve degistikce taslaga yazilir (hooks/useReportDraft.ts)
-function useReportFields(draftKey: string | null, fileList: ReturnType<typeof useFileList>) {
-  const [restored, setRestored] = useState(() => readReportDraft(draftKey));
-  const [description, setDescription] = useState(restored?.description ?? "");
-  const [locationId, setLocationId] = useState(restored?.locationId ?? "");
+function useReportFields(draftKey: string | null, fileList: ReturnType<typeof useFileList>, qrLocation?: string) {
+  const [restored, setRestored] = useState(() => draftForForm(readReportDraft(draftKey), qrLocation !== undefined));
+  const start = draftStart(restored);
+  const [description, setDescription] = useState(start.description);
+  const [pickedId, setPickedId] = useState(start.locationId);
+  const qr = useQrChoice(qrLocation);
+  const locationId = qr.location ? String(qr.location.id) : pickedId;
   // Geri yuklenen taslakta dosya vardiysa, yenisi eklenmese de hatirlatma bir sonraki acilista da kalir
-  const hadFiles = fileList.files.length > 0 || (restored?.hadFiles ?? false);
+  const hadFiles = fileList.files.length > 0 || start.hadFiles;
   useSaveReportDraft(draftKey, { description, locationId, hadFiles });
   return {
     description,
     setDescription,
     locationId,
-    setLocationId,
+    setLocationId(id: string) {
+      qr.dismiss();
+      setPickedId(id);
+    },
+    qr,
     restored,
     discard() {
       setDescription("");
-      setLocationId("");
+      setPickedId("");
+      qr.dismiss();
       setRestored(null);
       fileList.reset();
       clearReportDraft(draftKey);
@@ -108,12 +141,13 @@ function useReportFields(draftKey: string | null, fileList: ReturnType<typeof us
 interface ReportFormProps {
   mutation: ReturnType<typeof useCreateReport>;
   draftKey: string | null;
+  qrLocation?: string;
 }
 
 // Kategori/oncelik alani yok: onlari agent'lar belirler (docs/UI_GUIDE.md bolum 1 ve 5.1)
-export function ReportForm({ mutation, draftKey }: ReportFormProps) {
+export function ReportForm({ mutation, draftKey, qrLocation }: ReportFormProps) {
   const fileList = useFileList();
-  const fields = useReportFields(draftKey, fileList);
+  const fields = useReportFields(draftKey, fileList, qrLocation);
   const { description, locationId } = fields;
   // Hatalar ilk gonderme denemesinden sonra gosterilir; kullanici yazarken kizarmasin
   const [submitted, setSubmitted] = useState(false);
@@ -141,6 +175,9 @@ export function ReportForm({ mutation, draftKey }: ReportFormProps) {
           value={locationId}
           onChange={fields.setLocationId}
           error={submitted && locationId === "" ? LOCATION_REQUIRED : null}
+          known={fields.qr.location}
+          hint={fields.qr.location ? QR_HINT : null}
+          notice={fields.qr.notFound ? QR_NOT_FOUND : null}
         />
         <AttachmentField files={fileList.files} problem={fileList.problem} onPick={fileList.pick} onRemove={fileList.remove} />
         <FormAlert error={mutation.error} />

@@ -5,6 +5,7 @@ import { useEffect, type ReactNode } from "react";
 
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ApiError } from "@/lib/api/client";
+import { loginHref } from "@/lib/loginReturn";
 import { userDetail } from "@/lib/shell";
 
 import { AppShell } from "./AppShell";
@@ -18,7 +19,8 @@ export function CurrentUserShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (signedOut) {
-      router.replace("/login");
+      // QR'dan acilan form adresi giristen sonra donmek icin saklanir
+      router.replace(loginHref(window.location.pathname, window.location.search));
     }
   }, [signedOut, router]);
 

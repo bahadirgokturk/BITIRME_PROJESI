@@ -183,6 +183,13 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   düğmesi görünür. Fotoğraf ve videolar saklanamaz; taslakta dosya varsa not "Fotoğrafları yeniden eklemelisiniz."
   diye hatırlatır. Bildirim gönderilince ve çıkış yapılınca taslak silinir (`lib/reportDraft.ts`,
   `hooks/useReportDraft.ts`; Figma: DraftNotice, `/report - mobil/masaüstü - taslak geri yüklendi`).
+- **QR'dan açılış (`/report?location=<id>`):** kapıdaki QR formu o konum seçili açar. Konum `GET /locations/{id}` ile
+  doğrulanır; seçili konumun altında "QR koddan seçildi. Başka bir yerse Değiştir'e basın." yazar. QR ile açılınca taslaktaki
+  eski konum kullanılmaz, açıklama yine taslaktan gelir. Konum yoksa (pasif, başka kurum, bozuk kod) aramanın üstünde "QR koddaki
+  konum bulunamadı ya da artık kullanılmıyor. Konumu aşağıdan arayın." notu çıkar. Oturumu olmayan kişi giriş sayfasına
+  `?next=` ile gider ve girişten sonra aynı forma döner; açık yönlendirme olmasın diye yalnız `/report?location=<sayı>`
+  kabul edilir, başka her adres ana sayfaya gider (`lib/loginReturn.ts`; Figma: `/report - … - QR'dan açıldı`,
+  `/report - mobil - QR konumu bulunamadı`).
 - **Onay ekranı:** Bildirim numarası (`CASE-000124`), "Bildiriminiz alındı, inceleniyor" ve "Bildirimlerim" bağlantısı.
 - Başarı ölçütü: yeni bir kullanıcı ilk denemesinde 30 sn içinde gönderebilmeli (ekip içi kullanılabilirlik testi, bölüm 10).
 
@@ -328,6 +335,9 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   bir konumun altı okuna basınca açılır. Arama (ad, kod, diğer adlar) ya da durum filtresi varken sonuçlar düz
   listedir ve her sonucun altında yeri yazar ("Merkez Kampüs › B Blok"). Tür ve kod yalnız eklerken seçilir.
   Üst konum değişirse konum altındakilerle birlikte taşınır. Ekranda "lokasyon" yerine "konum" yazılır.
+  Düzenleme panelinde **QR kodu** bölümü: önizleme ve **SVG indir** / **PNG indir** (`GET /admin/locations/{id}/qr`,
+  dosya `qr-<kod>.svg|png`). Kod kapıya asılır; okutan kişi bildirim formunu o konum seçili açar. Pasif konumda
+  indirme yerine "Pasif konumun QR kodu okutulunca form konumu bulamaz. Önce aktifleştirin." yazar.
 - **Birimler** (`/admin/departments`): birim adı ya da kod araması, durum filtresi; tabloda her birimin aktif
   kullanıcı sayısı görünür. Kod yalnız eklerken yazılır (büyük harf, rakam, alt çizgi; yazarken kendiliğinden
   bu biçime çevrilir) ve sonradan değiştirilemez. Ortak parçalar `components/admin/AdminParts.tsx` ve

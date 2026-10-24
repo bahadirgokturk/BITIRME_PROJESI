@@ -106,16 +106,23 @@ function newCase(
   };
 }
 
+// Secici yonetim alanlarini (onem, durum) gormez
+const toOption = ({ importance_weight: _w, is_active: _a, ...option }: (typeof LOCATIONS)[number]) => option;
+
 export const caseHandlers = [
-  http.get(apiUrl("/locations"), () =>
-    HttpResponse.json(
-      page(
-        LOCATIONS.map(
-          ({ importance_weight: _w, is_active: _a, ...option }) => option,
-        ),
-      ),
-    ),
-  ),
+  http.get(apiUrl("/locations"), () => HttpResponse.json(page(LOCATIONS.map(toOption)))),
+
+  // QR'dan acilan form konumu tek tek alir; olmayan (ya da pasif) konum 404
+  http.get<{ id: string }>(apiUrl("/locations/:id"), ({ params }) => {
+    const found = LOCATIONS.find((location) => location.id === Number(params.id) && location.is_active);
+    if (!found) {
+      return HttpResponse.json(
+        { error: { code: "NOT_FOUND", message: "Kayıt bulunamadı.", details: {} } },
+        { status: 404 },
+      );
+    }
+    return HttpResponse.json(toOption(found));
+  }),
 
   http.post<never, Schemas["CaseCreate"]>(
     apiUrl("/cases"),

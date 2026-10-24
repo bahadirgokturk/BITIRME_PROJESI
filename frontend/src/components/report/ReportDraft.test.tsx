@@ -16,12 +16,12 @@ const FILES_HINT = "Fotoğrafları yeniden eklemelisiniz.";
 const DESCRIPTION = "B blok 2. kat erkek tuvalette sabun bitmiş";
 
 // Kabuk /auth/me'yi zaten yukledigi icin form acilirken kullanici onbellekte hazirdir
-function renderScreen(user = REPORTER) {
+function renderScreen(user = REPORTER, qrLocation?: string) {
   const client = createQueryClient();
   client.setQueryData(["auth", "me"], user);
   const view = render(
     <QueryClientProvider client={client}>
-      <ReportScreen />
+      <ReportScreen qrLocation={qrLocation} />
     </QueryClientProvider>,
   );
   return { user: userEvent.setup(), unmount: view.unmount };
@@ -125,5 +125,25 @@ describe("clearReportDrafts", () => {
 
     expect(window.localStorage.length).toBe(1);
     expect(window.localStorage.getItem("bakircayflow-theme")).toBe("dark");
+  });
+
+  // QR ile acilan form kapidaki yer icindir: taslaktaki eski konum yerine QR'in konumu (ya da bos arama) gelir
+  it("keeps the draft text but not its old place when opened from a QR code", async () => {
+    saveDraft({ description: DESCRIPTION, locationId: "5", hadFiles: false });
+    renderScreen(REPORTER, "99999");
+
+    expect(screen.getByLabelText("Ne oldu?")).toHaveValue(DESCRIPTION);
+    expect(await screen.findByText(/QR koddaki konum bulunamadı/)).toBeInTheDocument();
+    expect(screen.getByLabelText("Konum")).toHaveValue("");
+    expect(screen.queryByRole("button", { name: "Değiştir" })).not.toBeInTheDocument();
+  });
+
+  // Taslakta yalniz konum varsa QR'li acilista geri gelen bir sey yoktur: "geri yuklendi" notu cikmaz
+  it("does not announce a draft that held only a place when opened from a QR code", async () => {
+    saveDraft({ description: "", locationId: "5", hadFiles: false });
+    renderScreen(REPORTER, "4");
+
+    expect(await screen.findByText(/QR koddan seçildi/)).toBeInTheDocument();
+    expect(screen.queryByText(NOTICE)).not.toBeInTheDocument();
   });
 });

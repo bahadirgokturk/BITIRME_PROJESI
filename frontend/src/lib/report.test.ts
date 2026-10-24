@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { LOCATIONS } from "@/mocks/fixtures";
 
-import { addFiles, descriptionProblem, fileProblem, REPORT_MAX_FILES, searchLocations } from "./report";
+import { addFiles, descriptionProblem, fileProblem, qrLocationId, REPORT_MAX_FILES, searchLocations } from "./report";
 
 const MB = 1024 * 1024;
 
@@ -94,5 +94,19 @@ describe("searchLocations", () => {
 
   it("needs every word to match", () => {
     expect(names("amfi wc")).toEqual([]);
+  });
+});
+
+describe("qrLocationId", () => {
+  it.each([
+    ["12", 12],
+    ["abc", null],
+    ["0", null],
+    ["-3", null],
+    ["12x", null],
+    ["", null],
+    [undefined, null],
+  ])("reads %j as %j", (param, id) => {
+    expect(qrLocationId(param)).toBe(id);
   });
 });

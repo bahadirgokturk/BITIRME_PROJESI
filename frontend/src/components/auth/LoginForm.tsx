@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ApiError } from "@/lib/api/client";
 import { login } from "@/lib/api/session";
+import { safeReturnPath } from "@/lib/loginReturn";
 
 // Backend'in Turkce mesaji (yanlis parola, cok fazla deneme) aynen gosterilir; ag hatasinda kendi mesajimiz
 function messageFor(error: unknown): string {
@@ -19,7 +20,7 @@ function messageFor(error: unknown): string {
   return "Sunucuya ulaşılamadı. İnternet bağlantınızı kontrol edip tekrar deneyin.";
 }
 
-function useLogin() {
+function useLogin(next: string | undefined) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
@@ -34,8 +35,8 @@ function useLogin() {
       await login(String(form.get("email")), String(form.get("password")));
       // Onceki oturumdan kalan kullanici verisi yeni kullaniciya gosterilmesin
       queryClient.clear();
-      // Sabit adres: kullanicidan gelen bir "next" adresine yonlendirilmez (acik yonlendirme riski)
-      router.replace("/");
+      // Yalniz QR'in actigi bildirim formuna geri donulur; baska "next" adresi ana sayfaya gider (lib/loginReturn.ts)
+      router.replace(safeReturnPath(next));
     } catch (caught: unknown) {
       setError(messageFor(caught));
       setPending(false);
@@ -57,8 +58,8 @@ function ErrorAlert({ message }: { message: string }) {
   );
 }
 
-export function LoginForm() {
-  const { error, pending, submit } = useLogin();
+export function LoginForm({ next }: { next?: string }) {
+  const { error, pending, submit } = useLogin(next);
 
   return (
     <form className="space-y-4" onSubmit={submit}>
