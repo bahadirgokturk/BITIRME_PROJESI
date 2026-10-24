@@ -8,6 +8,10 @@ Uc adim, her biri ayri komut:
     # 2) Iki kisi label_a / label_b'yi doldurdu -> anlasma (kappa) ve cozulecek satirlar
     uv run python -m training.real_data agreement --sheet data/raw/etiket.csv
 
+    # 4) Ogrenen model: v1 ve v2 ayni test setinde (comparison.md)
+    uv run python -m training.real_data compare --sheet data/raw/etiket.csv --out data/raw/rq1
+        --model v1=models/classifier/v1/model.joblib --model v2=models/classifier/v2/model.joblib
+
     # 3) Nihai etiketlerle model ve temel yontem olcumu -> JSON + tez tablosu (Markdown)
     uv run python -m training.real_data evaluate --sheet data/raw/etiket.csv \
         --model models/classifier/v1/model.joblib --out data/raw/rq1
@@ -27,7 +31,7 @@ import yaml
 
 from training.agreement import agreement, final_labels
 from training.form_import import SHEET_COLUMNS, prepare_sheet
-from training.real_eval import SEED_CASE_TYPES, KeywordBaseline, evaluate_real
+from training.real_eval import SEED_CASE_TYPES, KeywordBaseline, compare_models, evaluate_real
 
 # Sistemde otomatik karar esigi (backend MIN_CONFIDENCE_AUTO_DEFAULT); tabloda isaretlenir
 SYSTEM_THRESHOLD = 0.7
@@ -83,6 +87,43 @@ def markdown_report(report: dict[str, Any], kappa: float | None) -> str:
     return "\n".join(lines) + "\n"
 
 
+def comparison_markdown(report: dict[str, Any]) -> str:
+    """Ogrenen model tablosu: temel yontem ve her model surumu ayni test setinde."""
+    baseline = report["baseline"]
+    lines = [
+        f"# Ogrenen model: surum karsilastirmasi (n = {report['n']})",
+        "",
+        "| Yontem | Dogruluk | Macro-F1 |",
+        "| --- | --- | --- |",
+        f"| Anahtar kelime (temel) | {_pct(baseline['accuracy'])} | {_pct(baseline['macro_f1'])} |",
+    ]
+    lines += [
+        f"| {name} | {_pct(metrics['accuracy'])} | {_pct(metrics['macro_f1'])} |"
+        for name, metrics in report["models"].items()
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def _compare(sheet: Path, models: list[str], out: Path) -> None:
+    labelled = final_labels(_read_sheet(sheet), _known_codes())
+    loaded = {}
+    for entry in models:
+        name, _, path = entry.partition("=")
+        loaded[name] = joblib.load(Path(path))
+    report = compare_models(
+        loaded,
+        KeywordBaseline.from_seed(),
+        [row["text"] for row in labelled],
+        [row["label"] for row in labelled],
+    )
+    out.mkdir(parents=True, exist_ok=True)
+    payload = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
+    (out / "comparison.json").write_text(payload, encoding="utf-8", newline="\n")
+    summary = comparison_markdown(report)
+    (out / "comparison.md").write_text(summary, encoding="utf-8", newline="\n")
+    print(summary)
+
+
 def _print_agreement(sheet: Path) -> None:
     result = agreement(_read_sheet(sheet), _known_codes())
     print(f"Iki kisinin de etiketledigi: {result.both_labelled} | anlasilan: {result.agreed}")
@@ -124,8 +165,19 @@ def main() -> None:
     step.add_argument("--sheet", type=Path, required=True)
     step.add_argument("--model", type=Path, required=True)
     step.add_argument("--out", type=Path, required=True)
+    step = commands.add_parser("compare", help="Model surumlerini ayni test setinde karsilastir")
+    step.add_argument("--sheet", type=Path, required=True)
+    step.add_argument(
+        "--model",
+        action="append",
+        required=True,
+        help="ad=yol (v2=models/classifier/v2/model.joblib)",
+    )
+    step.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
-    if args.command == "prepare":
+    if args.command == "compare":
+        _compare(args.sheet, args.model, args.out)
+    elif args.command == "prepare":
         print(f"{prepare(args.form, args.out)} satir yazildi: {args.out}")
     elif args.command == "agreement":
         _print_agreement(args.sheet)

@@ -5,7 +5,7 @@ from collections.abc import Sequence
 import numpy as np
 import pytest
 
-from training.real_eval import KeywordBaseline, evaluate_real, threshold_table
+from training.real_eval import KeywordBaseline, compare_models, evaluate_real, threshold_table
 
 SEED_TYPES = [
     {"code": "SOAP_EMPTY", "keywords": ["sabun", "sabunluk"]},
@@ -82,3 +82,17 @@ def test_threshold_with_nothing_above_has_no_accuracy() -> None:
 def test_empty_test_set_is_refused() -> None:
     with pytest.raises(ValueError, match="etiketli"):
         evaluate_real(FakeModel({}), KeywordBaseline(SEED_TYPES), [], [])
+
+
+def test_models_are_compared_on_the_same_sentences() -> None:
+    texts = ["sabun bitmiş", "lavabo boş kalmış"]
+    labels = ["SOAP_EMPTY", "SOAP_EMPTY"]
+    v1 = FakeModel({"sabun bitmiş": [0.1, 0.8, 0.1], "lavabo boş kalmış": [0.6, 0.3, 0.1]})
+    v2 = FakeModel({"sabun bitmiş": [0.1, 0.8, 0.1], "lavabo boş kalmış": [0.2, 0.7, 0.1]})
+
+    report = compare_models({"v1": v1, "v2": v2}, KeywordBaseline(SEED_TYPES), texts, labels)
+
+    assert report["n"] == 2
+    assert report["models"]["v1"]["accuracy"] == pytest.approx(0.5)
+    assert report["models"]["v2"]["accuracy"] == pytest.approx(1.0)
+    assert report["baseline"]["accuracy"] == pytest.approx(0.5)

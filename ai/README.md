@@ -43,6 +43,25 @@ hepsi `data/raw/` altında kalır, repoya yalnız sayısal sonuç (`rq1.md`) ekl
    uv run python -m training.real_data evaluate --sheet data/raw/etiket.csv --model models/classifier/v1/model.joblib --out data/raw/rq1
    ```
 
+## Öğrenen model (v2)
+
+Müdürün "bu aslında X türü" düzeltmeleri (`decision_feedback`) yeni modelin eğitimine eklenir; v1 ve v2
+aynı gerçek test setinde karşılaştırılır. Bir düzeltme insan doğrulamalı gerçek örnek olduğu için 5 sentetik
+örnek ağırlığındadır; test setindeki cümleler (büyük/küçük harf farkı dahil) eğitime girmez.
+
+```bash
+# repo kökünden: düzeltmeleri dışa aktar (her bildirimin son tür düzeltmesi)
+docker compose exec -T backend python -m scripts.export_feedback > ai/data/raw/feedback.csv
+# ai/ içinde: v2'yi eğit (test tablosundaki cümleler dışarıda kalır)
+uv run python -m training.train_classifier --version 2.0 --out models/classifier/v2 --feedback data/raw/feedback.csv --holdout data/raw/etiket.csv
+# aynı test setinde v1, v2 ve anahtar kelime yöntemi
+uv run python -m training.real_data compare --sheet data/raw/etiket.csv --out data/raw/rq1 --model v1=models/classifier/v1/model.joblib --model v2=models/classifier/v2/model.joblib
+```
+
+`metrics.json` içinde `version`, `feedback_samples` ve ölçüm verisi `synthetic-template-cv+feedback` olarak yazılır.
+Backend şu an `ml_models/classifier/v1` klasörünü yükler (`app/agents/model_store.py` `CLASSIFIER_DIR`); v2 gerçek
+veride v1'den iyi çıkarsa o klasöre yayınlanır (`--publish ../backend/ml_models/classifier/v1`, `metrics.json` sürümü 2.0 yazar).
+
 ## Önemli kurallar
 - **Aynı normalizasyon:** Model metni backend'deki `app.agents.text.normalize()` ile işler
   (`training/normalization.py` onu doğrudan yükler, kopyası yoktur). Normalizasyon değişirse model yeniden eğitilir.

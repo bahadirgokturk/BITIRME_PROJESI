@@ -26,3 +26,19 @@ def test_markdown_table_for_the_thesis() -> None:
     assert "| 0.70 (sistem) | %75,0 | %92,0 | %25,0 |" in text
     assert "| 0.90 | %40,0 | - | %60,0 |" in text
     assert "kappa): 0.81" in text
+
+
+def test_comparison_table_lists_every_model() -> None:
+    from training.real_data import comparison_markdown
+
+    report = {
+        "n": 40,
+        "baseline": _metrics(0.5, 0.45),
+        "models": {"v1": _metrics(0.8, 0.75), "v2": _metrics(0.85, 0.82)},
+    }
+
+    text = comparison_markdown(report)
+
+    assert "| Anahtar kelime (temel) | %50,0 | %45,0 |" in text
+    assert "| v1 | %80,0 | %75,0 |" in text
+    assert "| v2 | %85,0 | %82,0 |" in text

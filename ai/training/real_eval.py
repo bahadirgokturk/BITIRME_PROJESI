@@ -110,3 +110,22 @@ def evaluate_real(
             probabilities.max(axis=1).tolist(), correct, DEFAULT_THRESHOLDS
         ),
     }
+
+
+def compare_models(
+    models: dict[str, Classifier],
+    baseline: KeywordBaseline,
+    texts: Sequence[str],
+    labels: Sequence[str],
+) -> dict[str, Any]:
+    """Ogrenen model: surumler (v1, v2...) ayni gercek cumlelerle, temel yontemle birlikte."""
+    if not texts:
+        raise ValueError("Test seti bos: once etiketli satir gerekli")
+    return {
+        "n": len(texts),
+        "baseline": prediction_report(labels, baseline.predict(texts)),
+        "models": {
+            name: prediction_report(labels, [str(code) for code in model.predict(list(texts))])
+            for name, model in models.items()
+        },
+    }
