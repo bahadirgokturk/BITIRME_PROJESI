@@ -17,7 +17,9 @@ Yanıt: `TokenRead {access_token, token_type: "bearer", expires_in}` (access tok
 - Refresh token **yalnız cookie'de**: `cf_refresh`, `HttpOnly`, `SameSite=Strict`, `Path=/api/v1/auth`,
   local dışında `Secure`. Veritabanında yalnız sha256 hash'i tutulur (`refresh_tokens`).
 - **Rotasyon:** her `/auth/refresh` eski token'ı iptal edip yenisini verir. İptal edilmiş bir token tekrar
-  gelirse (çalınma belirtisi) kullanıcının **tüm** oturumları kapatılır. İstisna: az önce rotasyonla
+  gelirse (çalınma belirtisi) **o oturum** kapatılır: aynı girişten doğan zincirin (`family_id`) bütün
+  kayıtları. Kullanıcının diğer cihazlardaki oturumları açık kalır; yavaş ağda kaybolan bir yenileme
+  cevabı her yerden çıkış yaptırmaz. İstisna: az önce rotasyonla
   yenilenmiş token **10 sn** içinde tekrar gelirse (iki sekme aynı anda yeniledi) yalnız `401` döner,
   oturumlar kapatılmaz (`REFRESH_REUSE_GRACE_SECONDS`).
 - Yanlış e-posta, yanlış parola ve pasif kullanıcı aynı `401 UNAUTHORIZED` + aynı mesajı alır.

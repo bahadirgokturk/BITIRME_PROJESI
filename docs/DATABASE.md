@@ -187,10 +187,11 @@ id, organization_id, name (`classifier`), version, algorithm, metrics_json (accu
 confusion matrix), trained_at, dataset_hash, artifact_path, is_active.
 
 ### refresh_tokens
-id, user_id FK users, token_hash char(64) **unique** (sha256; ham token saklanmaz), created_at, expires_at,
+id, user_id FK users, token_hash char(64) **unique** (sha256; ham token saklanmaz), family_id uuid (aynı girişten
+rotasyonla doğan kayıtlar = bir oturum; indeksli), created_at, expires_at,
 revoked_at NULL, replaced_by_id FK refresh_tokens NULL (rotasyonla iptal edildiyse yerine gelen kayıt;
 çıkış/toplu iptalde NULL — eşzamanlı istek toleransı bunu kullanır). Rotasyonda eski kayıt `revoked_at` alır, yenisi eklenir; iptal edilmiş kayıt tekrar
-kullanılırsa kullanıcının tüm kayıtları iptal edilir (bkz. API.md "Auth"). Süresi dolan kayıtların
+kullanılırsa o oturumun (`family_id`) açık kayıtları iptal edilir, diğer cihazlar etkilenmez (bkz. API.md "Auth"). Süresi dolan kayıtların
 temizliği ileride Monitoring tick'ine eklenebilir.
 
 ### comments
