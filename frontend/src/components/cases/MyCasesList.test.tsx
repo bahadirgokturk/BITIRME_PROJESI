@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
 import { createQueryClient } from "@/lib/queryClient";
+import { MY_CASES_PAGE_SIZE } from "@/lib/status";
 import { CASES } from "@/mocks/caseFixtures";
 import { server } from "@/mocks/node";
 
@@ -44,13 +45,18 @@ function servePaged({ failPage }: { failPage?: number } = {}) {
   );
 }
 
+// Yalniz listenin sayfa istegi duser; "yanit bekleniyor" kutusunun istegi (page_size=100) normal cevap alir
 function failOnce(status: number, message: string) {
+  let failed = false;
   server.use(
-    http.get(
-      apiUrl("/cases/mine"),
-      () => HttpResponse.json({ error: { code: "INTERNAL", message, details: {} } }, { status }),
-      { once: true },
-    ),
+    http.get(apiUrl("/cases/mine"), ({ request }) => {
+      const isListPage = new URL(request.url).searchParams.get("page_size") === String(MY_CASES_PAGE_SIZE);
+      if (failed || !isListPage) {
+        return undefined;
+      }
+      failed = true;
+      return HttpResponse.json({ error: { code: "INTERNAL", message, details: {} } }, { status });
+    }),
   );
 }
 
@@ -81,7 +87,8 @@ describe("MyCasesList", () => {
   it("explains a case waiting for more information instead of a progress bar", async () => {
     renderList();
 
-    const link = await screen.findByRole("link", { name: /Amfide garip bir koku var/ });
+    const list = await screen.findByRole("list", { name: "Bildirimleriniz" });
+    const link = within(list).getByRole("link", { name: /Amfide garip bir koku var/ });
     expect(within(link).getByText(/Ek bilgi gerekiyor/)).toBeInTheDocument();
     expect(within(link).queryByRole("list", { name: "İlerleme" })).not.toBeInTheDocument();
   });

@@ -1,0 +1,30 @@
+name: Postgres (yeniden denemeli)
+description: >-
+  Postgres 16'yi indirip 5432'de baslatir. GitHub'in "services:" adimi imaji tek seferde
+  indirir ve sik sik "Docker pull failed" ile duser; burada her kaynak birkac kez denenir,
+  AWS aynasi olmazsa Docker Hub'a gecilir.
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        images="public.ecr.aws/docker/library/postgres:16-alpine postgres:16-alpine"
+        for image in $images; do
+          for attempt in 1 2 3; do
+            if docker pull -q "$image"; then
+              docker run -d --name ci-postgres \
+                -e POSTGRES_USER=campusflow -e POSTGRES_PASSWORD=campusflow -e POSTGRES_DB=campusflow \
+                -p 5432:5432 "$image" > /dev/null
+              for wait in $(seq 1 30); do
+                docker exec ci-postgres pg_isready -U campusflow -q && exit 0
+                sleep 2
+              done
+              docker logs ci-postgres
+              exit 1
+            fi
+            echo "indirilemedi: $image (deneme $attempt)"
+            sleep $((attempt * 10))
+          done
+        done
+        echo "Postgres imaji hicbir kaynaktan indirilemedi"
+        exit 1
