@@ -29,6 +29,8 @@ test-results/
 /storage/
 /backend/storage/
 ai/data/raw/
+# Gercek (Google Form) cumleleri acik repoya girmez (KVKK, form metni); yalniz sayisal sonuclar
+ai/data/labeled/*.csv
 # Tohumla yeniden uretilir (python -m training.train_classifier); metrics.json repoda kalir
 ai/data/synthetic/*.csv
 ai/models/**/model.joblib
