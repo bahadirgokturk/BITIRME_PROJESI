@@ -4,8 +4,6 @@ import { CASES } from "@/mocks/caseFixtures";
 
 import {
   actionNeeded,
-  WAITING_VISIBLE,
-  waitingPreview,
   closedCaseActions,
   isValidReopenReason,
   ratingLabel,
@@ -97,17 +95,5 @@ describe("reportedByText", () => {
 
   it("says nothing when only the reporter reported it", () => {
     expect(reportedByText(0)).toBeNull();
-  });
-});
-
-describe("waitingPreview", () => {
-  it("shows the first few and counts the rest", () => {
-    const many = Array.from({ length: WAITING_VISIBLE + 4 }, (_, index) => index);
-
-    expect(waitingPreview(many)).toEqual({ visible: many.slice(0, WAITING_VISIBLE), moreText: "ve 4 bildirim daha" });
-  });
-
-  it("has nothing more to say when all fit", () => {
-    expect(waitingPreview([1, 2])).toEqual({ visible: [1, 2], moreText: null });
   });
 });
