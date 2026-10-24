@@ -32,7 +32,7 @@ Production (E7-3) hafta 11'de, staging birkaç hafta sorunsuz çalıştıktan so
 
 | Kısıt | Etki | Karşılık |
 |---|---|---|
-| Render boştayken uyur | İlk istek 30–60 sn sürer; in-process scheduler durur | SLA durumu okuma anında hesaplanır (ARCHITECTURE §6); gerekirse GitHub Actions cron `POST /internal/monitoring/run`; **sunumdan önce servis bir kez açılıp uyandırılır** |
+| Render boştayken uyur (15 dk) | İlk istek 30–100 sn sürer (16 Ekim: 97 sn), bu sürede istek zaman aşımına düşebilir; in-process scheduler durur | SLA durumu okuma anında hesaplanır (ARCHITECTURE §6); gerekirse GitHub Actions cron `POST /internal/monitoring/run`; **sunumdan önce servis bir kez açılıp uyandırılır** |
 | RAM ~512 MB | Büyük modeller sığmaz | TF-IDF + LogisticRegression yeterli; `EMBEDDINGS_ENABLED=false` |
 | Yerel LLM yok | Ollama canlıda çalışmaz | `LLM_PROVIDER=none` ile tam çalışır (ADR-2) |
 | Kalıcı disk yok | Yüklenen fotoğraflar yeniden başlatmada kaybolur | `STORAGE_BACKEND=s3` (S3-uyumlu bucket, ör. Supabase Storage) |
@@ -64,7 +64,7 @@ Production (E7-3) hafta 11'de, staging birkaç hafta sorunsuz çalıştıktan so
 
    | Değişken | Değer |
    |---|---|
-   | `BACKEND_ORIGIN` | Render servisinin adresi, sonunda `/` olmadan (ör. `https://campusflow-api-staging.onrender.com`) |
+   | `BACKEND_ORIGIN` | Render servisinin adresi, sonunda `/` olmadan: `https://campusflow-api-staging-rpwx.onrender.com` (Render ada rastgele bir ek koyar; `-rpwx` olmadan adres bize ait değildir) |
    | `NEXT_PUBLIC_API_URL` | `/api/v1` |
    | `NEXT_PUBLIC_API_MOCKING` | `disabled` |
 
