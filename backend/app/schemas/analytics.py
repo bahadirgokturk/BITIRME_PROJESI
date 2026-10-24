@@ -208,6 +208,44 @@ class ProcessRead(BaseModel):
     bottleneck: ProcessStep | None
 
 
+class ProcessActivity(BaseModel):
+    code: str
+    # Turkce ad ("Gorev olusturuldu")
+    label: str
+    # Bu adima en az bir kez ugrayan bildirim sayisi
+    cases: int
+
+
+class ProcessEdge(BaseModel):
+    """Dogrudan-takip oku: source olayindan hemen sonra target geldi."""
+
+    source: str
+    target: str
+    source_label: str
+    target_label: str
+    count: int
+    # source'un goruldugu andan target'a ortanca bekleme (dakika)
+    median_min: float | None
+
+
+class ProcessVariant(BaseModel):
+    """Ayni sirayla ilerleyen bildirimler (bir yol)."""
+
+    steps: list[str]
+    labels: list[str]
+    count: int
+    share_pct: float | None
+    median_total_min: float | None
+
+
+class ProcessMapRead(BaseModel):
+    case_count: int
+    activities: list[ProcessActivity]
+    edges: list[ProcessEdge]
+    # En sik yollar once (en fazla PROCESS_VARIANT_LIMIT)
+    variants: list[ProcessVariant]
+
+
 class SummaryPeriod(StrEnum):
     WEEK = "7d"
     MONTH = "30d"

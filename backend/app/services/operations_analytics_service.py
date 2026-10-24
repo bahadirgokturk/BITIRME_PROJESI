@@ -8,10 +8,11 @@ from datetime import timedelta
 
 from sqlalchemy.orm import Session
 
-from app.analytics import durations, process, recurring, workload
+from app.analytics import durations, process, process_map, recurring, workload
 from app.analytics.case_kpis import DurationStats, percent, rounded
 from app.analytics.durations import SlaCounts
 from app.analytics.scope import AnalyticsFilter, days
+from app.core import messages
 from app.core.clock import Clock
 from app.core.constants import RECURRING_MIN_COUNT, RECURRING_WINDOW_DAYS
 from app.core.messages import RECURRING_SUGGESTIONS
@@ -20,8 +21,12 @@ from app.repositories import department_repository
 from app.schemas.analytics import (
     DepartmentPerformance,
     DepartmentsRead,
+    ProcessActivity,
+    ProcessEdge,
+    ProcessMapRead,
     ProcessRead,
     ProcessStep,
+    ProcessVariant,
     RecurringProblem,
     RecurringRead,
 )
@@ -121,6 +126,41 @@ class OperationsAnalyticsService:
             items=[_problem(row) for row in rows],
         )
 
+    def process_map(self, filters: AnalyticsFilter) -> ProcessMapRead:
+        found = process_map.process_map(
+            self._session,
+            resolve_scope(self._session, self._actor, filters),
+            days(filters.start, filters.end),
+        )
+        return ProcessMapRead(
+            case_count=found.case_count,
+            activities=[
+                ProcessActivity(code=a.event, label=_activity(a.event), cases=a.cases)
+                for a in found.activities
+            ],
+            edges=[
+                ProcessEdge(
+                    source=e.source,
+                    target=e.target,
+                    source_label=_activity(e.source),
+                    target_label=_activity(e.target),
+                    count=e.count,
+                    median_min=e.median_min,
+                )
+                for e in found.edges
+            ],
+            variants=[
+                ProcessVariant(
+                    steps=list(v.steps),
+                    labels=[_activity(step) for step in v.steps],
+                    count=v.count,
+                    share_pct=v.share_pct,
+                    median_total_min=v.median_total_min,
+                )
+                for v in found.variants
+            ],
+        )
+
     def process(self, filters: AnalyticsFilter) -> ProcessRead:
         steps = process.step_stats(
             self._session,
@@ -132,3 +172,7 @@ class OperationsAnalyticsService:
             steps=[_step(step) for step in steps],
             bottleneck=_step(slowest) if slowest else None,
         )
+
+
+def _activity(event: str) -> str:
+    return messages.PROCESS_ACTIVITY_LABELS[event]

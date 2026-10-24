@@ -37,6 +37,25 @@ SELF_LOCKOUT = "Kendi hesabınızı pasifleştiremez ya da yönetici rolünüzü
 INVALID_PARENT = "Lokasyon kendisinin ya da kendi alt lokasyonunun altına taşınamaz."
 UNAUTHORIZED = "Oturumunuz geçersiz ya da süresi dolmuş. Lütfen yeniden giriş yapın."
 
+# Surec haritasindaki adimlarin adlari (analytics/process_map.py MAP_ACTIVITIES)
+PROCESS_ACTIVITY_LABELS = {
+    "CASE_CREATED": "Bildirim açıldı",
+    "INFO_REQUESTED": "Bilgi istendi",
+    "INFO_PROVIDED": "Bilgi verildi",
+    "HUMAN_REVIEW_REQUESTED": "Müdür incelemesine gitti",
+    "ESCALATED": "Yöneticiye iletildi",
+    "TASK_CREATED": "Görev oluşturuldu",
+    "TASK_DECLINED": "Görev reddedildi",
+    "TASK_REASSIGNED": "Görev yeniden atandı",
+    "TASK_ACCEPTED": "Görev kabul edildi",
+    "WORK_STARTED": "İşe başlandı",
+    "EVIDENCE_REQUESTED": "Ek kanıt istendi",
+    "WORK_COMPLETED": "İş tamamlandı",
+    "CASE_CLOSED": "Kapatıldı",
+    "CASE_REOPENED": "Yeniden açıldı",
+    "CASE_REJECTED": "Reddedildi",
+}
+
 # Tekrarlayan sorun onerisi, kategoriye gore (yonetici dashboard'u).
 # Karar degil, oneri: "...edilebilir"
 RECURRING_SUGGESTIONS = {

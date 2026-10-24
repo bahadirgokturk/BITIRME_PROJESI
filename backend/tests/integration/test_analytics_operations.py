@@ -203,6 +203,20 @@ def test_process_steps_and_bottleneck(client: TestClient, world: World) -> None:
     assert body["bottleneck"]["label"] == "İşin yapılması"
 
 
+def test_process_map_shows_paths_and_handovers(client: TestClient, world: World) -> None:
+    body = get(client, world, "process-map")
+
+    # Donemde olay kaydi olan iki bildirim (22 ve 24 Eylul); 24'unde kapanistan sonra yeni gorev
+    assert body["case_count"] == 2
+    edges = {(e["source"], e["target"]): e for e in body["edges"]}
+    assert edges[("CASE_CREATED", "TASK_CREATED")]["count"] == 2
+    assert edges[("TASK_CREATED", "TASK_ACCEPTED")]["median_min"] == 30.0
+    assert edges[("CASE_CLOSED", "TASK_CREATED")]["count"] == 1
+    assert edges[("TASK_CREATED", "TASK_ACCEPTED")]["source_label"] == "Görev oluşturuldu"
+    assert [v["count"] for v in body["variants"]] == [1, 1]
+    assert body["variants"][0]["labels"][0] == "Bildirim açıldı"
+
+
 def test_process_without_events_has_no_bottleneck(client: TestClient, world: World) -> None:
     body = get(client, world, "process", **{"from": "2026-07-01", "to": "2026-07-07"})
 
