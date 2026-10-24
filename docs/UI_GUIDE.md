@@ -175,7 +175,8 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   arama tarayıcıda yapılır. Seçilen konum "Değiştir" ile temizlenir. Son kullanılanlar, ağaç ve AI önerisi henüz yok.
 - **Fotoğraf / video:** Kamera veya galeri; fotoğraf jpg/png/webp en fazla 10 MB, video mp4/mov en fazla
   30 sn ve 50 MB (toplam 5 dosya). Yükleme sırasında önizleme ve ilerleme; video için süre aşımı mesajı
-  (`VIDEO_TOO_LONG`) Türkçe gösterilir.
+  (`VIDEO_TOO_LONG`) Türkçe gösterilir. Telefonda seçim kutusunun altında **Fotoğraf çek** düğmesi kamerayı doğrudan açar
+  (`capture="environment"`); masaüstünde gizlidir. Kurallar galeriyle aynıdır (Figma: Button/Outline Fotoğraf çek).
 - **Gönder butonu** ekranın altında, başparmak erişiminde, tam genişlik.
 - **Taslak:** Açıklama ve seçilen konum yazıldıkça (yarım saniye bekleyerek) bu cihazda, giriş yapan kişiye özel
   saklanır. Form yeniden açılınca geri gelir ve başlığın altında "Taslağınız geri yüklendi." notu ile **Taslağı sil**
@@ -188,6 +189,14 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
 ### 5.2 Reporter — `/my-cases`, `/cases/[id]`
 
 - Liste kartı: kısa metin, konum, tarih, **4 adımlı ilerleme** (bölüm 4.1).
+- **Bildirim zili (Sizden yanıt bekleniyor):** Telefonda üst çubukta tema düğmesinin solunda (her sayfada),
+  masaüstünde Bildirimlerim'de "Bildirim yap"ın solunda. Bildirenin bir şey yapması gereken bildirim varsa zil açık
+  turuncu (`bg-warning/15`, simge turuncu), yoksa açık gri. Tıklayınca telefon bildirimi gibi pencere açılır: ek bilgi
+  istenenler ("Sizden ek bilgi istendi") önce, sonra kapandıktan sonraki 72 saat içinde puan verilmemişler ("Çözüldü ·
+  değerlendirmenizi bekliyor"); uzunsa pencere kaydırılır. Bildirime tıklayınca detayı açılır ve pencere kapanır.
+  Bekleyen yoksa "Şu an sizden yanıt bekleyen bildirim yok." Ekran okuyucuya "Bildirimler: N yanıt bekliyor" denir.
+  Kendi bildirimlerinin ilk 100'ü taranır (`GET /cases/mine?page_size=100`), her rolde çalışır. Kural: `actionNeeded`
+  (`lib/caseActions.ts`); Figma: WaitingBell, NotificationPanel, MobileAppBar > Actions.
 - Listenin üstünde filtre: **Tümü / Açık / Çözülen**. "Çözülen" ilerlemedeki Çözüldü adımıdır; "Açık" henüz
   çözülmemiş olanlar (ek bilgi bekleyen dahil); reddedilen ve birleştirilen yalnız "Tümü"nde. Filtreye uyan bildirim
   yoksa "Açık bildiriminiz yok." ve "Tümünü göster". Hiç bildirimi olmayana filtre gösterilmez. Filtre `GET /cases`
@@ -198,6 +207,8 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   Zaman çizelgesi 5 ya da daha fazla adımsa kapalı gelir: son 3 adım görünür, üstte "N önceki adımı göster";
   açılınca "Önceki adımları gizle". Kural: `collapsedTimeline` (`lib/timeline.ts`).
 - Ek bilgi istenen bildirimde (NEEDS_INFO) ilerleme çubuğu yerine soru + yanıt kutusu gösterilir.
+- Aynı sorunu başkaları da bildirdiyse (bildirimlerin bu bildirime eklendiyse) durumun altında "Bu sorunu siz dahil
+  N kişi bildirdi." yazar (`duplicate_count + 1`; `reportedByText`, Figma: DuplicateNote).
 - Kapanıştan sonraki 72 saat içinde puan kartı: 1–5 yıldız + isteğe bağlı yorum (bir kez) ve aynı kartta
   "Sorun devam ediyor" (reopen; gerekçe zorunlu). Telefonda alttan açılan panel, masaüstünde ortada pencere.
   72 saat geçince kart gösterilmez; puan verildiyse yalnız verilen puan görünür. Kurallar: `lib/caseActions.ts`.
