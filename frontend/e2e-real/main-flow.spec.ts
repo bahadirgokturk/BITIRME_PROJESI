@@ -74,7 +74,8 @@ test("a reported problem is assigned by the agents, done by staff, closed and ra
   await closed.getByRole("link").click();
   // Mudur kararlarin gerekcesini ekranda da gorur (yalniz API'de degil)
   const decisions = page.getByRole("list", { name: "Yapay zekâ kararları" });
-  await expect(decisions.getByText("Sabun bitti")).toBeVisible();
+  // Karar etiketi tam metin: gerekce de "Model tahmini: Sabun bitti (%94)" diye ayni kelimeleri tasir
+  await expect(decisions.getByText("Sabun bitti", { exact: true })).toBeVisible();
   for (const step of AI_STEPS) {
     await expect(decisions.getByText(step, { exact: true })).toBeVisible();
   }
