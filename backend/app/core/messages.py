@@ -37,6 +37,13 @@ SELF_LOCKOUT = "Kendi hesabınızı pasifleştiremez ya da yönetici rolünüzü
 INVALID_PARENT = "Lokasyon kendisinin ya da kendi alt lokasyonunun altına taşınamaz."
 UNAUTHORIZED = "Oturumunuz geçersiz ya da süresi dolmuş. Lütfen yeniden giriş yapın."
 
+# Onleyici bakim (tekrarlayan sorunun tipik araligi). Karar degil, oneri.
+ROUTINE_SUGGESTION = "Genellikle {gap} bir tekrarlıyor; {every} rutin kontrol planlanabilir."
+ROUTINE_GAP_DAYS = "{days} günde"
+ROUTINE_GAP_HOURS = "{hours} saatte"
+ROUTINE_EVERY_DAYS = "{days} günde bir"
+ROUTINE_EVERY_DAY = "her gün"
+
 # Tekrarlayan sorun onerisi, kategoriye gore (yonetici dashboard'u).
 # Karar degil, oneri: "...edilebilir"
 RECURRING_SUGGESTIONS = {

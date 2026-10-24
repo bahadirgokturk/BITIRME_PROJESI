@@ -57,6 +57,11 @@ Her KPI önceki eşit uzunluktaki dönemle karşılaştırılır (`delta_pct`; �
   Trend: pencerenin ikinci yarısı ilk yarısından fazlaysa `up`, azsa `down`.
   Öneri metni kategoriye göre (`core/messages.py` `RECURRING_SUGGESTIONS`); karar değil öneridir.
   Doğrulama (RQ4): boş veritabanına yüklenen 60 günlük demo geçmişinde gömülü 4 örüntünün 4'ü de bulundu.
+  **Önleyici bakım önerisi:** aynı grupta ardışık iki bildirim arasındaki **ortanca** süre
+  (`median_interval_hours`) ve buna göre rutin kontrol sıklığı (`routine_every_days` = ortanca aralığın
+  tam gün kısmı, en az 1; sorun dönmeden önce kontrol edilsin diye aşağı yuvarlanır). Ortanca kullanılır:
+  tek bir uzun boşluk (ör. tatil) ortalamayı şişirmez. Metin (`routine_suggestion`): "Genellikle 2 günde
+  bir tekrarlıyor; 2 günde bir rutin kontrol planlanabilir." (bir günden kısa aralıkta "her gün").
 - **Süreç analitiği (event log):** ardışık event çiftleri arasındaki ortalama/medyan süre
   (ör. `TASK_CREATED → TASK_ACCEPTED`) → en uzun adım = darboğaz. Departman bazında karşılaştırma.
   Uygulama: dönemde açılan bildirimler; 5 adım `CASE_CREATED → TASK_CREATED → TASK_ACCEPTED → WORK_STARTED →

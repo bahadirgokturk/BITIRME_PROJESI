@@ -2403,6 +2403,12 @@ export interface components {
             trend: components["schemas"]["TrendDirection"];
             /** Suggestion */
             suggestion: string;
+            /** Median Interval Hours */
+            median_interval_hours?: number | null;
+            /** Routine Every Days */
+            routine_every_days?: number | null;
+            /** Routine Suggestion */
+            routine_suggestion?: string | null;
         };
     };
     responses: never;
