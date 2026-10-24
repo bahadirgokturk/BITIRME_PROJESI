@@ -38,24 +38,14 @@ jobs:
     defaults:
       run:
         working-directory: backend
-    services:
-      postgres:
-        # Docker Hub, GitHub makinelerine indirme siniri uyguluyor (toomanyrequests); ayni resmi imaj AWS aynasindan
-        image: public.ecr.aws/docker/library/postgres:16-alpine
-        env:
-          POSTGRES_USER: campusflow
-          POSTGRES_PASSWORD: campusflow
-          POSTGRES_DB: campusflow
-        ports: ["5432:5432"]
-        options: >-
-          --health-cmd "pg_isready -U campusflow"
-          --health-interval 5s --health-timeout 3s --health-retries 10
     env:
       DATABASE_URL: postgresql+psycopg://campusflow:campusflow@localhost:5432/campusflow
       # Yalniz CI testleri icin; gercek ortam anahtarlari GitHub Environments'ta tutulur
       JWT_SECRET: ci-only-test-secret-not-used-anywhere-else-000
     steps:
       - uses: actions/checkout@v5
+      # services: yerine: imaj indirme hatasinda yeniden dener (.github/actions/postgres)
+      - uses: ./.github/actions/postgres
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.12"
@@ -143,17 +133,6 @@ jobs:
   e2e-real:
     name: e2e-real (real backend + agents)
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: public.ecr.aws/docker/library/postgres:16-alpine
-        env:
-          POSTGRES_USER: campusflow
-          POSTGRES_PASSWORD: campusflow
-          POSTGRES_DB: campusflow
-        ports: ["5432:5432"]
-        options: >-
-          --health-cmd "pg_isready -U campusflow"
-          --health-interval 5s --health-timeout 3s --health-retries 10
     env:
       DATABASE_URL: postgresql+psycopg://campusflow:campusflow@localhost:5432/campusflow
       # Yalniz CI icin; gercek ortam anahtarlari GitHub Environments'ta tutulur
@@ -166,6 +145,8 @@ jobs:
       MONITORING_ENABLED: "false"
     steps:
       - uses: actions/checkout@v5
+      # services: yerine: imaj indirme hatasinda yeniden dener (.github/actions/postgres)
+      - uses: ./.github/actions/postgres
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.12"

@@ -4,7 +4,8 @@ Base: `/api/v1`. JSON. Auth: `Authorization: Bearer <access_token>`. OpenAPI: `/
 Hata formatı: `{"error": {"code": "INVALID_TRANSITION", "message": "...", "details": {}}}`.
 Yetki: giriş yok/geçersiz → `401 UNAUTHORIZED`; rol bu endpoint'e erişemez → `403 FORBIDDEN`;
 ID ile istenen kaynağa erişim yok → `404 NOT_FOUND` (kaynağın varlığı sızdırılmaz).
-Listeler: `?page=1&page_size=20&sort=-created_at` → `{"items": [], "total": 0, "page": 1}`.
+Listeler: `?page=1&page_size=20` → `{"items": [], "total": 0, "page": 1}`; sıralama listeye göre `order=newest|oldest`.
+Sıkıştırma: istek `Accept-Encoding: gzip` taşıyorsa 1000 bayttan büyük cevaplar gzip ile gelir.
 
 > **Uygulama durumu:** Sözleşme önce ilerlenir ([PROJECT_PLAN.md](PROJECT_PLAN.md) §1). Şeması yayınlanıp iş mantığı
 > henüz yazılmamış endpoint'ler `501 NOT_IMPLEMENTED` döner; girdi doğrulaması (422) şimdiden çalışır.

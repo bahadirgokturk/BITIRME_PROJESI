@@ -2,6 +2,7 @@ import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
 
 import { LogoWordmark } from "@/components/brand/Logo";
+import { WaitingBell } from "@/components/cases/WaitingBell";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { buttonVariants } from "@/components/ui/button";
 import type { NavItem } from "@/lib/navigation";
@@ -36,8 +37,11 @@ export function MobileAppBar({ bar, items, activeHref, user }: MobileAppBarProps
           <LogoWordmark />
         </>
       )}
-      {/* Tema dugmesi her iki cubukta da sag kosede */}
-      <ThemeToggle className="-mr-2.5 ml-auto" />
+      {/* Sag kosede bildirim zili ve tema dugmesi, her iki cubukta da (Figma: MobileAppBar > Actions) */}
+      <div className="-mr-2.5 ml-auto flex items-center gap-1">
+        <WaitingBell />
+        <ThemeToggle />
+      </div>
     </header>
   );
 }

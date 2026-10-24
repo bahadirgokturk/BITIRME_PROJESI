@@ -131,4 +131,19 @@ describe("CaseDetail", () => {
     expect(await screen.findByRole("heading", { name: "Tuvalette sabun bitmiş" })).toBeInTheDocument();
     expect(await screen.findByRole("alert")).toHaveTextContent("Zaman çizelgesi yüklenemedi.");
   });
+
+  it("tells the reporter how many people reported the same problem", async () => {
+    server.use(http.get(apiUrl("/cases/101"), () => HttpResponse.json({ ...CASES.find((c) => c.id === 101)!, duplicate_count: 2 })));
+    renderDetail("101");
+
+    expect(await screen.findByText("Bu sorunu siz dahil 3 kişi bildirdi.")).toBeInTheDocument();
+  });
+
+  it("says nothing extra when only the reporter reported it", async () => {
+    server.use(http.get(apiUrl("/cases/101"), () => HttpResponse.json({ ...CASES.find((c) => c.id === 101)!, duplicate_count: 0 })));
+    renderDetail("101");
+
+    await screen.findByRole("heading", { name: "Tuvalette sabun bitmiş" });
+    expect(screen.queryByText(/kişi bildirdi/)).not.toBeInTheDocument();
+  });
 });

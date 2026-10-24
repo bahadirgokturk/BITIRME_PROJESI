@@ -12,6 +12,8 @@ SEVERITY_MAX = 100
 # 200 ust sinir admin lokasyon agacini tek istekte getirebilsin diye
 PAGE_SIZE_DEFAULT = 20
 PAGE_SIZE_MAX = 200
+# Bu boyutun altindaki cevaplar sikistirilmaz: kucuk JSON'da gzip kazanc saglamaz, CPU harcar
+GZIP_MIN_BYTES = 1000
 
 # Rotasyonla yenilenmis refresh token bu sure icinde tekrar gelirse ayni kullanicinin es zamanli
 # istegi (iki sekme) sayilir: yalniz reddedilir, oturumlar kapatilmaz. Sonrasinda gelirse calinma
