@@ -101,6 +101,15 @@ export function decisionReasons(reasons: readonly Record<string, unknown>[]): De
     }));
 }
 
+// Agirlik "Ayrintilar" altinda gerekceyle birlikte okunur (ornek: Konumun onemi, agirlik +8)
+export function weightDetail(reason: DecisionReason): string | null {
+  if (reason.weight === null) {
+    return null;
+  }
+  const sign = reason.weight > 0 ? "+" : "";
+  return `${reason.message} · ağırlık ${sign}${reason.weight}`;
+}
+
 type CaseRead = Schemas["CaseRead"];
 export type OverrideField = Schemas["OverrideField"];
 

@@ -302,7 +302,8 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   değişmedi. Üstte numara, başlık ve üç rozet (durum, öncelik, kalan süre). **Bildirim bilgileri** kartı: açıklama,
   konum, tür · kategori, birim, açılış; varsa hedef süre, çözüm, kapanış, bildirenin puanı, aynı sorunu bildirenler,
   yeniden açılma (olmayan şey gösterilmez). **Yapay zekâ kararları:** İnceleme Kuyruğu'ndaki gerekçe panelinin aynısı,
-  burada hep açık; kendiliğinden atanan bildirimde de görünür. Sıfır ağırlık yazılmaz. **Zaman çizelgesi:** müdür bütün
+  burada hep açık; kendiliğinden atanan bildirimde de görünür. Gerekçeler sade yazılır; ağırlıklar ("Konumun önemi ·
+  ağırlık +8") ve model adı her adımın altındaki kapalı **"Ayrıntılar"** bölümündedir. Sıfır ağırlık yazılmaz. **Zaman çizelgesi:** müdür bütün
   olayları görür; bildirenin ekranındaki gibi 5 ya da daha fazla adımda kapalı gelir (son 3 adım + "N önceki adımı
   göster", `CollapsibleTimeline`); personelin Birim Bildirimleri detayında da aynısı; her satırda ne olduğu, kimin yaptığı ("Yapay zekâ · Sınıflandırma", "Sistem", "Bildiren", "Personel",
   "Müdür") ve zamanı. Olayda kişi adı gelmediği için kişi türü olayın türünden anlaşılır. **Fotoğraflar:** bildirenin
@@ -341,7 +342,8 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   tür eklenince kendiliğinden açılır), bu yüzden "ekle" düğmesi ve durum filtresi bulunmaz. Seviyeler düz Türkçe
   yazılır: `L1_AUTONOMOUS` "Kendi uygular", `L2_NOTIFY` "Uygular, müdüre haber verir", `L3_ESCALATE` "Müdür karar
   verir". Güven eşiği yüzde olarak gösterilir ve girilir ("%70"; API'de 0–1). Panelde seviye, açıklamalı üç
-  seçenekten seçilir; arama tür adı ya da kodda, filtre karar yetkisinde.
+  seçenekten seçilir; arama tür adı ya da kodda, filtre karar yetkisinde. Ayrı bir "Müdüre haber" kutusu yoktur:
+  müdüre haber verilip verilmeyeceğini seviye belirler (L2 haber verir, L3 zaten müdüre gider).
 - **İşlem Kayıtları** (`/admin/audit-logs`): yalnız okunur; en yeni üstte, 50'şer kayıt ("1–50 / 312 kayıt",
   Önceki / Sonraki). Sütunlar: zaman, kim, işlem ("Birim güncellendi" + kaydın adı), değişiklik. Değişiklik
   ekranların kendi sözcükleriyle yazılır ("Çözüm hedefi: 2 saat → 3 saat", "Durum: Aktif → Pasif"); kod ve numaralar

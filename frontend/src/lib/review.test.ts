@@ -12,6 +12,7 @@ import {
   priorityLabel,
   reviewActions,
   reviewBadge,
+  weightDetail,
 } from "./review";
 
 function firstCase() {
@@ -127,6 +128,20 @@ describe("decisionReasons", () => {
     expect(decisionReasons([{ code: "X" }, { message: "Geçerli" }])).toEqual([
       { code: "", message: "Geçerli", weight: null },
     ]);
+  });
+});
+
+describe("weightDetail", () => {
+  it.each([
+    [8, "Konumun önemi · ağırlık +8"],
+    [0.444, "Konumun önemi · ağırlık +0.444"],
+    [-5, "Konumun önemi · ağırlık -5"],
+  ])("writes weight %f next to its reason", (weight, text) => {
+    expect(weightDetail({ code: "LOC", message: "Konumun önemi", weight })).toBe(text);
+  });
+
+  it("has nothing to add for a reason without weight", () => {
+    expect(weightDetail({ code: "LOC", message: "Konumun önemi", weight: null })).toBeNull();
   });
 });
 

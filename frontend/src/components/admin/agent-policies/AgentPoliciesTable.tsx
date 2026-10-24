@@ -4,7 +4,8 @@ import { AUTONOMY_LABELS, formatConfidence, type AgentPolicyRow } from "@/lib/ad
 
 import { AdminTable, CELL_CLASS, EDIT_BUTTON_CLASS, LABELLED_CLASS, ROW_CLASS } from "../AdminTable";
 
-const COLUMNS = ["Tür", "Karar yetkisi", "Güven eşiği", "Müdüre haber"];
+// Mudure haber sutunu yok: haberi karar yetkisi belirler (#93)
+const COLUMNS = ["Tür", "Karar yetkisi", "Güven eşiği"];
 
 interface AgentPoliciesTableProps {
   rows: AgentPolicyRow[];
@@ -22,11 +23,8 @@ function PolicyRow({ row, onEdit }: { row: AgentPolicyRow; onEdit: (row: AgentPo
       <td data-label="Karar yetkisi" className={cn(CELL_CLASS, LABELLED_CLASS, "col-span-2")}>
         {AUTONOMY_LABELS[policy.autonomy_level]}
       </td>
-      <td data-label="Güven eşiği" className={cn(CELL_CLASS, LABELLED_CLASS, "col-span-2")}>
+      <td data-label="Güven eşiği" className={cn(CELL_CLASS, LABELLED_CLASS)}>
         {formatConfidence(policy.min_confidence_auto)}
-      </td>
-      <td data-label="Müdüre haber" className={cn(CELL_CLASS, LABELLED_CLASS)}>
-        {policy.notify_manager ? "Evet" : "Hayır"}
       </td>
       <td className={cn(CELL_CLASS, "justify-self-end md:text-right")}>
         <button

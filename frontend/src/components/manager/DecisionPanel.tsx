@@ -4,19 +4,34 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCaseDecisions, type AgentDecision } from "@/hooks/useReview";
 import { ApiError } from "@/lib/api/client";
-import { decisionReasons, decisionTitles } from "@/lib/review";
+import { decisionReasons, decisionTitles, weightDetail, type DecisionReason } from "@/lib/review";
 
 import { Confidence } from "./Confidence";
 
-function weightText(weight: number | null): string {
-  if (weight === null) {
-    return "";
-  }
-  return weight > 0 ? ` +${weight}` : ` ${weight}`;
+// Agirliklar ve model adi muduru yormasin diye kapali durur; merak eden acar (Figma: DecisionRow > Ayrintilar)
+function DecisionDetails({ reasons, model }: { reasons: DecisionReason[]; model: string }) {
+  const weights = reasons.map(weightDetail).filter((text) => text !== null);
+  return (
+    <details className="group text-xs text-muted-foreground">
+      <summary className="inline-flex min-h-11 cursor-pointer list-none items-center [&::-webkit-details-marker]:hidden gap-1 rounded-sm md:min-h-6">
+        <span aria-hidden className="transition-transform group-open:rotate-90">
+          ▸
+        </span>
+        Ayrıntılar
+      </summary>
+      <ul className="space-y-0.5 pb-1 pl-3.5">
+        {weights.map((text) => (
+          <li key={text}>{text}</li>
+        ))}
+        <li>Model: {model}</li>
+      </ul>
+    </details>
+  );
 }
 
 function DecisionRow({ decision }: { decision: AgentDecision }) {
   const titles = decisionTitles(decision);
+  const reasons = decisionReasons(decision.reasons);
   return (
     <li className="grid gap-2 border-t py-3 first:border-t-0 md:grid-cols-[12rem_1fr_6rem] md:gap-6">
       <div>
@@ -24,15 +39,14 @@ function DecisionRow({ decision }: { decision: AgentDecision }) {
         <p className="text-sm font-semibold break-words">{titles.decision}</p>
       </div>
       <div className="space-y-1">
-        <ul className="space-y-0.5 text-[13px]">
-          {decisionReasons(decision.reasons).map((reason) => (
-            <li key={`${reason.code}-${reason.message}`}>
-              • {reason.message}
-              {weightText(reason.weight)}
-            </li>
-          ))}
-        </ul>
-        <p className="text-xs text-muted-foreground">{decision.model}</p>
+        {reasons.length > 0 ? (
+          <ul aria-label="Gerekçeler" className="space-y-0.5 text-[13px]">
+            {reasons.map((reason) => (
+              <li key={`${reason.code}-${reason.message}`}>• {reason.message}</li>
+            ))}
+          </ul>
+        ) : null}
+        <DecisionDetails reasons={reasons} model={decision.model} />
       </div>
       <Confidence value={decision.confidence} />
     </li>

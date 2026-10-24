@@ -77,10 +77,25 @@ describe("ManagerCaseDetail", () => {
     expect(steps[1]).toHaveTextContent("Sınıflandırma");
     expect(steps[1]).toHaveTextContent("Sabun bitti");
     expect(steps[1]).toHaveTextContent("Model tahmini: Sabun bitti (%94)");
-    expect(steps[1]).toHaveTextContent("tfidf-logreg@1.0");
     expect(steps[1]).toHaveTextContent("Güven %94");
-    expect(steps[3]).toHaveTextContent("Bildirim türünün ciddiyeti +8");
     expect(steps[5]).toHaveTextContent("Görev personele atandı");
+  });
+
+  // Agirliklar (+8) ve model adi gerekceyi kalabaliklastirir: "Ayrintilar" altinda kapali durur
+  it("keeps reason weights and the model name under Ayrıntılar", async () => {
+    const user = renderDetail(AUTO_ASSIGNED);
+
+    const list = await screen.findByRole("list", { name: "Yapay zekâ kararları" });
+    const priority = [...list.children][3] as HTMLElement;
+    const reasons = within(priority).getByRole("list", { name: "Gerekçeler" });
+    expect(reasons).toHaveTextContent("Bildirim türünün ciddiyeti");
+    expect(reasons).not.toHaveTextContent("+8");
+    expect(within(priority).getByText("rules@1.0", { exact: false })).not.toBeVisible();
+
+    await user.click(within(priority).getByText("Ayrıntılar"));
+
+    expect(within(priority).getByText("Bildirim türünün ciddiyeti · ağırlık +8")).toBeVisible();
+    expect(within(priority).getByText("Model: rules@1.0")).toBeVisible();
   });
 
   it("says so when the AI made no decision for the case", async () => {
