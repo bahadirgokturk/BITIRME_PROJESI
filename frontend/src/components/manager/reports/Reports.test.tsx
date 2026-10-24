@@ -108,7 +108,7 @@ describe("Reports", () => {
   it("maps the paths cases follow and points at the longest wait", async () => {
     const user = renderReports();
 
-    expect(await heading("En sık yol: bildirimlerin %57'si (tipik 48 dk)")).toBeInTheDocument();
+    expect(await heading("En sık yol: %57 bildirim (tipik 48 dk)")).toBeInTheDocument();
     expect(
       screen.getByText("Dönemde açılan 262 bildirimin izlediği yollar ve adımlar arasındaki bekleme"),
     ).toBeInTheDocument();

@@ -216,7 +216,7 @@ describe("process map", () => {
   const empty: ProcessMapRead = { case_count: 0, activities: [], variants: [], edges: [] };
 
   it("headlines the most common path with its share and typical time", () => {
-    expect(processMapHeadline(map)).toBe("En sık yol: bildirimlerin %57'si (tipik 48 dk)");
+    expect(processMapHeadline(map)).toBe("En sık yol: %57 bildirim (tipik 48 dk)");
     expect(processMapHeadline(empty)).toBe("Süreç haritası");
     expect(processMapSubtitle(map)).toBe("Dönemde açılan 262 bildirimin izlediği yollar ve adımlar arasındaki bekleme");
   });

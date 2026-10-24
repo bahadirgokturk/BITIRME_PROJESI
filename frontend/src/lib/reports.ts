@@ -196,7 +196,8 @@ export function processMapHeadline(map: ProcessMapRead): string {
   if (!top) {
     return "Süreç haritası";
   }
-  return `En sık yol: bildirimlerin ${formatPercent(top.share_pct)}'si (tipik ${formatMinutes(top.median_total_min)})`;
+  // Yuzde eki sayinin okunusuna gore degisir; yanlis ek yazmamak icin eksiz yazilir
+  return `En sık yol: ${formatPercent(top.share_pct)} bildirim (tipik ${formatMinutes(top.median_total_min)})`;
 }
 
 export function processMapSubtitle(map: ProcessMapRead): string {

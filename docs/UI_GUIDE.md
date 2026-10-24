@@ -273,7 +273,7 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   (`path`) gösterilmez. Tekrarlayan sorunda backend önleyici bakım önerisi verdiyse (`routine_suggestion`) önerinin
   altında turkuaz bir satır çıkar ("Genellikle 2 günde bir tekrarlıyor; 2 günde bir rutin kontrol planlanabilir.").
   **Süreç haritası** (süreç madenciliği, `GET /analytics/process-map`) en altta tam genişlikte durur; başlık en sık
-  yolu söyler ("En sık yol: bildirimlerin %57'si (tipik 48 dk)"). Solda **En sık yollar**: adımlar okla yazılır
+  yolu söyler ("En sık yol: %57 bildirim (tipik 48 dk)"). Solda **En sık yollar**: adımlar okla yazılır
   ("Bildirim açıldı → Görev oluşturuldu → …"), çubuk bildirimlerin payı, altında bildirim sayısı ve tipik toplam süre;
   en uzun süren yol turuncu ve "En uzun" etiketli. Sağda **Adımlar arası bekleme**: en uzun bekleme üstte, turuncu ve
   "Darboğaz" etiketli; altında kaç kez görüldüğü. 3'ten az görülen geçiş listeye girmez (tek tük bir uzun bekleme
