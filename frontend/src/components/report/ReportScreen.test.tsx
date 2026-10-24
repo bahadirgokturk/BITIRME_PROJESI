@@ -174,6 +174,19 @@ describe("ReportScreen", () => {
     expect(screen.getByLabelText("Ne oldu?")).toHaveValue("B blok 2. kat erkek tuvalette sabun bitmiş");
   });
 
+  // Telefonda kamera dogrudan acilsin; galeri secimi ayri kalir
+  it("offers a camera shortcut that takes a photo straight into the report", async () => {
+    const user = renderScreen();
+
+    const camera = screen.getByLabelText("Fotoğraf çek");
+    expect(camera).toHaveAttribute("capture", "environment");
+    expect(camera).toHaveAttribute("accept", "image/*");
+
+    await user.upload(camera, photo());
+
+    expect(await screen.findByRole("button", { name: "sabun.png dosyasını kaldır" })).toBeInTheDocument();
+  });
+
   // Liste yuklenince altindaki alanlar kaymasin (Lighthouse CLS): yuklenirken ayni yukseklikte yer tutulur
   it("keeps room for the location list while it loads", () => {
     renderScreen();

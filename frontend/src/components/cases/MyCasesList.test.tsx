@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
 import { createQueryClient } from "@/lib/queryClient";
+import { MY_CASES_PAGE_SIZE } from "@/lib/status";
 import { CASES } from "@/mocks/caseFixtures";
 import { server } from "@/mocks/node";
 
@@ -44,13 +45,18 @@ function servePaged({ failPage }: { failPage?: number } = {}) {
   );
 }
 
+// Yalniz listenin sayfa istegi duser; "yanit bekleniyor" kutusunun istegi (page_size=100) normal cevap alir
 function failOnce(status: number, message: string) {
+  let failed = false;
   server.use(
-    http.get(
-      apiUrl("/cases/mine"),
-      () => HttpResponse.json({ error: { code: "INTERNAL", message, details: {} } }, { status }),
-      { once: true },
-    ),
+    http.get(apiUrl("/cases/mine"), ({ request }) => {
+      const isListPage = new URL(request.url).searchParams.get("page_size") === String(MY_CASES_PAGE_SIZE);
+      if (failed || !isListPage) {
+        return undefined;
+      }
+      failed = true;
+      return HttpResponse.json({ error: { code: "INTERNAL", message, details: {} } }, { status });
+    }),
   );
 }
 
@@ -81,7 +87,8 @@ describe("MyCasesList", () => {
   it("explains a case waiting for more information instead of a progress bar", async () => {
     renderList();
 
-    const link = await screen.findByRole("link", { name: /Amfide garip bir koku var/ });
+    const list = await screen.findByRole("list", { name: "Bildirimleriniz" });
+    const link = within(list).getByRole("link", { name: /Amfide garip bir koku var/ });
     expect(within(link).getByText(/Ek bilgi gerekiyor/)).toBeInTheDocument();
     expect(within(link).queryByRole("list", { name: "İlerleme" })).not.toBeInTheDocument();
   });
@@ -193,5 +200,35 @@ describe("MyCasesList", () => {
 
     expect(await screen.findByText("Henüz bildiriminiz yok.")).toBeInTheDocument();
     expect(screen.queryByRole("group", { name: "Durum" })).not.toBeInTheDocument();
+  });
+
+  describe("waiting for the reporter", () => {
+    function serveCases(items: (typeof CASES)[number][]) {
+      server.use(http.get(apiUrl("/cases/mine"), () => HttpResponse.json({ items, total: items.length, page: 1 })));
+    }
+
+    it("collects the cases that need an answer or a rating at the top", async () => {
+      const closedYesterday = new Date(Date.now() - 24 * 3_600_000).toISOString();
+      serveCases([
+        { ...CASES[0]!, id: 501, title: "Projeksiyon çalışmıyor", status: "NEEDS_INFO" },
+        { ...CASES[0]!, id: 502, title: "Sabun bitmiş", status: "CLOSED", closed_at: closedYesterday, satisfaction_rating: null },
+        { ...CASES[0]!, id: 503, title: "Kapı kilitli", status: "ASSIGNED" },
+      ]);
+      renderList();
+
+      const box = await screen.findByRole("region", { name: "Sizden yanıt bekleniyor (2)" });
+      const links = within(box).getAllByRole("link");
+      expect(links.map((link) => link.getAttribute("href"))).toEqual(["/cases/501", "/cases/502"]);
+      expect(links[0]).toHaveTextContent("Sizden ek bilgi istendi");
+      expect(links[1]).toHaveTextContent("Çözüldü · değerlendirmenizi bekliyor");
+    });
+
+    it("shows no box when nothing waits for the reporter", async () => {
+      serveCases([{ ...CASES[0]!, id: 503, title: "Kapı kilitli", status: "ASSIGNED" }]);
+      renderList();
+
+      await screen.findByText("Kapı kilitli");
+      expect(screen.queryByRole("region", { name: /Sizden yanıt bekleniyor/ })).not.toBeInTheDocument();
+    });
   });
 });

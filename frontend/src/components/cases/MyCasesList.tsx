@@ -14,6 +14,7 @@ import { ApiError } from "@/lib/api/client";
 import { MY_CASES_FILTERS, type MyCasesFilter } from "@/lib/status";
 
 import { CaseCard, CaseCardSkeleton } from "./CaseCard";
+import { WaitingCases } from "./WaitingCases";
 
 // Iskelet kart sayisi: ilk ekranda gorunen kart sayisi kadar (Figma: /my-cases - yukleniyor)
 const SKELETON_KEYS = ["s1", "s2", "s3", "s4"];
@@ -124,7 +125,7 @@ function MyCasesBody({ query, filter, onClear }: MyCasesBodyProps) {
   }
   return (
     <div className="space-y-3">
-      <ul className="grid gap-3">
+      <ul aria-label="Bildirimleriniz" className="grid gap-3">
         {query.data.map((item) => (
           <li key={item.id}>
             <CaseCard item={item} />
@@ -152,6 +153,7 @@ export function MyCasesList() {
         <PageTitle>Bildirimlerim</PageTitle>
         {isEmpty ? null : <ReportLink />}
       </header>
+      <WaitingCases />
       {canFilter && <FilterChips label="Durum" options={MY_CASES_FILTERS} value={filter} onChange={setFilter} />}
       <MyCasesBody query={query} filter={filter} onClear={() => setFilter("all")} />
     </div>
