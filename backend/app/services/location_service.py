@@ -98,6 +98,17 @@ class LocationService:
             self._session, location.organization_id, old_path, location.path
         )
 
+    def get_option(self, location_id: int) -> LocationOption:
+        """QR'dan gelen konum: kendi kurumunun aktif konumu, degilse 404."""
+        location = self._get(location_id)
+        if not location.is_active:
+            raise NotFoundError()
+        return LocationOption.model_validate(location, from_attributes=True)
+
+    def get(self, location_id: int) -> Location:
+        """Kurum kontrollu kayit (QR uretimi icin); baska kurumun konumu 404."""
+        return self._get(location_id)
+
     def _path_under(self, parent_id: int | None, code: str) -> str:
         if parent_id is None:
             return code

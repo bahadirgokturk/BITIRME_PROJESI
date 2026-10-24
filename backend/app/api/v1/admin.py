@@ -6,20 +6,22 @@ Silme yok: is_active=false ile pasiflestirilir (soft delete).
 from http import HTTPStatus
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.orm import Session
 
-from app.api.deps import Audit, CurrentUser, require_roles
+from app.api.deps import Audit, CurrentUser, get_app_settings, require_roles
 from app.api.v1.pagination import page_params
 from app.api.v1.responses import AUTHENTICATED_RESPONSES
 from app.core.clock import Clock, get_clock
+from app.core.config import Settings
 from app.core.database import get_session
 from app.models.enums import UserRole
 from app.schemas.audit import AuditLogFilter, AuditLogRead
 from app.schemas.common import Page, PageParams
 from app.schemas.department import DepartmentCreate, DepartmentRead, DepartmentUpdate
-from app.schemas.location import LocationCreate, LocationRead, LocationUpdate
+from app.schemas.location import LocationCreate, LocationRead, LocationUpdate, QrFormat
 from app.schemas.user import UserCreate, UserRead, UserUpdate
+from app.services import location_qr as location_qr_service
 from app.services.audit import AuditLogService
 from app.services.department_service import DepartmentService
 from app.services.location_service import LocationService
@@ -121,3 +123,24 @@ def list_audit_logs(
     entity_type + entity_id ile tek bir kaydin gecmisi suzulur.
     """
     return service.list(filters, paging)
+
+
+@router.get(
+    "/locations/{location_id}/qr",
+    response_class=Response,
+    responses={
+        HTTPStatus.OK: {"content": {"image/svg+xml": {}, "image/png": {}}},
+    },
+)
+def location_qr(
+    location_id: int,
+    service: Locations,
+    settings: Annotated[Settings, Depends(get_app_settings)],
+    fmt: Annotated[QrFormat, Query(alias="format")] = QrFormat.SVG,
+) -> Response:
+    """Kapiya asilacak QR: okutulunca bildirim formu bu konum secili acilir."""
+    image = location_qr_service.render(service.get(location_id), settings.app_url, fmt)
+    disposition = f'inline; filename="{image.filename}"'
+    return Response(
+        image.content, media_type=image.media_type, headers={"Content-Disposition": disposition}
+    )
