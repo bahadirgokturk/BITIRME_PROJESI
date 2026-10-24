@@ -55,9 +55,7 @@ describe("AgentPoliciesScreen", () => {
     expect(within(power).getByText("ELECTRICAL_FAILURE")).toBeInTheDocument();
     expect(within(power).getByText("Müdür karar verir")).toBeInTheDocument();
     expect(within(power).getByText("%70")).toBeInTheDocument();
-    expect(within(power).getByText("Evet")).toBeInTheDocument();
     expect(within(await row(/Sabun bitti/)).getByText("Kendi uygular")).toBeInTheDocument();
-    expect(within(await row(/Sabun bitti/)).getByText("Hayır")).toBeInTheDocument();
     expect(screen.getByText("6 politika")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /ekle/i })).not.toBeInTheDocument();
   });
@@ -85,7 +83,7 @@ describe("AgentPoliciesScreen", () => {
     expect(screen.getByRole("row", { name: /Sabun bitti/ })).toBeInTheDocument();
   });
 
-  it("changes the autonomy level, the threshold and the notification", async () => {
+  it("changes the autonomy level and the threshold", async () => {
     const user = renderScreen();
     const sheet = await openEdit(user, "Sabun bitti");
 
@@ -94,14 +92,12 @@ describe("AgentPoliciesScreen", () => {
     const threshold = within(sheet).getByLabelText("Güven eşiği (%)");
     await user.clear(threshold);
     await user.type(threshold, "85");
-    await user.click(within(sheet).getByLabelText("Müdüre haber ver"));
     await user.click(within(sheet).getByRole("button", { name: "Kaydet" }));
 
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     const soap = await row(/Sabun bitti/);
     expect(within(soap).getByText("Uygular, müdüre haber verir")).toBeInTheDocument();
     expect(within(soap).getByText("%85")).toBeInTheDocument();
-    expect(within(soap).getByText("Evet")).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("Sabun bitti politikası güncellendi.");
   });
 
@@ -111,7 +107,15 @@ describe("AgentPoliciesScreen", () => {
 
     expect(within(sheet).getByRole("radio", { name: /Müdür karar verir/ })).toBeChecked();
     expect(within(sheet).getByText(/İnceleme Kuyruğu'na düşer/)).toBeInTheDocument();
-    expect(within(sheet).getByLabelText("Müdüre haber ver")).toBeChecked();
+  });
+
+  // Haberi seviye belirler (L2 haber verir); ayri kutu hicbir seyi degistirmiyordu (#93)
+  it("has no separate notify option: the level decides it", async () => {
+    const user = renderScreen();
+    const sheet = await openEdit(user, "Elektrik arızası");
+
+    expect(within(sheet).queryByLabelText("Müdüre haber ver")).not.toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Müdüre haber" })).not.toBeInTheDocument();
   });
 
   it("rejects a threshold outside 0-100 before sending", async () => {

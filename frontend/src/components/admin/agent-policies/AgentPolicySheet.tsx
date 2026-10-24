@@ -26,7 +26,6 @@ import { Field } from "../Field";
 const LEVELS = Object.keys(AUTONOMY_LABELS) as AutonomyLevel[];
 // 0-100 arasi en cok uc hane
 const PERCENT_MAX_DIGITS = 3;
-const NOTIFY_ID = "agent-policy-notify";
 
 interface AgentPolicySheetProps {
   row: AgentPolicyRow;
@@ -64,29 +63,6 @@ function AutonomyChoice({ value, onChange }: { value: AutonomyLevel; onChange: (
   );
 }
 
-function NotifyCheckbox({ checked, onChange }: { checked: boolean; onChange: (checked: boolean) => void }) {
-  return (
-    <div className="flex items-start gap-2.5">
-      <input
-        id={NOTIFY_ID}
-        type="checkbox"
-        checked={checked}
-        onChange={(event) => onChange(event.target.checked)}
-        aria-describedby={`${NOTIFY_ID}-note`}
-        className="mt-0.5 size-5 shrink-0 accent-primary"
-      />
-      <div>
-        <label htmlFor={NOTIFY_ID} className="block cursor-pointer text-sm font-medium">
-          Müdüre haber ver
-        </label>
-        <p id={`${NOTIFY_ID}-note`} className="text-xs text-muted-foreground">
-          Yapay zekâ bu türde görev açtığında birim müdürüne haber verilir.
-        </p>
-      </div>
-    </div>
-  );
-}
-
 interface FieldsProps {
   form: AgentPolicyForm;
   error?: string;
@@ -113,7 +89,6 @@ function PolicyFields({ form, error, onChange }: FieldsProps) {
           />
         )}
       </Field>
-      <NotifyCheckbox checked={form.notify_manager} onChange={(notify_manager) => onChange({ ...form, notify_manager })} />
     </>
   );
 }

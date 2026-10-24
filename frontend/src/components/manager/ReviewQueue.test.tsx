@@ -62,8 +62,8 @@ describe("ReviewQueue", () => {
 
     const panel = await within(safety).findByRole("list", { name: "Yapay zekâ kararları" });
     expect(within(panel).getByText("Sınıflandırma")).toBeInTheDocument();
-    expect(within(panel).getByText(/kıvılcım/)).toBeInTheDocument();
-    expect(within(panel).getByText("tfidf-logreg@2026.10.1")).toBeInTheDocument();
+    expect(within(panel).getByText(/^• .*kıvılcım/)).toBeInTheDocument();
+    expect(within(panel).getByText("Model: tfidf-logreg@2026.10.1")).toBeInTheDocument();
     // Kararlarin Turkce adi API'den gelir (decision_label); kod gosterilmez
     expect(within(panel).getByText("Müdüre yükseltildi")).toBeInTheDocument();
     expect(within(panel).queryByText("ESCALATE")).not.toBeInTheDocument();

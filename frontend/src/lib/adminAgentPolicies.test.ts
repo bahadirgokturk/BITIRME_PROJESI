@@ -80,11 +80,11 @@ describe("confidence threshold", () => {
   it("fills the form in percent and sends a 0-1 value back", () => {
     const form = formFromAgentPolicy(policy({ min_confidence_auto: 0.65, notify_manager: true }));
 
-    expect(form).toEqual({ autonomy_level: "L1_AUTONOMOUS", confidence_pct: "65", notify_manager: true });
+    // Haber verme seviyeden gelir (#93): form ve govde notify_manager tasimaz
+    expect(form).toEqual({ autonomy_level: "L1_AUTONOMOUS", confidence_pct: "65" });
     expect(toAgentPolicyBody({ ...form, autonomy_level: "L2_NOTIFY", confidence_pct: " 80 " })).toEqual({
       autonomy_level: "L2_NOTIFY",
       min_confidence_auto: 0.8,
-      notify_manager: true,
     });
   });
 

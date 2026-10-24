@@ -81,14 +81,13 @@ export function formatConfidence(value: number): string {
 export interface AgentPolicyForm {
   autonomy_level: AutonomyLevel;
   confidence_pct: string;
-  notify_manager: boolean;
 }
 
+// Mudure haber verme seviyeden gelir (L2 haber verir); ayri alan formda yok (#93)
 export function formFromAgentPolicy(policy: AgentPolicy): AgentPolicyForm {
   return {
     autonomy_level: policy.autonomy_level,
     confidence_pct: String(toPercent(policy.min_confidence_auto)),
-    notify_manager: policy.notify_manager,
   };
 }
 
@@ -107,6 +106,5 @@ export function toAgentPolicyBody(form: AgentPolicyForm) {
   return {
     autonomy_level: form.autonomy_level,
     min_confidence_auto: Number(form.confidence_pct.trim()) / PERCENT,
-    notify_manager: form.notify_manager,
   };
 }
