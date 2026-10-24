@@ -49,7 +49,7 @@ export function isValidReopenReason(reason: string): boolean {
   return length > 0 && length <= REOPEN_REASON_MAX_LENGTH;
 }
 
-// Bildirimlerim'in ustundeki "Sizden yanit bekleniyor" kutusu: ek bilgi istenenler once, sonra kapanip
+// Bildirim zilindeki "Sizden yanit bekleniyor" listesi: ek bilgi istenenler once, sonra kapanip
 // 72 saat icinde puan verilmemis olanlar (closedCaseActions ile ayni kural)
 const WAITING_REASONS = {
   info: "Sizden ek bilgi istendi",
@@ -68,14 +68,6 @@ export function actionNeeded(items: readonly CaseRead[], now: Date = new Date())
     ...info.map((item) => ({ item, reason: WAITING_REASONS.info })),
     ...rating.map((item) => ({ item, reason: WAITING_REASONS.rating })),
   ];
-}
-
-// Kutu kisa kalsin: ilk 3 gosterilir, kalani sayilir (hepsi zaten asagidaki listede)
-export const WAITING_VISIBLE = 3;
-
-export function waitingPreview<T>(items: readonly T[]): { visible: readonly T[]; moreText: string | null } {
-  const more = items.length - WAITING_VISIBLE;
-  return { visible: items.slice(0, WAITING_VISIBLE), moreText: more > 0 ? `ve ${more} bildirim daha` : null };
 }
 
 // duplicate_count: bu bildirime eklenen baska bildirimler (backend/app/services/merge.py); bildiren de sayilir
