@@ -46,6 +46,8 @@ class LoadedClassifier:
 
 class CaseTypeInfo(BaseModel):
     code: str
+    # Okunur ad ("Sabun bitti"): gerekceler mudur ekraninda okunur; yoksa kod gosterilir
+    name: str | None = None
     category: CaseCategory
     keywords: list[str]
 
@@ -110,7 +112,8 @@ class ClassificationAgent:
             model = f"{ML_MODEL_PREFIX}@{self._model.version}"
         rule = _safety_rule(text)
         chosen, override_reason = _apply_safety(rule, candidates)
-        reasons = _base_reasons(candidates, from_model=self._model is not None)
+        names = {code: info.name or code for code, info in known.items()}
+        reasons = _base_reasons(candidates, names, from_model=self._model is not None)
         if override_reason:
             reasons.append(override_reason)
         case_type = known.get(chosen.code)
@@ -176,13 +179,17 @@ def _apply_safety(
     return Candidate(code=code, probability=probability), reason
 
 
-def _base_reasons(candidates: list[Candidate], *, from_model: bool) -> list[Reason]:
+def _base_reasons(
+    candidates: list[Candidate], names: dict[str, str], *, from_model: bool
+) -> list[Reason]:
     best = candidates[0]
+    # Kod evidence'ta kalir; mesaj mudurun okudugu ad
+    best_name = names.get(best.code, best.code)
     if not from_model and best.probability == 0.0:
         return [Reason(code="NO_KEYWORD_MATCH", message="Metinde bilinen bir anahtar kelime yok.")]
     top = [c.model_dump() for c in candidates[:TOP_K]]
     if from_model:
-        message = f"Model tahmini: {best.code} (%{round(best.probability * 100)})"
+        message = f"Model tahmini: {best_name} (%{round(best.probability * 100)})"
         return [Reason(code="MODEL_PREDICTION", message=message, evidence={"top_k": top})]
-    message = f"Anahtar kelime eşleşmesi: {best.code}"
+    message = f"Anahtar kelime eşleşmesi: {best_name}"
     return [Reason(code="RULE_MATCH", message=message, evidence={"top_k": top})]

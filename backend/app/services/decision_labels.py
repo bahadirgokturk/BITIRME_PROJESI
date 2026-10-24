@@ -53,7 +53,8 @@ _DECISION_LABELS: dict[str, dict[str, str]] = {
     "supervisor": {
         SupervisorDecision.REQUEST_MORE_INFO: "Ek bilgi istendi",
         SupervisorDecision.MERGE_WITH_EXISTING_CASE: "Mevcut bildirimle birleştirildi",
-        SupervisorDecision.ESCALATE: "Müdüre yükseltildi",
+        # Durum rozetiyle ayni ifade (UI_GUIDE)
+        SupervisorDecision.ESCALATE: "Yöneticiye iletildi",
         SupervisorDecision.REJECT_OUT_OF_SCOPE: "Kapsam dışı",
         SupervisorDecision.SEND_TO_HUMAN_REVIEW: "Müdür incelemesine gönderildi",
         SupervisorDecision.AUTO_ASSIGN: "Otomatik atandı",

@@ -63,3 +63,8 @@ def test_classification_uses_the_case_type_name() -> None:
 def test_the_same_code_means_different_things_per_agent() -> None:
     # Dusuk guven (dogrulama) ile dusuk oncelik ayni kod, farkli anlam
     assert decision_label("verification", "LOW", {}) != decision_label("priority", "LOW", {})
+
+
+def test_escalation_reads_like_the_case_status() -> None:
+    # Durum rozeti "Yoneticiye iletildi" diyor; karar etiketi ayni ifadeyi kullanir
+    assert decision_label("supervisor", "ESCALATE", {}) == "Yöneticiye iletildi"

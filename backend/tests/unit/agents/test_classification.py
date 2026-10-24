@@ -17,7 +17,10 @@ from app.models.enums import CaseCategory
 CTX = AgentContext(now=datetime(2026, 10, 2, 10, 0, tzinfo=UTC))
 CASE_TYPES = [
     CaseTypeInfo(
-        code="SOAP_EMPTY", category=CaseCategory.CONSUMABLE, keywords=["sabun", "sabunluk"]
+        code="SOAP_EMPTY",
+        name="Sabun bitti",
+        category=CaseCategory.CONSUMABLE,
+        keywords=["sabun", "sabunluk"],
     ),
     CaseTypeInfo(
         code="ELECTRICAL_FAILURE", category=CaseCategory.TECHNICAL, keywords=["elektrik", "priz"]
@@ -56,6 +59,22 @@ def test_model_prediction_with_top_candidates() -> None:
     assert [c.code for c in result.output.top_k] == ["SOAP_EMPTY", "OTHER", "ELECTRICAL_FAILURE"]
     assert result.output.matched_keywords == ["sabun"]
     assert "MODEL_PREDICTION" in {r.code for r in result.reasons}
+
+
+def test_reasons_name_the_type_for_the_manager() -> None:
+    # Mudur ekrani gerekceyi okur: kod (SOAP_EMPTY) degil, turun adi
+    by_model = _run("lavaboda sabun kalmamış", FakeModel([0.05, 0.10, 0.05, 0.80]))
+    by_rules = _run("SABUNLUK BOŞ, sabun yok", None)
+
+    assert by_model.reasons[0].message == "Model tahmini: Sabun bitti (%80)"
+    assert by_rules.reasons[0].message == "Anahtar kelime eşleşmesi: Sabun bitti"
+    assert "SOAP_EMPTY" not in by_model.reasons[0].message
+
+
+def test_a_type_without_a_name_falls_back_to_its_code() -> None:
+    result = _run("prizden ses geliyor, elektrik gidip geliyor", None)
+
+    assert result.reasons[0].message == "Anahtar kelime eşleşmesi: ELECTRICAL_FAILURE"
 
 
 def test_safety_words_override_a_harmless_prediction() -> None:

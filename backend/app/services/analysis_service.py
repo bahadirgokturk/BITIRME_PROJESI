@@ -391,7 +391,9 @@ def _classification_input(
         title=case.title,
         description=description,
         case_types=[
-            CaseTypeInfo(code=ct.code, category=ct.category, keywords=list(ct.keywords))
+            CaseTypeInfo(
+                code=ct.code, name=ct.name, category=ct.category, keywords=list(ct.keywords)
+            )
             for ct in case_types
         ],
     )
