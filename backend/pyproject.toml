@@ -17,6 +17,7 @@ dependencies = [
     "pillow>=11.0",
     "python-multipart>=0.0.18",
     "scikit-learn==1.9.1",
+    "segno>=1.6",
 ]
 
 [dependency-groups]

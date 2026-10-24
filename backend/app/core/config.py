@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     database_url: str
     cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:3000"]
+    # Kullanicinin actigi uygulama adresi (QR kodlari buraya gider); bossa ilk CORS adresi
+    public_app_url: str | None = None
     jwt_secret: str = Field(min_length=JWT_SECRET_MIN_LENGTH)
     # Kisa access token calinsa bile zarari sinirlidir; refresh ile yenilenir
     # (docs/DEPLOYMENT.md bolum 2)
@@ -74,6 +76,11 @@ class Settings(BaseSettings):
         if isinstance(value, str):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
         return value
+
+    @property
+    def app_url(self) -> str:
+        """Sonunda / olmadan; staging'de CORS_ORIGINS zaten Vercel adresidir."""
+        return (self.public_app_url or self.cors_origins[0]).rstrip("/")
 
     @model_validator(mode="after")
     def _reject_example_secret_outside_local(self) -> "Settings":

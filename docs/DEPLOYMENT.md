@@ -57,7 +57,7 @@ Production (E7-3) hafta 11'de, staging birkaç hafta sorunsuz çalıştıktan so
    | `ENVIRONMENT` | `staging` |
    | `DATABASE_URL` | Neon bağlantı adresi (secret) |
    | `JWT_SECRET` | Render'ın **Generate** düğmesiyle rastgele (secret) |
-   | `CORS_ORIGINS` | Vercel staging adresi (rewrite ile gerekmez; doğrudan erişim için) |
+   | `CORS_ORIGINS` | Vercel staging adresi (rewrite ile gerekmez; doğrudan erişim için). Konum QR kodları da bu adrese gider (`PUBLIC_APP_URL` verilmezse ilki) |
 
 5. **Vercel:** repo, Root Directory `frontend`, **Production Branch = `develop`** (bu proje staging'dir; production
    için ayrı Vercel projesi `main`'i izler). Env:

@@ -174,6 +174,12 @@ def test_recurring_problem_in_the_last_30_days(client: TestClient, world: World)
     # Ilk yari 2, ikinci yari 4
     assert item["trend"] == "up"
     assert "periyodik" in item["suggestion"]
+    # Araliklar 5, 18, 2, 2, 1 gun: ortanca 2 gun -> 2 gunde bir rutin kontrol
+    assert item["median_interval_hours"] == 48.0
+    assert item["routine_every_days"] == 2
+    assert item["routine_suggestion"] == (
+        "Genellikle 2 günde bir tekrarlıyor; 2 günde bir rutin kontrol planlanabilir."
+    )
 
 
 def test_recurring_respects_department_filter(client: TestClient, world: World) -> None:

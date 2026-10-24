@@ -109,6 +109,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/locations/{location_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Location Option
+         * @description QR'dan gelen konum (/report?location=id): kendi kurumunun aktif konumu; degilse 404.
+         */
+        get: operations["get_location_option_api_v1_locations__location_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/cases": {
         parameters: {
             query?: never;
@@ -979,6 +999,26 @@ export interface paths {
          *     entity_type + entity_id ile tek bir kaydin gecmisi suzulur.
          */
         get: operations["list_audit_logs_api_v1_admin_audit_logs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/locations/{location_id}/qr": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Location Qr
+         * @description Kapiya asilacak QR: okutulunca bildirim formu bu konum secili acilir.
+         */
+        get: operations["location_qr_api_v1_admin_locations__location_id__qr_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2112,6 +2152,12 @@ export interface components {
             /** Median Total Min */
             median_total_min: number | null;
         };
+        /**
+         * QrFormat
+         * @description SVG ekranda ve baskida keskin; PNG her yazicida ve belge programinda acilir.
+         * @enum {string}
+         */
+        QrFormat: "svg" | "png";
         /** RecurringRead */
         RecurringRead: {
             /** Threshold */
@@ -2477,6 +2523,12 @@ export interface components {
             trend: components["schemas"]["TrendDirection"];
             /** Suggestion */
             suggestion: string;
+            /** Median Interval Hours */
+            median_interval_hours?: number | null;
+            /** Routine Every Days */
+            routine_every_days?: number | null;
+            /** Routine Suggestion */
+            routine_suggestion?: string | null;
         };
     };
     responses: never;
@@ -2766,6 +2818,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page_LocationOption_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    get_location_option_api_v1_locations__location_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                location_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocationOption"];
                 };
             };
             /** @description Unauthorized */
@@ -6496,6 +6615,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page_AuditLogRead_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    location_qr_api_v1_admin_locations__location_id__qr_get: {
+        parameters: {
+            query?: {
+                format?: components["schemas"]["QrFormat"];
+            };
+            header?: never;
+            path: {
+                location_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/svg+xml": unknown;
+                    "image/png": unknown;
                 };
             };
             /** @description Unauthorized */

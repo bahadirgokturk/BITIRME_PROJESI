@@ -41,6 +41,8 @@ Yanıt `Page[LocationOption]` (`id, parent_id, kind, code, name, path, aliases`)
 alanları dönmez. Bildirim formu bunu kullanır; yönetim `/admin/locations`'tadır.
 `?q=`: ad, kod ve takma adlarda arama (Türkçe normalize: "kutuphane" → "Kütüphane"; büyük/küçük harf fark etmez);
 `total` filtrelenmiş sayıdır. Kampüs ölçeğinde (yüzlerce konum) bellekte filtrelenir.
+`GET /locations/{id}`: aynı alanlarla tek konum; QR'dan açılan form (`/report?location=<id>`) konumu bununla
+alır. Başka kurumun ya da pasif konum → `404`.
 
 ## Cases
 ✅ **Uygulandı (E3-1):** `POST /cases`, `GET /cases`, `GET /cases/mine`, `GET /cases/{id}`,
@@ -204,6 +206,9 @@ Rol kontrolü girdi doğrulamasından önce çalışır. Başka kurumun kaydı `
   Lokasyon `path`'i sunucuda hesaplanır (`KMP/B/B-2`); liste ağaç sırasında (`path`'e göre) döner. Lokasyon
   taşınınca (`parent_id`) tüm alt ağacın `path`'i güncellenir; `parent_id: null` köke taşır; kendi altına
   taşıma → `422 INVALID_PARENT`. Lokasyon kodunda `/` kullanılamaz.
+  **QR:** `GET /admin/locations/{id}/qr?format=svg|png` (varsayılan SVG) kapıya asılacak kodu döner; içinde
+  yalnız `<uygulama adresi>/report?location=<id>` vardır (adres `PUBLIC_APP_URL`, yoksa ilk `CORS_ORIGINS`).
+  Dosya adı `qr-<kod>.svg`. Okutan kişi giriş yapar; konum ve yetki sunucuda yeniden kontrol edilir.
 - ✅ **`/admin/users`** uygulandı. E-posta küçük harfe çevrilip saklanır ve tüm sistemde tekildir (tekrar →
   `409 CONFLICT`); parola en az 8 karakter, yanıtta asla dönmez. Rol kuralları (ihlal → `422 INVALID_USER_ROLE`):
   `REPORTER` → `reporter_kind` zorunlu; diğer rollerde `reporter_kind` boş; `STAFF`/`MANAGER` → `department_id`
