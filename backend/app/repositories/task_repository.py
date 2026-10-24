@@ -1,12 +1,13 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import Any
 
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import ColumnElement, and_, func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.models import Case, Task
-from app.models.enums import TaskStatus
-from app.schemas.common import PageParams
+from app.models.enums import Priority, TaskStatus
+from app.schemas.common import ListOrder, PageParams
 
 _WITH_SUMMARIES = (
     selectinload(Task.case).selectinload(Case.location),
@@ -23,6 +24,9 @@ class StaffQueue:
     user_id: int
     department_id: int | None
     statuses: Sequence[TaskStatus]
+    priorities: Sequence[Priority] = ()
+    # Bos: en acil once (SLA hedefi en yakin); dolu: bildirimin acilis zamanina gore
+    order: ListOrder | None = None
 
 
 def add(session: Session, task: Task) -> Task:
@@ -63,12 +67,22 @@ def list_queue(
             or_(mine, department_pool) if queue.department_id is not None else mine,
         )
     )
+    if queue.priorities:
+        query = query.where(Case.priority.in_(queue.priorities))
     total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
     items = session.scalars(
         query.options(*_WITH_SUMMARIES)
-        # En acil once: SLA hedefi olanlar yakin tarihe gore, olmayanlar sonda
-        .order_by(Case.due_at.asc().nulls_last(), Task.created_at, Task.id)
+        .order_by(*_ordering(queue.order))
         .offset(paging.offset)
         .limit(paging.page_size)
     ).all()
     return items, total
+
+
+def _ordering(order: ListOrder | None) -> tuple[ColumnElement[Any], ...]:
+    if order is ListOrder.NEWEST:
+        return Case.created_at.desc(), Task.id.desc()
+    if order is ListOrder.OLDEST:
+        return Case.created_at.asc(), Task.id.asc()
+    # En acil once: SLA hedefi olanlar yakin tarihe gore, olmayanlar sonda
+    return Case.due_at.asc().nulls_last(), Task.created_at.asc(), Task.id.asc()

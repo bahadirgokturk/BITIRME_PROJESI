@@ -119,18 +119,22 @@ class CaseService:
         return self.get(case.id)
 
     def search(self, search: CaseSearch, paging: PageParams) -> Page[CaseRead]:
-        filters = CaseFilter(
+        return self._page(scope_for(self._actor), self._filters(search), paging)
+
+    def list_mine(self, search: CaseSearch, paging: PageParams) -> Page[CaseRead]:
+        """Kendi bildirimlerim: kapsam rolden bagimsiz, yalniz bildirenin kendisi."""
+        scope = CaseScope(organization_id=self._actor.organization_id, reporter_id=self._actor.id)
+        return self._page(scope, self._filters(search), paging)
+
+    def _filters(self, search: CaseSearch) -> CaseFilter:
+        return CaseFilter(
             now=self._clock.now(),
             statuses=search.statuses,
-            priority=search.priority,
+            priorities=search.priorities,
             breached_only=search.breached_only,
             text=search.text,
+            order=search.order,
         )
-        return self._page(scope_for(self._actor), filters, paging)
-
-    def list_mine(self, paging: PageParams) -> Page[CaseRead]:
-        scope = CaseScope(organization_id=self._actor.organization_id, reporter_id=self._actor.id)
-        return self._page(scope, CaseFilter(now=self._clock.now()), paging)
 
     def get(self, case_id: int) -> CaseRead:
         return case_read(self._get(case_id), self._clock.now())

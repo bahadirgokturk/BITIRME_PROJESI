@@ -13,7 +13,6 @@ Tamamlanan isi Resolution Agent dogrular (E5-11, services/resolution_service.py)
 kapaliysa bildirim VERIFICATION'da manager'i bekler.
 """
 
-from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from datetime import datetime
 from typing import Any
@@ -34,7 +33,13 @@ from app.repositories import (
 from app.repositories.task_repository import StaffQueue
 from app.schemas.case import CaseRead
 from app.schemas.common import Page, PageParams
-from app.schemas.task import AssignRequest, CompleteRequest, DeclineRequest, TaskRead
+from app.schemas.task import (
+    AssignRequest,
+    CompleteRequest,
+    DeclineRequest,
+    TaskListQuery,
+    TaskRead,
+)
 from app.services.authorization import (
     ensure_can_view_case,
     ensure_can_view_task,
@@ -130,13 +135,15 @@ class TaskService:
 
     # --- Personel ----------------------------------------------------------------------
 
-    def mine(self, statuses: Sequence[TaskStatus], paging: PageParams) -> Page[TaskRead]:
+    def mine(self, query: TaskListQuery, paging: PageParams) -> Page[TaskRead]:
         queue = StaffQueue(
             organization_id=self._actor.organization_id,
             user_id=self._actor.id,
             department_id=self._actor.department_id,
             # Filtre verilmezse yalniz yapilacak isler (aktif gorevler)
-            statuses=list(statuses) or list(ACTIVE_TASK_STATUSES),
+            statuses=query.statuses or list(ACTIVE_TASK_STATUSES),
+            priorities=query.priorities,
+            order=query.order,
         )
         items, total = task_repository.list_queue(self._session, queue, paging)
         return Page(

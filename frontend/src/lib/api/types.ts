@@ -140,7 +140,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List My Cases */
+        /**
+         * List My Cases
+         * @description Kendi bildirimlerim; GET /cases ile ayni suzgec ve siralama secenekleri.
+         */
         get: operations["list_my_cases_api_v1_cases_mine_get"];
         put?: never;
         post?: never;
@@ -439,7 +442,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List My Tasks */
+        /**
+         * List My Tasks
+         * @description Varsayilan siralama en acil once; order=newest|oldest bildirimin acilis zamanina gore.
+         */
         get: operations["list_my_tasks_api_v1_tasks_mine_get"];
         put?: never;
         post?: never;
@@ -1714,6 +1720,12 @@ export interface components {
             automation_pct: components["schemas"]["KpiValue"];
             human_review_pct: components["schemas"]["KpiValue"];
         };
+        /**
+         * ListOrder
+         * @description Listelerde acilis zamanina gore siralama (?order=newest|oldest).
+         * @enum {string}
+         */
+        ListOrder: "newest" | "oldest";
         /** LocationCount */
         LocationCount: {
             /** Path */
@@ -2735,11 +2747,12 @@ export interface operations {
                 page?: number;
                 page_size?: number;
                 status?: components["schemas"]["CaseStatus"][] | null;
-                priority?: components["schemas"]["Priority"] | null;
+                priority?: components["schemas"]["Priority"][] | null;
                 /** @description Yalniz SLA'si asilan bildirimler */
                 sla_status?: "BREACHED" | null;
                 /** @description Numara, baslik ya da konum adinda arama (Turkce harflere duyarsiz) */
                 q?: string | null;
+                order?: components["schemas"]["ListOrder"];
             };
             header?: never;
             path?: never;
@@ -2877,6 +2890,13 @@ export interface operations {
             query?: {
                 page?: number;
                 page_size?: number;
+                status?: components["schemas"]["CaseStatus"][] | null;
+                priority?: components["schemas"]["Priority"][] | null;
+                /** @description Yalniz SLA'si asilan bildirimler */
+                sla_status?: "BREACHED" | null;
+                /** @description Numara, baslik ya da konum adinda arama (Turkce harflere duyarsiz) */
+                q?: string | null;
+                order?: components["schemas"]["ListOrder"];
             };
             header?: never;
             path?: never;
@@ -4227,6 +4247,8 @@ export interface operations {
         parameters: {
             query?: {
                 status?: components["schemas"]["TaskStatus"][] | null;
+                priority?: components["schemas"]["Priority"][] | null;
+                order?: components["schemas"]["ListOrder"] | null;
                 page?: number;
                 page_size?: number;
             };
