@@ -74,7 +74,7 @@ belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanı
 | GET | `/cases/mine` | R | kendi case'lerim |
 | GET | `/cases/{id}` | kapsam | detay (+ SLA durumu hesaplanmış) |
 | GET | `/cases/{id}/events` | kapsam | zaman çizelgesi (reporter'a filtrelenmiş) |
-| GET | `/cases/{id}/decisions` | M/A | agent kararları + gerekçeler (koşu sırasıyla; `run_id`, `reasons`, `output`) ✅; Türkçe başlıklar `agent_label` ("Sınıflandırma") ve `decision_label` ("Sabun bitti", "Müdüre yükseltildi"; bilinmiyorsa `null`, kod gösterilir) |
+| GET | `/cases/{id}/decisions` | M/A | agent kararları + gerekçeler (koşu sırasıyla; `run_id`, `reasons`, `output`) ✅; Türkçe başlıklar `agent_label` ("Sınıflandırma") ve `decision_label` ("Sabun bitti", "Yöneticiye iletildi"; bilinmiyorsa `null`, kod gösterilir). Sınıflandırma gerekçeleri türün adını yazar ("Model tahmini: Sabun bitti (%94)"); kod `evidence` içinde kalır |
 | POST | `/cases/{id}/info` | R (sahip) | NEEDS_INFO iken `{body}` → `ANALYZING`, yanıt herkese açık yorum olarak da eklenir ✅ |
 | POST | `/cases/{id}/comments` | kapsam (ADMIN hariç) | `{body, is_internal}` ✅ |
 | GET | `/cases/{id}/comments` | kapsam | yorumlar (reporter iç notları görmez) ✅ |
