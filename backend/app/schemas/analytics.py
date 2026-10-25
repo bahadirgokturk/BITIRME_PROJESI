@@ -252,6 +252,54 @@ class ProcessMapRead(BaseModel):
     variants: list[ProcessVariant]
 
 
+class DelayRiskLevel(StrEnum):
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+
+
+class DelayRiskFactor(BaseModel):
+    """Riski artiran bir ozellik (gerekce)."""
+
+    feature: str
+    # Kullaniciya gosterilen Turkce gerekce (acildiginda birimdeki acik is sayisi gibi)
+    label: str
+
+
+class DelayRiskItem(BaseModel):
+    case_id: int
+    case_number: str
+    title: str
+    department_name: str | None
+    due_at: datetime
+    # Hedef surenin ne kadari gecti (0-100)
+    elapsed_pct: float
+    risk_pct: float
+    level: DelayRiskLevel
+    factors: list[DelayRiskFactor]
+
+
+class DelayRiskModelInfo(BaseModel):
+    """Modelin durust olcumu: eski bildirimlerle egitildi, en yenilerde test edildi."""
+
+    train_cases: int
+    test_cases: int
+    # Zaman sirali testte ROC-AUC (0.5 = yazi tura, 1 = kusursuz); testte tek sinif varsa yok
+    auc: float | None
+    # Gecmiste suresi asilan bildirim orani
+    late_share_pct: float
+
+
+class DelayRiskRead(BaseModel):
+    model: DelayRiskModelInfo | None
+    # En riskli once (en fazla DELAY_RISK_LIST_LIMIT)
+    items: list[DelayRiskItem]
+    # Suresi zaten asilmis acik bildirim sayisi (risk degil, gecikme)
+    already_late: int
+    # Model kurulamadiysa nedeni
+    message: str | None = None
+
+
 class SummaryPeriod(StrEnum):
     WEEK = "7d"
     MONTH = "30d"

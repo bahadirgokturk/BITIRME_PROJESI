@@ -76,6 +76,13 @@ Her KPI önceki eşit uzunluktaki dönemle karşılaştırılır (`delta_pct`; �
   hemen sonra B: kaç kez, A'nın görüldüğü andan ortanca bekleme) ve en sık 10 yol (varyant; pay ve ortanca
   toplam süre). Örnek (60 günlük demo, 484 bildirim): düz yol %59,9 / 55 dk; yöneticiye iletilen yollar
   7–25 saat sürüyor → darboğaz iletme sonrası bekleme.
+- **Gecikme riski (`GET /analytics/delay-risk`):** açık bildirimin hedef süreyi aşma olasılığı. Model kurumun
+  son 180 gününden öğrenir: kapanmış bildirimler örnek, "çözüm hedeften sonra mı" etikettir. Özellikler yalnız
+  açılış anında bilinenler (tür kategorisi, öncelik, birim, hafta sonu/mesai dışı, birimin o anki açık iş
+  sayısı, hedef süre); sonradan öğrenilen bilgi girmez. Ölçeklenmiş özellikler + lojistik regresyon
+  (açıklanabilir: gerekçe = katsayı × değeri en yüksek 3 özellik). Ölçüm zaman sıralı: eski %70 ile eğit, en
+  yeni %30'da ROC-AUC. Seviye: olasılık ≥ 0,60 HIGH, ≥ 0,35 MEDIUM. 40'tan az kapanmış bildirim ya da tek sınıf
+  (hiç gecikme yok) → model kurulmaz. Demo (yerel, 425 kapanmış bildirim): AUC 0,85, gecikme oranı %28.
 
 ## 3. Agent Performansı
 

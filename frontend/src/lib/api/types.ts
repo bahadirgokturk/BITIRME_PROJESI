@@ -800,6 +800,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/analytics/delay-risk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Delay Risk
+         * @description SLA gecikme riski: acik bildirimler riske gore, gerekceleri ve modelin olcumuyle.
+         */
+        get: operations["delay_risk_api_v1_analytics_delay_risk_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/analytics/process-map": {
         parameters: {
             query?: never;
@@ -1618,6 +1638,68 @@ export interface components {
         DeclineRequest: {
             /** Reason */
             reason: string;
+        };
+        /**
+         * DelayRiskFactor
+         * @description Riski artiran bir ozellik (gerekce).
+         */
+        DelayRiskFactor: {
+            /** Feature */
+            feature: string;
+            /** Label */
+            label: string;
+        };
+        /** DelayRiskItem */
+        DelayRiskItem: {
+            /** Case Id */
+            case_id: number;
+            /** Case Number */
+            case_number: string;
+            /** Title */
+            title: string;
+            /** Department Name */
+            department_name: string | null;
+            /**
+             * Due At
+             * Format: date-time
+             */
+            due_at: string;
+            /** Elapsed Pct */
+            elapsed_pct: number;
+            /** Risk Pct */
+            risk_pct: number;
+            level: components["schemas"]["DelayRiskLevel"];
+            /** Factors */
+            factors: components["schemas"]["DelayRiskFactor"][];
+        };
+        /**
+         * DelayRiskLevel
+         * @enum {string}
+         */
+        DelayRiskLevel: "LOW" | "MEDIUM" | "HIGH";
+        /**
+         * DelayRiskModelInfo
+         * @description Modelin durust olcumu: eski bildirimlerle egitildi, en yenilerde test edildi.
+         */
+        DelayRiskModelInfo: {
+            /** Train Cases */
+            train_cases: number;
+            /** Test Cases */
+            test_cases: number;
+            /** Auc */
+            auc: number | null;
+            /** Late Share Pct */
+            late_share_pct: number;
+        };
+        /** DelayRiskRead */
+        DelayRiskRead: {
+            model: components["schemas"]["DelayRiskModelInfo"] | null;
+            /** Items */
+            items: components["schemas"]["DelayRiskItem"][];
+            /** Already Late */
+            already_late: number;
+            /** Message */
+            message?: string | null;
         };
         /** DepartmentCreate */
         DepartmentCreate: {
@@ -5636,6 +5718,77 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RecurringRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    delay_risk_api_v1_analytics_delay_risk_get: {
+        parameters: {
+            query?: {
+                from?: string | null;
+                to?: string | null;
+                department_id?: number | null;
+                /** @description Bina lokasyonunun id'si */
+                building_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DelayRiskRead"];
                 };
             };
             /** @description Unauthorized */
