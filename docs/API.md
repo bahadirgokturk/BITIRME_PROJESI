@@ -187,6 +187,7 @@ yüzde (0–100); veri yoksa `null` (ekran "–" gösterir). KPI kartları `{val
 | GET | `/analytics/departments` | ✅ departman performansı |
 | GET | `/analytics/recurring` | ✅ tekrarlayan problemler |
 | GET | `/analytics/process` | ✅ event log'dan ortalama adım süreleri (darboğaz) |
+| GET | `/analytics/delay-risk` | ✅ SLA gecikme riski: açık bildirimler riske göre (`risk_pct`, `level` LOW/MEDIUM/HIGH, Türkçe `factors`), `already_late` (süresi zaten aşılmış), modelin ölçümü (`model.auc`, zaman sıralı test); yeterli geçmiş yoksa `model: null` + `message`. Birim/bina filtresi listeye uygulanır, dönem filtresi kullanılmaz |
 | GET | `/analytics/process-map` | ✅ süreç madenciliği: adımlar (`activities`), doğrudan-takip okları (`edges`: sayı + ortanca bekleme dk) ve en sık 10 yol (`variants`: pay %, ortanca toplam süre); Türkçe adlar `label`/`labels` |
 | POST | `/analytics/summary` | ✅ `{period: "7d"\|"30d"}` → KPI JSON + doğal dil özeti. Kurum geneli (filtre yok); girdi dashboard uçlarıyla aynı servislerden; `LLM_PROVIDER=none` iken yalnız şablon metin |
 

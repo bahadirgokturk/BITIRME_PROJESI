@@ -95,3 +95,17 @@ ROUTINE_MIN_EVERY_DAYS = 1
 HOURS_PER_DAY = 24
 # Surec haritasi: en sik yollardan kac tanesi gosterilir (geri kalan uzun kuyruk okunmaz)
 PROCESS_VARIANT_LIMIT = 10
+# SLA gecikme riski (analytics/delay_risk.py): bundan az kapanmis bildirimle model kurulmaz
+DELAY_RISK_MIN_CASES = 40
+# Zaman sirali olcum: en yeni %30 test (egitimde gorulmez)
+DELAY_RISK_HOLDOUT_SHARE = 0.3
+# Gerekce olarak gosterilen en etkili ozellik sayisi
+DELAY_RISK_FACTOR_LIMIT = 3
+# Egitim gecmisi: son ~6 ay (donem ve mevsim degisince eski davranis unutulur)
+DELAY_RISK_HISTORY_DAYS = 180
+# Risk seviyeleri (model olasiligi); ust sinir kurumun gecmisine gore ayarlanabilir
+DELAY_RISK_HIGH = 0.6
+DELAY_RISK_MEDIUM = 0.35
+# Risk listesinde gosterilen en riskli acik bildirim sayisi
+DELAY_RISK_LIST_LIMIT = 20
+MINUTES_PER_HOUR = 60

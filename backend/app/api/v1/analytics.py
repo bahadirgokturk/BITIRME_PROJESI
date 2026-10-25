@@ -27,6 +27,7 @@ from app.schemas.analytics import (
     AgentMetricsRead,
     AgingRead,
     CategoriesRead,
+    DelayRiskRead,
     DepartmentsRead,
     Granularity,
     KpisRead,
@@ -43,6 +44,7 @@ from app.schemas.analytics import (
 )
 from app.services.agent_metrics_service import AgentMetricsService
 from app.services.analytics_service import AnalyticsService
+from app.services.delay_risk_service import DelayRiskService
 from app.services.operations_analytics_service import OperationsAnalyticsService
 from app.services.summary_service import SummaryService
 
@@ -100,6 +102,17 @@ def get_operations_service(
 
 
 Operations = Annotated[OperationsAnalyticsService, Depends(get_operations_service)]
+
+
+def get_delay_risk_service(
+    session: Annotated[Session, Depends(get_session)],
+    user: CurrentUser,
+    clock: Annotated[Clock, Depends(get_clock)],
+) -> DelayRiskService:
+    return DelayRiskService(session, user, clock)
+
+
+DelayRisk = Annotated[DelayRiskService, Depends(get_delay_risk_service)]
 
 
 def get_summary_service(
@@ -175,6 +188,12 @@ def departments(filters: Filter, service: Operations) -> DepartmentsRead:
 def recurring(filters: Filter, service: Operations) -> RecurringRead:
     """Tekrarlayan sorunlar: ayni yer + tur, donem sonuna kadarki 30 gunde esik ve ustu."""
     return service.recurring(filters)
+
+
+@router.get("/delay-risk")
+def delay_risk(filters: Filter, service: DelayRisk) -> DelayRiskRead:
+    """SLA gecikme riski: acik bildirimler riske gore, gerekceleri ve modelin olcumuyle."""
+    return service.read(filters)
 
 
 @router.get("/process-map")

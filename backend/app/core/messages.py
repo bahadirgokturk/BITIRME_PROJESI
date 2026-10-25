@@ -44,6 +44,19 @@ ROUTINE_GAP_HOURS = "{hours} saatte"
 ROUTINE_EVERY_DAYS = "{days} günde bir"
 ROUTINE_EVERY_DAY = "her gün"
 
+# SLA gecikme riski gerekceleri (analytics/delay_risk.py ozellikleri)
+DELAY_RISK_NO_MODEL = (
+    "Gecikme riski için yeterli geçmiş yok: en az {count} kapanmış ve hem zamanında hem geç "
+    "biten bildirim gerekli."
+)
+DELAY_FACTOR_PRIORITY = "Öncelik: {value}"
+DELAY_FACTOR_BACKLOG = "Açıldığında birimde {value} açık iş vardı"
+DELAY_FACTOR_WEEKEND = "Hafta sonu açıldı"
+DELAY_FACTOR_AFTER_HOURS = "Mesai dışında açıldı"
+DELAY_FACTOR_SLA = "Hedef süre {value} saat"
+DELAY_FACTOR_CATEGORY = "Kategori: {value}"
+DELAY_FACTOR_DEPARTMENT = "Birim: {value}"
+
 # Surec haritasindaki adimlarin adlari (analytics/process_map.py MAP_ACTIVITIES)
 PROCESS_ACTIVITY_LABELS = {
     "CASE_CREATED": "Bildirim açıldı",
