@@ -27,7 +27,7 @@ const VIEWS: { value: ListView; label: string; Icon: typeof ListIcon }[] = [
 ];
 
 // Liste ya da kare kart: secili olan aria-pressed ile soylenir, simge tek basina anlam tasimaz (UI_GUIDE bolum 8)
-function ViewToggle({ value, onChange }: { value: ListView; onChange: (view: ListView) => void }) {
+export function ViewToggle({ value, onChange }: { value: ListView; onChange: (view: ListView) => void }) {
   return (
     <div role="group" aria-label="Görünüm" className="flex shrink-0 gap-0.5 rounded-lg border p-0.5">
       {VIEWS.map(({ value: view, label, Icon }) => (

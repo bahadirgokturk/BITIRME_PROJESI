@@ -5,6 +5,7 @@ import { delay, http, HttpResponse } from "msw";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
+import { listViewKey } from "@/lib/listTools";
 import { createQueryClient } from "@/lib/queryClient";
 import { resetReviewQueue } from "@/mocks/managerHandlers";
 import { server } from "@/mocks/node";
@@ -67,6 +68,34 @@ describe("ReviewQueue", () => {
     // Kararlarin Turkce adi API'den gelir (decision_label); kod gosterilmez
     expect(within(panel).getByText("Müdüre yükseltildi")).toBeInTheDocument();
     expect(within(panel).queryByText("ESCALATE")).not.toBeInTheDocument();
+  });
+
+  it("shows the queue as square cards that keep the actions and link to the case details", async () => {
+    const user = renderQueue();
+    await card(SAFETY);
+
+    await user.click(screen.getByRole("button", { name: "Kart görünümü" }));
+
+    expect(screen.getByRole("button", { name: "Kart görünümü" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("list", { name: "İnceleme kuyruğu" })).toHaveAttribute("data-view", "grid");
+    const safety = await card(SAFETY);
+    expect(within(safety).getByText("Yöneticiye iletildi")).toBeInTheDocument();
+    expect(within(safety).getByText("Güven %91")).toBeInTheDocument();
+    expect(within(safety).getByText(/^Öneri: Elektrik arızası · Kritik · /)).toBeInTheDocument();
+    expect(within(safety).getByRole("button", { name: "Onayla ve ata" })).toBeInTheDocument();
+    const details = within(safety).getByRole("link", { name: "Ayrıntı" });
+    expect(details).toHaveAttribute("href", expect.stringMatching(/^\/manager\/cases\/\d+$/));
+    // Gerekce paneli karta sigmaz; ayrintida okunur
+    expect(within(safety).queryByRole("button", { name: "Yapay zekâ gerekçesi" })).not.toBeInTheDocument();
+    expect(window.localStorage.getItem(listViewKey("review"))).toBe("grid");
+  });
+
+  it("opens in the list view with the full rows by default", async () => {
+    renderQueue();
+    await card(SAFETY);
+
+    expect(screen.getByRole("list", { name: "İnceleme kuyruğu" })).toHaveAttribute("data-view", "list");
+    expect(screen.getByRole("button", { name: "Liste görünümü" })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("approves the suggestion and assigns the case to the suggested department", async () => {

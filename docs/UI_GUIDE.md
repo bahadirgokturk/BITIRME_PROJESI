@@ -262,6 +262,10 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
 
 - **İnceleme kuyruğu:** Her satırda AI önerisi (tip, öncelik, departman), güven skoru ve **neden buraya düştü**
   (düşük güven / olası tekrar / güvenlik). Satırdan çıkmadan: onayla · düzelt (override) · birleştir · reddet.
+  Sağ üstte **Liste / Kart** düğmeleri (`ViewToggle`; seçim cihazda hatırlanır). Kare kart (`ReviewTile`): başlık
+  iki satır, neden ve "Öneri: tür · öncelik · birim" kısaltılır, işlem düğmeleri aynen kalır; gerekçe paneli yerine
+  "Ayrıntı" bildirim detayına gider. Telefonda tek, geniş ekranda üç sütun (Figma: `/manager/review-queue - … - kart
+  görünümü`).
 - **AI karar gerekçe paneli** (projenin en özgün bileşeni): her agent için karar, güven (yüzde + çubuk), gerekçe maddeleri
   (ör. "‘kıvılcım’ kelimesi → güvenlik +30"), kullanılan model (`tfidf-logreg@…`, `rules@1.0`). Düzeltme yapılırsa
   gerekçe zorunludur; bu kayıt modelin yeniden eğitimi için veri olur.

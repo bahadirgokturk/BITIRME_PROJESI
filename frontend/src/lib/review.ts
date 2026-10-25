@@ -76,6 +76,17 @@ export function priorityLabel(priority: Priority): string {
   return PRIORITY_LABELS[priority];
 }
 
+// Kare kartta AI onerisi tek satir: tur, oncelik, birim; eksik parca adiyla soylenir (Figma: ReviewTile)
+export function suggestionSummary(item: ReviewItem): string {
+  const { case_type, priority, department } = item.case;
+  const parts = [
+    case_type?.name ?? "Tür belirlenmedi",
+    priority ? priorityLabel(priority) : "Öncelik belirlenmedi",
+    department?.name ?? "Birim belirlenmedi",
+  ];
+  return `Öneri: ${parts.join(" · ")}`;
+}
+
 const PERCENT = 100;
 
 export function confidencePercent(value: number | null): string | null {

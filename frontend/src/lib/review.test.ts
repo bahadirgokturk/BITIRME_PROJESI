@@ -12,6 +12,7 @@ import {
   priorityLabel,
   reviewActions,
   reviewBadge,
+  suggestionSummary,
   weightDetail,
 } from "./review";
 
@@ -174,5 +175,23 @@ describe("override fields", () => {
 
   it("starts empty when the AI made no suggestion", () => {
     expect(currentOverrideValue({ ...base, department: null }, "department")).toBe("");
+  });
+});
+
+describe("suggestionSummary", () => {
+  it("puts the AI's type, priority and unit on one line for the square card", () => {
+    const routed = CASES.find((each) => each.case_type && each.department) ?? base;
+    const suggested = item({ case: { ...routed, priority: "HIGH" } });
+
+    expect(suggestionSummary(suggested)).toBe(
+      `Öneri: ${routed.case_type?.name} · Yüksek · ${routed.department?.name}`,
+    );
+    expect(suggestionSummary(suggested)).not.toMatch(/undefined|belirlenmedi/);
+  });
+
+  it("names each missing part instead of leaving a gap", () => {
+    const empty = item({ case: { ...base, case_type: null, priority: null, department: null } });
+
+    expect(suggestionSummary(empty)).toBe("Öneri: Tür belirlenmedi · Öncelik belirlenmedi · Birim belirlenmedi");
   });
 });

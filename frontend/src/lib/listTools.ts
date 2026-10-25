@@ -65,7 +65,7 @@ export function taskListSummary(count: number, order: ListOrder): string {
 }
 
 // Gorunum secimi bu cihazda liste basina saklanir (docs/UI_GUIDE.md bolum 5); kisisel veri degildir
-export type ListName = "my-cases" | "tasks" | "cases";
+export type ListName = "my-cases" | "tasks" | "cases" | "review";
 
 export function listViewKey(list: ListName): string {
   return `bakircayflow-view-${list}`;

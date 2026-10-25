@@ -63,6 +63,7 @@ describe("remembered view", () => {
   it("keeps one choice per list on this device", () => {
     expect(listViewKey("my-cases")).toBe("bakircayflow-view-my-cases");
     expect(listViewKey("tasks")).not.toBe(listViewKey("cases"));
+    expect(listViewKey("review")).toBe("bakircayflow-view-review");
   });
 
   it("opens a stored card view and falls back to the list for anything else", () => {

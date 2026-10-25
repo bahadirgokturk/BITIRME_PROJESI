@@ -36,18 +36,31 @@ function Suggestion({ item }: { item: ReviewItem }) {
   );
 }
 
-function ItemHeader({ item, titleId }: { item: ReviewItem; titleId: string }) {
+// Kare kartta baslik kucuk ve iki satirla sinirli (Figma: ReviewTile)
+const HEADER_TEXT = {
+  row: { title: "font-semibold", location: "text-sm text-muted-foreground" },
+  tile: { title: "line-clamp-2 text-sm font-semibold break-words", location: "text-xs text-muted-foreground" },
+} as const;
+
+interface ItemHeaderProps {
+  item: ReviewItem;
+  titleId: string;
+  layout?: keyof typeof HEADER_TEXT;
+}
+
+export function ItemHeader({ item, titleId, layout = "row" }: ItemHeaderProps) {
   const badge = reviewBadge(item);
+  const text = HEADER_TEXT[layout];
   return (
     <div className="flex items-start justify-between gap-4">
-      <div className="space-y-1">
+      <div className="min-w-0 space-y-1">
         <p className="text-xs text-muted-foreground">
           {item.case.case_number} · {relativeTime(item.case.created_at)}
         </p>
-        <h2 id={titleId} className="font-semibold">
+        <h2 id={titleId} className={text.title}>
           {item.case.title}
         </h2>
-        <p className="text-sm text-muted-foreground">{item.case.location.name}</p>
+        <p className={text.location}>{item.case.location.name}</p>
       </div>
       <div className="flex shrink-0 flex-col items-end gap-2">
         <span className={cn("rounded-full px-2.5 py-1 text-xs font-medium", TONE_CLASS[badge.tone])}>{badge.label}</span>
