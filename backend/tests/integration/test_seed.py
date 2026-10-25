@@ -171,8 +171,8 @@ def test_seed_creates_an_autonomy_policy_per_case_type(db_session: Session) -> N
 
     assert _count(db_session, AgentPolicy, organization) == 19
     assert (soap.scope, soap.autonomy_level) == (PolicyScope.CASE_TYPE, AutonomyLevel.L1_AUTONOMOUS)
-    # L2: agent uygular, manager bilgilendirilir
-    assert (projector.autonomy_level, projector.notify_manager) == (AutonomyLevel.L2_NOTIFY, True)
+    # L2: agent uygular, manager bilgilendirilir (haber vermek seviyenin kendisi)
+    assert projector.autonomy_level is AutonomyLevel.L2_NOTIFY
     assert electrical.autonomy_level is AutonomyLevel.L3_ESCALATE
     assert float(soap.min_confidence_auto) == 0.7
 

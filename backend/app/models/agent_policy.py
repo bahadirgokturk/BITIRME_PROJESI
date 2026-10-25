@@ -13,7 +13,6 @@ from sqlalchemy import (
     Enum,
     ForeignKey,
     UniqueConstraint,
-    false,
     true,
 )
 from sqlalchemy.orm import Mapped, mapped_column
@@ -55,5 +54,5 @@ class AgentPolicy(IdMixin, Base):
     )
     # Siniflandirma guveni bunun altindaysa insan incelemesi (Supervisor kural 5)
     min_confidence_auto: Mapped[Decimal] = mapped_column(SCORE)
-    notify_manager: Mapped[bool] = mapped_column(Boolean, server_default=false())
+    # Mudure haber ayri bir ayar degil: L2_NOTIFY'in kendisi (Supervisor seviyeye bakar, #93)
     is_active: Mapped[bool] = mapped_column(Boolean, server_default=true())

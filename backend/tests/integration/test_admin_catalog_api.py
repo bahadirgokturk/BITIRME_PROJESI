@@ -78,7 +78,8 @@ def test_new_case_type_gets_a_default_agent_policy(client: TestClient, admin: He
     assert policies[0]["case_type_id"] == created["id"]
     assert policies[0]["autonomy_level"] == "L2_NOTIFY"
     assert policies[0]["min_confidence_auto"] == pytest.approx(0.70)
-    assert policies[0]["notify_manager"] is True
+    # Mudure haber seviyeden gelir (L2 = haber verir); ayri bir ayar yok (#93)
+    assert "notify_manager" not in policies[0]
 
 
 def test_duplicate_case_type_code_is_409(client: TestClient, admin: Headers) -> None:
@@ -300,7 +301,7 @@ def test_policy_update(client: TestClient, admin: Headers) -> None:
     assert response.status_code == 200, response.text
     assert response.json()["autonomy_level"] == "L1_AUTONOMOUS"
     assert response.json()["min_confidence_auto"] == pytest.approx(0.85)
-    assert response.json()["notify_manager"] is True
+    assert "notify_manager" not in response.json()
 
 
 def test_confidence_above_one_is_422(client: TestClient, admin: Headers) -> None:
@@ -321,7 +322,9 @@ def test_policy_of_another_organization_is_404(
     foreign = client.get(f"{ADMIN}/agent-policies", headers=other_admin).json()["items"][0]
 
     response = client.patch(
-        f"{ADMIN}/agent-policies/{foreign['id']}", json={"notify_manager": False}, headers=admin
+        f"{ADMIN}/agent-policies/{foreign['id']}",
+        json={"autonomy_level": "L3_ESCALATE"},
+        headers=admin,
     )
 
     assert response.status_code == 404

@@ -100,7 +100,7 @@ Orchestrator sıralı ve basittir (Python fonksiyonları). LangChain/LangGraph k
 - Bildirim bu arada `ANALYZING` dışına çıktıysa (manager el koydu) hat hiçbir şey yapmaz.
 - Fotoğraf bildirimden sonra ayrı istekle yüklendiği için analiz anında `has_photo=false` (Verification'ın
   fotoğraf sinyali ileride yeniden analizle kullanılacak). L2 "manager'a bildirim" henüz yalnız kararda
-  (`notify_manager`); bildirim tablosu FAZ 6.
+  (Supervisor çıktısı `notify_manager`, seviyeden hesaplanır; politikada ayrı bir ayar yok); bildirim tablosu FAZ 6.
 - **Acil durum anahtarı:** `AGENTS_ENABLED=false` → hat çalışmaz, bildirim manager'ı bekler (FAZ 4 davranışı).
 - Kararlar: `GET /cases/{id}/decisions` (MANAGER, ADMIN).
 

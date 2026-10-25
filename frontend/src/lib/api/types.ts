@@ -1224,8 +1224,6 @@ export interface components {
             autonomy_level: components["schemas"]["AutonomyLevel"];
             /** Min Confidence Auto */
             min_confidence_auto: number;
-            /** Notify Manager */
-            notify_manager: boolean;
             /** Is Active */
             is_active: boolean;
         };
@@ -1234,8 +1232,6 @@ export interface components {
             autonomy_level?: components["schemas"]["AutonomyLevel"] | null;
             /** Min Confidence Auto */
             min_confidence_auto?: number | null;
-            /** Notify Manager */
-            notify_manager?: boolean | null;
         };
         /** AgingBucket */
         AgingBucket: {

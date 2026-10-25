@@ -188,8 +188,6 @@ def _upsert_policy(
     fields = {
         "autonomy_level": autonomy,
         "min_confidence_auto": Decimal(MIN_CONFIDENCE_AUTO_DEFAULT),
-        # L2: agent uygular, manager bilgilendirilir (docs/AGENTS.md bolum 5)
-        "notify_manager": autonomy is AutonomyLevel.L2_NOTIFY,
         "is_active": True,
     }
     policy = agent_policy_repository.get_for_case_type(session, organization_id, case_type_id)

@@ -104,14 +104,12 @@ class AgentPolicyRead(BaseModel):
     category: CaseCategory | None
     autonomy_level: AutonomyLevel
     min_confidence_auto: float
-    notify_manager: bool
     is_active: bool
 
 
 class AgentPolicyUpdate(BaseModel):
     autonomy_level: AutonomyLevel | None = None
     min_confidence_auto: float | None = Field(default=None, ge=0, le=1)
-    notify_manager: bool | None = None
 
 
 def ensure_resolution_after_response(response_minutes: int, resolution_minutes: int) -> None:
