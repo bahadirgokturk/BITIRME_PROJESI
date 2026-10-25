@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   CASE_ORDERS,
   listParams,
+  listViewKey,
+  parseListView,
   PRIORITY_FILTER_OPTIONS,
   priorityFilterSummary,
   TASK_ORDERS,
@@ -54,5 +56,19 @@ describe("taskListSummary", () => {
     ["oldest", "4 açık görev · en eski olan üstte"],
   ] as const)("says which task is on top for %s", (order, text) => {
     expect(taskListSummary(4, order)).toBe(text);
+  });
+});
+
+describe("remembered view", () => {
+  it("keeps one choice per list on this device", () => {
+    expect(listViewKey("my-cases")).toBe("bakircayflow-view-my-cases");
+    expect(listViewKey("tasks")).not.toBe(listViewKey("cases"));
+  });
+
+  it("opens a stored card view and falls back to the list for anything else", () => {
+    expect(parseListView("grid")).toBe("grid");
+    expect(parseListView("list")).toBe("list");
+    expect(parseListView(null)).toBe("list");
+    expect(parseListView("tablo")).toBe("list");
   });
 });

@@ -7,6 +7,7 @@ import { ErrorState } from "@/components/states/ErrorState";
 import { Button } from "@/components/ui/button";
 import { useCaseList } from "@/hooks/useCases";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useListView } from "@/hooks/useListView";
 import { ApiError } from "@/lib/api/client";
 import type { ListView } from "@/lib/listTools";
 import {
@@ -171,7 +172,7 @@ interface CaseListProps {
 
 export function CaseList({ view = "all", initialGroup = "all" }: CaseListProps) {
   const [filters, setFilters] = useState<Filters>({ ...DEFAULT_FILTERS, group: initialGroup });
-  const [layout, setLayout] = useState<ListView>("list");
+  const [layout, setLayout] = useListView("cases");
   const search = useDebouncedValue(filters.search, SEARCH_DELAY_MS);
   const applied = { ...filters, search };
   const query = useCaseList(applied);

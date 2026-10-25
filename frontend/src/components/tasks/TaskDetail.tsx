@@ -4,6 +4,8 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { cn } from "cn";
+
 import { PageTitle } from "@/components/layout/PageTitle";
 import { CaseComments } from "@/components/cases/CaseComments";
 import { ErrorState } from "@/components/states/ErrorState";
@@ -99,7 +101,7 @@ function NotFound() {
     <div className="flex flex-col items-center gap-2 py-12 text-center">
       <p className="font-semibold">Kayıt bulunamadı</p>
       <p className="text-sm text-muted-foreground">Bu görev yok ya da sana atanmamış.</p>
-      <Link href="/staff/tasks" className={buttonVariants({ className: "mt-2 h-11 px-4" })}>
+      <Link href="/staff/tasks" className={cn(buttonVariants({ className: "mt-2 h-11 px-4" }))}>
         Görevlerime dön
       </Link>
     </div>

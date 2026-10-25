@@ -4,6 +4,8 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
+import { cn } from "cn";
+
 import { PageTitle } from "@/components/layout/PageTitle";
 import { PrintMeta } from "@/components/print/PrintButton";
 import { ErrorState } from "@/components/states/ErrorState";
@@ -72,7 +74,7 @@ function NotFound() {
     <div className="flex flex-col items-center gap-2 py-12 text-center">
       <p className="font-semibold">Birim bulunamadı</p>
       <p className="text-sm text-muted-foreground">Bu birim kaldırılmış olabilir ya da görüntüleme yetkiniz yok.</p>
-      <Link href={DEPARTMENTS_PATH} className={buttonVariants({ className: "mt-2 h-11 px-4" })}>
+      <Link href={DEPARTMENTS_PATH} className={cn(buttonVariants({ className: "mt-2 h-11 px-4" }))}>
         Birim Performansı&apos;na dön
       </Link>
     </div>

@@ -1,6 +1,8 @@
 import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
 
+import { cn } from "cn";
+
 import { LogoWordmark } from "@/components/brand/Logo";
 import { WaitingBell } from "@/components/cases/WaitingBell";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
@@ -17,7 +19,7 @@ interface MobileAppBarProps {
   user: ShellUser;
 }
 
-const ICON_BUTTON = buttonVariants({ variant: "ghost", className: "size-11" });
+const ICON_BUTTON = cn(buttonVariants({ variant: "ghost", className: "size-11" }));
 
 // Telefonda ustte sabit cubuk (PWA tam ekranda tarayici cubugu yok). Ana sayfalarda menu + logo,
 // alt sayfalarda geri + baslik (Figma: MobileAppBar, Tur=Menu / Tur=Geri)

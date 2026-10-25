@@ -21,6 +21,15 @@ function Harness() {
 }
 
 describe("CheckboxFilter", () => {
+  it("draws the same visible border as the other fields next to it", () => {
+    render(<Harness />);
+    const trigger = screen.getByRole("button", { name: "Birimler: Tümü" });
+
+    // Dugmenin varsayilan seffaf kenarligi birlestirilince silinmeli; yoksa acik temada kenarlik gorunmez
+    expect(trigger).toHaveClass("border-border");
+    expect(trigger).not.toHaveClass("border-transparent");
+  });
+
   it("opens a list of ticks and narrows the choice", async () => {
     render(<Harness />);
     const user = userEvent.setup();

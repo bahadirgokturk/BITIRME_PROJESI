@@ -3,6 +3,8 @@
 import { ArrowLeft, UsersIcon } from "lucide-react";
 import Link from "next/link";
 
+import { cn } from "cn";
+
 import { PageTitle } from "@/components/layout/PageTitle";
 import { ErrorState } from "@/components/states/ErrorState";
 import { buttonVariants } from "@/components/ui/button";
@@ -83,7 +85,7 @@ function NotFound() {
       <p className="text-sm text-muted-foreground">
         Bu bildirim silinmiş olabilir ya da görüntüleme yetkiniz yok.
       </p>
-      <Link href="/my-cases" className={buttonVariants({ className: "mt-2 h-11 px-4" })}>
+      <Link href="/my-cases" className={cn(buttonVariants({ className: "mt-2 h-11 px-4" }))}>
         Bildirimlerime dön
       </Link>
     </div>

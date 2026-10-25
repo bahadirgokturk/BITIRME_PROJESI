@@ -4,6 +4,8 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
+import { cn } from "cn";
+
 import { CaseComments } from "@/components/cases/CaseComments";
 import { ErrorState } from "@/components/states/ErrorState";
 import { buttonVariants } from "@/components/ui/button";
@@ -74,7 +76,7 @@ function NotFound({ view }: { view: CaseListView }) {
     <div className="flex flex-col items-center gap-2 py-12 text-center">
       <p className="font-semibold">Kayıt bulunamadı</p>
       <p className="text-sm text-muted-foreground">Bu bildirim silinmiş olabilir ya da görüntüleme yetkiniz yok.</p>
-      <Link href={path} className={buttonVariants({ className: "mt-2 h-11 px-4" })}>
+      <Link href={path} className={cn(buttonVariants({ className: "mt-2 h-11 px-4" }))}>
         {backText}
       </Link>
     </div>

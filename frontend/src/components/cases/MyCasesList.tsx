@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { cn } from "cn";
+
 import { FilterChips } from "@/components/filters/FilterChips";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { ListToolbar } from "@/components/lists/ListToolbar";
@@ -10,6 +12,7 @@ import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { ErrorState } from "@/components/states/ErrorState";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useMyCases } from "@/hooks/useCases";
+import { useListView } from "@/hooks/useListView";
 import { ApiError } from "@/lib/api/client";
 import { CASE_ORDERS, type ListView } from "@/lib/listTools";
 import { isMyCasesFiltered, MY_CASES_FILTERS, myCasesEmpty, type MyCasesQuery } from "@/lib/status";
@@ -28,7 +31,7 @@ const NETWORK_HINT = "Bağlantınızı kontrol edip tekrar deneyin.";
 
 function ReportLink() {
   return (
-    <Link href="/report" className={buttonVariants({ className: "h-12 w-full px-4 md:w-auto" })}>
+    <Link href="/report" className={cn(buttonVariants({ className: "h-12 w-full px-4 md:w-auto" }))}>
       Bildirim yap
     </Link>
   );
@@ -143,7 +146,7 @@ const ALL: MyCasesQuery = { status: "all", priorities: [], order: "newest" };
 
 export function MyCasesList() {
   const [filters, setFilters] = useState<MyCasesQuery>(ALL);
-  const [view, setView] = useState<ListView>("list");
+  const [view, setView] = useListView("my-cases");
   const query = useMyCases(filters);
   // Hic bildirimi yoksa: buton ortadaki metnin altinda, filtre ve araclar da gosterilmez
   const isEmpty = !isMyCasesFiltered(filters) && query.isSuccess && query.data.length === 0;

@@ -17,7 +17,8 @@ const MAINTENANCE = "Bakım Onarım ve Peyzaj Şube Müdürlüğü";
 type User = ReturnType<typeof userEvent.setup>;
 
 function renderScreen() {
-  const user = userEvent.setup();
+  // Tuslar arasinda bekleme yok: uzun metin yazan testler tam takimda zaman asimina dusmesin
+  const user = userEvent.setup({ delay: null });
   render(
     <QueryClientProvider client={createQueryClient()}>
       <CaseTypesScreen />
