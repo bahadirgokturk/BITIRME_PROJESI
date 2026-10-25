@@ -3,18 +3,34 @@
 import { useState } from "react";
 
 import { PageTitle } from "@/components/layout/PageTitle";
+import { ViewToggle } from "@/components/lists/ListToolbar";
 import { ErrorState } from "@/components/states/ErrorState";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useListView } from "@/hooks/useListView";
 import { useReviewQueue } from "@/hooks/useReview";
+import type { ListView } from "@/lib/listTools";
 
 import { ReviewItemCard } from "./ReviewItemCard";
+import { ReviewTile } from "./ReviewTile";
 
 // Iskelet kart sayisi: tasarimdaki ornek kuyruk kadar (Figma: /manager/review-queue - yukleniyor)
 const SKELETON_KEYS = ["s1", "s2", "s3"];
 
+// Kart gorunumu: telefonda tek sutun (dort islem dugmesi iki sutuna sigmaz), genis ekranda uc sutun
+const LIST_CLASS: Record<ListView, string> = {
+  list: "space-y-3",
+  grid: "grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3",
+};
+
 type QueueQuery = ReturnType<typeof useReviewQueue>;
 
-function QueueBody({ query, onDone }: { query: QueueQuery; onDone: (message: string) => void }) {
+interface QueueBodyProps {
+  query: QueueQuery;
+  view: ListView;
+  onDone: (message: string) => void;
+}
+
+function QueueBody({ query, view, onDone }: QueueBodyProps) {
   if (query.isPending) {
     return (
       <ul aria-label="İnceleme kuyruğu yükleniyor" aria-busy="true" className="space-y-3">
@@ -40,12 +56,15 @@ function QueueBody({ query, onDone }: { query: QueueQuery; onDone: (message: str
       </div>
     );
   }
+  const Item = view === "grid" ? ReviewTile : ReviewItemCard;
   return (
-    <div className="space-y-3">
+    <ul aria-label="İnceleme kuyruğu" data-view={view} className={LIST_CLASS[view]}>
       {query.data.items.map((item) => (
-        <ReviewItemCard key={item.case.id} item={item} onDone={onDone} />
+        <li key={item.case.id}>
+          <Item item={item} onDone={onDone} />
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }
 
@@ -53,23 +72,28 @@ export function ReviewQueue() {
   const query = useReviewQueue();
   // Son islemin sonucu ekran okuyucuya da duyurulur (kart kuyruktan kayboldugu icin)
   const [lastAction, setLastAction] = useState<string | null>(null);
+  const [view, setView] = useListView("review");
   return (
     <div className="mx-auto w-full max-w-[1120px] space-y-6">
-      <header className="flex items-end justify-between gap-4">
+      <header className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between md:gap-4">
         <div className="space-y-3">
           <PageTitle>İnceleme Kuyruğu</PageTitle>
           <p className="text-sm text-muted-foreground">
             Yapay zekânın emin olamadığı ya da size iletilen bildirimler. En kritik ve en eski üstte.
           </p>
         </div>
+        {/* Bos kuyrukta sayi da gorunum de yok; telefonda ayri satir: solda sayi, sagda gorunum */}
         {query.isSuccess && query.data.total > 0 ? (
-          <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium">{query.data.total} bildirim</span>
+          <div className="flex shrink-0 items-center justify-between gap-3">
+            <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium">{query.data.total} bildirim</span>
+            <ViewToggle value={view} onChange={setView} />
+          </div>
         ) : null}
       </header>
       <p role="status" className={lastAction ? "rounded-md bg-muted px-3 py-2 text-sm" : "sr-only"}>
         {lastAction}
       </p>
-      <QueueBody query={query} onDone={setLastAction} />
+      <QueueBody query={query} view={view} onDone={setLastAction} />
     </div>
   );
 }
