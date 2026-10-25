@@ -262,7 +262,7 @@ class DelayRiskFactor(BaseModel):
     """Riski artiran bir ozellik (gerekce)."""
 
     feature: str
-    # Ornek: "Acildiginda birimde 12 acik is vardi"
+    # Kullaniciya gosterilen Turkce gerekce (acildiginda birimdeki acik is sayisi gibi)
     label: str
 
 
