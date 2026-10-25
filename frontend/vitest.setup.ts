@@ -27,5 +27,7 @@ afterEach(() => {
   server.resetHandlers();
   // Ag hatasi taklit eden test "sunucuya ulasilamiyor" durumunu sonraki teste tasimasin
   markServerReachable(true);
+  // Hatirlanan liste/kart secimi gibi cihaz ayarlari bir testten digerine gecmesin
+  window.localStorage.clear();
 });
 afterAll(() => server.close());

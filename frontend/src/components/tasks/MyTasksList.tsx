@@ -6,6 +6,7 @@ import { PageTitle } from "@/components/layout/PageTitle";
 import { ListToolbar } from "@/components/lists/ListToolbar";
 import { ErrorState } from "@/components/states/ErrorState";
 import { Button } from "@/components/ui/button";
+import { useListView } from "@/hooks/useListView";
 import { useMyTasks } from "@/hooks/useTasks";
 import { TASK_ORDERS, taskListSummary, type ListTools, type ListView } from "@/lib/listTools";
 
@@ -78,7 +79,7 @@ function MyTasksBody({ query, view, filtered, onClear }: BodyProps) {
 // Personelin gorevleri: tikli oncelik, siralama (varsayilan en acil) ve liste/kart (Figma: 04 Staff > /staff/tasks)
 export function MyTasksList() {
   const [tools, setTools] = useState<ListTools>(URGENT_FIRST);
-  const [view, setView] = useState<ListView>("list");
+  const [view, setView] = useListView("tasks");
   const query = useMyTasks(tools);
   const count = query.data?.items.length ?? 0;
   const filtered = tools.priorities.length > 0;

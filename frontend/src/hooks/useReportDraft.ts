@@ -4,22 +4,11 @@ import { useEffect, useState } from "react";
 
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { withStorage } from "@/lib/storage";
 import { isBlankDraft, parseReportDraft, REPORT_DRAFT_PREFIX, reportDraftKey, type ReportDraft } from "@/lib/reportDraft";
 
 // Her tus vurusunda yazmamak icin kisa bekleme; yarim saniyede cikip gitmek pek olmaz
 const DRAFT_SAVE_DELAY_MS = 500;
-
-// Gizli sekme ya da engellenmis site verisi: taslak bu oturumda calismaz, form yine de kullanilir
-function withStorage<T>(run: (storage: Storage) => T, fallback: T): T {
-  try {
-    return run(window.localStorage);
-  } catch (error) {
-    if (!(error instanceof DOMException)) {
-      throw error;
-    }
-    return fallback;
-  }
-}
 
 export function readReportDraft(key: string | null): ReportDraft | null {
   if (key === null) {

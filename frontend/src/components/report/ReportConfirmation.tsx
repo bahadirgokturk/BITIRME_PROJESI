@@ -1,6 +1,8 @@
 import { CircleCheckIcon } from "lucide-react";
 import Link from "next/link";
 
+import { cn } from "cn";
+
 import { Button, buttonVariants } from "@/components/ui/button";
 import type { ReportResult, UploadFailure } from "@/hooks/useReport";
 
@@ -38,7 +40,7 @@ export function ReportConfirmation({ result, onNewReport }: ReportConfirmationPr
       <p className="text-sm text-muted-foreground">Durumunu Bildirimlerim sayfasından takip edebilirsin.</p>
       {result.failedUploads.length > 0 ? <UploadWarning failures={result.failedUploads} /> : null}
       <div className="flex w-full flex-col gap-2 pt-2">
-        <Link href="/my-cases" className={buttonVariants({ className: "h-12 w-full" })}>
+        <Link href="/my-cases" className={cn(buttonVariants({ className: "h-12 w-full" }))}>
           Bildirimlerim
         </Link>
         <Button variant="outline" className="h-12 w-full" onClick={onNewReport}>

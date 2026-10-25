@@ -63,3 +63,15 @@ const ORDER_NOTE: Record<ListOrder, string> = {
 export function taskListSummary(count: number, order: ListOrder): string {
   return `${count} açık görev · ${ORDER_NOTE[order]}`;
 }
+
+// Gorunum secimi bu cihazda liste basina saklanir (docs/UI_GUIDE.md bolum 5); kisisel veri degildir
+export type ListName = "my-cases" | "tasks" | "cases";
+
+export function listViewKey(list: ListName): string {
+  return `bakircayflow-view-${list}`;
+}
+
+// Saklanan deger bozuksa ya da yoksa liste gorunumu
+export function parseListView(stored: string | null): ListView {
+  return stored === "grid" ? "grid" : "list";
+}

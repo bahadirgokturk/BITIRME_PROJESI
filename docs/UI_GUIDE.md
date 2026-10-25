@@ -81,7 +81,7 @@ Figma değişkenleri (Variables) **koddaki CSS değişkenleriyle aynı adla** ta
   | Token | Açık tema | Koyu tema | Kullanım |
   |---|---|---|---|
   | `primary`, `ring` | turkuaz `#00818D` (beyaz yazı 4.64:1) | `#00A5B5` (koyu yazı 6.65:1) | Ana buton, bağlantı, odak halkası, ilerleme çubuğu |
-  | `brand-accent` | turuncu `#FF8901` | aynı | Süsleme (başlık altı çizgi, seçili menü çizgisi, logodaki bakır rengi su) ve **renk yolculuğu** (aşağıda). Metin ya da buton rengi olarak kullanılmaz |
+  | `brand-accent` | turuncu `#FF8901` | aynı | Süsleme (seçili menü çizgisi, logodaki bakır rengi su; sayfa başlıklarının ve giriş panelinin altında çizgi yok) ve **renk yolculuğu** (aşağıda). Metin ya da buton rengi olarak kullanılmaz |
   | `brand-accent-strong` | koyu turuncu `#D96A00` | aynı | Renk yolculuğunun en başı (1. yıldız) |
   | `primary-strong` | koyu turkuaz `#005F68` | `#00818D` | Renk yolculuğunun en sonu (5. yıldız) |
   | `primary-text` | koyu turkuaz `#005F68` | `#00A5B5` | Gri zeminde ya da turkuaz rozette turkuaz **yazı** (ana turkuaz orada 4.1–4.3:1 kalır); beyaz zemindeki bağlantılar `primary` |
@@ -215,7 +215,8 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   kartlardır: telefonda iki, geniş ekranda üç (Tüm Bildirimler'de dört) sütun; uzun başlık kırpılır, durum kartın
   altındadır (Bildirimlerim'de yalnız bulunulan adım ve dört çubuk). Seçilen önceliklerde kayıt yoksa "Seçtiğin
   önceliklerde bildirim yok." ve "Tümünü göster"; sıralama listeyi daraltmaz. Seçim değişince eski liste yeni cevap
-  gelene kadar ekranda kalır (Figma: ListToolbar, CaseTile, TaskTile, ManagerCaseTile; `… - liste araçları`,
+  gelene kadar ekranda kalır. Liste/Kart seçimi bu cihazda her liste için ayrı hatırlanır (`useListView`; tarayıcı
+  deposu kapalıysa her açılışta liste) (Figma: ListToolbar, CaseTile, TaskTile, ManagerCaseTile; `… - liste araçları`,
   `… - kart görünümü`).
 - Detay: zaman çizelgesi reporter'a sade dilde ("Temizlik birimine yönlendirildi", "Görevli çalışmaya başladı").
   Agent adları, güven skorları, iç notlar reporter'a **gösterilmez**.

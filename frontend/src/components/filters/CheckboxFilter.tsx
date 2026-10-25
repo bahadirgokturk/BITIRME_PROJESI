@@ -2,10 +2,17 @@
 
 import { ChevronDownIcon } from "lucide-react";
 
+import { cn } from "cn";
+
 import { buttonVariants } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { FilterOption } from "@/lib/filters";
+
+// cn ile birlestirilir: dugmenin seffaf varsayilan kenarligi silinir, kenarlik yandaki alanlar kadar gorunur
+const TRIGGER_CLASS = cn(
+  buttonVariants({ variant: "outline", className: "h-11 justify-between gap-2 font-normal md:h-10" }),
+);
 
 interface CheckboxFilterProps {
   // Ekran okuyucu icin listenin adi ("Birimler")
@@ -24,7 +31,7 @@ export function CheckboxFilter({ label, summary, options, selected, onChange }: 
     onChange(checked ? [...selected, value] : selected.filter((item) => item !== value));
   return (
     <Popover>
-      <PopoverTrigger className={buttonVariants({ variant: "outline", className: "h-11 justify-between gap-2 font-normal md:h-10" })}>
+      <PopoverTrigger className={TRIGGER_CLASS}>
         {summary}
         <ChevronDownIcon aria-hidden className="size-4 text-muted-foreground" />
       </PopoverTrigger>
