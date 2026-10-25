@@ -25,6 +25,17 @@ function renderList(initialGroup?: StatusGroup) {
 const rows = () => within(screen.getByRole("list", { name: "Bildirimler" })).getAllByRole("listitem");
 const waitForRows = (count: number) => waitFor(() => expect(rows()).toHaveLength(count));
 
+// Istek adreslerini sahte yaniti degistirmeden dinler (oncelik ve siralama parametreleri)
+function listenTo(path: string, asked: URLSearchParams[]) {
+  server.events.on("request:start", ({ request }) => {
+    const url = new URL(request.url);
+    if (url.pathname.endsWith(path)) {
+      asked.push(url.searchParams);
+    }
+  });
+}
+afterEach(() => server.events.removeAllListeners());
+
 describe("CaseList", () => {
   // Sahte API de backend gibi kapsami role gore daraltir; bu liste mudurun
   beforeEach(() => signInAs(USERS.MANAGER));
@@ -106,12 +117,14 @@ describe("CaseList", () => {
     const user = renderList();
     await screen.findByRole("list", { name: "Bildirimler" });
 
-    await user.selectOptions(screen.getByRole("combobox", { name: "Öncelik" }), "Kritik");
+    await user.click(screen.getByRole("button", { name: "Öncelik: Tümü" }));
+    await user.click(await screen.findByRole("checkbox", { name: "Kritik" }));
 
     await waitForRows(3);
     rows().forEach((row) => expect(row).toHaveTextContent("Asansör katlar arasında kaldı"));
 
-    await user.selectOptions(screen.getByRole("combobox", { name: "Öncelik" }), "Tüm öncelikler");
+    await user.click(screen.getByRole("button", { name: "Seçimi temizle" }));
+    await user.keyboard("{Escape}");
     await user.type(screen.getByRole("searchbox", { name: "Bildirim ara" }), "kantin");
 
     await waitForRows(3);
@@ -164,5 +177,32 @@ describe("CaseList", () => {
     await user.click(within(alert).getByRole("button", { name: "Tekrar dene" }));
 
     await waitForRows(20);
+  });
+
+  it("asks for several priorities at once and the oldest first", async () => {
+    const asked: URLSearchParams[] = [];
+    listenTo("/cases", asked);
+    const user = renderList();
+    await screen.findByRole("list", { name: "Bildirimler" });
+
+    await user.click(screen.getByRole("button", { name: "Öncelik: Tümü" }));
+    await user.click(await screen.findByRole("checkbox", { name: "Kritik" }));
+    await user.click(screen.getByRole("checkbox", { name: "Yüksek" }));
+    await user.keyboard("{Escape}");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Sıralama" }), "En eski");
+
+    await waitFor(() => expect(asked.at(-1)?.get("order")).toBe("oldest"));
+    expect(asked.at(-1)?.getAll("priority")).toEqual(["CRITICAL", "HIGH"]);
+    expect(screen.getByRole("button", { name: "Öncelik: 2 seçili" })).toBeInTheDocument();
+  });
+
+  it("shows the cases as square cards on request", async () => {
+    const user = renderList();
+    await screen.findByRole("list", { name: "Bildirimler" });
+
+    await user.click(screen.getByRole("button", { name: "Kart görünümü" }));
+
+    expect(screen.getByRole("list", { name: "Bildirimler" })).toHaveAttribute("data-view", "grid");
+    expect(rows()[0]!.querySelector("a")).toHaveAttribute("href", expect.stringMatching(/^\/manager\/cases\/\d+$/));
   });
 });

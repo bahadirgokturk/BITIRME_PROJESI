@@ -40,14 +40,19 @@ describe("status groups", () => {
 });
 
 describe("caseListQuery", () => {
-  it("asks for the first page without filters by default", () => {
-    expect(caseListQuery(DEFAULT_FILTERS, 1)).toBe("page=1&page_size=20");
+  it("asks for the first page, newest first, without filters by default", () => {
+    expect(caseListQuery(DEFAULT_FILTERS, 1)).toBe("page=1&page_size=20&order=newest");
   });
 
-  it("sends the statuses of the chosen group, the priority and the trimmed search text", () => {
-    const query = caseListQuery({ group: "dismissed", priority: "HIGH", search: "  amfi projeksiyon " }, 2);
+  it("sends the statuses of the chosen group, every chosen priority, the order and the trimmed search text", () => {
+    const query = caseListQuery(
+      { group: "dismissed", priorities: ["CRITICAL", "HIGH"], order: "oldest", search: "  amfi projeksiyon " },
+      2,
+    );
 
-    expect(query).toBe("page=2&page_size=20&status=REJECTED&status=MERGED&priority=HIGH&q=amfi+projeksiyon");
+    expect(query).toBe(
+      "page=2&page_size=20&status=REJECTED&status=MERGED&priority=CRITICAL&priority=HIGH&order=oldest&q=amfi+projeksiyon",
+    );
   });
 
   it("asks for open cases past their target time when late ones are wanted", () => {
@@ -64,8 +69,10 @@ describe("isFiltered", () => {
     expect(isFiltered(DEFAULT_FILTERS)).toBe(false);
     expect(isFiltered({ ...DEFAULT_FILTERS, search: "   " })).toBe(false);
     expect(isFiltered({ ...DEFAULT_FILTERS, search: "wc" })).toBe(true);
-    expect(isFiltered({ ...DEFAULT_FILTERS, priority: "LOW" })).toBe(true);
+    expect(isFiltered({ ...DEFAULT_FILTERS, priorities: ["LOW"] })).toBe(true);
     expect(isFiltered({ ...DEFAULT_FILTERS, group: "open" })).toBe(true);
+    // Siralama listeyi daraltmaz: bos listede "filtreleri temizle" onerilmez
+    expect(isFiltered({ ...DEFAULT_FILTERS, order: "oldest" })).toBe(false);
   });
 });
 

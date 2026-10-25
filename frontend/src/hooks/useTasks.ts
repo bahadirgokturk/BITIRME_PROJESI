@@ -1,8 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
 
 import { apiGet, apiPost, apiRequest } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
+import { listParams, type ListTools } from "@/lib/listTools";
 import { LIVE_QUERY } from "@/lib/queryClient";
 import type { TaskRead } from "@/lib/tasks";
 
@@ -11,11 +12,16 @@ import { caseAttachmentsKey } from "./useAttachments";
 type Schemas = components["schemas"];
 type TaskPage = Schemas["Page_TaskRead_"];
 
-// Personelin yapilacak isleri; backend SLA'ya kalan sureye gore siralar (docs/UI_GUIDE.md bolum 5.3)
-export function useMyTasks() {
+const URGENT_FIRST: ListTools = { priorities: [], order: "urgent" };
+
+// Personelin yapilacak isleri; varsayilan siralamayi backend yapar: SLA'ya kalan sure en az olan once
+// (docs/UI_GUIDE.md bolum 5.3). Oncelik ve en yeni/en eski secilirse ayni uca eklenir.
+export function useMyTasks(tools: ListTools = URGENT_FIRST) {
+  const query = listParams(tools).toString();
   return useQuery({
-    queryKey: ["tasks", "mine"],
-    queryFn: () => apiGet<TaskPage>("/tasks/mine"),
+    queryKey: ["tasks", "mine", tools],
+    queryFn: () => apiGet<TaskPage>(query ? `/tasks/mine?${query}` : "/tasks/mine"),
+    placeholderData: keepPreviousData,
     ...LIVE_QUERY,
   });
 }

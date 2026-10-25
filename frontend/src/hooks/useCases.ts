@@ -5,20 +5,24 @@ import type { components } from "@/lib/api/types";
 import { caseListQuery, type CaseFilters } from "@/lib/caseList";
 import { nextPage } from "@/lib/pagination";
 import { LIVE_QUERY } from "@/lib/queryClient";
-import { myCasesPath, type MyCasesFilter } from "@/lib/status";
+import { myCasesPath, type MyCasesQuery } from "@/lib/status";
 
 export type CaseRead = components["schemas"]["CaseRead"];
 export type CaseEventRead = components["schemas"]["CaseEventRead"];
 type CasePage = components["schemas"]["Page_CaseRead_"];
 
-// Bildirim yapanin kendi bildirimleri, sayfa sayfa (docs/API.md "Cases"); data tum yuklenen kayitlar.
-// Filtre secilince ayni kapsamda durum filtresiyle istenir (lib/status.ts myCasesPath)
-export function useMyCases(filter: MyCasesFilter = "all") {
+const ALL_MY_CASES: MyCasesQuery = { status: "all", priorities: [], order: "newest" };
+
+// Giris yapanin kendi bildirimleri, sayfa sayfa (docs/API.md "Cases"); data tum yuklenen kayitlar.
+// Durum, oncelik ve siralama ayni uca gider (lib/status.ts myCasesPath); secim degisince eski liste
+// yeni cevap gelene kadar ekranda kalir (iskelete donup titremesin)
+export function useMyCases(query: MyCasesQuery = ALL_MY_CASES) {
   return useInfiniteQuery({
-    queryKey: ["cases", "mine", filter],
-    queryFn: ({ pageParam }) => apiGet<CasePage>(myCasesPath(filter, pageParam)),
+    queryKey: ["cases", "mine", query],
+    queryFn: ({ pageParam }) => apiGet<CasePage>(myCasesPath(query, pageParam)),
     initialPageParam: 1,
     getNextPageParam: nextPage,
+    placeholderData: keepPreviousData,
     select: (data) => data.pages.flatMap((page) => page.items),
     ...LIVE_QUERY,
   });

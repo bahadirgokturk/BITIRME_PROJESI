@@ -53,17 +53,26 @@ describe("reporterView", () => {
 });
 
 describe("myCasesPath", () => {
-  it("asks for every case of the reporter when nothing is filtered", () => {
-    expect(myCasesPath("all", 1)).toBe("/cases/mine?page=1&page_size=20");
+  const NONE = { status: "all", priorities: [], order: "newest" } as const;
+
+  it("asks for every case of the person, newest first, when nothing is filtered", () => {
+    expect(myCasesPath(NONE, 1)).toBe("/cases/mine?page=1&page_size=20&order=newest");
   });
 
-  // Bildirenin /cases kapsami yalniz kendi bildirimleridir (backend case_service.scope_for)
+  // /cases/mine artik /cases ile ayni suzgecleri alir (docs/API.md): her rol kendi bildirimlerini suzer
   it("asks for the open or solved ones by the same steps the reporter sees", () => {
-    expect(myCasesPath("solved", 2)).toBe(
-      "/cases?page=2&page_size=20&status=RESOLVED&status=VERIFICATION&status=CLOSED",
+    expect(myCasesPath({ ...NONE, status: "solved" }, 2)).toBe(
+      "/cases/mine?page=2&page_size=20&status=RESOLVED&status=VERIFICATION&status=CLOSED&order=newest",
     );
-    const open = new URLSearchParams(myCasesPath("open", 1).split("?")[1]).getAll("status");
+    const open = new URLSearchParams(myCasesPath({ ...NONE, status: "open" }, 1).split("?")[1]).getAll("status");
     expect(open).toEqual(["NEW", "ANALYZING", "CLASSIFIED", "REOPENED", "ASSIGNED", "ACCEPTED", "ESCALATED", "IN_PROGRESS", "NEEDS_INFO"]);
+  });
+
+  it("adds the chosen priorities and the oldest-first order", () => {
+    const params = new URLSearchParams(myCasesPath({ ...NONE, priorities: ["LOW", "MEDIUM"], order: "oldest" }, 1).split("?")[1]);
+
+    expect(params.getAll("priority")).toEqual(["LOW", "MEDIUM"]);
+    expect(params.get("order")).toBe("oldest");
   });
 
   it("offers three plain choices", () => {

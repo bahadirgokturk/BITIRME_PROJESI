@@ -1,5 +1,5 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
@@ -8,7 +8,9 @@ import { apiUrl } from "@/lib/api/client";
 import { createQueryClient } from "@/lib/queryClient";
 import { MY_CASES_PAGE_SIZE } from "@/lib/status";
 import { CASES } from "@/mocks/caseFixtures";
+import { USERS } from "@/mocks/fixtures";
 import { server } from "@/mocks/node";
+import { signInAs } from "@/mocks/session";
 
 import { MyCasesList } from "./MyCasesList";
 
@@ -153,11 +155,12 @@ describe("MyCasesList", () => {
   it("filters the reporter's own cases into open and solved", async () => {
     const asked: string[][] = [];
     server.use(
-      http.get(apiUrl("/cases"), ({ request }) => {
+      http.get(apiUrl("/cases/mine"), ({ request }) => {
         const statuses = new URL(request.url).searchParams.getAll("status");
         asked.push(statuses);
         const solved = statuses.includes("CLOSED");
-        const item = { ...CASES[0]!, id: 2001, title: solved ? "Çözülen bildirim" : "Açık bildirim" };
+        const title = statuses.length === 0 ? "Bir bildirim" : `${solved ? "Çözülen" : "Açık"} bildirim`;
+        const item = { ...CASES[0]!, id: 2001, title };
         return HttpResponse.json({ items: [item], total: 1, page: 1 });
       }),
     );
@@ -178,7 +181,13 @@ describe("MyCasesList", () => {
   });
 
   it("says when no case matches the filter and offers to show them all", async () => {
-    server.use(http.get(apiUrl("/cases"), () => HttpResponse.json({ items: [], total: 0, page: 1 })));
+    server.use(
+      http.get(apiUrl("/cases/mine"), ({ request }) =>
+        new URL(request.url).searchParams.has("status")
+          ? HttpResponse.json({ items: [], total: 0, page: 1 })
+          : HttpResponse.json({ items: CASES.slice(0, 2), total: 2, page: 1 }),
+      ),
+    );
     renderList();
     const user = userEvent.setup();
 
@@ -200,5 +209,74 @@ describe("MyCasesList", () => {
 
     expect(await screen.findByText("Henüz bildiriminiz yok.")).toBeInTheDocument();
     expect(screen.queryByRole("group", { name: "Durum" })).not.toBeInTheDocument();
+  });
+
+  describe("list tools", () => {
+    function serveAsked(asked: URLSearchParams[]) {
+      server.use(
+        http.get(apiUrl("/cases/mine"), ({ request }) => {
+          asked.push(new URL(request.url).searchParams);
+          return HttpResponse.json({ items: CASES.slice(0, 3), total: 3, page: 1 });
+        }),
+      );
+    }
+
+    it("narrows by priority and puts the oldest first", async () => {
+      const asked: URLSearchParams[] = [];
+      serveAsked(asked);
+      renderList();
+      const user = userEvent.setup();
+
+      await user.click(await screen.findByRole("button", { name: "Öncelik: Tümü" }));
+      await user.click(await screen.findByRole("checkbox", { name: "Yüksek" }));
+      await user.keyboard("{Escape}");
+      await user.selectOptions(screen.getByRole("combobox", { name: "Sıralama" }), "En eski");
+
+      await waitFor(() => expect(asked.at(-1)?.get("order")).toBe("oldest"));
+      expect(asked.at(-1)?.getAll("priority")).toEqual(["HIGH"]);
+      expect(screen.getByRole("button", { name: "Öncelik: Yüksek" })).toBeInTheDocument();
+    });
+
+    it("shows the cases as square cards on request", async () => {
+      renderList();
+      const user = userEvent.setup();
+      await screen.findByRole("list", { name: "Bildirimleriniz" });
+
+      await user.click(screen.getByRole("button", { name: "Kart görünümü" }));
+
+      expect(screen.getByRole("button", { name: "Kart görünümü" })).toHaveAttribute("aria-pressed", "true");
+      expect(screen.getByRole("list", { name: "Bildirimleriniz" })).toHaveAttribute("data-view", "grid");
+      expect(screen.getAllByRole("link", { name: /CASE-/ }).length).toBeGreaterThan(0);
+    });
+
+    it("says when no case has the chosen priority and clears it", async () => {
+      server.use(
+        http.get(apiUrl("/cases/mine"), ({ request }) =>
+          new URL(request.url).searchParams.has("priority")
+            ? HttpResponse.json({ items: [], total: 0, page: 1 })
+            : HttpResponse.json({ items: CASES.slice(0, 2), total: 2, page: 1 }),
+        ),
+      );
+      renderList();
+      const user = userEvent.setup();
+
+      await user.click(await screen.findByRole("button", { name: "Öncelik: Tümü" }));
+      await user.click(await screen.findByRole("checkbox", { name: "Kritik" }));
+      await user.keyboard("{Escape}");
+
+      expect(await screen.findByText("Seçtiğin önceliklerde bildirim yok.")).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: "Tümünü göster" }));
+      expect(await screen.findByRole("button", { name: "Öncelik: Tümü" })).toBeInTheDocument();
+    });
+
+    // /cases/mine her rolde ayni suzgecleri alir: personel ve mudur de kendi bildirimlerini suzer
+    it("offers the filters to every role", async () => {
+      signInAs(USERS.STAFF);
+      renderList();
+
+      expect(await screen.findByRole("button", { name: "Açık" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Öncelik: Tümü" })).toBeInTheDocument();
+      signInAs(null);
+    });
   });
 });

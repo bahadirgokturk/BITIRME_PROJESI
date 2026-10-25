@@ -34,7 +34,7 @@ Tasarım sırası: **REPORTER ve STAFF önce mobil** (375 px), sonra masaüstü;
 | `/` | herkes | FAZ 2 | Role göre yönlendirme (reporter → `/report`, staff → `/staff/tasks`, manager → `/manager/dashboard`) |
 | `/admin/*` | ADMIN | FAZ 2 | users, departments, locations (ağaç), case-types, sla-rules, agent-policies, audit-logs |
 | `/report` | herkes | FAZ 3 | **En kritik ekran** — bkz. bölüm 5.1 |
-| `/my-cases` | herkes | FAZ 3 | Kendi bildirimleri (menüde "Bildirimlerim"; Açık/Çözülen filtresi yalnız REPORTER'da) |
+| `/my-cases` | herkes | FAZ 3 | Kendi bildirimleri (menüde "Bildirimlerim"; Açık/Çözülen filtresi ve liste araçları her rolde) |
 | `/cases/[id]` | kapsam | FAZ 3 | Detay + zaman çizelgesi (reporter'a sadeleştirilmiş) |
 | `/staff/tasks`, `/staff/tasks/[id]` | STAFF | FAZ 4–7 | Görev listesi ve yaşam döngüsü |
 | `/manager/review-queue` | MANAGER | FAZ 7 | AI'ın emin olmadığı / escalate edilen kayıtlar |
@@ -206,9 +206,17 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   (`lib/caseActions.ts`); Figma: WaitingBell, NotificationPanel, MobileAppBar > Actions.
 - Listenin üstünde filtre: **Tümü / Açık / Çözülen**. "Çözülen" ilerlemedeki Çözüldü adımıdır; "Açık" henüz
   çözülmemiş olanlar (ek bilgi bekleyen dahil); reddedilen ve birleştirilen yalnız "Tümü"nde. Filtreye uyan bildirim
-  yoksa "Açık bildiriminiz yok." ve "Tümünü göster". Hiç bildirimi olmayana filtre gösterilmez. Filtre `GET /cases`
-  ile durum süzerek istenir (backend bildirenin bu listesini yalnız kendi bildirimleriyle sınırlar); bu yüzden
-  yalnız bildiren rolünde çıkar. Kurallar: `lib/status.ts` (`myCasesPath`).
+  yoksa "Açık bildiriminiz yok." ve "Tümünü göster". Hiç bildirimi olmayana filtre gösterilmez. Filtre ve araçlar
+  `GET /cases/mine`'a gider (durum, öncelik, sıralama; her rol kendi bildirimlerini süzer). Kurallar: `lib/status.ts`
+  (`myCasesPath`, `myCasesEmpty`).
+- **Liste araçları** (Bildirimlerim, Görevlerim, Tüm/Birim Bildirimleri; ortak `ListToolbar`, `lib/listTools.ts`):
+  **Öncelik** tikli açılır filtre (birden çok öncelik; "Öncelik: Tümü / Yüksek / 2 seçili"), **Sıralama** ("En yeni",
+  "En eski"; Görevlerim'de önce "En acil") ve sağda **Liste / Kart** düğmeleri (`aria-pressed`). Kart görünümü kare
+  kartlardır: telefonda iki, geniş ekranda üç (Tüm Bildirimler'de dört) sütun; uzun başlık kırpılır, durum kartın
+  altındadır (Bildirimlerim'de yalnız bulunulan adım ve dört çubuk). Seçilen önceliklerde kayıt yoksa "Seçtiğin
+  önceliklerde bildirim yok." ve "Tümünü göster"; sıralama listeyi daraltmaz. Seçim değişince eski liste yeni cevap
+  gelene kadar ekranda kalır (Figma: ListToolbar, CaseTile, TaskTile, ManagerCaseTile; `… - liste araçları`,
+  `… - kart görünümü`).
 - Detay: zaman çizelgesi reporter'a sade dilde ("Temizlik birimine yönlendirildi", "Görevli çalışmaya başladı").
   Agent adları, güven skorları, iç notlar reporter'a **gösterilmez**.
   Zaman çizelgesi 5 ya da daha fazla adımsa kapalı gelir: son 3 adım görünür, üstte "N önceki adımı göster";
@@ -229,7 +237,9 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
 
 ### 5.3 Staff — `/staff/tasks`, `/staff/tasks/[id]`
 
-- Liste sıralaması: SLA'ya kalan süre (en acil üstte). Kartta **konum** en büyük metin, sonra iş tanımı ve kalan süre.
+- Liste sıralaması: SLA'ya kalan süre (en acil üstte; `order` gönderilmez). Liste araçlarıyla öncelik süzülür,
+  "En yeni / En eski" seçilebilir; başlığın altındaki satır sırayı söyler ("4 açık görev · en yeni olan üstte").
+  Kartta **konum** en büyük metin, sonra iş tanımı ve kalan süre; kare kartta durum, konum, iş, öncelik ve kalan süre.
 - Ana eylem butonu duruma göre tek ve büyük: **Kabul et** → **Başlat** → **Tamamla**. Dokunma alanı en az 44×44 px.
   Detayda eylem butonları bilgilerin hemen altında, yorumların **üstünde** durur; görevli kaydırmadan görür.
 - Tamamla: not (isteğe bağlı) + kanıt fotoğrafı. Reddetme (decline) ikincil buton ve gerekçe ister.
@@ -303,7 +313,7 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   Kurallar: `lib/agentMetrics.ts`.
 - **Tüm Bildirimler (`/manager/cases`):** müdür kurumdaki bütün birimlerin bildirimlerini görür (backend böyle
   döner), ekran metni de "Kurumdaki bütün bildirimler" der. Arama kutusu (numara, başlık, konum; yazmayı bıraktıktan 300 ms sonra arar),
-  öncelik seçimi ve durum grubu düğmeleri. 14 durum beş gruba toplanır: Tümü, Açık, Kapanan, Reddedilen ve
+  durum grubu düğmeleri ve liste araçları (tikli öncelik, en yeni/en eski, liste/kart). 14 durum beş gruba toplanır: Tümü, Açık, Kapanan, Reddedilen ve
   birleştirilen, Geciken (hedef süresi aşılan açık bildirimler). Her satırda numara, başlık (altında tür ve okunur
   konum adı), birim, durum, öncelik, kalan süre ve açılış zamanı; satır detay ekranına gider. Yönetici aynı listeyi
   görür. Personel aynı listeyi **Birim Bildirimleri** (`/staff/cases`) adıyla görür; backend personele yalnız kendi

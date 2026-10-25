@@ -70,14 +70,20 @@ function matchesSearch(item: Schemas["CaseRead"], search: string | null): boolea
 
 function matches(item: Schemas["CaseRead"], params: URLSearchParams): boolean {
   const statuses = params.getAll("status");
-  const priority = params.get("priority");
+  const priorities = params.getAll("priority");
   const sla = params.get("sla_status");
   return (
     (statuses.length === 0 || statuses.includes(item.status)) &&
-    (!priority || item.priority === priority) &&
+    (priorities.length === 0 || (item.priority !== null && priorities.includes(item.priority))) &&
     (!sla || item.sla_status === sla) &&
     matchesSearch(item, params.get("q"))
   );
+}
+
+// Backend gibi: acilis zamanina gore en yeni (varsayilan) ya da en eski once
+function ordered(items: Schemas["CaseRead"][], params: URLSearchParams) {
+  const oldest = params.get("order") === "oldest";
+  return [...items].sort((a, b) => (oldest ? 1 : -1) * a.created_at.localeCompare(b.created_at));
 }
 
 function newCase(
@@ -142,14 +148,19 @@ export const caseHandlers = [
   ),
 
   // Backend gibi: giris yapan kisinin kendi bildirimleri (her rol Bildirimlerim'i gorur)
-  http.get(apiUrl("/cases/mine"), () =>
-    HttpResponse.json(page(cases.filter((item) => item.reporter_id === currentUser().id))),
-  ),
+  http.get(apiUrl("/cases/mine"), ({ request }) => {
+    const params = new URL(request.url).searchParams;
+    const mine = cases.filter((item) => item.reporter_id === currentUser().id && matches(item, params));
+    return HttpResponse.json(page(ordered(mine, params)));
+  }),
 
   // Mudur listesi (/manager/cases): gercek API'deki suzgecler ve sayfalama (docs/API.md "Cases")
   http.get(apiUrl("/cases"), ({ request }) => {
     const params = new URL(request.url).searchParams;
-    const items = [...MANAGER_CASES, ...cases].filter((item) => inScope(item) && matches(item, params));
+    const items = ordered(
+      [...MANAGER_CASES, ...cases].filter((item) => inScope(item) && matches(item, params)),
+      params,
+    );
     const pageNumber = Number(params.get("page") ?? 1);
     const size = Number(params.get("page_size") ?? PAGE_SIZE_DEFAULT);
     const start = (pageNumber - 1) * size;
