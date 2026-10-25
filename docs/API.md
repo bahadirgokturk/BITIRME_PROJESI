@@ -226,8 +226,9 @@ Rol kontrolü girdi doğrulamasından önce çalışır. Başka kurumun kaydı `
   `resolution_minutes ≥ response_minutes` (eklerken `422`, güncellemede `422 INVALID_SLA_TARGETS`);
   `warning_threshold_pct` 1–99 (varsayılan 75). Hedef (tür, öncelik) sonradan değişmez. Yeni değerler yeni
   atamalarda kullanılır; hedefi zaten hesaplanmış bildirimler değişmez.
-- ✅ **`/admin/agent-policies`**: listele ve güncelle (`autonomy_level`, `min_confidence_auto` 0–1,
-  `notify_manager`). Tür başına tek politika vardır ve tür eklenirken açılır; ekleme/silme yok.
+- ✅ **`/admin/agent-policies`**: listele ve güncelle (`autonomy_level`, `min_confidence_auto` 0–1). Müdüre haber
+  ayrı bir ayar değildir: `L2_NOTIFY` uygular ve haber verir, `L1` vermez, `L3` zaten müdüre gider (#93; eski
+  `notify_manager` alanı kaldırıldı). Tür başına tek politika vardır ve tür eklenirken açılır; ekleme/silme yok.
 
 Liste yanıtı `Page[T]`, `?page=&page_size=` en fazla 200. Silme yerine `is_active=false` (soft delete).
 - ✅ **`GET /admin/audit-logs`** (E2-5): yukarıdaki tanımlardaki her ekleme/güncelleme aynı işlemde kaydedilir

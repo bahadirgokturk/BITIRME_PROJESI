@@ -19,7 +19,6 @@ function policy(overrides: Partial<AgentPolicy>): AgentPolicy {
     category: null,
     autonomy_level: "L1_AUTONOMOUS",
     min_confidence_auto: 0.7,
-    notify_manager: false,
     is_active: true,
     ...overrides,
   };
@@ -31,7 +30,7 @@ const TYPES = [
 ];
 const POLICIES = [
   policy({ id: 1, case_type_id: 1 }),
-  policy({ id: 2, case_type_id: 3, autonomy_level: "L3_ESCALATE", notify_manager: true }),
+  policy({ id: 2, case_type_id: 3, autonomy_level: "L3_ESCALATE" }),
   policy({ id: 3, scope: "CATEGORY", case_type_id: null, category: "CLEANING", autonomy_level: "L2_NOTIFY" }),
 ];
 
@@ -78,9 +77,9 @@ describe("confidence threshold", () => {
   });
 
   it("fills the form in percent and sends a 0-1 value back", () => {
-    const form = formFromAgentPolicy(policy({ min_confidence_auto: 0.65, notify_manager: true }));
+    const form = formFromAgentPolicy(policy({ min_confidence_auto: 0.65 }));
 
-    // Haber verme seviyeden gelir (#93): form ve govde notify_manager tasimaz
+    // Haber verme seviyeden gelir (#93): ne formda ne govdede ayri bir ayar var
     expect(form).toEqual({ autonomy_level: "L1_AUTONOMOUS", confidence_pct: "65" });
     expect(toAgentPolicyBody({ ...form, autonomy_level: "L2_NOTIFY", confidence_pct: " 80 " })).toEqual({
       autonomy_level: "L2_NOTIFY",

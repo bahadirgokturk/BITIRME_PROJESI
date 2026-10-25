@@ -12,7 +12,7 @@ type Autonomy = AgentPolicy["autonomy_level"];
 // backend/app/core/constants.py MIN_CONFIDENCE_AUTO_DEFAULT
 const CONFIDENCE_DEFAULT = 0.7;
 
-function policy(caseTypeId: number, autonomy_level: Autonomy, notify_manager: boolean): AgentPolicy {
+function policy(caseTypeId: number, autonomy_level: Autonomy): AgentPolicy {
   return {
     id: caseTypeId,
     scope: "CASE_TYPE",
@@ -20,19 +20,18 @@ function policy(caseTypeId: number, autonomy_level: Autonomy, notify_manager: bo
     category: null,
     autonomy_level,
     min_confidence_auto: CONFIDENCE_DEFAULT,
-    notify_manager,
     is_active: true,
   };
 }
 
 // Tur numaralari adminCaseTypeHandlers.ts ile ayni; seviyeler docs/AGENTS.md bolum 5'ten
 const AGENT_POLICIES: AgentPolicy[] = [
-  policy(1, "L1_AUTONOMOUS", false),
-  policy(2, "L1_AUTONOMOUS", false),
-  policy(3, "L3_ESCALATE", true),
-  policy(4, "L2_NOTIFY", true),
-  policy(5, "L1_AUTONOMOUS", false),
-  policy(6, "L1_AUTONOMOUS", false),
+  policy(1, "L1_AUTONOMOUS"),
+  policy(2, "L1_AUTONOMOUS"),
+  policy(3, "L3_ESCALATE"),
+  policy(4, "L2_NOTIFY"),
+  policy(5, "L1_AUTONOMOUS"),
+  policy(6, "L1_AUTONOMOUS"),
 ];
 
 let policies: AgentPolicy[] = [];
@@ -62,7 +61,6 @@ export const adminAgentPolicyHandlers = [
         ...current,
         autonomy_level: body.autonomy_level ?? current.autonomy_level,
         min_confidence_auto: body.min_confidence_auto ?? current.min_confidence_auto,
-        notify_manager: body.notify_manager ?? current.notify_manager,
       };
       policies = policies.map((item) => (item.id === id ? updated : item));
       return HttpResponse.json(updated);

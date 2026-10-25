@@ -40,7 +40,7 @@ const lookup = buildNameLookup({
     { id: 6, case_type_id: 3, priority: "HIGH", response_minutes: 15, resolution_minutes: 120, warning_threshold_pct: 75, is_active: true },
   ],
   agentPolicies: [
-    { id: 3, scope: "CASE_TYPE", case_type_id: 3, category: null, autonomy_level: "L3_ESCALATE", min_confidence_auto: 0.7, notify_manager: true, is_active: true },
+    { id: 3, scope: "CASE_TYPE", case_type_id: 3, category: null, autonomy_level: "L3_ESCALATE", min_confidence_auto: 0.7, is_active: true },
   ],
 });
 

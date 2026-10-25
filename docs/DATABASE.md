@@ -178,9 +178,10 @@ yapılan düzeltmede boştur. ✅ E5-6: `duplicate` = manager birleştirmesi; de
 
 ### agent_policies
 id, organization_id, scope (`CATEGORY`/`CASE_TYPE`), category NULL, case_type_id NULL,
-autonomy_level, min_confidence_auto numeric (ör. 0.70), notify_manager bool, is_active.
+autonomy_level, min_confidence_auto numeric (ör. 0.70), is_active. (`notify_manager` 25 Ekim'de kaldırıldı: müdüre haber
+L2_NOTIFY seviyesinin kendisi.)
 ✅ E5-8a: kapsam ile hedef tutarlılığı CHECK ile (CASE_TYPE → case_type_id, CATEGORY → category), aynı kapsam
-için tek satır (NULL'lar eşit sayılır). Kampüs seed'i tür başına bir CASE_TYPE satırı yazar (L2 → notify_manager).
+için tek satır (NULL'lar eşit sayılır). Kampüs seed'i tür başına bir CASE_TYPE satırı yazar.
 
 ### ml_models
 id, organization_id, name (`classifier`), version, algorithm, metrics_json (accuracy, macro_f1,

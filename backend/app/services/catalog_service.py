@@ -85,7 +85,6 @@ class CaseTypeService:
                 case_type_id=case_type.id,
                 autonomy_level=NEW_TYPE_AUTONOMY,
                 min_confidence_auto=Decimal(MIN_CONFIDENCE_AUTO_DEFAULT),
-                notify_manager=True,
             ),
         )
         created = CaseTypeAdminRead.model_validate(case_type, from_attributes=True)
