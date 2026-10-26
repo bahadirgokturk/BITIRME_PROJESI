@@ -170,7 +170,7 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   **Konum**, **Fotoğraf veya video (isteğe bağlı)**. Kategori/öncelik alanı **yok**.
 - **Konum seçici:** Arama kutusu (lokasyon adı ve takma adlarıyla eşleşir: "b2 wc") + son kullanılan konumlar.
   Kampüs → Bina → Kat → Alan ağacı ikincil yol olarak sunulur. Metinde konum geçiyorsa AI önerir, kullanıcı onaylar.
-  **Kodda olan:** arama kutusu + altında sonuç listesi (en çok 6 satır); arama ad, kod ve takma adlarda, büyük/küçük
+  **Kodda olan:** arama kutusu + altında sonuç listesi: eşleşen bütün konumlar, üç satır yüksekliğinde kaydırılan kutuda; fazlası varsa altında "26 konum · kaydırın ya da arayın" (`locationCountHint`); arama ad, kod ve takma adlarda, büyük/küçük
   harf ve Türkçe karakter farkı gözetmeden yapılır (`searchLocations`, `lib/report.ts`). Konumlar bir kez yüklenir,
   arama tarayıcıda yapılır. Seçilen konum "Değiştir" ile temizlenir. Son kullanılanlar, ağaç ve AI önerisi henüz yok.
 - **Fotoğraf / video:** Kamera veya galeri; fotoğraf jpg/png/webp en fazla 10 MB, video mp4/mov en fazla

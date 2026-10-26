@@ -2,7 +2,16 @@ import { describe, expect, it } from "vitest";
 
 import { LOCATIONS } from "@/mocks/fixtures";
 
-import { addFiles, descriptionProblem, fileProblem, qrLocationId, REPORT_MAX_FILES, searchLocations } from "./report";
+import {
+  addFiles,
+  descriptionProblem,
+  fileProblem,
+  LOCATION_VISIBLE_ROWS,
+  locationCountHint,
+  qrLocationId,
+  REPORT_MAX_FILES,
+  searchLocations,
+} from "./report";
 
 const MB = 1024 * 1024;
 
@@ -108,5 +117,17 @@ describe("qrLocationId", () => {
     [undefined, null],
   ])("reads %j as %j", (param, id) => {
     expect(qrLocationId(param)).toBe(id);
+  });
+});
+
+describe("locationCountHint", () => {
+  it("shows three rows at a time and says how many there are when the list scrolls", () => {
+    expect(LOCATION_VISIBLE_ROWS).toBe(3);
+    expect(locationCountHint(26)).toBe("26 konum · kaydırın ya da arayın");
+  });
+
+  it("says nothing when every match already fits", () => {
+    expect(locationCountHint(LOCATION_VISIBLE_ROWS)).toBeNull();
+    expect(locationCountHint(1)).toBeNull();
   });
 });

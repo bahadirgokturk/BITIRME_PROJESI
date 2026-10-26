@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLocations, type LocationOption } from "@/hooks/useReport";
 import { ApiError } from "@/lib/api/client";
-import { LOCATION_RESULT_LIMIT, searchLocations } from "@/lib/report";
+import { LOCATION_VISIBLE_ROWS, locationCountHint, searchLocations } from "@/lib/report";
 
 interface LocationFieldProps {
   value: string;
@@ -32,6 +32,8 @@ const INPUT_CLASS = cn(
   "placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
   "disabled:opacity-60 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20",
 );
+// Uc satir (44 px) + iki ayirici + kenarlik kadar yukseklik; fazlasi kutunun icinde kaydirilir (Figma: LocationResults)
+const RESULTS_CLASS = "max-h-[136px] divide-y overflow-y-auto overscroll-contain rounded-lg border";
 const RESULT_CLASS =
   "flex min-h-11 w-full items-center gap-2 px-3 text-left text-sm outline-none hover:bg-muted focus-visible:bg-muted";
 
@@ -66,11 +68,11 @@ function LocationResults({ matches, onPick }: { matches: LocationOption[]; onPic
   if (matches.length === 0) {
     return <p className="px-1 text-sm text-muted-foreground">Eşleşen konum yok. Farklı bir kelime deneyin.</p>;
   }
-  const hidden = matches.length - LOCATION_RESULT_LIMIT;
+  const hint = locationCountHint(matches.length);
   return (
     <>
-      <ul aria-label="Konum sonuçları" className="divide-y overflow-hidden rounded-lg border">
-        {matches.slice(0, LOCATION_RESULT_LIMIT).map((location) => (
+      <ul aria-label="Konum sonuçları" className={RESULTS_CLASS}>
+        {matches.map((location) => (
           <li key={location.id}>
             <button type="button" className={RESULT_CLASS} onClick={() => onPick(location.id)}>
               <MapPinIcon aria-hidden className="size-4 shrink-0 text-muted-foreground" />
@@ -79,9 +81,7 @@ function LocationResults({ matches, onPick }: { matches: LocationOption[]; onPic
           </li>
         ))}
       </ul>
-      {hidden > 0 ? (
-        <p className="px-1 text-xs text-muted-foreground">{hidden} konum daha var; aramayı daraltın.</p>
-      ) : null}
+      {hint ? <p className="px-1 text-xs text-muted-foreground">{hint}</p> : null}
     </>
   );
 }
@@ -91,7 +91,7 @@ function LocationResults({ matches, onPick }: { matches: LocationOption[]; onPic
 function LocationResultsSkeleton() {
   return (
     <ul aria-label="Konumlar yükleniyor" aria-busy="true" className="divide-y overflow-hidden rounded-lg border">
-      {Array.from({ length: LOCATION_RESULT_LIMIT }, (_, index) => (
+      {Array.from({ length: LOCATION_VISIBLE_ROWS }, (_, index) => (
         <li key={index} className="flex min-h-11 items-center gap-2 px-3">
           <Skeleton className="h-4 w-1/2" />
         </li>

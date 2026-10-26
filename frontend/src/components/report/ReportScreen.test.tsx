@@ -4,9 +4,10 @@ import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
 
+import type { LocationOption } from "@/hooks/useReport";
 import { apiUrl } from "@/lib/api/client";
 import { createQueryClient } from "@/lib/queryClient";
-import { LOCATION_RESULT_LIMIT } from "@/lib/report";
+import { LOCATION_VISIBLE_ROWS } from "@/lib/report";
 import { server } from "@/mocks/node";
 
 import { ReportScreen } from "./ReportScreen";
@@ -58,6 +59,28 @@ describe("ReportScreen", () => {
     await user.clear(screen.getByLabelText("Konum"));
     await user.type(screen.getByLabelText("Konum"), "kampus");
     expect(within(results).getByRole("button", { name: "Merkez Kampüs" })).toBeInTheDocument();
+  });
+
+  it("lists every location in a short scrolling box instead of hiding the rest", async () => {
+    const many: LocationOption[] = Array.from({ length: 30 }, (_, index) => ({
+      id: 900 + index,
+      parent_id: null,
+      kind: "ROOM",
+      code: `D-${index + 1}`,
+      name: `Deneme Konumu ${index + 1}`,
+      path: `Deneme Konumu ${index + 1}`,
+      aliases: [],
+    }));
+    server.use(http.get(apiUrl("/locations"), () => HttpResponse.json({ items: many, total: many.length, page: 1 })));
+    renderScreen();
+
+    const last = await screen.findByRole("button", { name: "Deneme Konumu 30" });
+
+    const results = screen.getByRole("list", { name: "Konum sonuçları" });
+    expect(within(results).getAllByRole("button")).toHaveLength(30);
+    expect(results).toContainElement(last);
+    expect(screen.getByText("30 konum · kaydırın ya da arayın")).toBeInTheDocument();
+    expect(screen.queryByText(/daha var/)).not.toBeInTheDocument();
   });
 
   it("says so when no location matches", async () => {
@@ -193,7 +216,7 @@ describe("ReportScreen", () => {
 
     const placeholder = screen.getByRole("list", { name: "Konumlar yükleniyor" });
     expect(placeholder).toHaveAttribute("aria-busy", "true");
-    expect(within(placeholder).getAllByRole("listitem")).toHaveLength(LOCATION_RESULT_LIMIT);
+    expect(within(placeholder).getAllByRole("listitem")).toHaveLength(LOCATION_VISIBLE_ROWS);
   });
 
   it("offers a retry when the locations cannot be loaded", async () => {
