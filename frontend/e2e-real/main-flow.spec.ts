@@ -34,7 +34,7 @@ async function closedOnDashboard(page: Page): Promise<number> {
 async function findInAllCases(page: Page, caseNumber: string) {
   await openFromMenu(page, "Tüm Bildirimler");
   await page.getByRole("searchbox", { name: "Bildirim ara" }).fill(caseNumber);
-  const rows = page.getByRole("list", { name: "Bildirimler" }).getByRole("listitem");
+  const rows = page.getByRole("list", { name: "Bildirimler", exact: true }).getByRole("listitem");
   await expect(rows).toHaveCount(1);
   return rows;
 }

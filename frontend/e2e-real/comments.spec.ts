@@ -32,7 +32,7 @@ test("a reporter's comment reaches staff, and an internal note stays hidden from
   await signIn(page, "manager");
   await openFromMenu(page, "Tüm Bildirimler");
   await page.getByRole("searchbox", { name: "Bildirim ara" }).fill(reported.number);
-  const rows = page.getByRole("list", { name: "Bildirimler" }).getByRole("listitem");
+  const rows = page.getByRole("list", { name: "Bildirimler", exact: true }).getByRole("listitem");
   await expect(rows).toHaveCount(1);
   await rows.getByRole("link").click();
   const managerComments = page.getByRole("list", { name: "Yorumlar" });

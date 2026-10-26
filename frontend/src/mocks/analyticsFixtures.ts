@@ -116,3 +116,110 @@ export const SUMMARY_TEXT_WEEK =
 export const SUMMARY_TEXT_MONTH =
   "Son 30 günde 251 bildirim açıldı; önceki döneme göre %9 artış var. SLA uyumu %89. " +
   "Bildirimlerin %76'sı kimse dokunmadan doğru personele atandı. En çok sorun Temizlik kategorisinde görüldü.";
+
+// Gecikme riski (GET /analytics/delay-risk): acik bildirimler riske gore; donem filtresi yok. Yedi satir:
+// kartta ilk bes gorunur, gerisi "hepsini goster" ile acilir
+interface RiskRow {
+  id: number;
+  title: string;
+  department: string;
+  risk: number;
+  level: Schemas["DelayRiskLevel"];
+  elapsed: number;
+  factors: string[];
+}
+
+const riskItem = ({ id, title, department, risk, level, elapsed, factors }: RiskRow): Schemas["DelayRiskItem"] => ({
+  case_id: id,
+  case_number: `CASE-000${id}`,
+  title,
+  department_name: department,
+  due_at: "2026-10-26T16:30:00Z",
+  elapsed_pct: elapsed,
+  risk_pct: risk,
+  level,
+  factors: factors.map((label, index) => ({ feature: `f${index}`, label })),
+});
+
+const MAINTENANCE = "Bakım Onarım";
+const SUPPORT = "Destek Hizmetleri";
+
+export const DELAY_RISK: Schemas["DelayRiskRead"] = {
+  model: { train_cases: 347, test_cases: 149, auc: 0.85, late_share_pct: 22.8 },
+  already_late: 3,
+  message: null,
+  items: [
+    riskItem({
+      id: 612,
+      title: "Asansör kat arasında kaldı",
+      department: MAINTENANCE,
+      risk: 78.4,
+      level: "HIGH",
+      elapsed: 62,
+      factors: ["Mesai dışında açıldı", "Açıldığında birimde 14 açık iş vardı"],
+    }),
+    riskItem({
+      id: 609,
+      title: "Yemekhane önünde su birikintisi",
+      department: SUPPORT,
+      risk: 44.2,
+      level: "MEDIUM",
+      elapsed: 35,
+      factors: ["Hafta sonu açıldı", "Hedef süre 24 saat"],
+    }),
+    riskItem({
+      id: 615,
+      title: "B201 Amfi projeksiyon görüntü vermiyor",
+      department: "BT Destek",
+      risk: 18.1,
+      level: "LOW",
+      elapsed: 20,
+      factors: ["Öncelik: Orta"],
+    }),
+    riskItem({
+      id: 616,
+      title: "Kütüphane priz çalışmıyor",
+      department: MAINTENANCE,
+      risk: 15,
+      level: "LOW",
+      elapsed: 12,
+      factors: [],
+    }),
+    riskItem({
+      id: 617,
+      title: "Koridorda çöp kutusu dolu",
+      department: SUPPORT,
+      risk: 12.5,
+      level: "LOW",
+      elapsed: 40,
+      factors: ["Kategori: Temizlik"],
+    }),
+    riskItem({
+      id: 618,
+      title: "A Blok kapı kartı okumuyor",
+      department: MAINTENANCE,
+      risk: 9.9,
+      level: "LOW",
+      elapsed: 8,
+      factors: ["Öncelik: Düşük"],
+    }),
+    riskItem({
+      id: 619,
+      title: "Kantin musluğu damlatıyor",
+      department: MAINTENANCE,
+      risk: 6,
+      level: "LOW",
+      elapsed: 5,
+      factors: ["Hedef süre 48 saat"],
+    }),
+  ],
+};
+
+// Yeterli gecmis yoksa model kurulmaz: liste bos, backend sebebini Turkce soyler
+export const DELAY_RISK_NO_MODEL: Schemas["DelayRiskRead"] = {
+  model: null,
+  items: [],
+  already_late: 0,
+  message:
+    "Gecikme riski için yeterli geçmiş yok: en az 40 kapanmış ve hem zamanında hem geç kapanmış bildirim gerekir.",
+};
