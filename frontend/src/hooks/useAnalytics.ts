@@ -10,6 +10,7 @@ import {
   type SummaryPeriod,
   type TrendRead,
 } from "@/lib/analytics";
+import type { DelayRiskRead } from "@/lib/delayRisk";
 import { LIVE_QUERY } from "@/lib/queryClient";
 import type {
   AgingRead,
@@ -93,3 +94,12 @@ export const useProcessMap = (period: SummaryPeriod) =>
   useReport<ProcessMapRead>("process-map", "/analytics/process-map", period);
 export const useAgentMetrics = (period: SummaryPeriod) =>
   useReport<Schemas["AgentMetricsRead"]>("agent-metrics", "/agents/metrics", period);
+
+// Gecikme riski donemden bagimsiz: bugun acik olanlar. Is listeleri gibi kendiliginden tazelenir
+export function useDelayRisk() {
+  return useQuery({
+    queryKey: ["analytics", "delay-risk"],
+    queryFn: () => apiGet<DelayRiskRead>("/analytics/delay-risk"),
+    ...LIVE_QUERY,
+  });
+}

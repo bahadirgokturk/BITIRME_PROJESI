@@ -279,6 +279,13 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   "▲ 12 puan", sürede "▲ 2 sa 10 dk"); önceki dönem çok küçükken yüzde anlamsız büyür. Grafik kütüphanesi
   kullanılmaz: çubuklar düz HTML/CSS, açılan turuncu ve kapanan turkuaz (renk yolculuğu); durum renkleri grafikte
   kullanılmaz. Sayılar ekran okuyucuya metin olarak da verilir. Telefonda kartlar ikişerli, grafikler alt alta.
+  **Gecikme riski kartı** (`DelayRiskCard`, göstergelerin altında; `GET /analytics/delay-risk`, dönemden bağımsız,
+  60 sn'de bir tazelenir): başlık cevabı söyler ("1 bildirim yüksek gecikme riskinde"); süresi zaten geçen varsa kırmızı
+  şerit + "Gecikenleri gör" (`?group=late`); satırda bildirim (detaya bağlantı), birim, "Yüksek/Orta/Düşük risk · %78"
+  rozeti (%1'in altı "%1'den az", sıfıra yuvarlanmaz), hedef saat, geçen süre çubuğu ("Geçen süre %62", ek yok) ve "Neden: …" (backend'in Türkçe gerekçeleri).
+  İlk 5 satır, gerisi "hepsini göster". Altta modelin ölçümü: "AUC 0,85 (iyi)" (≥0,70 iyi, ≥0,60 orta, altı zayıf) ve
+  "Tahmin bir uyarıdır; karar sizindir." Model yoksa backend'in sebebi; süresi dolmamış açık bildirim yoksa bunu
+  söyler. Kart kendi sorgusuyla yüklenir: hata verirse panonun geri kalanı görünür (Figma: DelayRiskCard, durumlar).
   **Kartlar tıklanır** (sağ üstte ok): Açık Bildirim → Tüm Bildirimler "Açık" filtresiyle (`?group=open`), SLA Uyumu →
   "Geciken" filtresiyle (`?group=late`), Ortalama Çözüm Süresi → Raporlar, Otomasyon Oranı → Yapay Zekâ Performansı,
   Bugün Açılan → Tüm Bildirimler, Müdür İncelemesi Oranı → İnceleme Kuyruğu. Kart yalnız rolün menüsündeki ekrana

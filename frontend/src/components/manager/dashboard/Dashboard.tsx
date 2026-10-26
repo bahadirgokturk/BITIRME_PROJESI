@@ -11,6 +11,7 @@ import { periodDays, type SummaryPeriod } from "@/lib/analytics";
 import { AiSummary, AiSummaryEmpty } from "./AiSummary";
 import { PeriodSwitch } from "../PeriodSwitch";
 import { CategoryBars } from "./CategoryBars";
+import { DelayRiskCard } from "./DelayRiskCard";
 import { PanelSkeleton } from "./ChartCard";
 import { KpiGrid, KpiGridSkeleton } from "./KpiGrid";
 import { TrendChart } from "./TrendChart";
@@ -48,6 +49,7 @@ function DashboardBody({ period }: { period: SummaryPeriod }) {
   return (
     <div className="space-y-4 md:space-y-6">
       <KpiGrid kpis={kpis.data} days={periodDays(period)} role={role} />
+      <DelayRiskCard />
       <div className={CHARTS_CLASS}>
         <div className={TREND_SPAN}>
           <TrendChart trend={trend.data} />

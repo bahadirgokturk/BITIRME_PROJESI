@@ -29,7 +29,7 @@ test("a manager finds a case in the full list by searching", async ({ page }) =>
   await expect(page.getByRole("heading", { name: "Genel Bakış" })).toBeVisible();
 
   await openFromMenu(page, "Tüm Bildirimler");
-  const list = page.getByRole("list", { name: "Bildirimler" });
+  const list = page.getByRole("list", { name: "Bildirimler", exact: true });
   await expect(list.getByRole("listitem").first()).toBeVisible();
   const firstNumber = await list.getByRole("listitem").first().getByText(/^CASE-/).innerText();
 
@@ -42,7 +42,7 @@ test("a manager finds a case in the full list by searching", async ({ page }) =>
 test("a manager opens a case from the list and reads why the AI decided so", async ({ page }) => {
   await signIn(page, "MANAGER");
   await openFromMenu(page, "Tüm Bildirimler");
-  await page.getByRole("list", { name: "Bildirimler" }).getByRole("link").first().click();
+  await page.getByRole("list", { name: "Bildirimler", exact: true }).getByRole("link").first().click();
 
   await expect(page).toHaveURL(/\/manager\/cases\/\d+$/);
   await expect(page.getByRole("heading", { level: 1 })).toContainText("sabun bitmiş");

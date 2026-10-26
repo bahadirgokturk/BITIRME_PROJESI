@@ -38,7 +38,7 @@ test("a safety problem waits for the manager, who sees the AI reasoning and assi
   await openFromMenu(page, "Tüm Bildirimler");
   await page.getByRole("searchbox", { name: "Bildirim ara" }).fill(reported.number);
   // Arama sonucu gelene kadar listede baska bildirimler de durur
-  const rows = page.getByRole("list", { name: "Bildirimler" }).getByRole("listitem");
+  const rows = page.getByRole("list", { name: "Bildirimler", exact: true }).getByRole("listitem");
   await expect(rows).toHaveCount(1);
   await rows.getByRole("link").click();
   const decision = page.getByRole("region", { name: "Bu bildirim kararınızı bekliyor" });

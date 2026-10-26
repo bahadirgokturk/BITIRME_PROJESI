@@ -123,6 +123,24 @@ describe("Dashboard", () => {
     expect(card("Açık Bildirim")).toHaveTextContent("42");
   });
 
+  it("shows the delay risk card on the dashboard", async () => {
+    renderDashboard();
+
+    expect(await screen.findByRole("region", { name: "Gecikme riski" })).toBeInTheDocument();
+  });
+
+  it("keeps the dashboard when only the delay risk fails", async () => {
+    server.use(
+      http.get(apiUrl("/analytics/delay-risk"), () =>
+        HttpResponse.json({ error: { code: "INTERNAL", message: "Risk hesaplanamadı.", details: {} } }, { status: 500 }),
+      ),
+    );
+    renderDashboard();
+
+    expect(await screen.findByText("Risk hesaplanamadı.")).toBeInTheDocument();
+    expect(card("Açık Bildirim")).toHaveTextContent("42");
+  });
+
   it("explains an empty period instead of drawing empty charts", async () => {
     server.use(
       http.get(apiUrl("/analytics/kpis"), () => HttpResponse.json(KPIS_EMPTY)),
