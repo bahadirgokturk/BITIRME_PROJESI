@@ -57,7 +57,13 @@ export function addFiles(current: File[], picked: File[]): FileSelection {
 
 // Konum aramasi (docs/UI_GUIDE.md bolum 5.1). Backend'in normalize kurali ile ayni mantik
 // (backend/app/agents/text.py): kucuk harf, Turkce harfler sadelesir, noktalama bosluk olur.
-export const LOCATION_RESULT_LIMIT = 6; // telefonda klavye acikken ekrana sigan satir sayisi
+// Sonuc kutusu bu kadar satir yuksekliginde; tum eslesenler listededir, gerisi kaydirilarak gorulur
+export const LOCATION_VISIBLE_ROWS = 3;
+
+// Kutunun altindaki not: liste kaydiriliyorsa kac konum oldugu; hepsi sigiyorsa not yok
+export function locationCountHint(count: number): string | null {
+  return count > LOCATION_VISIBLE_ROWS ? `${count} konum · kaydırın ya da arayın` : null;
+}
 
 const TURKISH_FOLD: Readonly<Record<string, string>> = { ç: "c", ğ: "g", ı: "i", ö: "o", ş: "s", ü: "u" };
 
