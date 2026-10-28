@@ -85,8 +85,8 @@ function RiskList({ items }: { items: DelayRiskItem[] }) {
   );
 }
 
-function AlreadyLate({ count }: { count: number }) {
-  const text = alreadyLateText(count);
+function AlreadyLate({ data }: { data: DelayRiskRead }) {
+  const text = alreadyLateText(data);
   if (!text) {
     return null;
   }
@@ -104,8 +104,9 @@ function RiskBody({ data }: { data: DelayRiskRead }) {
   const empty = delayRiskEmptyText(data);
   return (
     <>
-      {data.model ? <AlreadyLate count={data.already_late} /> : null}
-      {empty ? <p className="text-sm text-muted-foreground">{empty}</p> : <RiskList items={data.items} />}
+      <AlreadyLate data={data} />
+      {empty ? <p className="text-sm text-muted-foreground">{empty}</p> : null}
+      {data.items.length > 0 ? <RiskList items={data.items} /> : null}
       {data.model ? <p className="text-xs text-muted-foreground">{modelNote(data.model)}</p> : null}
     </>
   );
