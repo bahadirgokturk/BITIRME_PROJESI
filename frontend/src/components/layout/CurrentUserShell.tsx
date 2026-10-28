@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 
+import { PendingSync } from "@/components/report/PendingReports";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ApiError } from "@/lib/api/client";
 import { loginHref } from "@/lib/loginReturn";
@@ -38,6 +39,8 @@ export function CurrentUserShell({ children }: { children: ReactNode }) {
   }
   return (
     <AppShell role={user.role} userName={user.full_name} userDetail={userDetail(user)}>
+      {/* Cevrimdisi kaydedilen bildirimler hangi sayfada olunursa olsun baglanti gelince gonderilir */}
+      <PendingSync />
       {children}
     </AppShell>
   );

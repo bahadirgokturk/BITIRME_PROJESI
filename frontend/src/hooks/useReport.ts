@@ -1,7 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import { ApiError, apiGet, apiPost, apiRequest } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
+import { queuedAfter, UPLOAD_LOST_MESSAGE } from "@/lib/pendingReports";
 
 type Schemas = components["schemas"];
 export type LocationOption = Schemas["LocationOption"];
@@ -50,37 +51,36 @@ function uploadReportFile(caseId: number, file: File) {
   return apiRequest<Schemas["AttachmentRead"]>(`/cases/${caseId}/attachments`, { method: "POST", body: form });
 }
 
+// Yuklenemeyen dosyanin sebebi: backend'in mesaji ya da kopan baglanti. Baska hata yutulmaz
+function uploadProblem(error: unknown): string {
+  if (error instanceof ApiError) {
+    return error.message;
+  }
+  if (queuedAfter(error)) {
+    return UPLOAD_LOST_MESSAGE;
+  }
+  throw error;
+}
+
 // Dosyalar bildirim olustuktan sonra tek tek yuklenir (docs/API.md). Bildirim artik kayitli oldugu icin
-// backend'in bir dosyayi reddetmesi (413/415/422) gonderimi geri almaz: hangi dosyanin neden yuklenemedigi
-// onay ekraninda yazilir. Ag hatasi gibi ApiError olmayan hatalar yutulmaz.
+// backend'in bir dosyayi reddetmesi (413/415/422) ya da baglantinin kopmasi gonderimi geri almaz: hangi
+// dosyanin neden yuklenemedigi onay ekraninda yazilir (bildirim yeniden gonderilip iki kez olusmaz)
 async function uploadAll(caseId: number, files: File[]): Promise<UploadFailure[]> {
   const failures: UploadFailure[] = [];
   for (const file of files) {
     try {
       await uploadReportFile(caseId, file);
     } catch (error) {
-      if (!(error instanceof ApiError)) {
-        throw error;
-      }
-      failures.push({ fileName: file.name, message: error.message });
+      failures.push({ fileName: file.name, message: uploadProblem(error) });
     }
   }
   return failures;
 }
 
-// onCreated bildirim kaydedilince cagrilir (taslagi silmek icin); form o anda ekrandan kalkar
-export function useCreateReport(onCreated?: () => void) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ description, locationId, files }: ReportInput): Promise<ReportResult> => {
-      const body: Schemas["CaseCreate"] = { description: description.trim(), location_id: locationId };
-      const created = await apiPost<Schemas["CaseRead"]>("/cases", body);
-      return { created, failedUploads: await uploadAll(created.id, files) };
-    },
-    // Bildirimlerim listesi yeni kaydi gostersin
-    onSuccess: () => {
-      onCreated?.();
-      return queryClient.invalidateQueries({ queryKey: ["cases", "mine"] });
-    },
-  });
+// Bildirimi olusturur, sonra dosyalari yukler. Form ve cevrimdisi sira ayni yoldan gonderir
+// (hooks/usePendingReports.ts)
+export async function sendReport({ description, locationId, files }: ReportInput): Promise<ReportResult> {
+  const body: Schemas["CaseCreate"] = { description: description.trim(), location_id: locationId };
+  const created = await apiPost<Schemas["CaseRead"]>("/cases", body);
+  return { created, failedUploads: await uploadAll(created.id, files) };
 }

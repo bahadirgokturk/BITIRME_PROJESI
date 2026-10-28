@@ -1,4 +1,4 @@
-import { CircleCheckIcon } from "lucide-react";
+import { CircleCheckIcon, ClockIcon } from "lucide-react";
 import Link from "next/link";
 
 import { cn } from "cn";
@@ -22,6 +22,37 @@ function UploadWarning({ failures }: { failures: UploadFailure[] }) {
   );
 }
 
+const SCREEN_CLASS =
+  "mx-auto flex w-full max-w-[480px] flex-col items-center gap-4 py-12 text-center md:rounded-xl md:border md:p-10";
+
+function NextSteps({ onNewReport }: { onNewReport: () => void }) {
+  return (
+    <div className="flex w-full flex-col gap-2 pt-2">
+      <Link href="/my-cases" className={cn(buttonVariants({ className: "h-12 w-full" }))}>
+        Bildirimlerim
+      </Link>
+      <Button variant="outline" className="h-12 w-full" onClick={onNewReport}>
+        Yeni bildirim yap
+      </Button>
+    </div>
+  );
+}
+
+// Internet yokken: bildirim bu cihazda sirada, baglanti gelince gonderilir (Figma: /report - mobil - siraya alindi)
+export function QueuedConfirmation({ onNewReport }: { onNewReport: () => void }) {
+  return (
+    <div className={SCREEN_CLASS}>
+      <ClockIcon aria-hidden className="size-14 text-warning" />
+      <h1 className="text-xl font-semibold">Bildiriminiz kaydedildi</h1>
+      <p className="text-sm text-muted-foreground">
+        İnternet gelince kendiliğinden gönderilecek; uygulamayı açık tut. Bekleyenleri Bildirimlerim sayfasında
+        görebilirsin.
+      </p>
+      <NextSteps onNewReport={onNewReport} />
+    </div>
+  );
+}
+
 interface ReportConfirmationProps {
   result: ReportResult;
   onNewReport: () => void;
@@ -30,7 +61,7 @@ interface ReportConfirmationProps {
 // Onay ekrani: bildirim numarasi + Bildirimlerim baglantisi (docs/UI_GUIDE.md bolum 5.1, Figma: /report - onay)
 export function ReportConfirmation({ result, onNewReport }: ReportConfirmationProps) {
   return (
-    <div className="mx-auto flex w-full max-w-[480px] flex-col items-center gap-4 py-12 text-center md:rounded-xl md:border md:p-10">
+    <div className={SCREEN_CLASS}>
       <CircleCheckIcon aria-hidden className="size-14 text-primary" />
       <h1 className="text-xl font-semibold">Bildiriminiz alındı, inceleniyor</h1>
       <div className="space-y-1">
@@ -39,14 +70,7 @@ export function ReportConfirmation({ result, onNewReport }: ReportConfirmationPr
       </div>
       <p className="text-sm text-muted-foreground">Durumunu Bildirimlerim sayfasından takip edebilirsin.</p>
       {result.failedUploads.length > 0 ? <UploadWarning failures={result.failedUploads} /> : null}
-      <div className="flex w-full flex-col gap-2 pt-2">
-        <Link href="/my-cases" className={cn(buttonVariants({ className: "h-12 w-full" }))}>
-          Bildirimlerim
-        </Link>
-        <Button variant="outline" className="h-12 w-full" onClick={onNewReport}>
-          Yeni bildirim yap
-        </Button>
-      </div>
+      <NextSteps onNewReport={onNewReport} />
     </div>
   );
 }
