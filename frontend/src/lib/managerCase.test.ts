@@ -172,8 +172,8 @@ describe("photoList", () => {
 describe("caseDetailSections", () => {
   // Backend: kararlar yalniz mudur ve yoneticiye, karar vermek yalniz mudure acik
   it("shows the AI decisions to managers and admins and lets only the manager decide", () => {
-    expect(caseDetailSections("MANAGER")).toEqual({ aiDecisions: true, decide: true });
-    expect(caseDetailSections("ADMIN")).toEqual({ aiDecisions: true, decide: false });
-    expect(caseDetailSections("STAFF")).toEqual({ aiDecisions: false, decide: false });
+    expect(caseDetailSections("MANAGER")).toEqual({ aiDecisions: true, decide: true, delayRisk: true });
+    expect(caseDetailSections("ADMIN")).toEqual({ aiDecisions: true, decide: false, delayRisk: true });
+    expect(caseDetailSections("STAFF")).toEqual({ aiDecisions: false, decide: false, delayRisk: false });
   });
 });

@@ -5,6 +5,7 @@ import { http, HttpResponse } from "msw";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
+import { DELAY_RISK } from "@/mocks/analyticsFixtures";
 import { createQueryClient } from "@/lib/queryClient";
 import { USERS } from "@/mocks/fixtures";
 import { resetReviewQueue } from "@/mocks/managerHandlers";
@@ -188,6 +189,47 @@ describe("ManagerCaseDetail", () => {
     expect(screen.getByRole("link", { name: "Birim Bildirimleri" })).toHaveAttribute("href", "/staff/cases");
     expect(await screen.findByRole("heading", { name: "Zaman çizelgesi" })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Yapay zekâ kararları" })).not.toBeInTheDocument();
+  });
+
+  it("shows the case's delay risk with the reasons when it is among the unit's risky cases", async () => {
+    const [first] = DELAY_RISK.items;
+    const listed = { ...first!, case_id: Number(AUTO_ASSIGNED), level: "MEDIUM" as const, risk_pct: 44.2 };
+    const asked: string[] = [];
+    server.use(
+      http.get(apiUrl("/analytics/delay-risk"), ({ request }) => {
+        asked.push(new URL(request.url).search);
+        return HttpResponse.json({ ...DELAY_RISK, items: [listed] });
+      }),
+    );
+    renderDetail(AUTO_ASSIGNED);
+
+    const info = await screen.findByRole("region", { name: "Bildirim bilgileri" });
+    expect(await within(info).findByText("Orta risk · %44")).toBeInTheDocument();
+    expect(within(info).getByText(/^Neden: Mesai dışında açıldı/)).toBeInTheDocument();
+    // Birimin en riskli isleri arasinda aranir
+    expect(asked[0]).toMatch(/department_id=\d+/);
+  });
+
+  it("leaves the delay risk out when the case is not among the risky ones", async () => {
+    renderDetail(AUTO_ASSIGNED);
+
+    const info = await screen.findByRole("region", { name: "Bildirim bilgileri" });
+    await waitFor(() => expect(within(info).getByText("Hedef süre")).toBeInTheDocument());
+    expect(within(info).queryByText("Gecikme riski")).not.toBeInTheDocument();
+  });
+
+  // Personelin analitige yetkisi yok (403): istek hic atilmaz
+  it("does not ask staff's delay risk", async () => {
+    const asked: string[] = [];
+    server.events.on("request:start", ({ request }) => {
+      asked.push(new URL(request.url).pathname);
+    });
+    signInAs(USERS.STAFF);
+    renderDetail(AUTO_ASSIGNED, "unit");
+
+    expect(await screen.findByRole("heading", { name: "Zaman çizelgesi" })).toBeInTheDocument();
+    server.events.removeAllListeners();
+    expect(asked.some((path) => path.endsWith("/analytics/delay-risk"))).toBe(false);
   });
 
   // Karar yalniz mudurun; yonetici kararlari okur ama karar kutusu cikmaz

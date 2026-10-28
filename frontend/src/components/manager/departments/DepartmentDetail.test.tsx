@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
 import { createQueryClient } from "@/lib/queryClient";
-import { KPIS_WEEK } from "@/mocks/analyticsFixtures";
+import { DELAY_RISK, KPIS_WEEK } from "@/mocks/analyticsFixtures";
 import { server } from "@/mocks/node";
 
 import { DepartmentDetail } from "./DepartmentDetail";
@@ -41,6 +41,21 @@ describe("DepartmentDetail", () => {
     renderDetail("2");
 
     await waitFor(() => expect(asked).toContain("2"));
+  });
+
+  it("shows the delay risk of this unit's open cases", async () => {
+    const asked: string[] = [];
+    server.use(
+      http.get(apiUrl("/analytics/delay-risk"), ({ request }) => {
+        asked.push(new URL(request.url).searchParams.get("department_id") ?? "yok");
+        return HttpResponse.json(DELAY_RISK);
+      }),
+    );
+    renderDetail("2");
+
+    const card = await screen.findByRole("region", { name: "Gecikme riski" });
+    expect(card).toHaveTextContent("Bu birimin açık bildirimleri");
+    expect(asked).toContain("2");
   });
 
   it("does not reveal a unit that is not in the list", async () => {

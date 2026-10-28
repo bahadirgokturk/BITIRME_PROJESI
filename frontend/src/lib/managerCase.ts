@@ -154,11 +154,14 @@ export interface CaseDetailSections {
   aiDecisions: boolean;
   // Inceleme bekleyen bildirimde onayla / duzelt / reddet (karar endpoint'leri yalniz MANAGER)
   decide: boolean;
+  // Gecikme riski analitik ucundan gelir; personelin yetkisi yok (403)
+  delayRisk: boolean;
 }
 
 // Ayni detay ekrani personel, mudur ve yoneticiye acilir; her rol backend'in izin verdigi bolumleri gorur
 export function caseDetailSections(role: Role | undefined): CaseDetailSections {
-  return { aiDecisions: role === "MANAGER" || role === "ADMIN", decide: role === "MANAGER" };
+  const manages = role === "MANAGER" || role === "ADMIN";
+  return { aiDecisions: manages, decide: role === "MANAGER", delayRisk: manages };
 }
 
 type Attachment = Schemas["AttachmentRead"];

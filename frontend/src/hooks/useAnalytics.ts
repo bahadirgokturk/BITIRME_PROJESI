@@ -95,11 +95,14 @@ export const useProcessMap = (period: SummaryPeriod) =>
 export const useAgentMetrics = (period: SummaryPeriod) =>
   useReport<Schemas["AgentMetricsRead"]>("agent-metrics", "/agents/metrics", period);
 
-// Gecikme riski donemden bagimsiz: bugun acik olanlar. Is listeleri gibi kendiliginden tazelenir
-export function useDelayRisk() {
+// Gecikme riski donemden bagimsiz: bugun acik olanlar. Is listeleri gibi kendiliginden tazelenir.
+// Birim verilirse yalniz o birim; enabled=false iken (yetkisiz rol) hic istenmez
+export function useDelayRisk(departmentId?: number, enabled = true) {
+  const unit = departmentId === undefined ? "" : `?department_id=${departmentId}`;
   return useQuery({
-    queryKey: ["analytics", "delay-risk"],
-    queryFn: () => apiGet<DelayRiskRead>("/analytics/delay-risk"),
+    queryKey: ["analytics", "delay-risk", departmentId],
+    queryFn: () => apiGet<DelayRiskRead>(`/analytics/delay-risk${unit}`),
+    enabled,
     ...LIVE_QUERY,
   });
 }

@@ -287,6 +287,10 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   "Tahmin bir uyarıdır; karar sizindir." Model yoksa backend'in sebebi (süresi geçenler varsa şerit yine görünür).
   Liste boş ama süresi geçen varsa başlık "30 bildirim zaten gecikmiş", şerit "…hedef süresi geçti; süresi dolmamış
   açık bildirim yok."; "riskli bir şey görünmüyor" yalnız ne açık ne geciken bildirim varken yazılır. Kart kendi sorgusuyla yüklenir: hata verirse panonun geri kalanı görünür (Figma: DelayRiskCard, durumlar).
+  Aynı kart **Birim Performansı > birim detayında** göstergelerin altında, yalnız o birimin bildirimleriyle
+  (`?department_id=`, alt başlık "Bu birimin açık bildirimleri · …"). **Bildirim detayında** (müdür, yönetici) "Bildirim
+  bilgileri"nde "Gecikme riski" satırı: rozet + "Neden: …"; bildirim birimin en riskli açık işleri arasında değilse
+  (süresi geçmiş, kapanmış, düşük riskli) satır yok. Personelde istek atılmaz (analitiğe yetkisi yok).
   **Kartlar tıklanır** (sağ üstte ok): Açık Bildirim → Tüm Bildirimler "Açık" filtresiyle (`?group=open`), SLA Uyumu →
   "Geciken" filtresiyle (`?group=late`), Ortalama Çözüm Süresi → Raporlar, Otomasyon Oranı → Yapay Zekâ Performansı,
   Bugün Açılan → Tüm Bildirimler, Müdür İncelemesi Oranı → İnceleme Kuyruğu. Kart yalnız rolün menüsündeki ekrana

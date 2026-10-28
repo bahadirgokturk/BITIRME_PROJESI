@@ -12,6 +12,7 @@ import {
   alreadyLateText,
   delayRiskEmptyText,
   delayRiskHeadline,
+  delayRiskSubtitle,
   elapsedText,
   factorsText,
   LATE_CASES_PATH,
@@ -36,13 +37,21 @@ const LINK_CLASS =
   "font-medium text-primary-text outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50";
 const LATE_CLASS =
   "flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-lg bg-destructive/10 px-3 py-2.5 text-sm";
-const SUBTITLE = "Açık bildirimlerin hedef süreyi aşma olasılığı · en riskli üstte";
 
-function RiskTime({ item }: { item: DelayRiskItem }) {
+// Riskin seviyesi ve yuzdesi; bildirim detayinda da kullanilir
+export function RiskBadge({ item }: { item: DelayRiskItem }) {
   const badge = riskBadge(item);
   return (
+    <span className={cn("w-fit rounded-md px-2 py-0.5 text-xs font-medium", TONE_CLASS[badge.tone])}>
+      {badge.label}
+    </span>
+  );
+}
+
+function RiskTime({ item }: { item: DelayRiskItem }) {
+  return (
     <div className="flex shrink-0 flex-col gap-1.5 text-xs text-muted-foreground md:items-end">
-      <span className={cn("w-fit rounded-md px-2 py-0.5 font-medium", TONE_CLASS[badge.tone])}>{badge.label}</span>
+      <RiskBadge item={item} />
       <span>Hedef: {formatDateTime(item.due_at)}</span>
       <span aria-hidden className="h-1.5 w-30 overflow-hidden rounded-full bg-muted">
         <span className="block h-full rounded-full bg-muted-foreground" style={{ width: `${item.elapsed_pct}%` }} />
@@ -123,9 +132,10 @@ function RiskSkeleton() {
 }
 
 // Acik bildirimlerin hedef sureyi asma olasiligi; en riskli ustte (Figma: 05 Manager > /manager/dashboard >
-// DelayRiskCard). Kendi sorgusu var: hata verirse panonun geri kalani yine gorunur
-export function DelayRiskCard() {
-  const query = useDelayRisk();
+// DelayRiskCard). Kendi sorgusu var: hata verirse panonun geri kalani yine gorunur. Birim detayinda
+// departmentId ile yalniz o birim (Figma: /manager/departments/[id])
+export function DelayRiskCard({ departmentId }: { departmentId?: number }) {
+  const query = useDelayRisk(departmentId);
   if (query.isPending) {
     return <RiskSkeleton />;
   }
@@ -136,7 +146,7 @@ export function DelayRiskCard() {
     <section aria-label={CARD_NAME} className={PANEL_CLASS}>
       <div>
         <h2 className="font-semibold">{delayRiskHeadline(query.data)}</h2>
-        <p className="text-xs text-muted-foreground">{SUBTITLE}</p>
+        <p className="text-xs text-muted-foreground">{delayRiskSubtitle(departmentId)}</p>
       </div>
       <RiskBody data={query.data} />
     </section>
