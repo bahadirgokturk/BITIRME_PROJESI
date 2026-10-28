@@ -18,6 +18,7 @@ import type { DepartmentPerformance } from "@/lib/reports";
 
 import { CategoryBars } from "../dashboard/CategoryBars";
 import { PanelSkeleton } from "../dashboard/ChartCard";
+import { DelayRiskCard } from "../dashboard/DelayRiskCard";
 import { KpiGrid, KpiGridSkeleton } from "../dashboard/KpiGrid";
 import { TrendChart } from "../dashboard/TrendChart";
 import { PeriodActions } from "../PeriodActions";
@@ -57,6 +58,7 @@ function UnitAnalytics({ period, departmentId }: { period: SummaryPeriod; depart
   return (
     <div className="space-y-4 md:space-y-6">
       <KpiGrid kpis={kpis.data} days={periodDays(period)} />
+      <DelayRiskCard departmentId={departmentId} />
       <div className={CHARTS_CLASS}>
         <div className="lg:col-span-2">
           <TrendChart trend={trend.data} />

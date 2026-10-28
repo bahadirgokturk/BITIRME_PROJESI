@@ -4,7 +4,11 @@ import { PageTitle } from "@/components/layout/PageTitle";
 import { CaseStatusBadge, PriorityBadge, SlaBadge } from "@/components/tasks/TaskBadges";
 import { caseSla, type CaseRead } from "@/lib/caseList";
 import { formatDateTime, relativeTime } from "@/lib/dates";
+import { useDelayRisk } from "@/hooks/useAnalytics";
+import { factorsText, findCaseRisk } from "@/lib/delayRisk";
 import { caseInfoFields } from "@/lib/managerCase";
+
+import { RiskBadge } from "../dashboard/DelayRiskCard";
 
 export const CARD_CLASS = "rounded-lg border bg-card p-4";
 const INFO_TITLE_ID = "case-info-title";
@@ -62,7 +66,25 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-export function CaseInfo({ item }: { item: CaseRead }) {
+// Bildirim birimin en riskli acik isleri arasindaysa: seviye rozeti ve gerekceler (Figma: InfoCard, Gecikme riski)
+function DelayRiskField({ item }: { item: CaseRead }) {
+  const risk = findCaseRisk(useDelayRisk(item.department?.id).data, item.id);
+  if (!risk) {
+    return null;
+  }
+  const factors = factorsText(risk);
+  return (
+    <Field label="Gecikme riski">
+      <span className="flex flex-col gap-1">
+        <RiskBadge item={risk} />
+        {factors ? <span className="text-xs text-muted-foreground">{factors}</span> : null}
+      </span>
+    </Field>
+  );
+}
+
+// showRisk: rolun analitige yetkisi varsa (mudur, yonetici)
+export function CaseInfo({ item, showRisk = false }: { item: CaseRead; showRisk?: boolean }) {
   return (
     <section aria-labelledby={INFO_TITLE_ID} className={`${CARD_CLASS} space-y-3`}>
       <h2 id={INFO_TITLE_ID} className="font-semibold">
@@ -74,6 +96,7 @@ export function CaseInfo({ item }: { item: CaseRead }) {
             {field.value}
           </Field>
         ))}
+        {showRisk ? <DelayRiskField item={item} /> : null}
         {item.parent_case_id === null ? null : (
           <Field label="Birleştirildiği bildirim">
             <Link href={`/manager/cases/${item.parent_case_id}`} className={LINK_CLASS}>

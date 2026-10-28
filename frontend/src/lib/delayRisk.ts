@@ -18,6 +18,20 @@ const LEVEL_LABELS: Record<DelayRiskLevel, string> = {
 };
 
 const PLAIN_TITLE = "Gecikme riski";
+const RISK_WHAT = "hedef süreyi aşma olasılığı · en riskli üstte";
+
+// Birim detayinda liste yalniz o birimin bildirimleri (department_id)
+export function delayRiskSubtitle(departmentId?: number): string {
+  return departmentId === undefined
+    ? `Açık bildirimlerin ${RISK_WHAT}`
+    : `Bu birimin açık bildirimleri · ${RISK_WHAT}`;
+}
+
+// Bildirim detayi: bildirim birimin en riskli acik isleri arasindaysa onun satiri. Suresi gecmis, kapanmis ya da
+// listeye girmeyecek kadar dusuk riskli bildirimde null (detayda risk gosterilmez)
+export function findCaseRisk(data: DelayRiskRead | undefined, caseId: number): DelayRiskItem | null {
+  return data?.items.find((item) => item.case_id === caseId) ?? null;
+}
 
 // Model var ama liste bos ve gecikenler var: acik islerin hepsinin suresi dolmus
 function onlyLate(data: DelayRiskRead): boolean {

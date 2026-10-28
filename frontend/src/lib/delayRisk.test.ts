@@ -7,6 +7,8 @@ import {
   aucQuality,
   delayRiskEmptyText,
   delayRiskHeadline,
+  delayRiskSubtitle,
+  findCaseRisk,
   elapsedText,
   factorsText,
   LATE_CASES_PATH,
@@ -132,6 +134,23 @@ describe("model note", () => {
   it("says when the accuracy could not be measured", () => {
     expect(modelNote({ train_cases: 40, test_cases: 12, auc: null, late_share_pct: 10 })).toBe(
       "Model 40 kapanmış bildirimle eğitildi; doğruluğu ölçülemedi. Tahmin bir uyarıdır; karar sizindir.",
+    );
+  });
+});
+
+describe("one case", () => {
+  it("finds the case's own risk in the list, or nothing when it is not listed", () => {
+    expect(findCaseRisk(DELAY_RISK, 612)?.case_number).toBe("CASE-000612");
+    expect(findCaseRisk(DELAY_RISK, 1)).toBeNull();
+    expect(findCaseRisk(undefined, 612)).toBeNull();
+  });
+});
+
+describe("delayRiskSubtitle", () => {
+  it("says whose open cases are listed", () => {
+    expect(delayRiskSubtitle()).toBe("Açık bildirimlerin hedef süreyi aşma olasılığı · en riskli üstte");
+    expect(delayRiskSubtitle(2)).toBe(
+      "Bu birimin açık bildirimleri · hedef süreyi aşma olasılığı · en riskli üstte",
     );
   });
 });

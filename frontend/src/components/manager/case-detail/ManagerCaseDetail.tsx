@@ -56,7 +56,7 @@ function CaseView({ item }: { item: CaseRead }) {
       {sections.decide && awaitsManager(item) ? <CaseDecision item={item} onDone={setLastAction} /> : null}
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-4 xl:order-2">
-          <CaseInfo item={item} />
+          <CaseInfo item={item} showRisk={sections.delayRisk} />
           <CasePhotos caseId={item.id} />
         </div>
         <div className="space-y-6">
