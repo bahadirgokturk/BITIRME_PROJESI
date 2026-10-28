@@ -19,7 +19,15 @@ const LEVEL_LABELS: Record<DelayRiskLevel, string> = {
 
 const PLAIN_TITLE = "Gecikme riski";
 
+// Model var ama liste bos ve gecikenler var: acik islerin hepsinin suresi dolmus
+function onlyLate(data: DelayRiskRead): boolean {
+  return data.model !== null && data.items.length === 0 && data.already_late > 0;
+}
+
 export function delayRiskHeadline(data: DelayRiskRead): string {
+  if (onlyLate(data)) {
+    return `${data.already_late} bildirim zaten gecikmiş`;
+  }
   if (!data.model || data.items.length === 0) {
     return PLAIN_TITLE;
   }
@@ -27,12 +35,16 @@ export function delayRiskHeadline(data: DelayRiskRead): string {
   return high > 0 ? `${high} bildirim yüksek gecikme riskinde` : "Yüksek riskli bildirim yok";
 }
 
-// Liste yerine yazilacak metin; liste varsa null
+// Liste yerine yazilacak metin; liste varsa ya da durumu kirmizi serit anlatiyorsa null.
+// Gecikenler varken "riskli bir sey gorunmuyor" denmez
 export function delayRiskEmptyText(data: DelayRiskRead): string | null {
   if (!data.model) {
     return data.message ?? "Gecikme riski için yeterli geçmiş yok.";
   }
-  return data.items.length === 0 ? "Süresi dolmamış açık bildirim yok; riskli bir şey görünmüyor." : null;
+  if (data.items.length > 0 || data.already_late > 0) {
+    return null;
+  }
+  return "Süresi dolmamış açık bildirim yok; riskli bir şey görünmüyor.";
 }
 
 // Olasilik hic tam sifir degildir: %1'in altindaki deger "%0" diye yuvarlanmaz
@@ -55,8 +67,15 @@ export function factorsText(item: DelayRiskItem): string | null {
   return item.factors.length > 0 ? `Neden: ${item.factors.map((factor) => factor.label).join(" · ")}` : null;
 }
 
-export function alreadyLateText(count: number): string | null {
-  return count > 0 ? `${count} bildirimin hedef süresi zaten geçti.` : null;
+// Modelden bagimsiz: suresi gecenler her durumda soylenir. Liste bossa baska acik is olmadigi da eklenir
+export function alreadyLateText(data: DelayRiskRead): string | null {
+  if (data.already_late === 0) {
+    return null;
+  }
+  if (onlyLate(data)) {
+    return `${data.already_late} bildirimin hedef süresi geçti; süresi dolmamış açık bildirim yok.`;
+  }
+  return `${data.already_late} bildirimin hedef süresi zaten geçti.`;
 }
 
 // ROC-AUC'nin yaygin yorumu: 0,5 yazi tura, 0,7 ve ustu kullanisli, 0,6-0,7 sinirda

@@ -34,9 +34,13 @@ describe("delayRiskHeadline", () => {
     expect(delayRiskHeadline(calm)).toBe("Yüksek riskli bildirim yok");
   });
 
-  it("keeps a plain title when there is nothing to list or no model", () => {
-    expect(delayRiskHeadline({ ...DELAY_RISK, items: [] })).toBe("Gecikme riski");
-    expect(delayRiskHeadline(DELAY_RISK_NO_MODEL)).toBe("Gecikme riski");
+  it("leads with the late cases when every open case is already past its target", () => {
+    expect(delayRiskHeadline({ ...DELAY_RISK, items: [], already_late: 30 })).toBe("30 bildirim zaten gecikmiş");
+  });
+
+  it("keeps a plain title when nothing is open or there is no model", () => {
+    expect(delayRiskHeadline({ ...DELAY_RISK, items: [], already_late: 0 })).toBe("Gecikme riski");
+    expect(delayRiskHeadline({ ...DELAY_RISK_NO_MODEL, already_late: 4 })).toBe("Gecikme riski");
   });
 });
 
@@ -45,10 +49,15 @@ describe("delayRiskEmptyText", () => {
     expect(delayRiskEmptyText(DELAY_RISK_NO_MODEL)).toBe(DELAY_RISK_NO_MODEL.message);
   });
 
-  it("says nothing is at risk when no open case is still within its target", () => {
-    expect(delayRiskEmptyText({ ...DELAY_RISK, items: [] })).toBe(
+  it("says nothing is at risk only when no case is late either", () => {
+    expect(delayRiskEmptyText({ ...DELAY_RISK, items: [], already_late: 0 })).toBe(
       "Süresi dolmamış açık bildirim yok; riskli bir şey görünmüyor.",
     );
+  });
+
+  // Gecikenler varken "riskli bir sey gorunmuyor" yaniltir: bilgi kirmizi seritte verilir
+  it("leaves the empty text to the late strip when cases are already late", () => {
+    expect(delayRiskEmptyText({ ...DELAY_RISK, items: [], already_late: 30 })).toBeNull();
   });
 
   it("has no empty text when there are cases to list", () => {
@@ -87,9 +96,22 @@ describe("rows", () => {
 
 describe("already late", () => {
   it("points to the late cases only when some are already past their target", () => {
-    expect(alreadyLateText(3)).toBe("3 bildirimin hedef süresi zaten geçti.");
-    expect(alreadyLateText(0)).toBeNull();
+    expect(alreadyLateText(DELAY_RISK)).toBe("3 bildirimin hedef süresi zaten geçti.");
+    expect(alreadyLateText({ ...DELAY_RISK, already_late: 0 })).toBeNull();
     expect(LATE_CASES_PATH).toBe("/manager/cases?group=late");
+  });
+
+  it("adds that nothing else is open when the list is empty", () => {
+    expect(alreadyLateText({ ...DELAY_RISK, items: [], already_late: 30 })).toBe(
+      "30 bildirimin hedef süresi geçti; süresi dolmamış açık bildirim yok.",
+    );
+  });
+
+  // Model yokken liste bos olsa da acik bildirim olabilir: "baska acik yok" denmez
+  it("still shows the late cases when there is no model", () => {
+    const noModel = { ...DELAY_RISK_NO_MODEL, already_late: 4 };
+
+    expect(alreadyLateText(noModel)).toBe("4 bildirimin hedef süresi zaten geçti.");
   });
 });
 

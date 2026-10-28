@@ -284,8 +284,9 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   şerit + "Gecikenleri gör" (`?group=late`); satırda bildirim (detaya bağlantı), birim, "Yüksek/Orta/Düşük risk · %78"
   rozeti (%1'in altı "%1'den az", sıfıra yuvarlanmaz), hedef saat, geçen süre çubuğu ("Geçen süre %62", ek yok) ve "Neden: …" (backend'in Türkçe gerekçeleri).
   İlk 5 satır, gerisi "hepsini göster". Altta modelin ölçümü: "AUC 0,85 (iyi)" (≥0,70 iyi, ≥0,60 orta, altı zayıf) ve
-  "Tahmin bir uyarıdır; karar sizindir." Model yoksa backend'in sebebi; süresi dolmamış açık bildirim yoksa bunu
-  söyler. Kart kendi sorgusuyla yüklenir: hata verirse panonun geri kalanı görünür (Figma: DelayRiskCard, durumlar).
+  "Tahmin bir uyarıdır; karar sizindir." Model yoksa backend'in sebebi (süresi geçenler varsa şerit yine görünür).
+  Liste boş ama süresi geçen varsa başlık "30 bildirim zaten gecikmiş", şerit "…hedef süresi geçti; süresi dolmamış
+  açık bildirim yok."; "riskli bir şey görünmüyor" yalnız ne açık ne geciken bildirim varken yazılır. Kart kendi sorgusuyla yüklenir: hata verirse panonun geri kalanı görünür (Figma: DelayRiskCard, durumlar).
   **Kartlar tıklanır** (sağ üstte ok): Açık Bildirim → Tüm Bildirimler "Açık" filtresiyle (`?group=open`), SLA Uyumu →
   "Geciken" filtresiyle (`?group=late`), Ortalama Çözüm Süresi → Raporlar, Otomasyon Oranı → Yapay Zekâ Performansı,
   Bugün Açılan → Tüm Bildirimler, Müdür İncelemesi Oranı → İnceleme Kuyruğu. Kart yalnız rolün menüsündeki ekrana

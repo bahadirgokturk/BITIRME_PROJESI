@@ -71,14 +71,28 @@ describe("DelayRiskCard", () => {
     expect(within(card).getAllByRole("listitem")).toHaveLength(DELAY_RISK.items.length);
   });
 
-  it("explains that nothing is at risk when every open case is already late", async () => {
-    answer({ ...DELAY_RISK, items: [], already_late: 29 });
+  it("leads with the late cases when every open case is already late", async () => {
+    answer({ ...DELAY_RISK, items: [], already_late: 30 });
     renderCard();
 
     const card = await region();
-    expect(within(card).getByText(/^Süresi dolmamış açık bildirim yok/)).toBeInTheDocument();
-    expect(within(card).getByText("29 bildirimin hedef süresi zaten geçti.")).toBeInTheDocument();
+    expect(within(card).getByRole("heading", { name: "30 bildirim zaten gecikmiş" })).toBeInTheDocument();
+    expect(
+      within(card).getByText("30 bildirimin hedef süresi geçti; süresi dolmamış açık bildirim yok."),
+    ).toBeInTheDocument();
+    expect(within(card).getByRole("link", { name: "Gecikenleri gör" })).toBeInTheDocument();
+    expect(within(card).queryByText(/riskli bir şey görünmüyor/)).not.toBeInTheDocument();
     expect(within(card).queryByRole("list")).not.toBeInTheDocument();
+  });
+
+  it("says calmly that nothing is at risk when no case is open or late", async () => {
+    answer({ ...DELAY_RISK, items: [], already_late: 0 });
+    renderCard();
+
+    const card = await region();
+    const calm = "Süresi dolmamış açık bildirim yok; riskli bir şey görünmüyor.";
+    expect(within(card).getByText(calm)).toBeInTheDocument();
+    expect(within(card).queryByRole("link", { name: "Gecikenleri gör" })).not.toBeInTheDocument();
   });
 
   it("passes on why there is no model yet", async () => {
@@ -89,6 +103,16 @@ describe("DelayRiskCard", () => {
     expect(within(card).getByText(DELAY_RISK_NO_MODEL.message!)).toBeInTheDocument();
     expect(within(card).queryByText(/AUC/)).not.toBeInTheDocument();
     expect(within(card).queryByRole("link", { name: "Gecikenleri gör" })).not.toBeInTheDocument();
+  });
+
+  it("still points to the late cases when there is no model", async () => {
+    answer({ ...DELAY_RISK_NO_MODEL, already_late: 4 });
+    renderCard();
+
+    const card = await region();
+    expect(within(card).getByText(DELAY_RISK_NO_MODEL.message!)).toBeInTheDocument();
+    expect(within(card).getByText("4 bildirimin hedef süresi zaten geçti.")).toBeInTheDocument();
+    expect(within(card).getByRole("link", { name: "Gecikenleri gör" })).toBeInTheDocument();
   });
 
   it("shows the backend error with a retry", async () => {
