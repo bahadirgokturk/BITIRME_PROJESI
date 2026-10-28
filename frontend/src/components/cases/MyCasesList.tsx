@@ -9,6 +9,7 @@ import { FilterChips } from "@/components/filters/FilterChips";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { ListToolbar } from "@/components/lists/ListToolbar";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
+import { PendingReports } from "@/components/report/PendingReports";
 import { ErrorState } from "@/components/states/ErrorState";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useMyCases } from "@/hooks/useCases";
@@ -155,6 +156,7 @@ export function MyCasesList() {
       {/* Uygulama yukleme daveti ilk bildirimden sonra gosterilir (Figma: /my-cases - yukleme daveti) */}
       <InstallPrompt hasCases={query.isSuccess && !isEmpty} />
       <MyCasesHeader isEmpty={isEmpty} />
+      <PendingReports />
       {isEmpty ? null : (
         <div className="space-y-3">
           <FilterChips

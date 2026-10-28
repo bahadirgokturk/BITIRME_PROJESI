@@ -7,10 +7,13 @@ import { FormAlert } from "@/components/states/FormAlert";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useQrLocation, type useCreateReport } from "@/hooks/useReport";
+import { useOnline } from "@/hooks/useOnline";
+import type { useSubmitReport } from "@/hooks/usePendingReports";
+import { useQrLocation } from "@/hooks/useReport";
 import { clearReportDraft, readReportDraft, useSaveReportDraft } from "@/hooks/useReportDraft";
 import { ApiError } from "@/lib/api/client";
 import { addFiles, DESCRIPTION_MAX_LENGTH, descriptionProblem, qrLocationId } from "@/lib/report";
+import { pendingStore } from "@/lib/pendingStore";
 import { draftForForm } from "@/lib/reportDraft";
 
 import { AttachmentField } from "./AttachmentField";
@@ -138,8 +141,26 @@ function useReportFields(draftKey: string | null, fileList: ReturnType<typeof us
   };
 }
 
+// Internet yokken (ve cihaz bildirimi saklayabiliyorsa) dugme "kaydet" der ve ne olacagini aciklar
+// (Figma: /report - cevrimdisi kaydet)
+function SubmitButton({ pending }: { pending: boolean }) {
+  const willQueue = !useOnline() && pendingStore() !== null;
+  return (
+    <>
+      {willQueue ? (
+        <p className="text-[13px] text-muted-foreground">
+          İnternet yok: bildirimin bu cihaza kaydedilir, bağlantı gelince kendiliğinden gönderilir.
+        </p>
+      ) : null}
+      <Button type="submit" className="h-12 w-full md:w-auto md:self-end md:px-6" disabled={pending}>
+        {pending ? "Gönderiliyor…" : willQueue ? "Kaydet, internet gelince gönder" : "Gönder"}
+      </Button>
+    </>
+  );
+}
+
 interface ReportFormProps {
-  mutation: ReturnType<typeof useCreateReport>;
+  mutation: ReturnType<typeof useSubmitReport>;
   draftKey: string | null;
   qrLocation?: string;
 }
@@ -181,9 +202,7 @@ export function ReportForm({ mutation, draftKey, qrLocation }: ReportFormProps) 
         />
         <AttachmentField files={fileList.files} problem={fileList.problem} onPick={fileList.pick} onRemove={fileList.remove} />
         <FormAlert error={mutation.error} />
-        <Button type="submit" className="h-12 w-full md:w-auto md:self-end md:px-6" disabled={mutation.isPending}>
-          {mutation.isPending ? "Gönderiliyor…" : "Gönder"}
-        </Button>
+        <SubmitButton pending={mutation.isPending} />
       </div>
     </form>
   );

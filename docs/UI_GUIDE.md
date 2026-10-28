@@ -439,6 +439,18 @@ Wi-Fi kapansa da tarayıcı "bağlıyım" der): sunucuya giden bir istek ağ hat
 bir yoklanır; herhangi bir cevap gelince şerit kalkar (`lib/api/reachability.ts`). Bağlantı gelince şerit kalkar ve
 sorgular kendiliğinden yeniden okunur (`OfflineBanner`, `hooks/useOnline.ts`;
 Figma: OfflineBanner, `/report - … - bağlantı yok`, `/login - mobil - bağlantı yok`).
+**Çevrimdışı bildirim sırası:** internet yokken formun düğmesi "Kaydet, internet gelince gönder" olur ve üstünde
+"İnternet yok: bildirimin bu cihaza kaydedilir, bağlantı gelince kendiliğinden gönderilir." yazar. Bildirim (fotoğraflarla)
+tarayıcının IndexedDB'sine yazılır (`lib/pendingStore.ts`), ekran "Bildiriminiz kaydedildi" der. Gönderirken bağlantı
+koparsa (ağ hatası, backend cevap vermedi) da sıraya alınır; backend cevap verdiyse (422 vb.) hata formda kalır.
+Bildirim kaydedildikten sonra yalnız fotoğraf yüklemesi koparsa bildirim yeniden gönderilmez (iki kez oluşmasın):
+onay ekranında "Bağlantı koptuğu için yüklenemedi." yazar. Uygulama açıkken bağlantı gelince sıra (hangi sayfada olunursa
+olsun, `PendingSync` kabukta) en eskiden başlayarak gönderilir; Bildirimlerim'in üstünde "Gönderilmeyi bekleyen N
+bildirim" kutusu, gönderilince "Bekleyen bildirimin gönderildi: CASE-…" + "Aç". Backend reddederse satır
+"Gönderilemedi: <sebep>" ve "Sil" ile kalır. Sıra kullanıcıya bağlıdır (başka hesapla görünmez, gönderilmez); çıkışta
+silinmez (gönderilmemiş iş kaybolmasın). Service worker yok: uygulama kapalıyken gönderilmez, internetsiz sayfa açılmaz.
+IndexedDB yoksa sıra kapalıdır, form eskisi gibi hata verir (Figma: `/report - … - çevrimdışı kaydet`,
+`/report - mobil - sıraya alındı`, `/my-cases - … - gönderilmeyi bekleyen`, `/my-cases - mobil - bekleyen gönderildi`).
 
 **Kendini yenileme:** İş listeleri ve detaylar dakikada bir yeniden okunur; böylece başkasının yaptığı değişiklik sayfa
 yenilenmeden görünür: Görevlerim ve görev detayı, İnceleme Kuyruğu, Bildirimlerim, Tüm/Birim Bildirimleri, bildirim
