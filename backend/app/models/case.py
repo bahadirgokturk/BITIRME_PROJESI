@@ -22,6 +22,7 @@ from sqlalchemy import (
     SmallInteger,
     String,
     Text,
+    UniqueConstraint,
     false,
     func,
     text,
@@ -29,7 +30,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.core.constants import RATING_MAX, RATING_MIN
+from app.core.constants import IDEMPOTENCY_KEY_MAX_LENGTH, RATING_MAX, RATING_MIN
 from app.models.base import Base, CreatedAtMixin, IdMixin
 from app.models.case_type import CaseType
 from app.models.department import Department
@@ -39,6 +40,9 @@ from app.models.sla_rule import SlaRule
 
 # case_number icin; id'den bagimsiz olsun ki numara tahmin/siralama bilgisi id'ye baglanmasin
 CASE_NUMBER_SEQUENCE = Sequence("case_number_seq")
+
+# Ayni bildirenin ayni anahtarla ikinci gonderimi ayni bildirime duser (POST /cases)
+IDEMPOTENCY_CONSTRAINT = "uq_cases_reporter_id_idempotency_key"
 
 # Olasilik/guven skorlari 0.000-1.000
 SCORE = Numeric(4, 3)
@@ -52,6 +56,7 @@ class Case(IdMixin, CreatedAtMixin, Base):
         Index("ix_cases_location_type_created", "location_id", "case_type_id", "created_at"),
         Index("ix_cases_department_id_status", "department_id", "status"),
         Index("ix_cases_reporter_id_created_at", "reporter_id", text("created_at DESC")),
+        UniqueConstraint("reporter_id", "idempotency_key", name=IDEMPOTENCY_CONSTRAINT),
         CheckConstraint(
             "satisfaction_rating IS NULL OR "
             f"satisfaction_rating BETWEEN {RATING_MIN} AND {RATING_MAX}",
@@ -95,6 +100,8 @@ class Case(IdMixin, CreatedAtMixin, Base):
     info_request: Mapped[str | None] = mapped_column(Text)
     # Demo verisini ayirt etmek icin
     is_seed: Mapped[bool] = mapped_column(Boolean, server_default=false())
+    # Istemcinin gonderim anahtari; baglanti kopup tekrar gonderilince cift kayit olusmaz
+    idempotency_key: Mapped[str | None] = mapped_column(String(IDEMPOTENCY_KEY_MAX_LENGTH))
 
     classified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     assigned_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

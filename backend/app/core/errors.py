@@ -131,6 +131,13 @@ class InvalidPeriodError(DomainError):
         )
 
 
+class IdempotencyKeyReusedError(DomainError):
+    # Ayni anahtarla farkli icerik: istemci hatasi, ilk bildirim dondurulemez
+    code = "IDEMPOTENCY_KEY_REUSED"
+    status = HTTPStatus.CONFLICT
+    default_message = messages.IDEMPOTENCY_KEY_REUSED
+
+
 class SelfLockoutError(DomainError):
     # Admin kendi erisimini kaldirirsa kurumda kimse kalmayabilir
     code = "SELF_LOCKOUT"

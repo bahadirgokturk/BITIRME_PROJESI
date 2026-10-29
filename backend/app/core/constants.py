@@ -42,6 +42,8 @@ CASE_TYPE_KEYWORD_MAX_LENGTH = 50
 CASE_TITLE_FROM_DESCRIPTION_LENGTH = 60
 # Liste aramasi (GET /cases?q=): numara, baslik ya da konum adinin bir parcasi; uzun metin gereksiz
 CASE_SEARCH_MAX_LENGTH = 100
+# Idempotency-Key (POST /cases): istemcinin urettigi UUID (36 karakter) rahat sigar
+IDEMPOTENCY_KEY_MAX_LENGTH = 100
 # CASE-000124: 6 hane bir kampuste yillarca yeter (999.999 bildirim)
 CASE_NUMBER_PREFIX = "CASE-"
 CASE_NUMBER_DIGITS = 6

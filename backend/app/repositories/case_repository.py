@@ -66,6 +66,12 @@ def add(session: Session, case: Case) -> Case:
     return case
 
 
+def find_by_idempotency_key(session: Session, reporter_id: int, key: str) -> Case | None:
+    return session.scalars(
+        select(Case).where(Case.reporter_id == reporter_id, Case.idempotency_key == key)
+    ).one_or_none()
+
+
 def add_event(session: Session, event: CaseEvent) -> None:
     session.add(event)
     session.flush()

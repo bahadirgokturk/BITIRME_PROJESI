@@ -4,6 +4,9 @@ Yeni bildirim NEW olarak kaydedilir ve hemen ANALYZING'e gecer; agent hatti (FAZ
 devam eder. Tur, birim ve oncelik kullanicidan alinmaz.
 """
 
+from dataclasses import dataclass
+
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.clock import Clock
@@ -12,8 +15,9 @@ from app.core.constants import (
     CASE_NUMBER_PREFIX,
     CASE_TITLE_FROM_DESCRIPTION_LENGTH,
 )
-from app.core.errors import NotFoundError
+from app.core.errors import IdempotencyKeyReusedError, NotFoundError
 from app.models import Case, CaseEvent, User
+from app.models.case import IDEMPOTENCY_CONSTRAINT
 from app.models.enums import ActorType, CaseEventType, CaseStatus, UserRole
 from app.repositories import (
     agent_decision_repository,
@@ -60,6 +64,13 @@ _ANALYSIS_STARTED = Transition(
 )
 
 
+@dataclass(frozen=True)
+class Creation:
+    case: CaseRead
+    # True: ayni anahtarla daha once olusan bildirim donduruldu, yeni kayit yok
+    replayed: bool
+
+
 def scope_for(user: User) -> CaseScope:
     """Liste kapsami; tekil kayit icin ayni kural services/authorization.py can_view_case."""
     if user.role in {UserRole.MANAGER, UserRole.ADMIN}:
@@ -92,7 +103,29 @@ class CaseService:
         self._clock = clock
         self._workflow = WorkflowService(session, clock)
 
-    def create(self, data: CaseCreate) -> CaseRead:
+    def create_once(self, data: CaseCreate, key: str) -> Creation:
+        """Ayni bildirenin ayni anahtarli tekrar gonderimi ilk bildirimi dondurur."""
+        existing = case_repository.find_by_idempotency_key(self._session, self._actor.id, key)
+        if existing is not None:
+            return self._replay(existing, data)
+        try:
+            return Creation(self.create(data, key), replayed=False)
+        except IntegrityError as error:
+            # Ayni anahtarla iki istek ayni anda geldi: ikincisi kisitlamaya takilir
+            self._session.rollback()
+            if IDEMPOTENCY_CONSTRAINT not in str(error.orig):
+                raise
+        winner = case_repository.find_by_idempotency_key(self._session, self._actor.id, key)
+        if winner is None:
+            raise NotFoundError()
+        return self._replay(winner, data)
+
+    def _replay(self, case: Case, data: CaseCreate) -> Creation:
+        if (case.description, case.location_id) != (data.description, data.location_id):
+            raise IdempotencyKeyReusedError()
+        return Creation(self.get(case.id), replayed=True)
+
+    def create(self, data: CaseCreate, idempotency_key: str | None = None) -> CaseRead:
         self._ensure_active_location(data.location_id)
         number = case_repository.next_case_number(self._session)
         case = case_repository.add(
@@ -106,6 +139,7 @@ class CaseService:
                 location_id=data.location_id,
                 status=CaseStatus.NEW,
                 created_at=self._clock.now(),
+                idempotency_key=idempotency_key,
             ),
         )
         created = Transition(
