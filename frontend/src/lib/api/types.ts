@@ -145,6 +145,9 @@ export interface paths {
         /**
          * Create Case
          * @description Yanit ANALYZING doner; agent hatti yanittan sonra calisir (docs/AGENTS.md bolum 3).
+         *
+         *     Idempotency-Key verilirse ayni anahtarli tekrar gonderim ilk bildirimi dondurur
+         *     (Idempotent-Replayed: true); agent hatti ikinci kez calismaz.
          */
         post: operations["create_case_api_v1_cases_post"];
         delete?: never;
@@ -3090,7 +3093,10 @@ export interface operations {
     create_case_api_v1_cases_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Istemcinin gonderim anahtari (UUID); tekrar gonderimde cift kayit olusmaz */
+                "Idempotency-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };

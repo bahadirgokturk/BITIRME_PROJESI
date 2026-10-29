@@ -4,21 +4,23 @@ Kapsam (docs/WORKFLOW.md bolum 4): REPORTER kendi, STAFF atanmis + departmani,
 MANAGER/ADMIN tum kurum. Yetkisiz kayit 404 doner (IDOR).
 """
 
+from dataclasses import dataclass
 from http import HTTPStatus
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, Query, Response
 from sqlalchemy.orm import Session
 
 from app.api.deps import Analysis, CurrentUser, require_roles
 from app.api.v1.pagination import page_params
 from app.api.v1.responses import AUTHENTICATED_RESPONSES
 from app.core.clock import Clock, get_clock
-from app.core.constants import CASE_SEARCH_MAX_LENGTH
+from app.core.constants import CASE_SEARCH_MAX_LENGTH, IDEMPOTENCY_KEY_MAX_LENGTH
 from app.core.database import get_session
 from app.models.enums import CaseStatus, Priority, UserRole
 from app.schemas.case import AgentDecisionRead, CaseCreate, CaseEventRead, CaseRead, CaseSearch
 from app.schemas.common import ListOrder, Page, PageParams
+from app.services.analysis_service import AnalysisLauncher
 from app.services.case_service import CaseService
 
 router = APIRouter(prefix="/cases", tags=["cases"], responses=AUTHENTICATED_RESPONSES)
@@ -34,16 +36,54 @@ def get_case_service(
 
 
 Cases = Annotated[CaseService, Depends(get_case_service)]
+REPLAYED_HEADER = "Idempotent-Replayed"
+
+
+@dataclass(frozen=True)
+class CreateOptionsData:
+    key: str | None
+    response: Response
+    analysis: AnalysisLauncher | None
+
+
+def create_options(
+    response: Response,
+    analysis: Analysis,
+    key: Annotated[
+        str | None,
+        Header(
+            alias="Idempotency-Key",
+            min_length=1,
+            max_length=IDEMPOTENCY_KEY_MAX_LENGTH,
+            description="Istemcinin gonderim anahtari (UUID); tekrar gonderimde cift kayit olusmaz",
+        ),
+    ] = None,
+) -> CreateOptionsData:
+    return CreateOptionsData(key, response, analysis)
+
+
+CreateOptions = Annotated[CreateOptionsData, Depends(create_options)]
 
 
 @router.post("", status_code=HTTPStatus.CREATED)
 def create_case(
-    payload: CaseCreate, service: Cases, background: BackgroundTasks, analysis: Analysis
+    payload: CaseCreate, service: Cases, background: BackgroundTasks, extra: CreateOptions
 ) -> CaseRead:
-    """Yanit ANALYZING doner; agent hatti yanittan sonra calisir (docs/AGENTS.md bolum 3)."""
-    created = service.create(payload)
-    if analysis is not None:
-        analysis.schedule(background, created.id)
+    """Yanit ANALYZING doner; agent hatti yanittan sonra calisir (docs/AGENTS.md bolum 3).
+
+    Idempotency-Key verilirse ayni anahtarli tekrar gonderim ilk bildirimi dondurur
+    (Idempotent-Replayed: true); agent hatti ikinci kez calismaz.
+    """
+    if extra.key is None:
+        created = service.create(payload)
+    else:
+        creation = service.create_once(payload, extra.key)
+        created = creation.case
+        if creation.replayed:
+            extra.response.headers[REPLAYED_HEADER] = "true"
+            return created
+    if extra.analysis is not None:
+        extra.analysis.schedule(background, created.id)
     return created
 
 

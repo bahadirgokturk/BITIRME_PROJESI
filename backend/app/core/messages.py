@@ -33,6 +33,9 @@ INVALID_PERIOD = (
 INVALID_MERGE_TARGET = "Bildirim yalnız sorunu hâlâ açık olan başka bir bildirime bağlanabilir."
 INVALID_OVERRIDE_VALUE = "Düzeltilen değer geçerli değil: {field} için '{value}' bulunamadı."
 INVALID_ASSIGNEE = "Seçilen kişi bu birimde çalışan aktif bir personel değil."
+IDEMPOTENCY_KEY_REUSED = (
+    "Bu gönderim anahtarı başka bir bildirim için kullanılmış. Sayfayı yenileyip tekrar deneyin."
+)
 SELF_LOCKOUT = "Kendi hesabınızı pasifleştiremez ya da yönetici rolünüzü kaldıramazsınız."
 INVALID_PARENT = "Lokasyon kendisinin ya da kendi alt lokasyonunun altına taşınamaz."
 UNAUTHORIZED = "Oturumunuz geçersiz ya da süresi dolmuş. Lütfen yeniden giriş yapın."
