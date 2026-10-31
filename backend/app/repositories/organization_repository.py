@@ -12,3 +12,7 @@ def add(session: Session, organization: Organization) -> Organization:
     session.add(organization)
     session.flush()
     return organization
+
+
+def list_all(session: Session) -> list[Organization]:
+    return list(session.scalars(select(Organization).order_by(Organization.id)))
