@@ -81,7 +81,10 @@ Production (E7-3) hafta 11'de, staging birkaç hafta sorunsuz çalıştıktan so
    ⚠️ `SEED_DEMO_PASSWORD` için `.env.example`'daki yerel değeri **kullanmayın**: o değer public repoda yazılı, staging
    ise internete açık; demo admin hesabını herkes açabilir. Staging parolası yalnız ekipte paylaşılır.
 7. **Bilinen kısıt:** `STORAGE_BACKEND=local`; Render diski kalıcı değil, yüklenen fotoğraflar her deploy/yeniden
-   başlatmada silinir. Staging için kabul edildi; production öncesi S3-uyumlu depo (E7-3).
+   başlatmada silinir. Staging için kabul edildi. Production `STORAGE_BACKEND=s3` ile çalışır (S3 uyumlu bucket;
+   `app/storage` `S3Storage`, boto3). Önerilen: Supabase Storage (ücretsiz 1 GB, kart istemez) → bucket `campusflow-prod`
+   (private) → Project Settings → Storage → S3 Connection: endpoint ve bölge, "New access key" ile anahtar çifti.
+   Bu dört değer yalnız Render'ın env ayarlarına girilir (`S3_*`, bölüm 2).
 8. Secret'lar yalnız sağlayıcıların env ayarlarında tutulur; repoya ve sohbete yazılmaz.
 
 ## 2. Ortam Değişkenleri
@@ -98,12 +101,13 @@ JWT_ACCESS_TTL_MIN=30
 JWT_REFRESH_TTL_DAYS=7
 SEED_DEMO_PASSWORD=                # yalniz seeds.run --demo; production'da --demo reddedilir
 CORS_ORIGINS=http://localhost:3000
-STORAGE_BACKEND=local            # local|s3
+STORAGE_BACKEND=local            # local|s3 (s3 secilince asagidaki dordu zorunlu; eksikse uygulama acilmaz)
 STORAGE_LOCAL_PATH=/app/storage
-STORAGE_BUCKET=
-STORAGE_ENDPOINT=
-STORAGE_KEY=
-STORAGE_SECRET=
+S3_BUCKET=
+S3_ENDPOINT_URL=                 # Supabase: https://<proje>.supabase.co/storage/v1/s3 ; AWS icin bos
+S3_REGION=auto                   # Supabase: projenin bolgesi (or. eu-central-1)
+S3_ACCESS_KEY_ID=
+S3_SECRET_ACCESS_KEY=            # secret; loglara ve ayar ciktisina yazilmaz
 MAX_UPLOAD_MB=10                 # fotograf (telefon fotografi 4-8 MB)
 MAX_VIDEO_MB=50                  # 30 sn video
 AGENTS_ENABLED=true              # false: agent hatti kapali, bildirim manager'i bekler (acil durum anahtari)

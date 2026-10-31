@@ -4,7 +4,7 @@ from enum import StrEnum
 from functools import lru_cache
 from typing import Annotated
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 from app.core.constants import MAX_UPLOAD_MB_DEFAULT, MAX_VIDEO_MB_DEFAULT
@@ -21,6 +21,12 @@ class Environment(StrEnum):
     LOCAL = "local"
     STAGING = "staging"
     PRODUCTION = "production"
+
+
+class StorageBackend(StrEnum):
+    # local: disk (gelistirme, staging); s3: S3 uyumlu bucket (production, Render diski gecici)
+    LOCAL = "local"
+    S3 = "s3"
 
 
 class LlmProvider(StrEnum):
@@ -43,8 +49,15 @@ class Settings(BaseSettings):
     # (docs/DEPLOYMENT.md bolum 2)
     jwt_access_ttl_min: int = 30
     jwt_refresh_ttl_days: int = 7
-    # Yuklenen dosyalar: local = disk (gelistirme); s3 staging kurulumunda eklenecek (E7-3a)
+    # Yuklenen dosyalar: local = disk; s3 = Supabase Storage, R2, MinIO gibi S3 uyumlu depo
+    storage_backend: StorageBackend = StorageBackend.LOCAL
     storage_local_path: str = "/app/storage"
+    s3_bucket: str | None = None
+    # Bos: AWS'nin kendisi; diger saglayicilar kendi adresini verir
+    s3_endpoint_url: str | None = None
+    s3_region: str = "auto"
+    s3_access_key_id: str | None = None
+    s3_secret_access_key: SecretStr | None = None
     max_upload_mb: int = Field(default=MAX_UPLOAD_MB_DEFAULT, gt=0)
     max_video_mb: int = Field(default=MAX_VIDEO_MB_DEFAULT, gt=0)
     # Opsiyonel yerel LLM: yalniz yonetim ozetini akicilastirir (E5-12); ucretli API yok
@@ -81,6 +94,19 @@ class Settings(BaseSettings):
     def app_url(self) -> str:
         """Sonunda / olmadan; staging'de CORS_ORIGINS zaten Vercel adresidir."""
         return (self.public_app_url or self.cors_origins[0]).rstrip("/")
+
+    @model_validator(mode="after")
+    def _require_s3_credentials(self) -> "Settings":
+        if self.storage_backend is not StorageBackend.S3:
+            return self
+        missing = [
+            name.upper()
+            for name in ("s3_bucket", "s3_access_key_id", "s3_secret_access_key")
+            if not getattr(self, name)
+        ]
+        if missing:
+            raise ValueError(f"STORAGE_BACKEND=s3 icin eksik: {', '.join(missing)}")
+        return self
 
     @model_validator(mode="after")
     def _reject_example_secret_outside_local(self) -> "Settings":
