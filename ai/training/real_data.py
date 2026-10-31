@@ -12,7 +12,8 @@ Uc adim, her biri ayri komut:
     uv run python -m training.real_data compare --sheet data/raw/etiket.csv --out data/raw/rq1
         --model v1=models/classifier/v1/model.joblib --model v2=models/classifier/v2/model.joblib
 
-    # 3) Nihai etiketlerle model ve temel yontem olcumu -> JSON + tez tablosu (Markdown)
+    # 3) Nihai etiketlerle model ve temel yontem olcumu (RQ1) ve yonlendirme (RQ2)
+    #    -> JSON + tez tablosu (Markdown)
     uv run python -m training.real_data evaluate --sheet data/raw/etiket.csv \
         --model models/classifier/v1/model.joblib --out data/raw/rq1
 
@@ -31,7 +32,14 @@ import yaml
 
 from training.agreement import agreement, final_labels
 from training.form_import import SHEET_COLUMNS, prepare_sheet
-from training.real_eval import SEED_CASE_TYPES, KeywordBaseline, compare_models, evaluate_real
+from training.real_eval import (
+    SEED_CASE_TYPES,
+    KeywordBaseline,
+    compare_models,
+    evaluate_real,
+    primary_departments,
+    routing_report,
+)
 
 # Sistemde otomatik karar esigi (backend MIN_CONFIDENCE_AUTO_DEFAULT); tabloda isaretlenir
 SYSTEM_THRESHOLD = 0.7
@@ -84,7 +92,27 @@ def markdown_report(report: dict[str, Any], kappa: float | None) -> str:
             f"| {row['threshold']:.2f}{mark} | {_pct(row['auto_share'])} | "
             f"{_pct(row['auto_accuracy'])} | {_pct(row['review_share'])} |"
         )
+    if "routing" in report:
+        lines += _routing_lines(report["routing"])
     return "\n".join(lines) + "\n"
+
+
+def _routing_lines(routing: dict[str, Any]) -> list[str]:
+    """RQ2: birim duzeyinde dogruluk; tur yanlis ama birim dogruysa dogru sayilir."""
+    lines = [
+        "",
+        "## RQ2: Yonlendirme (dogru birime giden pay)",
+        "",
+        "| Yontem | Dogru birim | Baska birime | Birimsiz kaldi | Gereksiz birim |",
+        "| --- | --- | --- | --- | --- |",
+    ]
+    for label, key in (("Anahtar kelime (temel)", "baseline"), ("TF-IDF + LR (model)", "model")):
+        row = routing[key]
+        lines.append(
+            f"| {label} | {_pct(row['accuracy'])} | {row['wrong_unit']} | {row['no_unit']} | "
+            f"{row['unneeded_unit']} |"
+        )
+    return lines
 
 
 def comparison_markdown(report: dict[str, Any]) -> str:
@@ -138,12 +166,14 @@ def _evaluate(sheet: Path, model_path: Path, out: Path) -> None:
     rows = _read_sheet(sheet)
     known = _known_codes()
     labelled = final_labels(rows, known)
-    report = evaluate_real(
-        joblib.load(model_path),
-        KeywordBaseline.from_seed(),
-        [row["text"] for row in labelled],
-        [row["label"] for row in labelled],
-    )
+    model, baseline = joblib.load(model_path), KeywordBaseline.from_seed()
+    texts, labels = [row["text"] for row in labelled], [row["label"] for row in labelled]
+    report = evaluate_real(model, baseline, texts, labels)
+    routes = primary_departments()
+    report["routing"] = {
+        "model": routing_report(labels, [str(code) for code in model.predict(texts)], routes),
+        "baseline": routing_report(labels, baseline.predict(texts), routes),
+    }
     kappa = agreement(rows, known).kappa
     out.mkdir(parents=True, exist_ok=True)
     payload = json.dumps({**report, "kappa": kappa}, ensure_ascii=False, indent=2) + "\n"
