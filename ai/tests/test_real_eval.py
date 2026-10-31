@@ -5,7 +5,14 @@ from collections.abc import Sequence
 import numpy as np
 import pytest
 
-from training.real_eval import KeywordBaseline, compare_models, evaluate_real, threshold_table
+from training.real_eval import (
+    KeywordBaseline,
+    compare_models,
+    evaluate_real,
+    primary_departments,
+    routing_report,
+    threshold_table,
+)
 
 SEED_TYPES = [
     {"code": "SOAP_EMPTY", "keywords": ["sabun", "sabunluk"]},
@@ -96,3 +103,40 @@ def test_models_are_compared_on_the_same_sentences() -> None:
     assert report["models"]["v1"]["accuracy"] == pytest.approx(0.5)
     assert report["models"]["v2"]["accuracy"] == pytest.approx(1.0)
     assert report["baseline"]["accuracy"] == pytest.approx(0.5)
+
+
+ROUTES = {"SOAP_EMPTY": "SUPPORT_SERVICES", "WIFI_FAILURE": "IT_SUPPORT", "OTHER": None}
+
+
+def test_routing_counts_a_wrong_type_with_the_same_unit_as_correct() -> None:
+    # Iki tur ayni birime gidiyorsa tur hatasi yonlendirme hatasi degildir (RQ2 birimi olcer)
+    routes = {**ROUTES, "TOILET_PAPER_EMPTY": "SUPPORT_SERVICES"}
+
+    report = routing_report(["SOAP_EMPTY"], ["TOILET_PAPER_EMPTY"], routes)
+
+    assert report["accuracy"] == 1.0
+
+
+def test_routing_separates_wrong_unit_missing_unit_and_unneeded_unit() -> None:
+    truths = ["SOAP_EMPTY", "SOAP_EMPTY", "WIFI_FAILURE", "OTHER"]
+    predicted = ["SOAP_EMPTY", "WIFI_FAILURE", "OTHER", "SOAP_EMPTY"]
+
+    report = routing_report(truths, predicted, ROUTES)
+
+    assert report["n"] == 4
+    assert report["accuracy"] == 0.25
+    assert (report["wrong_unit"], report["no_unit"], report["unneeded_unit"]) == (1, 1, 1)
+    assert report["per_department"]["SUPPORT_SERVICES"] == {"n": 2, "correct": 1, "accuracy": 0.5}
+    assert report["per_department"]["-"] == {"n": 1, "correct": 0, "accuracy": 0.0}
+
+
+def test_unknown_type_is_rejected() -> None:
+    with pytest.raises(KeyError):
+        routing_report(["SOAP_EMPTY"], ["NOT_A_TYPE"], ROUTES)
+
+
+def test_seed_routes_cover_every_seed_type() -> None:
+    routes = primary_departments()
+
+    assert routes["SOAP_EMPTY"] == "SUPPORT_SERVICES"
+    assert "OTHER" in routes

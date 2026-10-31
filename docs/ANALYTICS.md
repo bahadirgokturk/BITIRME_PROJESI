@@ -95,7 +95,7 @@ Her KPI önceki eşit uzunluktaki dönemle karşılaştırılır (`delta_pct`; �
 | Routing accuracy | Nihai departman = önerilen departman / toplam |
 | Human review rate | yukarıda |
 | Decision override rate | Dönemde verilen kararlardan `decision_feedback`'e bağlananlar / karar sayısı (agent bazında). Ortalama güven aynı tabloda (yalnız güven üreten agent'lar) |
-| Duplicate detection precision / recall | Uygulanan: precision = tekrar diye işaretlenip (DUPLICATE ya da POSSIBLE_DUPLICATE, son karar) birleştirilen / işaretlenen; inceleme kuyruğunda bekleyenler sayılmaz. Kesin tekrar otomatik birleştiği için doğru kabul edilir. Recall için bilinen küme etiketi gerekir (henüz yok) |
+| Duplicate detection precision / recall | Uygulanan: precision = tekrar diye işaretlenip (DUPLICATE ya da POSSIBLE_DUPLICATE, son karar) birleştirilen / işaretlenen; inceleme kuyruğunda bekleyenler sayılmaz. Kesin tekrar otomatik birleştiği için doğru kabul edilir. Recall için bilinen küme etiketi gerekir: offline ölçüm elle kurulan cümle çiftleriyle yapılır (`docker compose exec -T backend python -m scripts.eval_duplicates < ciftler.csv`; şablon `backend/scripts/templates/duplicate_pairs.csv`). Her çift gerçek Duplicate Agent'tan geçer; otomatik birleştirme (≥ 0,80) ve müdüre soran dahil (≥ 0,60) için precision, recall, F1 |
 | Automation rate | yukarıda |
 
 ## 4. Araştırma Soruları ↔ Metrikler
@@ -103,7 +103,7 @@ Her KPI önceki eşit uzunluktaki dönemle karşılaştırılır (`delta_pct`; �
 | RQ | Ölçüm |
 |---|---|
 | RQ1 Sınıflandırma doğruluğu | Offline: gerçek test setinde accuracy, macro-F1, confusion matrix; kural vs ML karşılaştırması. Online: classification accuracy |
-| RQ2 Routing doğruluğu | Routing accuracy, reassignment oranı |
+| RQ2 Routing doğruluğu | Offline: aynı gerçek test setinde tahmin edilen türün birimi (seed `primary`) beklenen birimle aynı mı; tür yanlış ama birim doğruysa doğru sayılır. Ayrıca başka birime giden, birimsiz kalan ve gereksiz yere birime giden sayısı; model ve anahtar kelime yöntemi yan yana (`training.real_data evaluate` çıktısında). Online: reassignment oranı |
 | RQ3 İnsan müdahalesinin azalması | Automation rate, human review rate, override rate; "tamamen manuel" senaryoya göre insan dokunuşu sayısı |
 | RQ4 Tekrarlayan problemler & darboğazlar | Recurring problems raporu (seed'e gömülü pattern'lerin bulunma oranı), süreç analitiği darboğaz adımı |
 | RQ5 Süre & SLA ölçülebilirliği | Tüm lifecycle zaman damgalarının event log'dan türetilebilmesi, SLA compliance / breach, aging |

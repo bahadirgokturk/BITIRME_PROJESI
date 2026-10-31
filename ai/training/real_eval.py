@@ -3,6 +3,8 @@
 - Model: egitilmis TF-IDF + Logistic Regression.
 - Temel yontem (baseline): backend'in model yokken kullandigi kural; ayni anahtar kelimeler (kampus
   seed'i) ve ayni normalize() ile en cok eslesen tur, hic yoksa OTHER.
+- Yonlendirme (RQ2): tahmin edilen turun birimi, gercek turun birimiyle ayni mi. Birim seed'deki
+  `primary` alanidir (docs/DEPARTMENTS.md); bos ise bildirim insana gider, birime gitmez.
 - Guven esigi analizi: esik degistikce otomatik giden pay ve onlarin dogrulugu. Sistemde esik 0.70
   (MIN_CONFIDENCE_AUTO_DEFAULT); bu tablo esigin neden orada oldugunu gosterir.
 """
@@ -25,6 +27,8 @@ FALLBACK_CODE = "OTHER"
 # 0.50'den 0.95'e 0.05 adimla; sistemdeki esik (0.70) aralikta
 DEFAULT_THRESHOLDS = [round(0.5 + 0.05 * step, 2) for step in range(10)]
 SHARE_DIGITS = 4
+# Birimi olmayan turler (kapsam disi, diger) icin tablo anahtari
+NO_UNIT = "-"
 
 
 class Classifier(Protocol):
@@ -128,4 +132,37 @@ def compare_models(
             name: prediction_report(labels, [str(code) for code in model.predict(list(texts))])
             for name, model in models.items()
         },
+    }
+
+
+def primary_departments(path: Path = SEED_CASE_TYPES) -> dict[str, str | None]:
+    """Tur kodu -> gorevi alan birim (seed `primary`; bos = insan inceler)."""
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    return {entry["code"]: entry.get("primary") for entry in data["case_types"]}
+
+
+def routing_report(
+    truths: Sequence[str], predicted: Sequence[str], routes: dict[str, str | None]
+) -> dict[str, Any]:
+    """RQ2: tahmin edilen turun birimi beklenen birimle ayni mi (birim duzeyinde dogruluk)."""
+    if not truths:
+        raise ValueError("Test seti bos: once etiketli satir gerekli")
+    pairs = [(routes[truth], routes[guess]) for truth, guess in zip(truths, predicted, strict=True)]
+    per_department: dict[str, dict[str, Any]] = {}
+    for expected, got in pairs:
+        row = per_department.setdefault(expected or NO_UNIT, {"n": 0, "correct": 0})
+        row["n"] += 1
+        row["correct"] += expected == got
+    for row in per_department.values():
+        row["accuracy"] = round(row["correct"] / row["n"], SHARE_DIGITS)
+    return {
+        "n": len(pairs),
+        "accuracy": round(sum(e == g for e, g in pairs) / len(pairs), SHARE_DIGITS),
+        # Baska birime gitti
+        "wrong_unit": sum(bool(e and g and e != g) for e, g in pairs),
+        # Birimi vardi ama bildirim birimsiz (insan incelemesine) kaldi
+        "no_unit": sum(bool(e and not g) for e, g in pairs),
+        # Birimi olmayan bildirim bir birime gonderildi
+        "unneeded_unit": sum(bool(g and not e) for e, g in pairs),
+        "per_department": dict(sorted(per_department.items())),
     }
