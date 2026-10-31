@@ -84,6 +84,12 @@ Production (E7-3) hafta 11'de, staging birkaç hafta sorunsuz çalıştıktan so
    başlatmada silinir. Staging için kabul edildi; production öncesi S3-uyumlu depo (E7-3).
 8. Secret'lar yalnız sağlayıcıların env ayarlarında tutulur; repoya ve sohbete yazılmaz.
 
+**Production ilk yönetici (E7-3):** production'a demo kullanıcı yüklenemez (`seeds.run --demo` reddedilir). Veritabanı hazırlanırken kampüs şablonu yüklenir ve ilk ADMIN `scripts.create_admin` ile açılır; parola komut satırına yazılmaz, iki kez sorulur (ya da `ADMIN_PASSWORD`). Diğer kullanıcıları bu yönetici Yönetim ekranından ekler.
+
+```bash
+docker compose run --rm -it -e ENVIRONMENT=production -e DATABASE_URL="<prod Neon adresi>" -e JWT_SECRET="<32+ karakter rastgele>" backend sh -c "alembic upgrade head && python -m seeds.run && python -m scripts.create_admin --email <e-posta> --name '<Ad Soyad>'"
+```
+
 ## 2. Ortam Değişkenleri
 
 `.env.example` repoda, gerçek `.env` dosyaları `.gitignore`'da. Staging/prod değerleri GitHub
