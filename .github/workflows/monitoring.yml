@@ -1,0 +1,35 @@
+name: Monitoring
+
+# Ucretsiz Render sunucusu 15 dk bostayken uyur; uygulama icindeki izleme dongusu (SLA uyari/asim)
+# da durur. Mesai saatlerinde (TR 08:00-20:00, hafta ici) her 14 dakikada bir izleme turu
+# disaridan tetiklenir; sunucu da uyanik kalir (demoda acilis beklemesi olmaz).
+# Render ucretsiz plani ayda 750 saat: iki servis bu pencereyle ~530 saat (docs/DEPLOYMENT.md).
+# Adres ya da anahtar tanimli degilse o ortam atlanir.
+on:
+  schedule:
+    - cron: "*/14 5-16 * * 1-5"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [staging, production]
+    steps:
+      - name: Izleme turu
+        env:
+          API_URL: ${{ matrix.target == 'staging' && vars.STAGING_API_URL || vars.PRODUCTION_API_URL }}
+          TOKEN: ${{ matrix.target == 'staging' && secrets.STAGING_INTERNAL_TOKEN || secrets.PRODUCTION_INTERNAL_TOKEN }}
+        run: |
+          if [ -z "$API_URL" ] || [ -z "$TOKEN" ]; then
+            echo "${{ matrix.target }}: adres ya da anahtar tanimli degil, atlandi"
+            exit 0
+          fi
+          # Uyuyan sunucu 30-100 sn'de acilir; ilk deneme zaman asimina dusebilir
+          curl --fail-with-body --silent --show-error --max-time 150 --retry 2 --retry-delay 20 \
+            -X POST "$API_URL/api/v1/internal/monitoring/run" -H "X-Internal-Token: $TOKEN"

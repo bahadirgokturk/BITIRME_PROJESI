@@ -9,6 +9,7 @@ from app.api.v1 import (
     case_interactions,
     cases,
     health,
+    internal,
     locations,
     lookups,
     manager,
@@ -29,3 +30,4 @@ api_router.include_router(analytics.router)
 api_router.include_router(analytics.agents_router)
 api_router.include_router(admin.router)
 api_router.include_router(admin_catalog.router)
+api_router.include_router(internal.router)

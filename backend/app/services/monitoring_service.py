@@ -199,13 +199,14 @@ async def monitoring_loop(
     while True:
         await asyncio.sleep(interval.total_seconds())
         try:
-            await asyncio.to_thread(_tick_once, engine, clock, agents_enabled)
+            await asyncio.to_thread(tick_once, engine, clock, agents_enabled)
         except SQLAlchemyError:
             # Gecici DB sorunu (baglanti koptu): kaydet, sonraki turda yeniden dene
             logger.exception("Izleme turu veritabani hatasiyla bitti")
 
 
-def _tick_once(engine: Engine, clock: Clock, agents_enabled: bool) -> None:
+def tick_once(engine: Engine, clock: Clock, agents_enabled: bool) -> bool:
+    """Bir tur; kilidi baska sunucu tutuyorsa atlanir (False). Dongu ve dis tetikleyici ortak."""
     # Tek baglanti: kilit ve tur ayni baglantida (oturum seviyesi kilit)
     with (
         engine.connect() as connection,
@@ -216,3 +217,4 @@ def _tick_once(engine: Engine, clock: Clock, agents_enabled: bool) -> None:
         )
         if not ran:
             logger.info("Izleme turu baska sunucuda; atlandi")
+        return ran
