@@ -37,6 +37,10 @@ package = false
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
 
+[tool.coverage.report]
+# Test plani kabul kriteri: backend satir kapsami >= %85 (CI --cov ile calisinca altinda kirmizi)
+fail_under = 85
+
 [tool.mypy]
 python_version = "3.12"
 strict = true

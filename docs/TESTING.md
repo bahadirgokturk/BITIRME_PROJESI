@@ -4,7 +4,7 @@
 
 | Seviye | Araç | Kapsam | Hedef |
 |---|---|---|---|
-| Unit (backend/ai) | pytest | workflow geçişleri, SLA hesabı, priority skoru, routing, duplicate skoru, supervisor karar tablosu, verification, resolution, analytics hesapları, Türkçe normalizasyon | Kritik modüllerde ≥ %85 satır kapsama |
+| Unit (backend/ai) | pytest | workflow geçişleri, SLA hesabı, priority skoru, routing, duplicate skoru, supervisor karar tablosu, verification, resolution, analytics hesapları, Türkçe normalizasyon | Backend toplam satır kapsamı ≥ %85; CI'da zorunlu (`fail_under`, altında backend işi kırmızı). 31.10.2026 ölçümü: %99 |
 | Integration (backend) | pytest + gerçek Postgres (CI service container), `httpx.AsyncClient` | API + DB + pipeline; RBAC/IDOR; upload validation | Her endpoint için en az mutlu yol + yetkisiz erişim |
 | Frontend component | Vitest + React Testing Library | Case formu, status badge, SLA göstergesi, KPI kartı, karar gerekçe paneli | Kritik bileşenler |
 | E2E | Playwright | Uçtan uca senaryo | 1 ana senaryo + 2 alternatif |
