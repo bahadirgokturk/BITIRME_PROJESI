@@ -36,6 +36,7 @@ INVALID_ASSIGNEE = "Seçilen kişi bu birimde çalışan aktif bir personel değ
 IDEMPOTENCY_KEY_REUSED = (
     "Bu gönderim anahtarı başka bir bildirim için kullanılmış. Sayfayı yenileyip tekrar deneyin."
 )
+INTERNAL_TOKEN_INVALID = "Dahili istek anahtarı eksik ya da hatalı."  # noqa: S105 - mesaj, parola degil
 SELF_LOCKOUT = "Kendi hesabınızı pasifleştiremez ya da yönetici rolünüzü kaldıramazsınız."
 INVALID_PARENT = "Lokasyon kendisinin ya da kendi alt lokasyonunun altına taşınamaz."
 UNAUTHORIZED = "Oturumunuz geçersiz ya da süresi dolmuş. Lütfen yeniden giriş yapın."

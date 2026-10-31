@@ -12,10 +12,12 @@ from sqlalchemy.engine import URL, Engine, make_url
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_analysis_sessions
+from app.api.v1.internal import get_monitoring_run
 from app.core.clock import get_clock
 from app.core.config import Settings, get_settings
 from app.core.database import get_session
 from app.main import create_app
+from app.services.monitoring_service import MonitoringService, run_locked
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]
 TEST_DB_SUFFIX = "_test"
@@ -111,6 +113,12 @@ def _make_client(
     app.dependency_overrides[get_clock] = lambda: clock
     # Arka plandaki agent hatti da testin transaction'ini kullanir (geri alinir)
     app.dependency_overrides[get_analysis_sessions] = lambda: lambda: nullcontext(db_session)
+    # Dis izleme tetikleyicisi de testin baglantisinda calisir (oturum zaten tek baglantiya bagli)
+    app.dependency_overrides[get_monitoring_run] = lambda: (
+        lambda: run_locked(
+            db_session, lambda s: MonitoringService(s, clock, agents_enabled=agents).tick()
+        )
+    )
     # Cookie'ler "Secure" olmadan da gonderilsin diye https taban adresi
     with TestClient(app, base_url="https://testserver") as test_client:
         yield test_client

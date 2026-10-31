@@ -79,3 +79,14 @@ def test_hosted_database_urls_use_the_psycopg_driver(given: str) -> None:
 
 def test_explicit_driver_is_kept() -> None:
     assert Settings(**BASE).database_url == BASE["database_url"]
+
+
+def test_short_internal_token_is_rejected() -> None:
+    # Dis izleme tetikleyicisinin anahtari tahmin edilebilir olmamali
+    with pytest.raises(ValidationError):
+        Settings(**BASE, internal_token="kisa")
+
+
+def test_internal_token_is_optional_and_hidden() -> None:
+    assert Settings(**BASE).internal_token is None
+    assert "x" * 40 not in repr(Settings(**BASE, internal_token="x" * 40))

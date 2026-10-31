@@ -87,6 +87,14 @@ Production (E7-3) hafta 11'de, staging birkaç hafta sorunsuz çalıştıktan so
    Bu dört değer yalnız Render'ın env ayarlarına girilir (`S3_*`, bölüm 2).
 8. Secret'lar yalnız sağlayıcıların env ayarlarında tutulur; repoya ve sohbete yazılmaz.
 
+**Uyku ve izleme (`monitoring.yml`):** ücretsiz sunucu uyurken uygulama içindeki izleme döngüsü durur. GitHub Actions hafta içi 08:00–20:00 (TR) arası 14 dakikada bir `POST /api/v1/internal/monitoring/run` çağırır: SLA uyarı/aşım olayları zamanında yazılır, sunucu da uyanık kalır. İki servis için ayda ~530 saat (Render ücretsiz: 750). Kurulum:
+
+1. Rastgele bir anahtar üretin (en az 32 karakter; ör. Render'ın Generate düğmesi) ve Render servisine `INTERNAL_TOKEN` olarak girin.
+2. GitHub → Settings → Secrets and variables → Actions: **Secrets** sekmesine `STAGING_INTERNAL_TOKEN` (aynı anahtar), **Variables** sekmesine `STAGING_API_URL` = Render adresi (sonunda `/` olmadan). Production için `PRODUCTION_*`.
+3. Actions → Monitoring → **Run workflow** ile bir kez elle deneyin; yanıt `{"ran":true}`.
+
+Anahtar ya da adres tanımlı değilse o ortam atlanır; `INTERNAL_TOKEN` verilmezse uç 404 döner.
+
 **Production ilk yönetici (E7-3):** production'a demo kullanıcı yüklenemez (`seeds.run --demo` reddedilir). Veritabanı hazırlanırken kampüs şablonu yüklenir ve ilk ADMIN `scripts.create_admin` ile açılır; parola komut satırına yazılmaz, iki kez sorulur (ya da `ADMIN_PASSWORD`). Diğer kullanıcıları bu yönetici Yönetim ekranından ekler.
 
 ```bash
@@ -119,6 +127,7 @@ MAX_VIDEO_MB=50                  # 30 sn video
 AGENTS_ENABLED=true              # false: agent hatti kapali, bildirim manager'i bekler (acil durum anahtari)
 MONITORING_ENABLED=true          # Monitoring Agent: uygulama icinde periyodik tur (SLA, takilan bildirimler)
 MONITORING_INTERVAL_SECONDS=300  # tur araligi; birden fazla sunucuda turu advisory lock alan tek sunucu yapar
+INTERNAL_TOKEN=                  # 32+ karakter; POST /internal/monitoring/run anahtari (bossa uc 404). Secret
 AI_MODE=ml                       # rules|ml|ml_llm
 CLASSIFIER_MODEL_PATH=/app/models/campus/classifier.joblib
 EMBEDDINGS_ENABLED=false

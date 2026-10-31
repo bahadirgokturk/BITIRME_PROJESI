@@ -36,7 +36,7 @@ async def _run_for(ticks: int, calls: list[int]) -> None:
 
 def test_the_loop_ticks_repeatedly(monkeypatch: pytest.MonkeyPatch) -> None:
     calls: list[int] = []
-    monkeypatch.setattr(monitoring_service, "_tick_once", lambda *_: calls.append(1))
+    monkeypatch.setattr(monitoring_service, "tick_once", lambda *_: calls.append(1))
 
     asyncio.run(_run_for(3, calls))
 
@@ -50,7 +50,7 @@ def test_a_database_error_does_not_stop_the_loop(monkeypatch: pytest.MonkeyPatch
         calls.append(1)
         raise OperationalError("SELECT 1", {}, Exception("baglanti koptu"))
 
-    monkeypatch.setattr(monitoring_service, "_tick_once", failing)
+    monkeypatch.setattr(monitoring_service, "tick_once", failing)
 
     asyncio.run(_run_for(2, calls))
 
