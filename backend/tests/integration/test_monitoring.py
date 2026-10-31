@@ -9,6 +9,7 @@ from datetime import timedelta
 
 import pytest
 from fastapi.testclient import TestClient
+from pydantic import SecretStr
 from sqlalchemy import select, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
@@ -293,3 +294,60 @@ def test_a_tick_is_skipped_while_another_instance_holds_the_lock(
     assert (ran, calls) == (False, [])
     assert run_locked(db_session, calls.append) is True
     assert calls == [db_session]
+
+
+# --- Dis tetikleyici (POST /internal/monitoring/run): ucretsiz sunucu uyurken dongu durur ---
+
+RUN_URL = "/api/v1/internal/monitoring/run"
+TOKEN = "t" * 40
+
+
+def _with_token(client: TestClient, token: str | None) -> None:
+    settings = client.app.state.settings  # type: ignore[attr-defined]
+    secret = SecretStr(token) if token else None
+    client.app.state.settings = settings.model_copy(update={"internal_token": secret})  # type: ignore[attr-defined]
+
+
+def _late_case(client: TestClient, campus: Campus, clock: FrozenClock) -> int:
+    case_id = _report(client, campus)
+    _start_work(client, campus)
+    clock.advance(LATE)
+    return case_id
+
+
+def test_external_trigger_runs_one_monitoring_round(
+    agent_client: TestClient, db_session: Session, campus: Campus, clock: FrozenClock
+) -> None:
+    case_id = _late_case(agent_client, campus, clock)
+    _with_token(agent_client, TOKEN)
+
+    response = agent_client.post(RUN_URL, headers={"X-Internal-Token": TOKEN})
+
+    assert response.status_code == 200
+    assert response.json() == {"ran": True}
+    assert len(_events(db_session, case_id, "SLA_BREACHED")) == 1
+
+
+@pytest.mark.parametrize("headers", [{}, {"X-Internal-Token": "yanlis-" + "x" * 40}])
+def test_external_trigger_needs_the_token(
+    agent_client: TestClient,
+    db_session: Session,
+    campus: Campus,
+    clock: FrozenClock,
+    headers: dict[str, str],
+) -> None:
+    case_id = _late_case(agent_client, campus, clock)
+    _with_token(agent_client, TOKEN)
+
+    response = agent_client.post(RUN_URL, headers=headers)
+
+    assert response.status_code == 401
+    assert _events(db_session, case_id, "SLA_BREACHED") == []
+
+
+def test_external_trigger_is_hidden_without_a_configured_token(agent_client: TestClient) -> None:
+    _with_token(agent_client, None)
+
+    response = agent_client.post(RUN_URL, headers={"X-Internal-Token": TOKEN})
+
+    assert response.status_code == 404

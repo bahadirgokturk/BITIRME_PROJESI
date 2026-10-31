@@ -11,6 +11,8 @@ from app.core.constants import MAX_UPLOAD_MB_DEFAULT, MAX_VIDEO_MB_DEFAULT
 
 # HS256 anahtari en az 256 bit olmali (RFC 7518 bolum 3.2): 32 karakter
 JWT_SECRET_MIN_LENGTH = 32
+# Dis tetikleyici anahtari (/internal/monitoring/run): tahmin edilemesin, JWT ile ayni alt sinir
+INTERNAL_TOKEN_MIN_LENGTH = 32
 PSYCOPG_URL_PREFIX = "postgresql+psycopg://"
 HOSTED_URL_PREFIXES = ("postgresql://", "postgres://")
 # .env.example'daki ornek; yalniz local'de kabul edilir
@@ -71,6 +73,9 @@ class Settings(BaseSettings):
     monitoring_enabled: bool = True
     # 5 dk: SLA'lar dakika (en kisa 10 dk kabul) olcegindedir (AGENTS.md 4.8)
     monitoring_interval_seconds: int = Field(default=300, ge=1)
+    # Ucretsiz sunucu uyurken dongu durur; GitHub Actions bu anahtarla turu disaridan tetikler.
+    # Bossa uc gorunmez (404)
+    internal_token: SecretStr | None = Field(default=None, min_length=INTERNAL_TOKEN_MIN_LENGTH)
 
     @field_validator("database_url")
     @classmethod

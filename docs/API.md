@@ -243,5 +243,5 @@ Liste yanıtı `Page[T]`, `?page=&page_size=` en fazla 200. Silme yerine `is_act
 | Method | Path | Açıklama |
 |---|---|---|
 | GET | `/health` | liveness + DB + model yüklü mü |
-| POST | `/internal/monitoring/run` | `X-Internal-Token` ile; cron yedeği |
+| POST | `/internal/monitoring/run` | `X-Internal-Token` ile; cron yedeği | Bir izleme turu → 200 `{ran}` (`false`: tur başka sunucudaydı). `INTERNAL_TOKEN` tanımlı değilse 404, anahtar eksik/hatalıysa 401 (sabit süreli karşılaştırma). GitHub Actions `monitoring.yml` hafta içi 08–20 arası 14 dakikada bir çağırır |
 | GET | `/lookups` | aktif lokasyonlar, case type'lar (form doldurma için) |
