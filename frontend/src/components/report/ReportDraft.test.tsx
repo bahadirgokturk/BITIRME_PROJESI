@@ -40,6 +40,13 @@ afterEach(() => {
 });
 
 describe("report draft", () => {
+  // Yeni stil (Figma: 08 Yeni Stil (A) > Bildirim Yap): formun altinda taslak notu, yaninda Gonder
+  it("tells the reporter that the draft is kept on this device", async () => {
+    renderScreen();
+
+    expect(await screen.findByText("Taslak bu cihazda otomatik saklanır.")).toBeInTheDocument();
+  });
+
   it("keeps what the reporter wrote and brings it back next time", async () => {
     const first = renderScreen();
     await first.user.type(screen.getByLabelText("Ne oldu?"), DESCRIPTION);

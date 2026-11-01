@@ -177,7 +177,9 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
 ### 5.1 Reporter — `/report` (en kritik ekran)
 
 - **Tek ekran, üç alan:** "Ne oldu?" (çok satırlı metin, örnek placeholder: *"B blok 2. kat erkek tuvalette sabun bitmiş"*),
-  **Konum**, **Fotoğraf veya video (isteğe bağlı)**. Kategori/öncelik alanı **yok**.
+  **Konum**, **Fotoğraf veya video (isteğe bağlı)**. Kategori/öncelik alanı **yok**. Masaüstünde form tek kartta;
+  kartın altında çizgiyle ayrılan satırda solda "Taslak bu cihazda otomatik saklanır." (internet yoksa çevrimdışı
+  notu), sağda Gönder (yeni stil, Figma: 08 Yeni Stil (A)).
 - **Konum seçici:** Arama kutusu (lokasyon adı ve takma adlarıyla eşleşir: "b2 wc") + son kullanılan konumlar.
   Kampüs → Bina → Kat → Alan ağacı ikincil yol olarak sunulur. Metinde konum geçiyorsa AI önerir, kullanıcı onaylar.
   **Kodda olan:** arama kutusu + altında sonuç listesi: eşleşen bütün konumlar, üç satır yüksekliğinde kaydırılan kutuda; fazlası varsa altında "26 konum · kaydırın ya da arayın" (`locationCountHint`); arama ad, kod ve takma adlarda, büyük/küçük
@@ -205,7 +207,9 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
 
 ### 5.2 Reporter — `/my-cases`, `/cases/[id]`
 
-- Liste kartı: kısa metin, konum, tarih, **4 adımlı ilerleme** (bölüm 4.1).
+- Liste kartı: üstte numara · zaman, başlık, konum (simgeli), **4 adımlı ilerleme** (bölüm 4.1). Sayfa başında
+  açıklama ("Yaptığın bildirimler ve her birinin şu anki durumu."); masaüstünde durum sekmeleri ve liste araçları aynı
+  satırda. Detayda bilgiler ve zaman çizelgesi başlıklı kartlarda; bilgiler satır satır (yeni stil).
 - **Bildirim zili (Sizden yanıt bekleniyor):** Telefonda üst çubukta tema düğmesinin solunda (her sayfada),
   masaüstünde Bildirimlerim'de "Bildirim yap"ın solunda. Bildirenin bir şey yapması gereken bildirim varsa zil açık
   turuncu (`bg-warning/15`, simge turuncu), yoksa açık gri. Tıklayınca telefon bildirimi gibi pencere açılır: ek bilgi

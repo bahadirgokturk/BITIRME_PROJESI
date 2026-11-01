@@ -22,15 +22,34 @@ import { CaseTimeline } from "./CaseTimeline";
 import { InfoReplyForm } from "./InfoReplyForm";
 
 const NOT_FOUND = 404;
+const INFO_TITLE_ID = "reporter-case-info-title";
 
 type CaseQuery = ReturnType<typeof useCase>;
 
+// Bilgi satiri: solda ad, sagda deger (Figma: 08 Yeni Stil (A) > bildirim detayi)
 function Field({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5 text-sm">{value}</dd>
+    <div className="flex items-start justify-between gap-4 py-2.5 first:pt-0 last:pb-0">
+      <dt className="shrink-0 text-sm text-muted-foreground">{label}</dt>
+      <dd className="min-w-0 text-right text-sm font-medium break-words">{value}</dd>
     </div>
+  );
+}
+
+// Aciklama kartin ustunde duz metin, altinda konum, birim, tarih satir satir
+function CaseInfo({ item }: { item: CaseRead }) {
+  return (
+    <section aria-labelledby={INFO_TITLE_ID} className="space-y-3 surface p-4 md:p-6">
+      <h2 id={INFO_TITLE_ID} className="text-base font-semibold">
+        Bildirim bilgileri
+      </h2>
+      <p className="text-[15px]">{item.description}</p>
+      <dl className="divide-y">
+        <Field label="Konum" value={item.location.name} />
+        <Field label="Birim" value={item.department?.name ?? "Henüz belirlenmedi"} />
+        <Field label="Bildirim tarihi" value={formatDateTime(item.created_at)} />
+      </dl>
+    </section>
   );
 }
 
@@ -53,8 +72,8 @@ function CaseDetailView({ item }: { item: CaseRead }) {
     <>
       <header className="space-y-4">
         <div className="space-y-1.5">
-          <p className="text-xs text-muted-foreground">{item.case_number}</p>
-          <PageTitle size="md">{item.title}</PageTitle>
+          <p className="text-xs text-muted-foreground md:text-sm">{item.case_number}</p>
+          <PageTitle>{item.title}</PageTitle>
         </div>
         {/* Ek bilgi bekleyen bildirimde soru + yanit kutusu, digerlerinde ilerleme ya da bilgi notu */}
         {item.status === "NEEDS_INFO" ? (
@@ -65,12 +84,7 @@ function CaseDetailView({ item }: { item: CaseRead }) {
       </header>
       <ReportedBy count={item.duplicate_count} />
       <CaseFeedback item={item} />
-      <dl className="space-y-3 surface p-4">
-        <Field label="Açıklama" value={item.description} />
-        <Field label="Konum" value={item.location.name} />
-        <Field label="Birim" value={item.department?.name ?? "Henüz belirlenmedi"} />
-        <Field label="Bildirim tarihi" value={formatDateTime(item.created_at)} />
-      </dl>
+      <CaseInfo item={item} />
       <CaseTimeline caseId={String(item.id)} />
       <CaseComments caseId={item.id} />
     </>

@@ -25,7 +25,7 @@ export function InfoReplyForm({ item }: { item: CaseRead }) {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3 surface p-4">
+    <form onSubmit={submit} className="space-y-3 rounded-xl border border-warning/40 bg-card p-4 shadow-xs md:p-6">
       <CaseStatusView view={reporterView(item.status, item.info_request)} />
       <FormAlert error={reply.error} />
       <div className="space-y-1.5">

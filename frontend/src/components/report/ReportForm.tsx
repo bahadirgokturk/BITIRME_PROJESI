@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 
-import { PageTitle } from "@/components/layout/PageTitle";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { FormAlert } from "@/components/states/FormAlert";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -58,12 +58,10 @@ function DescriptionField({ value, onChange, error }: DescriptionFieldProps) {
 
 function ReportIntro() {
   return (
-    <div className="space-y-3">
-      <PageTitle>Bildirim Yap</PageTitle>
-      <p className="text-sm text-muted-foreground">
-        Ne olduğunu ve nerede olduğunu yaz; kategori seçmene gerek yok, ilgili birime biz yönlendiririz.
-      </p>
-    </div>
+    <PageHeader
+      title="Bildirim Yap"
+      description="Ne olduğunu ve nerede olduğunu yaz; kategori seçmene gerek yok, ilgili birime biz yönlendiririz."
+    />
   );
 }
 
@@ -141,23 +139,29 @@ function useReportFields(draftKey: string | null, fileList: ReturnType<typeof us
   };
 }
 
-// Internet yokken (ve cihaz bildirimi saklayabiliyorsa) dugme "kaydet" der ve ne olacagini aciklar
-// (Figma: /report - cevrimdisi kaydet)
-function SubmitButton({ pending }: { pending: boolean }) {
+// Formun alti: solda not, sagda Gonder (Figma: 08 Yeni Stil (A) > Bildirim Yap). Internet yokken (ve cihaz
+// bildirimi saklayabiliyorsa) dugme "kaydet" der ve ne olacagini aciklar (Figma: /report - cevrimdisi kaydet).
+// Taslak notu yalniz taslak gercekten saklaniyorsa (giris yapan kisi biliniyorsa) yazilir.
+function SubmitBar({ pending, savesDraft }: { pending: boolean; savesDraft: boolean }) {
   const willQueue = !useOnline() && pendingStore() !== null;
+  const note = willQueue
+    ? "İnternet yok: bildirimin bu cihaza kaydedilir, bağlantı gelince kendiliğinden gönderilir."
+    : savesDraft
+      ? "Taslak bu cihazda otomatik saklanır."
+      : null;
   return (
-    <>
-      {willQueue ? (
-        <p className="text-[13px] text-muted-foreground">
-          İnternet yok: bildirimin bu cihaza kaydedilir, bağlantı gelince kendiliğinden gönderilir.
-        </p>
-      ) : null}
-      <Button type="submit" className="h-12 w-full md:w-auto md:self-end md:px-6" disabled={pending}>
+    <div className={SUBMIT_BAR_CLASS}>
+      {note ? <p className="text-[13px] text-muted-foreground md:text-sm">{note}</p> : <span />}
+      <Button type="submit" className="h-12 w-full shrink-0 md:w-auto md:px-6" disabled={pending}>
         {pending ? "Gönderiliyor…" : willQueue ? "Kaydet, internet gelince gönder" : "Gönder"}
       </Button>
-    </>
+    </div>
   );
 }
+
+// Masaustunde kartin alt bilgisi gibi: ince cizginin altinda, kartin kenarina uzanir
+const SUBMIT_BAR_CLASS =
+  "flex flex-col gap-3 md:-mx-8 md:-mb-8 md:flex-row md:items-center md:justify-between md:border-t md:px-8 md:py-5";
 
 interface ReportFormProps {
   mutation: ReturnType<typeof useSubmitReport>;
@@ -183,10 +187,10 @@ export function ReportForm({ mutation, draftKey, qrLocation }: ReportFormProps) 
   }
 
   return (
-    <form noValidate onSubmit={submit} className="mx-auto flex w-full max-w-[720px] flex-col gap-6">
+    <form noValidate onSubmit={submit} className="mx-auto flex w-full max-w-[880px] flex-col gap-6">
       <ReportIntro />
       {fields.restored ? <DraftNotice hadFiles={fields.restored.hadFiles} onDiscard={fields.discard} /> : null}
-      <div className="flex flex-col gap-5 md:rounded-xl md:border md:p-8">
+      <div className="flex flex-col gap-5 md:surface md:p-8">
         <DescriptionField
           value={description}
           onChange={fields.setDescription}
@@ -202,7 +206,7 @@ export function ReportForm({ mutation, draftKey, qrLocation }: ReportFormProps) 
         />
         <AttachmentField files={fileList.files} problem={fileList.problem} onPick={fileList.pick} onRemove={fileList.remove} />
         <FormAlert error={mutation.error} />
-        <SubmitButton pending={mutation.isPending} />
+        <SubmitBar pending={mutation.isPending} savesDraft={draftKey !== null} />
       </div>
     </form>
   );
