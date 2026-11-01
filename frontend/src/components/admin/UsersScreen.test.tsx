@@ -41,6 +41,7 @@ describe("UsersScreen", () => {
     expect(await within(staff).findByText("Destek Hizmetleri Şube Müdürlüğü")).toBeInTheDocument();
     expect(within(await row(/Ayşe Yılmaz/)).getByText("Öğrenci")).toBeInTheDocument();
     expect(within(await row(/Ali Çelik/)).getByText("Pasif")).toBeInTheDocument();
+    expect(screen.getByText("5 kullanıcı, 4 aktif").closest("[data-slot=admin-table]")).not.toBeNull();
   });
 
   it("filters the table by search text and role", async () => {

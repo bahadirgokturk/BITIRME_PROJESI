@@ -35,17 +35,19 @@ function UsersBody({ query, filters, departments, onEdit, onClear }: BodyProps) 
   const shown = filterUsers(query.data, filters);
   const active = query.data.filter((user) => user.is_active).length;
   return (
-    <div className="space-y-3">
+    <>
       {/* Liste hic bos olmaz (en az bir yonetici vardir); bos gorunuyorsa sebep suzgeclerdir */}
       {shown.length === 0 ? (
         <NoMatch title="Aramanıza uyan kullanıcı yok." onClear={onClear} />
       ) : (
-        <UsersTable users={shown} departments={departments} onEdit={(user) => onEdit({ mode: "edit", user })} />
+        <UsersTable
+          users={shown}
+          departments={departments}
+          onEdit={(user) => onEdit({ mode: "edit", user })}
+          footer={`${query.data.length} kullanıcı, ${active} aktif`}
+        />
       )}
-      <p className="text-sm text-muted-foreground">
-        {query.data.length} kullanıcı · {active} aktif
-      </p>
-    </div>
+    </>
   );
 }
 

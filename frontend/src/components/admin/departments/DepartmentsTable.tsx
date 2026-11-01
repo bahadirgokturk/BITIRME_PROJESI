@@ -1,8 +1,10 @@
+import type { ReactNode } from "react";
+
 import { cn } from "cn";
 
 import { memberLabel, type Department } from "@/lib/adminDepartments";
 
-import { ActiveBadge } from "../AdminParts";
+import { ActiveBadge, Tag } from "../AdminParts";
 import { AdminTable, BADGE_CELL_CLASS, CELL_CLASS, EDIT_BUTTON_CLASS, LABELLED_CLASS, ROW_CLASS } from "../AdminTable";
 
 const COLUMNS = ["Birim", "Kod", "Aktif kullanıcı", "Durum"];
@@ -14,6 +16,8 @@ interface DepartmentsTableProps {
   // Birim basina aktif kullanici sayisi; kullanicilar yuklenemediyse null
   counts: Map<number, number> | null;
   onEdit: (department: Department) => void;
+  // Kayit sayaci; tablonun alt bilgisi
+  footer?: ReactNode;
 }
 
 interface DepartmentRowProps {
@@ -26,8 +30,8 @@ function DepartmentRow({ department, members, onEdit }: DepartmentRowProps) {
   return (
     <tr className={cn(ROW_CLASS, !department.is_active && "text-muted-foreground")}>
       <td className={cn(CELL_CLASS, "font-medium")}>{department.name}</td>
-      <td data-label="Kod" className={cn(CELL_CLASS, LABELLED_CLASS, "col-span-2 break-all")}>
-        {department.code}
+      <td data-label="Kod" className={cn(CELL_CLASS, LABELLED_CLASS, "col-span-2")}>
+        <Tag tone="muted">{department.code}</Tag>
       </td>
       <td data-label="Aktif kullanıcı" className={cn(CELL_CLASS, LABELLED_CLASS)}>
         {members}
@@ -50,9 +54,9 @@ function DepartmentRow({ department, members, onEdit }: DepartmentRowProps) {
 }
 
 // Birim tablosu (Figma: 06 Admin > /admin/departments); pasif birim soluk ama okunur
-export function DepartmentsTable({ departments, counts, onEdit }: DepartmentsTableProps) {
+export function DepartmentsTable({ departments, counts, onEdit, footer }: DepartmentsTableProps) {
   return (
-    <AdminTable label="Birimler" columns={COLUMNS}>
+    <AdminTable label="Birimler" columns={COLUMNS} footer={footer}>
       {departments.map((department) => (
         <DepartmentRow
           key={department.id}

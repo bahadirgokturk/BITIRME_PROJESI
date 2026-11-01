@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import { cn } from "cn";
 
@@ -15,17 +15,20 @@ import {
 } from "@/lib/auditLogs";
 import { formatDateTime } from "@/lib/dates";
 
+import { Initials } from "../AdminParts";
 import { AdminTable, CELL_CLASS, LABELLED_CLASS, ROW_CLASS } from "../AdminTable";
 
 const COLUMNS = ["Zaman", "Kim", "İşlem", "Değişiklik"];
-// Telefonda her deger kartta tam satir kaplar; masaustunde ust hizali durur (degisiklik birkac satir olabilir)
-const CELL = cn(CELL_CLASS, LABELLED_CLASS, "col-span-2 md:align-top");
+// Telefonda her deger kartta tam satir kaplar
+const CELL = cn(CELL_CLASS, LABELLED_CLASS, "col-span-2");
 const TOGGLE_CLASS =
   "min-h-11 font-medium text-primary outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50 md:min-h-0";
 
 interface AuditLogTableProps {
   logs: AuditLog[];
   lookup: NameLookup;
+  // Sayac ve sayfa dugmeleri; tablonun alt bilgisi
+  footer?: ReactNode;
 }
 
 // "Ad: Destek -> Destek Hizmetleri"; yeni kayitta yalniz yeni deger
@@ -63,14 +66,19 @@ function AuditLogRow({ log, lookup }: { log: AuditLog; lookup: NameLookup }) {
   const changes = auditChanges(log, lookup);
   return (
     <tr className={ROW_CLASS}>
-      <td data-label="Zaman" className={cn(CELL, "md:whitespace-nowrap")}>
+      <td data-label="Zaman" className={cn(CELL, "text-muted-foreground md:whitespace-nowrap")}>
         <time dateTime={log.created_at}>{formatDateTime(log.created_at)}</time>
       </td>
       <td data-label="Kim" className={CELL}>
-        {log.actor_name}
+        <span className="inline-flex items-center gap-2.5">
+          <span className="max-md:hidden">
+            <Initials name={log.actor_name} />
+          </span>
+          {log.actor_name}
+        </span>
       </td>
       {/* Telefonda islem kartin basligidir: en uste alinir */}
-      <td className={cn(CELL_CLASS, "col-span-2 max-md:order-first md:align-top")}>
+      <td className={cn(CELL_CLASS, "col-span-2 max-md:order-first")}>
         <span className="block font-medium">{actionLabel(log)}</span>
         <span className="block text-xs text-muted-foreground">{recordName(log, lookup)}</span>
       </td>
@@ -82,9 +90,9 @@ function AuditLogRow({ log, lookup }: { log: AuditLog; lookup: NameLookup }) {
 }
 
 // Islem kayitlari tablosu (Figma: 06 Admin > /admin/audit-logs); yalniz okunur, islem sutunu yok
-export function AuditLogTable({ logs, lookup }: AuditLogTableProps) {
+export function AuditLogTable({ logs, lookup, footer }: AuditLogTableProps) {
   return (
-    <AdminTable label="İşlem kayıtları" columns={COLUMNS} actions={false}>
+    <AdminTable label="İşlem kayıtları" columns={COLUMNS} actions={false} footer={footer}>
       {logs.map((log) => (
         <AuditLogRow key={log.id} log={log} lookup={lookup} />
       ))}

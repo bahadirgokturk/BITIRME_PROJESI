@@ -65,7 +65,8 @@ describe("CaseTypesScreen", () => {
     expect(within(power).getByText("Aktif")).toBeInTheDocument();
     expect(within(await row(/Kapsam dışı talep/)).getByText("Birim yok")).toBeInTheDocument();
     expect(within(await row(/Kayıp/)).getByText("Pasif")).toBeInTheDocument();
-    expect(screen.getByText("6 tür · 5 aktif")).toBeInTheDocument();
+    // Sayac tablonun alt bilgisidir (Figma: 08 Yeni Stil (A) > yonetim tablolari)
+    expect(screen.getByText("6 tür, 5 aktif").closest("[data-slot=admin-table]")).not.toBeNull();
   });
 
   it("labels each value for the phone card layout", async () => {

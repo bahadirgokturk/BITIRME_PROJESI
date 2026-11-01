@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 
-import { cn } from "cn";
-
 import { ErrorState } from "@/components/states/ErrorState";
 import { useAdminAgentPolicies } from "@/hooks/useAdminAgentPolicies";
 import { useAdminCaseTypes } from "@/hooks/useAdminCaseTypes";
@@ -19,7 +17,7 @@ import {
 
 import { ActionNote, ListSkeleton, NoMatch, ScreenHeader } from "../AdminParts";
 import { AdminSections } from "../AdminSections";
-import { FILTER_FIELD_CLASS } from "../SearchFilters";
+import { FilterSelect, SearchInput } from "../SearchFilters";
 import { AgentPoliciesTable } from "./AgentPoliciesTable";
 import { AgentPolicySheet } from "./AgentPolicySheet";
 
@@ -49,14 +47,13 @@ function PoliciesBody({ query, filters, caseTypes, onEdit, onClear }: BodyProps)
   }
   const shown = filterAgentPolicies(agentPolicyRows(query.data, caseTypes), filters);
   return (
-    <div className="space-y-3">
+    <>
       {shown.length === 0 ? (
         <NoMatch title="Aramanıza uyan politika yok." onClear={onClear} />
       ) : (
-        <AgentPoliciesTable rows={shown} onEdit={onEdit} />
+        <AgentPoliciesTable rows={shown} onEdit={onEdit} footer={`${query.data.length} politika`} />
       )}
-      <p className="text-sm text-muted-foreground">{query.data.length} politika</p>
-    </div>
+    </>
   );
 }
 
@@ -64,19 +61,18 @@ function PoliciesBody({ query, filters, caseTypes, onEdit, onClear }: BodyProps)
 function PolicyFilters({ value, onChange }: { value: Filters; onChange: (filters: Filters) => void }) {
   return (
     <div className="flex flex-col gap-3 md:flex-row">
-      <input
-        type="search"
+      <SearchInput
         aria-label="Politika ara"
         placeholder="Tür adı ya da kod ara"
         value={value.search}
         onChange={(event) => onChange({ ...value, search: event.target.value })}
-        className={cn(FILTER_FIELD_CLASS, "w-full md:flex-1")}
+        className="w-full md:w-80"
       />
-      <select
+      <FilterSelect
         aria-label="Karar yetkisi"
         value={value.autonomy ?? ALL}
         onChange={(event) => onChange({ ...value, autonomy: (event.target.value || null) as AutonomyLevel | null })}
-        className={cn(FILTER_FIELD_CLASS, "w-full md:w-64")}
+        className="w-full md:w-64"
       >
         <option value={ALL}>Tüm karar yetkileri</option>
         {Object.entries(AUTONOMY_LABELS).map(([level, label]) => (
@@ -84,7 +80,7 @@ function PolicyFilters({ value, onChange }: { value: Filters; onChange: (filters
             {label}
           </option>
         ))}
-      </select>
+      </FilterSelect>
     </div>
   );
 }

@@ -1,12 +1,15 @@
+import { PlusIcon } from "lucide-react";
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { cn } from "cn";
 
-import { PageTitle } from "@/components/layout/PageTitle";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { FormAlert } from "@/components/states/FormAlert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { historyHref, type AuditEntity } from "@/lib/auditLogs";
+import { initialsOf } from "@/lib/shell";
 
 // Yonetim ekranlarinin ortak parcalari (docs/UI_GUIDE.md bolum 5.5: arama + suzgec + tablo + panel kalibi)
 
@@ -24,19 +27,51 @@ interface ScreenHeaderProps {
   onAdd?: () => void;
 }
 
+// Yeni stil sayfa basi: baslik + aciklama solda, ekle dugmesi sagda (Figma: 08 Yeni Stil (A) > Yonetim)
 export function ScreenHeader({ title, description, addLabel, onAdd }: ScreenHeaderProps) {
+  const action = addLabel ? (
+    <Button className="h-11 gap-1.5 px-4 md:h-10" onClick={onAdd}>
+      <PlusIcon aria-hidden className="size-4" />
+      {addLabel}
+    </Button>
+  ) : null;
+  return <PageHeader title={title} description={description} actions={action} />;
+}
+
+export type TagTone = "plain" | "muted" | "success" | "info" | "warning";
+
+// Koseli cerceveli etiket: rol, kod, karar yetkisi (oncelik rozetiyle ayni bicim)
+const TAG_TONES: Record<TagTone, string> = {
+  plain: "",
+  muted: "text-muted-foreground",
+  success: "border-success/30 bg-success/5 text-success",
+  info: "border-primary/30 bg-primary/5 text-primary-text",
+  warning: "border-warning/30 bg-warning/5 text-warning",
+};
+
+export function Tag({ tone = "plain", children }: { tone?: TagTone; children: ReactNode }) {
   return (
-    <header className="space-y-2">
-      <div className="flex items-end justify-between gap-4">
-        <PageTitle>{title}</PageTitle>
-        {addLabel ? (
-          <Button className="h-11 px-4" onClick={onAdd}>
-            {addLabel}
-          </Button>
-        ) : null}
-      </div>
-      {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
-    </header>
+    <span
+      data-tone={tone}
+      className={cn(
+        "inline-flex h-6 max-w-full items-center rounded-md border px-2 text-xs font-medium break-all",
+        TAG_TONES[tone],
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
+// Ad soyadin bas harfleri; adin yaninda susleme, ekran okuyucu adi zaten okur
+export function Initials({ name }: { name: string }) {
+  return (
+    <span
+      aria-hidden
+      className="grid size-8 shrink-0 place-items-center rounded-full bg-muted text-xs font-semibold text-foreground"
+    >
+      {initialsOf(name)}
+    </span>
   );
 }
 
@@ -67,7 +102,7 @@ const SKELETON_KEYS = ["s1", "s2", "s3", "s4", "s5", "s6"];
 
 export function ListSkeleton({ label }: { label: string }) {
   return (
-    <div aria-label={label} aria-busy="true" className="grid gap-3 md:rounded-xl md:border md:p-4">
+    <div aria-label={label} aria-busy="true" className="grid gap-3 md:surface md:p-4">
       {SKELETON_KEYS.map((key) => (
         <Skeleton key={key} className="h-28 w-full md:h-5" />
       ))}

@@ -34,10 +34,10 @@ test("an admin moves between the admin tabs and browses the location tree", asyn
   await tabs.getByRole("link", { name: "Konumlar" }).click();
   await expect(page.getByRole("heading", { name: "Konumlar" })).toBeVisible();
   await page.getByRole("button", { name: "B Blok altını aç" }).click();
-  await expect(page.getByRole("listitem", { name: "B Blok 2. Kat", exact: true })).toBeVisible();
+  await expect(page.getByRole("row", { name: "B Blok 2. Kat", exact: true })).toBeVisible();
 
   await page.getByRole("searchbox", { name: "Konum ara" }).fill("amfi");
-  await expect(page.getByRole("listitem", { name: "B201 Amfi" })).toContainText("Merkez Kampüs › B Blok › B Blok 2. Kat");
+  await expect(page.getByRole("row", { name: "B201 Amfi" })).toContainText("Merkez Kampüs › B Blok › B Blok 2. Kat");
 
   await tabs.getByRole("link", { name: "Bildirim Türleri" }).click();
   await expect(page.getByRole("heading", { name: "Bildirim Türleri" })).toBeVisible();

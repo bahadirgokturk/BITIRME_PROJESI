@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { cn } from "cn";
 
 import { PriorityBadge } from "@/components/tasks/TaskBadges";
@@ -16,6 +18,8 @@ interface CaseTypesTableProps {
   // Birim adlari; liste henuz gelmediyse undefined
   departments: Departments;
   onEdit: (caseType: CaseType) => void;
+  // Kayit sayaci; tablonun alt bilgisi
+  footer?: ReactNode;
 }
 
 interface RowProps {
@@ -73,9 +77,9 @@ function CaseTypeRow({ caseType, department, onEdit }: RowProps) {
 }
 
 // Bildirim turleri tablosu (Figma: 06 Admin > /admin/case-types); pasif tur soluk ama okunur
-export function CaseTypesTable({ caseTypes, departments, onEdit }: CaseTypesTableProps) {
+export function CaseTypesTable({ caseTypes, departments, onEdit, footer }: CaseTypesTableProps) {
   return (
-    <AdminTable label="Bildirim türleri" columns={COLUMNS}>
+    <AdminTable label="Bildirim türleri" columns={COLUMNS} footer={footer}>
       {caseTypes.map((caseType) => (
         <CaseTypeRow
           key={caseType.id}

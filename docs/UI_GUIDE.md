@@ -388,7 +388,16 @@ rapor tabloları çerçeveli, başlık satırı gri (`StatTable`). Birim kartlar
 ### 5.5 Admin
 
 - Tek kalıp: arama + filtre + tablo + sağdan açılan düzenleme paneli (Sheet). Silme yok; **Pasifleştir** (soft delete).
-- **Konumlar** (`/admin/locations`): ağaç görünümü (Kampüs → Bina → Kat → Alan). Ekran açılınca en üst düzey açıktır;
+- **Yeni stil** (Figma: 08 Yeni Stil (A) > Yönetim): sayfa başı `PageHeader` (başlık + açıklama solda, artı ikonlu
+  "… ekle" sağda); seçili sekme turkuaz çizgili. Arama kutusunda büyüteç, süzgeçlerde huni ikonu
+  (`SearchInput`, `FilterSelect`, `SearchFilters.tsx`). Tablo çerçeveli kart, gri başlık, son sütun "İşlem"
+  (gri "Düzenle"); kayıt sayacı ("5 kullanıcı, 4 aktif") tablonun alt bilgisidir (`AdminTable` `footer`), sayı
+  sütunları sağa yaslanır (`endColumns`). Rol ve kod köşeli çerçeveli etiket (`Tag`); kullanıcı ve işlem
+  kayıtlarında ad yanında baş harf dairesi (`Initials`). Karar yetkisi tonlu etiket: "Kendi uygular" yeşil,
+  "Uygular, müdüre haber verir" turkuaz, "Müdür karar verir" amber; güven eşiği masaüstünde çubuk + yüzde.
+- **Konumlar** (`/admin/locations`): ağaç tablo (Kampüs → Bina → Kat → Alan; sütunlar Konum, Tür, Kod, Önem,
+  Durum). Telefonda kart tek satırdır: ad altında "Kampüs · KMP · Önem 50", yanında durum ve Düzenle.
+  Ekran açılınca en üst düzey açıktır;
   bir konumun altı okuna basınca açılır. Arama (ad, kod, diğer adlar) ya da durum filtresi varken sonuçlar düz
   listedir ve her sonucun altında yeri yazar ("Merkez Kampüs › B Blok"). Tür ve kod yalnız eklerken seçilir.
   Üst konum değişirse konum altındakilerle birlikte taşınır. Ekranda "lokasyon" yerine "konum" yazılır.

@@ -63,7 +63,8 @@ describe("AuditLogsScreen", () => {
     expect(within(policy).getByText("Kendi uygular → Uygular, müdüre haber verir")).toBeInTheDocument();
     expect(within(policy).getByText("%70 → %85")).toBeInTheDocument();
     expect(within(await row(/Birim güncellendi/)).getByText("Aktif → Pasif")).toBeInTheDocument();
-    expect(screen.getByText("8 kayıt")).toBeInTheDocument();
+    expect(screen.getByText("8 kayıt").closest("[data-slot=admin-table]")).not.toBeNull();
+    expect(screen.getByText(/kim, ne zaman, neyi değiştirdi/)).toBeInTheDocument();
   });
 
   it("keeps the fields of a new record folded until asked", async () => {

@@ -66,16 +66,18 @@ function LocationsBody({ query, filters, onEdit, onClear }: BodyProps) {
   }
 
   return (
-    <div className="space-y-3">
+    <>
       {rows.length === 0 ? (
         <NoMatch title="Aramanıza uyan konum yok." onClear={onClear} />
       ) : (
-        <LocationList rows={rows} onToggle={toggle} onEdit={(location) => onEdit({ mode: "edit", location })} />
+        <LocationList
+          rows={rows}
+          onToggle={toggle}
+          onEdit={(location) => onEdit({ mode: "edit", location })}
+          footer={`${query.data.length} konum, ${active} aktif`}
+        />
       )}
-      <p className="text-sm text-muted-foreground">
-        {query.data.length} konum · {active} aktif
-      </p>
-    </div>
+    </>
   );
 }
 
