@@ -99,3 +99,14 @@ def test_s3_backend_requires_bucket_and_keys(missing: str) -> None:
 
 def test_secret_key_is_not_shown_in_settings_repr() -> None:
     assert "gizli" not in repr(Settings(**BASE, **S3_SETTINGS))
+
+
+def test_custom_endpoint_uses_path_style_addresses() -> None:
+    # Supabase/MinIO "bucket.alanadi" adresini tanimaz; istek "alanadi/bucket/anahtar" olur
+    from app.storage import _s3_client
+
+    client = _s3_client(Settings(**BASE, **S3_SETTINGS, s3_region="eu-central-1"))
+
+    assert client.meta.config.s3["addressing_style"] == "path"
+    assert client.meta.region_name == "eu-central-1"
+    assert client.meta.endpoint_url == S3_SETTINGS["s3_endpoint_url"]

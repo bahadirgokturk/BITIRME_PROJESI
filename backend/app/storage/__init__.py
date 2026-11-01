@@ -69,6 +69,7 @@ class S3Storage:
 def _s3_client(settings: Settings) -> Any:
     # Yalniz s3 secilince yuklenir: gelistirme ve testler boto3'e ihtiyac duymaz
     import boto3
+    from botocore.config import Config
 
     secret = settings.s3_secret_access_key
     return boto3.client(
@@ -77,6 +78,8 @@ def _s3_client(settings: Settings) -> Any:
         region_name=settings.s3_region,
         aws_access_key_id=settings.s3_access_key_id,
         aws_secret_access_key=secret.get_secret_value() if secret else None,
+        # Supabase Storage ve MinIO "bucket.alanadi" adresini tanimaz: alanadi/bucket/anahtar
+        config=Config(s3={"addressing_style": "path"}),
     )
 
 
