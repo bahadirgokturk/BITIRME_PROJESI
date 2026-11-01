@@ -9,8 +9,8 @@ import { formatDateTime, relativeTime } from "@/lib/dates";
 // Telefonda ayni ogeler kart icinde alt alta dizilir (tek DOM, iki yerlesim).
 export const COLUMNS_CLASS = "md:grid md:grid-cols-[104px_minmax(0,1fr)_168px_150px_88px_140px_104px] md:items-center md:gap-x-4";
 const ROW_CLASS =
-  "grid grid-cols-[minmax(0,1fr)_auto] gap-x-2 gap-y-1.5 rounded-lg border bg-card p-3.5 " +
-  "md:rounded-none md:border-0 md:border-t md:bg-transparent md:px-0 md:py-3";
+  "grid grid-cols-[minmax(0,1fr)_auto] gap-x-2 gap-y-1.5 surface p-3.5 " +
+  "md:rounded-none md:border-0 md:border-t md:bg-transparent md:px-4 md:py-3 md:shadow-none";
 const NO_VALUE = "–";
 
 export const COLUMN_HEADERS = ["Bildirim no", "Başlık, tür ve konum", "Birim", "Durum", "Öncelik", "Kalan süre", "Açılış"];
@@ -23,7 +23,9 @@ export function CaseRow({ item, listPath }: { item: CaseRead; listPath: string }
       href={`${listPath}/${item.id}`}
       className={`${ROW_CLASS} ${COLUMNS_CLASS} transition-colors outline-none hover:bg-muted/40 focus-visible:ring-3 focus-visible:ring-ring/50`}
     >
-      <span className="text-xs text-muted-foreground md:text-sm">{item.case_number}</span>
+      <span className="text-xs text-muted-foreground md:text-sm md:font-medium md:text-primary-text">
+        {item.case_number}
+      </span>
       <span className="col-span-2 md:col-span-1">
         <span className="block text-sm font-medium">{item.title}</span>
         <span className="block text-xs text-muted-foreground">{caseSubtitle(item)}</span>

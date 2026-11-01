@@ -18,7 +18,7 @@ const DETAIL_LINK_CLASS =
 export function ReviewTile({ item, onDone }: { item: ReviewItem; onDone: (message: string) => void }) {
   const titleId = useId();
   return (
-    <article aria-labelledby={titleId} className="flex h-full flex-col gap-2.5 rounded-lg border bg-card p-4">
+    <article aria-labelledby={titleId} className="flex h-full flex-col gap-2.5 surface p-4">
       <ItemHeader item={item} titleId={titleId} layout="tile" />
       {item.reason ? <p className="line-clamp-2 text-xs">{item.reason}</p> : null}
       {item.possible_duplicate_of ? (

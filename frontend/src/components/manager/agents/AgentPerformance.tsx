@@ -13,7 +13,7 @@ import { ChartCard, PanelSkeleton } from "../dashboard/ChartCard";
 import { PeriodSwitch } from "../PeriodSwitch";
 import { StatTable } from "../StatTable";
 
-const CARD_CLASS = "rounded-lg border bg-card p-3.5 md:p-5";
+const CARD_CLASS = "surface p-3.5 md:p-5";
 const GRID_CLASS = "grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4";
 const STACK_CLASS = "space-y-4 md:space-y-6";
 const SKELETON_KEYS = ["k1", "k2", "k3", "k4"];

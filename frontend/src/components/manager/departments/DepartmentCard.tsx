@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { DepartmentStat } from "@/lib/departments";
 
 // break-inside-avoid: yazdirirken kart iki sayfaya bolunmez
-export const CARD_CLASS = "rounded-lg border bg-card p-4 break-inside-avoid md:p-5";
+export const CARD_CLASS = "surface p-4 break-inside-avoid md:p-5";
 
 // Dort sayi ikiserli: bildirim, zamaninda, tipik cozum, acik gorev
 export function StatGrid({ stats }: { stats: readonly DepartmentStat[] }) {

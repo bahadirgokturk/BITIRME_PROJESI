@@ -29,7 +29,8 @@ import { ManagerCaseTile } from "./CaseTile";
 const SEARCH_DELAY_MS = 300;
 const SKELETON_KEYS = ["s1", "s2", "s3", "s4", "s5", "s6"];
 // Masaustunde satirlar tek bir kartin icinde, telefonda her satir ayri kart
-const LIST_CLASS = "grid gap-3 md:gap-0 md:rounded-lg md:border md:bg-card md:px-5";
+// Masaustunde cerceveli tablo, gri baslik satiri (Figma: 08 Yeni Stil (A) > Tum Bildirimler)
+const LIST_CLASS = "grid gap-3 md:gap-0 md:overflow-hidden md:rounded-xl md:border md:bg-card md:shadow-xs";
 // Kart gorunumu: telefonda iki, tablette uc, genis ekranda dort sutun kare kart
 const GRID_CLASS = "grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4";
 // Backend cevap vermediyse (ag sorunu) gosterilen metin; cevap verdiyse onun mesaji (UI_GUIDE bolum 6)
@@ -39,7 +40,7 @@ type CaseListQuery = ReturnType<typeof useCaseList>;
 
 function ColumnHeaders() {
   return (
-    <div aria-hidden className={`hidden py-2.5 text-xs font-medium text-muted-foreground ${COLUMNS_CLASS}`}>
+    <div aria-hidden className={`hidden h-10 bg-muted px-4 text-sm font-medium ${COLUMNS_CLASS}`}>
       {COLUMN_HEADERS.map((header) => (
         <span key={header}>{header}</span>
       ))}

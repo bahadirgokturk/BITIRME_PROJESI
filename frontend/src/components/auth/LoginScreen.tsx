@@ -25,7 +25,7 @@ function BrandPanel() {
 // Giris kutusu: baslik, form ve parola notu tek kartta
 function LoginCard({ next }: { next?: string }) {
   return (
-    <div className="flex flex-1 flex-col rounded-xl border bg-card shadow-xs">
+    <div className="flex flex-1 flex-col surface">
       <header className="space-y-1 px-6 pt-6 md:px-8 md:pt-8">
         <h1 className="text-2xl font-semibold md:text-[26px]">Giriş yap</h1>
         <p className="text-sm text-muted-foreground md:text-base">Kurum e-postan ve parolanla giriş yap.</p>

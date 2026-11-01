@@ -76,7 +76,7 @@ export function CaseFeedback({ item }: { item: CaseRead }) {
     return null;
   }
   return (
-    <section aria-label="Değerlendirme" className="space-y-3 rounded-lg border bg-card p-4">
+    <section aria-label="Değerlendirme" className="space-y-3 surface p-4">
       {actions.canRate ? <RatingForm caseId={item.id} /> : null}
       {actions.rating === null ? null : <RatingThanks rating={actions.rating} />}
       {actions.canReopen ? <ReopenSection caseId={item.id} /> : null}

@@ -108,7 +108,9 @@ Figma değişkenleri (Variables) **koddaki CSS değişkenleriyle aynı adla** ta
   logo, başlıklı menü grupları (iş ekranları "Yönetim" / personelde "İş", kendi bildirim ekranları "Kişisel";
   bildirim yapanda tek grup, `lib/navigation.ts` `navGroupsFor`), her öğede Lucide simgesi; altta "Hesap" kutusu
   (ad-soyad baş harfleri, ad, rol, Çıkış yap). Sayfalar yanında yuvarlatılmış, kenarlıklı beyaz panelde durur; panelin
-  üst çubuğunda bölüm adı (`sectionTitle`), bildirim zili ve tema düğmesi. Telefonda üstte sabit çubuk:
+  üst çubuğunda menü düğmesi (kenar çubuğunu gizler/gösterir, seçim cihazda hatırlanır: `useSidebarOpen`), bölüm adı
+  (`sectionTitle`), bildirim zili ve tema düğmesi. Durum filtreleri (Tümü, Açık, Kapanan…) gri zeminde geçişli sekme
+  grubudur, seçili sekme beyaz (`FilterChips`; telefonda sığmazsa yana kayar). Telefonda üstte sabit çubuk:
   ana sayfalarda menü butonu + logo (menü soldan açılan panel, shadcn Sheet), alt sayfalarda (ör. `/cases/[id]`)
   geri butonu + başlık. Hangi sayfada hangi çubuğun çıkacağı `lib/shell.ts`, seçili menü öğesi `lib/navigation.ts`.
   Alt sekme çubuğu bilinçli olarak kullanılmıyor.
@@ -123,10 +125,13 @@ Değerler backend enum'larıdır ([DATABASE.md](DATABASE.md) bölüm 2); etiket 
 (`frontend/src/lib/caseList.ts`, `CASE_STATUS_LABELS`) tutulur. Figma'daki Badge bileşeni bu tabloyla birebir çizilir.
 Renkler öneridir; ekip değiştirebilir ama tabloyu ve kodu birlikte günceller.
 
-Durum rozeti gri zeminde renkli nokta + durum adıdır; renkler görev rozetleriyle aynı **renk yolculuğunu** izler
-(beklerken turuncu, çalışırken geçişli, çözülünce turkuaz). Yalnız "Yöneticiye iletildi" kırmızı zeminde ikonla
-gösterilir. Kod: `CASE_STATUS_TONES` (`lib/caseList.ts`) ve `CaseStatusBadge` (`components/tasks/TaskBadges.tsx`);
-Figma: 02 Components > CaseStatusBadge.
+Durum rozeti yuvarlak hatlı, çerçeveli bir hap: renkli nokta + durum adı (yeni stil, Figma: 08 Yeni Stil (A));
+renkler görev rozetleriyle aynı **renk yolculuğunu** izler (beklerken turuncu, çalışırken geçişli, çözülünce turkuaz).
+Yalnız "Yöneticiye iletildi" kırmızı çerçeve ve ikonla gösterilir. Öncelik ve kalan süre köşeli rozettir: düşük ve
+orta sade çerçeve, yüksek amber, kritik kırmızı + ikon (`PRIORITY_TONES`, `lib/tasks.ts`). Rozetin tonu `data-tone`
+ile de okunur. Kartlar ortak `surface` yüzeyini kullanır (yuvarlatılmış kenarlık + hafif gölge, `globals.css`),
+tablolarda başlık satırı gri. Kod: `CASE_STATUS_TONES` (`lib/caseList.ts`) ve `CaseStatusBadge`
+(`components/tasks/TaskBadges.tsx`); Figma: 02 Components > CaseStatusBadge.
 
 | `case_status` | Etiket (manager/staff) | Renk (token) |
 |---|---|---|
@@ -278,7 +283,8 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   ve dağılım grafikleri. Her grafik başlığı sorunun cevabını söyler ("Bu hafta en çok sorun: B Blok").
   **Kodda olan (`/manager/dashboard`, menüde "Genel Bakış"):** dönem düğmesi (Son 7 gün / Son 30 gün), 6 KPI kartı
   (açık bildirim, SLA uyumu, ortalama çözüm süresi, otomasyon oranı, bugün açılan, müdür incelemesi oranı),
-  açılan/kapanan çubuk grafiği, kategori çubukları ve yapay zekâ yönetim özeti. Değişim oku yöne göre değil iyi/kötü
+  açılan/kapanan çubuk grafiği, kategori çubukları ve yapay zekâ yönetim özeti. KPI kartı alttan hafif turkuaz
+  geçişli (`surface-kpi`); değişim sağ üstte çerçeveli rozettir. Değişim oku yöne göre değil iyi/kötü
   olmasına göre renklenir (açık bildirim artarsa kırmızı ▲); önceki dönemde veri yoksa "önceki dönemde veri yok".
   Değişim %100'den büyükse yüzde yerine fark kartın kendi biriminde yazılır ("▲ %2000" yerine "▲ 40", oranlarda
   "▲ 12 puan", sürede "▲ 2 sa 10 dk"); önceki dönem çok küçükken yüzde anlamsız büyür. Grafik kütüphanesi

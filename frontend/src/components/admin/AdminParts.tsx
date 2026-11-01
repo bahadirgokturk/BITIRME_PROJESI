@@ -84,14 +84,17 @@ export function ActionNote({ message }: { message: string | null }) {
   );
 }
 
+// Durum rozetiyle ayni bicim: yuvarlak hat, noktali (Figma: 08 Yeni Stil (A) > yonetim tablolari)
 export function ActiveBadge({ active }: { active: boolean }) {
   return (
     <span
+      data-tone={active ? "active" : "inactive"}
       className={cn(
-        "rounded-full px-2.5 py-1 text-xs font-medium",
-        active ? "bg-primary/10 text-primary-text" : "bg-muted text-muted-foreground",
+        "inline-flex h-6 items-center gap-1.5 rounded-full border px-2 text-xs font-medium whitespace-nowrap",
+        !active && "text-muted-foreground",
       )}
     >
+      <span aria-hidden className={cn("size-1.5 rounded-full", active ? "bg-success" : "bg-muted-foreground")} />
       {active ? "Aktif" : "Pasif"}
     </span>
   );

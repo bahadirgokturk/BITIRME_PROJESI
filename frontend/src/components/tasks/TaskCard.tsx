@@ -6,7 +6,7 @@ import { slaView, type TaskRead } from "@/lib/tasks";
 
 import { PriorityBadge, SlaBadge, TaskStatusBadge } from "./TaskBadges";
 
-const CARD_CLASS = "block rounded-lg border bg-card p-4";
+const CARD_CLASS = "block surface p-4";
 
 // Gorev karti: konum en buyuk metin, sonra is tanimi ve kalan sure (Figma: 02 Components > TaskCard)
 export function TaskCard({ task }: { task: TaskRead }) {

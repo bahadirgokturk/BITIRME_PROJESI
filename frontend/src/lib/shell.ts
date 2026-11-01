@@ -51,3 +51,11 @@ export function initialsOf(name: string): string {
   const picked = words.length > 1 ? [words[0], words[words.length - 1]] : words;
   return picked.map((word) => (word ?? "").charAt(0).toLocaleUpperCase("tr")).join("");
 }
+
+// Masaustu kenar cubugunun acik/kapali secimi cihazda saklanir; yoksa ya da bozuksa acik
+export const SIDEBAR_KEY = "bakircayflow-sidebar";
+export type SidebarState = "open" | "closed";
+
+export function parseSidebarOpen(stored: string | null): boolean {
+  return stored !== "closed";
+}

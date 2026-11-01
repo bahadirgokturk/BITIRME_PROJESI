@@ -66,7 +66,7 @@ export function CaseComments({ caseId }: { caseId: number }) {
   return (
     <section className="space-y-3">
       <h2 className="font-semibold">Yorumlar</h2>
-      <div className="space-y-4 rounded-lg border bg-card p-4">
+      <div className="space-y-4 surface p-4">
         <CommentList query={query} />
         {role && canComment(role) && !query.isError ? (
           <CommentForm caseId={caseId} allowInternal={canWriteInternal(role)} />

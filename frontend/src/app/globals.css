@@ -173,3 +173,12 @@
     @apply font-sans;
   }
 }
+/* Yeni stil kart yuzeyi (Figma: 08 Yeni Stil (A)): yuvarlatilmis kenarlik ve hafif golge */
+@utility surface {
+  @apply rounded-xl border bg-card shadow-xs;
+}
+
+/* Rakam karti: alttan hafif turkuaz gecis (Figma: 08 Yeni Stil (A) > Genel Bakis) */
+@utility surface-kpi {
+  @apply rounded-xl border bg-card bg-linear-to-t from-primary/5 to-card shadow-xs;
+}

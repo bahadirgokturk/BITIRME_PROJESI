@@ -10,7 +10,7 @@ import { caseInfoFields } from "@/lib/managerCase";
 
 import { RiskBadge } from "../dashboard/DelayRiskCard";
 
-export const CARD_CLASS = "rounded-lg border bg-card p-4";
+export const CARD_CLASS = "surface p-4";
 const INFO_TITLE_ID = "case-info-title";
 const LINK_CLASS = "font-medium text-primary outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50";
 

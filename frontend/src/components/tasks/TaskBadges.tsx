@@ -6,22 +6,31 @@ import { cn } from "cn";
 import { CASE_STATUS_LABELS, CASE_STATUS_TONES, type CaseStatus, type StatusTone } from "@/lib/caseList";
 import {
   PRIORITY_LABELS,
+  PRIORITY_TONES,
   TASK_STATUS_LABELS,
   type Priority,
+  type PriorityTone,
   type SlaStatus,
   type SlaView,
   type TaskStatus,
 } from "@/lib/tasks";
 
-const BADGE_CLASS = "inline-flex h-6 shrink-0 items-center rounded-md px-2 text-xs font-medium";
+// Yeni stil (Figma: 08 Yeni Stil (A)): cerceveli rozet; durum yuvarlak hatli ve noktali,
+// oncelik ve sure koseli. Ton data-tone ile de okunur; renk yaninda her zaman metin yazilir (UI_GUIDE bolum 8)
+const BADGE_CLASS =
+  "inline-flex h-6 shrink-0 items-center gap-1.5 border px-2 text-xs font-medium whitespace-nowrap";
+const STATUS_SHAPE = "rounded-full";
+const TAG_SHAPE = "rounded-md";
+const ALERT_CLASS = "border-destructive/30 bg-destructive/5 text-destructive";
+const WARNING_CLASS = "border-warning/30 bg-warning/5 text-warning";
 
 function Dot({ className }: { className: string }) {
-  return <span aria-hidden className={cn("size-2 rounded-full", className)} />;
+  return <span aria-hidden className={cn("size-1.5 shrink-0 rounded-full", className)} />;
 }
 
-function NeutralBadge({ dot, children }: { dot: string; children: ReactNode }) {
+function StatusPill({ tone, dot, children }: { tone: string; dot: string; children: ReactNode }) {
   return (
-    <span className={cn(BADGE_CLASS, "gap-1.5 bg-muted")}>
+    <span data-tone={tone} className={cn(BADGE_CLASS, STATUS_SHAPE)}>
       <Dot className={dot} />
       {children}
     </span>
@@ -39,7 +48,11 @@ const STATUS_DOT: Record<TaskStatus, string> = {
 };
 
 export function TaskStatusBadge({ status }: { status: TaskStatus }) {
-  return <NeutralBadge dot={STATUS_DOT[status]}>{TASK_STATUS_LABELS[status]}</NeutralBadge>;
+  return (
+    <StatusPill tone={status} dot={STATUS_DOT[status]}>
+      {TASK_STATUS_LABELS[status]}
+    </StatusPill>
+  );
 }
 
 const TONE_DOT: Record<Exclude<StatusTone, "alert">, string> = {
@@ -58,45 +71,47 @@ export function CaseStatusBadge({ status }: { status: CaseStatus }) {
   const tone = CASE_STATUS_TONES[status];
   if (tone === "alert") {
     return (
-      <span className={cn(BADGE_CLASS, "gap-1 bg-destructive/10 text-destructive")}>
+      <span data-tone={tone} className={cn(BADGE_CLASS, STATUS_SHAPE, "gap-1", ALERT_CLASS)}>
         <TriangleAlertIcon aria-hidden className="size-3.5" />
         {CASE_STATUS_LABELS[status]}
       </span>
     );
   }
-  return <NeutralBadge dot={TONE_DOT[tone]}>{CASE_STATUS_LABELS[status]}</NeutralBadge>;
+  return (
+    <StatusPill tone={tone} dot={TONE_DOT[tone]}>
+      {CASE_STATUS_LABELS[status]}
+    </StatusPill>
+  );
 }
 
-const PRIORITY_DOT: Record<Exclude<Priority, "CRITICAL">, string> = {
-  LOW: "bg-muted-foreground",
-  MEDIUM: "bg-info",
-  HIGH: "bg-brand-accent",
+const PRIORITY_CLASS: Record<PriorityTone, string> = {
+  plain: "",
+  warning: WARNING_CLASS,
+  critical: cn("gap-1", ALERT_CLASS),
 };
 
 // Kritik oncelik renk + ikonla ayrilir (docs/UI_GUIDE.md bolum 4.1)
 export function PriorityBadge({ priority }: { priority: Priority }) {
-  if (priority === "CRITICAL") {
-    return (
-      <span className={cn(BADGE_CLASS, "gap-1 bg-destructive/10 text-destructive")}>
-        <TriangleAlertIcon aria-hidden className="size-3.5" />
-        {PRIORITY_LABELS.CRITICAL}
-      </span>
-    );
-  }
-  return <NeutralBadge dot={PRIORITY_DOT[priority]}>{PRIORITY_LABELS[priority]}</NeutralBadge>;
+  const tone = PRIORITY_TONES[priority];
+  return (
+    <span data-tone={tone} className={cn(BADGE_CLASS, TAG_SHAPE, PRIORITY_CLASS[tone])}>
+      {tone === "critical" ? <TriangleAlertIcon aria-hidden className="size-3.5" /> : null}
+      {PRIORITY_LABELS[priority]}
+    </span>
+  );
 }
 
 const SLA_CLASS: Record<SlaStatus, string> = {
-  ON_TRACK: "bg-success/10 text-success",
-  AT_RISK: "bg-warning/10 text-warning",
-  BREACHED: "bg-destructive/10 text-destructive",
+  ON_TRACK: "border-success/30 bg-success/5 text-success",
+  AT_RISK: WARNING_CLASS,
+  BREACHED: ALERT_CLASS,
 };
 
 // SLA'ya kalan sure: durum renkle birlikte ikon ve metinle anlatilir
 export function SlaBadge({ view }: { view: SlaView }) {
   const Icon = view.status === "BREACHED" ? TriangleAlertIcon : ClockIcon;
   return (
-    <span className={cn(BADGE_CLASS, "gap-1", SLA_CLASS[view.status])}>
+    <span data-tone={view.status} className={cn(BADGE_CLASS, TAG_SHAPE, "gap-1", SLA_CLASS[view.status])}>
       <Icon aria-hidden className="size-3.5" />
       {view.label}
     </span>

@@ -40,6 +40,16 @@ export const PRIORITY_LABELS: Record<Priority, string> = {
   CRITICAL: "Kritik",
 };
 
+// Oncelik rozeti tonu: dusuk ve orta sade kalir ki yuksek ve kritik one ciksin (Figma: 08 Yeni Stil (A))
+export type PriorityTone = "plain" | "warning" | "critical";
+
+export const PRIORITY_TONES: Record<Priority, PriorityTone> = {
+  LOW: "plain",
+  MEDIUM: "plain",
+  HIGH: "warning",
+  CRITICAL: "critical",
+};
+
 export type TaskAction = "accept" | "start" | "complete";
 
 export interface TaskActions {

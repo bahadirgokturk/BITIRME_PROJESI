@@ -10,6 +10,7 @@ import {
   EVIDENCE_MAX_COUNT,
   evidenceProblem,
   isValidTaskNote,
+  PRIORITY_TONES,
   slaView,
   TASK_NOTE_MAX_LENGTH,
   taskActions,
@@ -142,5 +143,11 @@ describe("showsTaskTitle", () => {
   it("hides the job line when it only repeats the description", () => {
     expect(showsTaskTitle({ ...task, title: "Sabun bitmiş.", description: "Sabun bitmiş." })).toBe(false);
     expect(showsTaskTitle({ ...task, title: "Sabunluğu doldur", description: "Sabun bitmiş." })).toBe(true);
+  });
+});
+
+describe("PRIORITY_TONES", () => {
+  it("yalniz yuksek ve kritik oncelik renkle one cikar", () => {
+    expect(PRIORITY_TONES).toEqual({ LOW: "plain", MEDIUM: "plain", HIGH: "warning", CRITICAL: "critical" });
   });
 });

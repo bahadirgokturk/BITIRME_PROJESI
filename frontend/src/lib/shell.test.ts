@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { USERS } from "@/mocks/fixtures";
 
-import { initialsOf, mobileBarFor, userDetail } from "./shell";
+import { initialsOf, mobileBarFor, parseSidebarOpen, userDetail } from "./shell";
 
 describe("mobileBarFor", () => {
   it("shows the menu bar on top level pages", () => {
@@ -57,5 +57,14 @@ describe("initialsOf", () => {
   it("uses one letter for a single word and nothing for an empty name", () => {
     expect(initialsOf("Admin")).toBe("A");
     expect(initialsOf("  ")).toBe("");
+  });
+});
+
+describe("parseSidebarOpen", () => {
+  it("keeps the desktop menu open unless it was closed on this device", () => {
+    expect(parseSidebarOpen(null)).toBe(true);
+    expect(parseSidebarOpen("open")).toBe(true);
+    expect(parseSidebarOpen("closed")).toBe(false);
+    expect(parseSidebarOpen("bozuk")).toBe(true);
   });
 });
