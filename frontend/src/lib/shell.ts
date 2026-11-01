@@ -44,3 +44,10 @@ export function userDetail(user: Pick<User, "role" | "reporter_kind">): string {
   }
   return ROLE_LABELS[user.role];
 }
+
+// Kenar cubugundaki kullanici kutusu: ad ve soyadin bas harfleri (Ayse Nur Yilmaz -> AY)
+export function initialsOf(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  const picked = words.length > 1 ? [words[0], words[words.length - 1]] : words;
+  return picked.map((word) => (word ?? "").charAt(0).toLocaleUpperCase("tr")).join("");
+}

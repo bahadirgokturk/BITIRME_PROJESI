@@ -46,6 +46,35 @@ export function navigationFor(role: Role): NavItem[] {
   return NAVIGATION[role];
 }
 
+export interface NavGroup {
+  title: string | null;
+  items: NavItem[];
+}
+
+// Masaustu kenar cubugunda is ekranlari ustte, herkesin kendi bildirim ekranlari "Kisisel" altinda.
+// Bildirim yapanin menusu kisa: tek grup, baslik yok (Figma: 08 Yeni Stil (A))
+const WORK_GROUP_TITLE: Record<Role, string | null> = {
+  REPORTER: null,
+  STAFF: "İş",
+  MANAGER: "Yönetim",
+  ADMIN: "Yönetim",
+};
+const PERSONAL_HREFS = [REPORT.href, MY_CASES.href];
+
+export function navGroupsFor(role: Role): NavGroup[] {
+  const items = NAVIGATION[role];
+  const title = WORK_GROUP_TITLE[role];
+  if (title === null) {
+    return [{ title: null, items }];
+  }
+  const isPersonal = (item: NavItem) => PERSONAL_HREFS.includes(item.href);
+  const personal = PERSONAL_HREFS.flatMap((href) => items.filter((item) => item.href === href));
+  return [
+    { title, items: items.filter((item) => !isPersonal(item)) },
+    { title: "Kişisel", items: personal },
+  ];
+}
+
 function isUnder(pathname: string, base: string): boolean {
   return pathname === base || pathname.startsWith(`${base}/`);
 }
@@ -56,6 +85,12 @@ export function activeNavHref(role: Role, pathname: string): string | null {
     [item.href, ...(item.subPaths ?? [])].some((base) => isUnder(pathname, base)),
   );
   return match?.href ?? null;
+}
+
+// Masaustu ust cubugundaki bolum adi: sayfanin ait oldugu menu ogesi; menude yoksa null
+export function sectionTitle(role: Role, pathname: string): string | null {
+  const href = activeNavHref(role, pathname);
+  return NAVIGATION[role].find((item) => item.href === href)?.label ?? null;
 }
 
 // Giristen sonra acilan sayfa: her rol kendi ilk ekranina gider (yonetici: Yonetim).

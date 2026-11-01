@@ -30,7 +30,7 @@ Tasarım sırası: **REPORTER ve STAFF önce mobil** (375 px), sonra masaüstü;
 
 | Route | Rol | Faz (kod) | Not |
 |---|---|---|---|
-| `/login` | herkes | FAZ 2 | Taslağı kodda var |
+| `/login` | herkes | FAZ 2 | Masaüstünde solda turkuaz tanıtım paneli; sağda ortalanmış logo ve kart içinde form, iki blok aynı yükseklikte. Telefonda ortalanmış logo + kart |
 | `/` | herkes | FAZ 2 | Role göre yönlendirme (reporter → `/report`, staff → `/staff/tasks`, manager → `/manager/dashboard`) |
 | `/admin/*` | ADMIN | FAZ 2 | users, departments, locations (ağaç), case-types, sla-rules, agent-policies, audit-logs |
 | `/report` | herkes | FAZ 3 | **En kritik ekran** — bkz. bölüm 5.1 |
@@ -97,13 +97,18 @@ Figma değişkenleri (Variables) **koddaki CSS değişkenleriyle aynı adla** ta
   (Figma: 02 Components > Logo/Simge, Logo/Yatay).
 - **Koyu mod:** Her ekran açık ve koyu temada çalışır; renkler `globals.css` içinde `:root` ve `.dark` altındadır
   (koyu temada durum renklerinin açık tonları, `--primary-strong` yerine ana turkuaz). Tema düğmesi (`ThemeToggle`)
-  masaüstünde menünün altında "Çıkış yap"ın yanında, telefonda üst çubuğun sağ köşesinde, giriş ekranında sağ üstte.
+  masaüstünde içerik panelinin üst çubuğunda bildirim zilinin yanında, telefonda üst çubuğun sağ köşesinde, giriş
+  ekranında sağ üstte.
   Açık temada güneş, koyu temada ay ve yıldız simgesi; simge dönerek değişir (hareket azaltma ayarında animasyonsuz).
   Ekran okuyucuya "Koyu mod" düğmesi ve basılı/basılı değil (`aria-pressed`) olarak söylenir. Seçim tarayıcıda
   saklanır; hiç seçilmediyse cihazın ayarı geçerlidir. Tema sayfa çizilmeden uygulanır (açılışta beyaz parlama yok),
   PWA'da telefonun durum çubuğu da temaya uyar. Kurallar: `lib/theme.ts`; Figma: 07 Koyu Mod sayfası, CampusFlow
   değişkenlerinin "Koyu" modu.
-- **Uygulama kabuğu:** Masaüstünde sol kenar çubuğu (logo, kullanıcı, menü, çıkış). Telefonda üstte sabit çubuk:
+- **Uygulama kabuğu (yeni stil, Figma: 08 Yeni Stil (A)):** Masaüstünde gri (`sidebar`) zeminde sol kenar çubuğu:
+  logo, başlıklı menü grupları (iş ekranları "Yönetim" / personelde "İş", kendi bildirim ekranları "Kişisel";
+  bildirim yapanda tek grup, `lib/navigation.ts` `navGroupsFor`), her öğede Lucide simgesi; altta "Hesap" kutusu
+  (ad-soyad baş harfleri, ad, rol, Çıkış yap). Sayfalar yanında yuvarlatılmış, kenarlıklı beyaz panelde durur; panelin
+  üst çubuğunda bölüm adı (`sectionTitle`), bildirim zili ve tema düğmesi. Telefonda üstte sabit çubuk:
   ana sayfalarda menü butonu + logo (menü soldan açılan panel, shadcn Sheet), alt sayfalarda (ör. `/cases/[id]`)
   geri butonu + başlık. Hangi sayfada hangi çubuğun çıkacağı `lib/shell.ts`, seçili menü öğesi `lib/navigation.ts`.
   Alt sekme çubuğu bilinçli olarak kullanılmıyor.

@@ -20,7 +20,6 @@ import { isMyCasesFiltered, MY_CASES_FILTERS, myCasesEmpty, type MyCasesQuery } 
 
 import { CaseCard, CaseCardSkeleton } from "./CaseCard";
 import { CaseTile } from "./CaseTile";
-import { WaitingBell } from "./WaitingBell";
 
 // Iskelet kart sayisi: ilk ekranda gorunen kart sayisi kadar (Figma: /my-cases - yukleniyor)
 const SKELETON_KEYS = ["s1", "s2", "s3", "s4"];
@@ -183,12 +182,8 @@ function MyCasesHeader({ isEmpty }: { isEmpty: boolean }) {
   return (
     <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <PageTitle>Bildirimlerim</PageTitle>
-      {/* Masaustunde zil "Bildirim yap"in solunda; telefonda zil ust cubukta (MobileAppBar) */}
-      <div className="flex w-full items-center gap-2 md:w-auto">
-        {/* "Bildirim yap" ile ayni yukseklik (h-12) */}
-        <WaitingBell className="hidden md:inline-flex md:size-12" />
-        {isEmpty ? null : <ReportLink />}
-      </div>
+      {/* Zil ust cubukta: telefonda MobileAppBar, masaustunde icerik panelinin ustu (AppShell) */}
+      <div className="flex w-full items-center gap-2 md:w-auto">{isEmpty ? null : <ReportLink />}</div>
     </header>
   );
 }

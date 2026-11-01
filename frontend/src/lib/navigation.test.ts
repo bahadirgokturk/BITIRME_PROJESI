@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { activeNavHref, ADMIN_SECTIONS, homePathFor, navigationFor, ROLES } from "./navigation";
+import {
+  activeNavHref,
+  ADMIN_SECTIONS,
+  homePathFor,
+  navGroupsFor,
+  navigationFor,
+  ROLES,
+  sectionTitle,
+} from "./navigation";
 
 describe("navigationFor", () => {
   it("gives every role a non-empty menu", () => {
@@ -134,5 +142,54 @@ describe("homePathFor", () => {
     for (const role of ROLES) {
       expect(navigationFor(role).map((item) => item.href)).toContain(homePathFor(role));
     }
+  });
+});
+
+// Masaustu kenar cubugu menuyu basliklarla gruplar (Figma: 08 Yeni Stil (A))
+describe("navGroupsFor", () => {
+  it("puts every menu item in exactly one group, in the menu's items", () => {
+    for (const role of ROLES) {
+      const grouped = navGroupsFor(role).flatMap((group) => group.items.map((item) => item.href));
+      expect(new Set(grouped).size).toBe(grouped.length);
+      expect([...grouped].sort()).toEqual(navigationFor(role).map((item) => item.href).sort());
+    }
+  });
+
+  it("splits the manager menu into management screens and personal ones", () => {
+    const groups = navGroupsFor("MANAGER");
+
+    expect(groups.map((group) => group.title)).toEqual(["Yönetim", "Kişisel"]);
+    expect(groups[0]?.items.map((item) => item.label)).toEqual([
+      "Genel Bakış",
+      "İnceleme Kuyruğu",
+      "Raporlar",
+      "Birim Performansı",
+      "Yapay Zekâ Performansı",
+      "Tüm Bildirimler",
+    ]);
+    expect(groups[1]?.items.map((item) => item.label)).toEqual(["Bildirim Yap", "Bildirimlerim"]);
+  });
+
+  it("groups the staff work screens apart from personal ones", () => {
+    expect(navGroupsFor("STAFF").map((group) => [group.title, group.items.map((item) => item.label)])).toEqual([
+      ["İş", ["Görevlerim", "Birim Bildirimleri"]],
+      ["Kişisel", ["Bildirim Yap", "Bildirimlerim"]],
+    ]);
+  });
+
+  it("gives the reporter a single untitled group", () => {
+    expect(navGroupsFor("REPORTER")).toEqual([{ title: null, items: navigationFor("REPORTER") }]);
+  });
+});
+
+describe("sectionTitle", () => {
+  it("names the menu item the page belongs to", () => {
+    expect(sectionTitle("MANAGER", "/manager/dashboard")).toBe("Genel Bakış");
+    expect(sectionTitle("REPORTER", "/cases/104")).toBe("Bildirimlerim");
+    expect(sectionTitle("ADMIN", "/admin/users")).toBe("Yönetim");
+  });
+
+  it("is null outside the menu", () => {
+    expect(sectionTitle("REPORTER", "/manager/dashboard")).toBeNull();
   });
 });

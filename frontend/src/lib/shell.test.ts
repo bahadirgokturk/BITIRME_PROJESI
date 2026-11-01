@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { USERS } from "@/mocks/fixtures";
 
-import { mobileBarFor, userDetail } from "./shell";
+import { initialsOf, mobileBarFor, userDetail } from "./shell";
 
 describe("mobileBarFor", () => {
   it("shows the menu bar on top level pages", () => {
@@ -44,5 +44,18 @@ describe("userDetail", () => {
     expect(userDetail(USERS.STAFF)).toBe("Personel");
     expect(userDetail(USERS.MANAGER)).toBe("Birim müdürü");
     expect(userDetail(USERS.ADMIN)).toBe("Sistem yöneticisi");
+  });
+});
+
+describe("initialsOf", () => {
+  it("takes the first letter of the first and last name, in Turkish capitals", () => {
+    expect(initialsOf("Mehmet Demir")).toBe("MD");
+    expect(initialsOf("ilknur ışık")).toBe("İI");
+    expect(initialsOf("Ayşe Nur Yılmaz")).toBe("AY");
+  });
+
+  it("uses one letter for a single word and nothing for an empty name", () => {
+    expect(initialsOf("Admin")).toBe("A");
+    expect(initialsOf("  ")).toBe("");
   });
 });
