@@ -47,8 +47,8 @@ function TimelineBody({ query }: { query: EventsQuery }) {
 export function CaseTimeline({ caseId }: { caseId: string }) {
   const query = useCaseEvents(caseId);
   return (
-    <section className="space-y-3">
-      <h2 className="font-semibold">Zaman çizelgesi</h2>
+    <section className="space-y-3 surface p-4 md:p-6">
+      <h2 className="text-base font-semibold">Zaman çizelgesi</h2>
       <TimelineBody query={query} />
     </section>
   );

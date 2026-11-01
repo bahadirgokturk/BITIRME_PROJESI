@@ -69,6 +69,12 @@ describe("MyCasesList", () => {
     expect(screen.getByLabelText("Bildirimler yükleniyor")).toBeInTheDocument();
   });
 
+  it("explains the page under the title", async () => {
+    renderList();
+
+    expect(await screen.findByText("Yaptığın bildirimler ve her birinin şu anki durumu.")).toBeInTheDocument();
+  });
+
   it("lists the reporter's cases and links each one to its detail", async () => {
     renderList();
 

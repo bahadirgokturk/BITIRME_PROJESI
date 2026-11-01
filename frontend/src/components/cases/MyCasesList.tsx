@@ -1,12 +1,13 @@
 "use client";
 
+import { PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
 import { cn } from "cn";
 
 import { FilterChips } from "@/components/filters/FilterChips";
-import { PageTitle } from "@/components/layout/PageTitle";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { ListToolbar } from "@/components/lists/ListToolbar";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { PendingReports } from "@/components/report/PendingReports";
@@ -31,7 +32,8 @@ const NETWORK_HINT = "Bağlantınızı kontrol edip tekrar deneyin.";
 
 function ReportLink() {
   return (
-    <Link href="/report" className={cn(buttonVariants({ className: "h-12 w-full px-4 md:w-auto" }))}>
+    <Link href="/report" className={cn(buttonVariants({ className: "h-12 w-full gap-1.5 px-4 md:h-10 md:w-auto" }))}>
+      <PlusIcon aria-hidden className="size-4" />
       Bildirim yap
     </Link>
   );
@@ -151,13 +153,13 @@ export function MyCasesList() {
   // Hic bildirimi yoksa: buton ortadaki metnin altinda, filtre ve araclar da gosterilmez
   const isEmpty = !isMyCasesFiltered(filters) && query.isSuccess && query.data.length === 0;
   return (
-    <div className="mx-auto w-full max-w-[720px] space-y-4 md:space-y-6">
+    <div className="mx-auto w-full max-w-[960px] space-y-4 md:space-y-6">
       {/* Uygulama yukleme daveti ilk bildirimden sonra gosterilir (Figma: /my-cases - yukleme daveti) */}
       <InstallPrompt hasCases={query.isSuccess && !isEmpty} />
       <MyCasesHeader isEmpty={isEmpty} />
       <PendingReports />
       {isEmpty ? null : (
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <FilterChips
             label="Durum"
             options={MY_CASES_FILTERS}
@@ -178,12 +180,13 @@ export function MyCasesList() {
   );
 }
 
+// Zil ust cubukta: telefonda MobileAppBar, masaustunde icerik panelinin ustu (AppShell)
 function MyCasesHeader({ isEmpty }: { isEmpty: boolean }) {
   return (
-    <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-      <PageTitle>Bildirimlerim</PageTitle>
-      {/* Zil ust cubukta: telefonda MobileAppBar, masaustunde icerik panelinin ustu (AppShell) */}
-      <div className="flex w-full items-center gap-2 md:w-auto">{isEmpty ? null : <ReportLink />}</div>
-    </header>
+    <PageHeader
+      title="Bildirimlerim"
+      description="Yaptığın bildirimler ve her birinin şu anki durumu."
+      actions={isEmpty ? null : <ReportLink />}
+    />
   );
 }

@@ -44,6 +44,7 @@ describe("CaseDetail", () => {
     expect(screen.getByText("CASE-000101")).toBeInTheDocument();
     expect(screen.getByText("B Blok 2. kat erkek tuvaletinde sabunluklar boş.")).toBeInTheDocument();
     expect(screen.getByText("Destek Hizmetleri Şube Müdürlüğü")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Bildirim bilgileri" })).toBeInTheDocument();
     expect(screen.getByText("Yönlendirildi").closest("li")).toHaveAttribute("aria-current", "step");
 
     const timeline = await screen.findByRole("list", { name: "Zaman çizelgesi" });
