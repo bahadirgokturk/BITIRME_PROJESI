@@ -24,6 +24,9 @@ const SIZE_CLASS = {
   mobile: "h-11 text-[15px]",
 } as const;
 
+const LINK_CLASS =
+  "flex items-center gap-2 rounded-md px-2 outline-none hover:bg-accent focus-visible:ring-3 focus-visible:ring-ring/50";
+
 // Her menu ogesinin simgesi (Figma: 08 Yeni Stil (A) > kenar cubugu); bilinmeyen adreste simge yok
 const NAV_ICONS: Record<string, LucideIcon> = {
   "/report": PlusIcon,
@@ -60,7 +63,7 @@ function NavList({ items, activeHref, size, onNavigate }: NavListProps) {
               onClick={onNavigate}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex items-center gap-2 rounded-md px-2 outline-none hover:bg-accent focus-visible:ring-3 focus-visible:ring-ring/50",
+                LINK_CLASS,
                 SIZE_CLASS[size],
                 active && "bg-accent font-medium text-accent-foreground",
               )}

@@ -15,6 +15,13 @@ import { initialsOf, mobileBarFor } from "@/lib/shell";
 import { MobileAppBar } from "./MobileAppBar";
 import { GroupedNavLinks } from "./NavLinks";
 
+const SIDEBAR_CLASS =
+  "hidden p-3 md:sticky md:top-0 md:flex md:h-dvh md:w-64 md:shrink-0 md:flex-col md:gap-4 print:hidden";
+// Yazdirirken panel cercevesi ve bosluklari kalkar
+const PANEL_CLASS =
+  "flex min-w-0 flex-1 flex-col bg-background md:my-2 md:mr-2 md:rounded-xl md:border md:shadow-xs " +
+  "print:m-0 print:border-0 print:shadow-none";
+
 interface AppShellProps {
   role: Role;
   userName: string;
@@ -70,7 +77,7 @@ export function AppShell({ role, userName, userDetail, children }: AppShellProps
         activeHref={activeHref}
         user={{ name: userName, detail: userDetail }}
       />
-      <aside className="hidden p-3 md:sticky md:top-0 md:flex md:h-dvh md:w-64 md:shrink-0 md:flex-col md:gap-4 print:hidden">
+      <aside className={SIDEBAR_CLASS}>
         <div className="px-2 pt-1.5">
           <LogoWordmark onMuted />
         </div>
@@ -80,7 +87,7 @@ export function AppShell({ role, userName, userDetail, children }: AppShellProps
         <AccountBox name={userName} detail={userDetail} />
       </aside>
       {/* Baglanti seridi icerik sutununun ustunde yapisik: telefonda ust cubugun (h-14) hemen alti */}
-      <div className="flex min-w-0 flex-1 flex-col bg-background md:my-2 md:mr-2 md:rounded-xl md:border md:shadow-xs print:m-0 print:border-0 print:shadow-none">
+      <div className={PANEL_CLASS}>
         <DesktopTopBar title={sectionTitle(role, pathname)} />
         <OfflineBanner className="sticky top-14 md:top-0" />
         <main className="flex-1 p-4 md:px-8 md:py-8 print:p-0">{children}</main>
