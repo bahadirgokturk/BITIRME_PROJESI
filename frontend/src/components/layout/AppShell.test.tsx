@@ -52,6 +52,34 @@ describe("AppShell", () => {
     expect(screen.getAllByRole("button", { name: "Koyu mod" })).toHaveLength(2);
   });
 
+  // Masaustunde icerik panelinin ustu: bolum adi, zil ve tema (Figma: 08 Yeni Stil (A))
+  it("shows the section name, the bell and the theme switch above the page on desktop", async () => {
+    renderShell(<p>içerik</p>, "/staff/tasks/203");
+
+    const bar = screen.getByRole("banner", { name: "Sayfa çubuğu" });
+    expect(within(bar).getByText("Görevlerim")).toBeInTheDocument();
+    expect(await within(bar).findByRole("button", { name: /^Bildirimler:/ })).toBeInTheDocument();
+    expect(within(bar).getByRole("button", { name: "Koyu mod" })).toBeInTheDocument();
+  });
+
+  it("groups the desktop menu under headings", () => {
+    renderShell(<p>içerik</p>);
+
+    const nav = screen.getByRole("navigation", { name: "Ana menü" });
+    const work = within(nav).getByRole("group", { name: "İş" });
+    expect(within(work).getByRole("link", { name: "Görevlerim" })).toBeInTheDocument();
+    expect(within(nav).getByRole("group", { name: "Kişisel" })).toBeInTheDocument();
+  });
+
+  it("shows who is signed in with the logout at the bottom of the desktop menu", () => {
+    renderShell(<p>içerik</p>);
+
+    const account = screen.getByRole("region", { name: "Hesap" });
+    expect(within(account).getByText("Mehmet Demir")).toBeInTheDocument();
+    expect(within(account).getByText("Personel")).toBeInTheDocument();
+    expect(within(account).getByRole("button", { name: "Çıkış yap" })).toBeInTheDocument();
+  });
+
   it("highlights the current page in the menu", () => {
     renderShell(<p>içerik</p>);
 
