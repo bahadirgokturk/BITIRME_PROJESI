@@ -75,7 +75,7 @@ export function ReviewItemCard({ item, onDone }: { item: ReviewItem; onDone: (me
   const titleId = useId();
   const [showReasons, setShowReasons] = useState(false);
   return (
-    <article aria-labelledby={titleId} className="space-y-4 rounded-xl border bg-card p-5">
+    <article aria-labelledby={titleId} className="space-y-4 surface p-5">
       <ItemHeader item={item} titleId={titleId} />
       {item.reason ? (
         <div>

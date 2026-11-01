@@ -65,7 +65,7 @@ function CaseDetailView({ item }: { item: CaseRead }) {
       </header>
       <ReportedBy count={item.duplicate_count} />
       <CaseFeedback item={item} />
-      <dl className="space-y-3 rounded-lg border bg-card p-4">
+      <dl className="space-y-3 surface p-4">
         <Field label="Açıklama" value={item.description} />
         <Field label="Konum" value={item.location.name} />
         <Field label="Birim" value={item.department?.name ?? "Henüz belirlenmedi"} />

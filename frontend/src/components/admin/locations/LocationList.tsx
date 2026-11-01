@@ -70,7 +70,7 @@ function LocationItem({ row, onToggle, onEdit }: { row: ListRow } & Omit<Locatio
 // Konum listesi (Figma: 06 Admin > /admin/locations): agacta girintili satirlar, aramada duz sonuc listesi
 export function LocationList({ rows, onToggle, onEdit }: LocationListProps) {
   return (
-    <ul aria-label="Konumlar" className="rounded-xl border bg-card">
+    <ul aria-label="Konumlar" className="surface">
       {rows.map((row) => (
         <LocationItem key={row.location.id} row={row} onToggle={onToggle} onEdit={onEdit} />
       ))}

@@ -5,7 +5,7 @@ import { cn } from "cn";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // break-inside-avoid: yazdirirken kart iki sayfaya bolunmez
-export const PANEL_CLASS = "space-y-3.5 rounded-lg border bg-card p-4 break-inside-avoid md:p-5";
+export const PANEL_CLASS = "space-y-3.5 surface p-4 break-inside-avoid md:p-5";
 
 interface ChartCardProps {
   // Baslik sorunun cevabini soyler ("En cok sorun: Temizlik"), alt baslik neyin cizildigini

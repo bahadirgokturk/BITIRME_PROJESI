@@ -8,7 +8,7 @@ import { CaseStatusView } from "./CaseStatusView";
 
 // Kart gorunumu: telefonda iki, masaustunde uc sutun; uzun baslik kirpilir, durum kartin altinda
 export const TILE_CLASS =
-  "flex h-full min-h-40 flex-col gap-1.5 rounded-lg border bg-card p-3 transition-colors outline-none " +
+  "flex h-full min-h-40 flex-col gap-1.5 surface p-3 transition-colors outline-none " +
   "hover:bg-muted/40 focus-visible:ring-3 focus-visible:ring-ring/50";
 
 // Bildirimlerim kare karti (Figma: CaseTile; /my-cases - mobil/masaustu - kart gorunumu)

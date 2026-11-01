@@ -80,6 +80,26 @@ describe("AppShell", () => {
     expect(within(account).getByRole("button", { name: "Çıkış yap" })).toBeInTheDocument();
   });
 
+  // Masaustu kenar cubugu ust cubuktaki dugmeyle gizlenir; secim cihazda hatirlanir (Figma: 08 Yeni Stil (A))
+  it("hides and shows the desktop menu from the page bar and remembers the choice", async () => {
+    localStorage.clear();
+    renderShell(<p>içerik</p>);
+    const user = userEvent.setup();
+
+    const hide = screen.getByRole("button", { name: "Menüyü gizle" });
+    expect(hide).toHaveAttribute("aria-expanded", "true");
+    await user.click(hide);
+
+    expect(screen.queryByRole("region", { name: "Hesap" })).not.toBeInTheDocument();
+    expect(localStorage.getItem("bakircayflow-sidebar")).toBe("closed");
+    const show = screen.getByRole("button", { name: "Menüyü göster" });
+    expect(show).toHaveAttribute("aria-expanded", "false");
+
+    await user.click(show);
+    expect(screen.getByRole("region", { name: "Hesap" })).toBeInTheDocument();
+    localStorage.clear();
+  });
+
   it("highlights the current page in the menu", () => {
     renderShell(<p>içerik</p>);
 

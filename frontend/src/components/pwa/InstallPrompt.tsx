@@ -50,7 +50,7 @@ export function InstallPrompt({ hasCases }: { hasCases: boolean }) {
   return (
     <section
       aria-label="Uygulamayı yükle"
-      className="space-y-3 rounded-lg border bg-card pt-3 pr-1 pb-4 pl-4 md:hidden"
+      className="space-y-3 surface pt-3 pr-1 pb-4 pl-4 md:hidden"
     >
       <div className="flex items-start gap-3">
         <LogoMark className="mt-1" />

@@ -22,7 +22,7 @@ import { TaskActionBar } from "./TaskActionBar";
 import { PriorityBadge, SlaBadge, TaskStatusBadge } from "./TaskBadges";
 
 const NOT_FOUND = 404;
-const CARD_CLASS = "space-y-3 rounded-lg border bg-card p-4";
+const CARD_CLASS = "space-y-3 surface p-4";
 
 type TaskQuery = ReturnType<typeof useTask>;
 

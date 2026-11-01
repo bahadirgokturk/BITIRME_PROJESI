@@ -7,7 +7,7 @@ import { reporterView } from "@/lib/status";
 
 import { CaseStatusView } from "./CaseStatusView";
 
-const CARD_CLASS = "block rounded-lg border bg-card p-4";
+const CARD_CLASS = "block surface p-4";
 
 export function CaseCard({ item }: { item: CaseRead }) {
   return (

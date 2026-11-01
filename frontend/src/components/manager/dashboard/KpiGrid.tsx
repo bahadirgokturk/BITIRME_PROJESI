@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { kpiCards, type DeltaTone, type KpiCardView, type KpisRead } from "@/lib/analytics";
 import type { Role } from "@/lib/navigation";
 
-const CARD_CLASS = "rounded-lg border bg-card p-3.5 break-inside-avoid md:p-5";
+const CARD_CLASS = "surface-kpi p-4 break-inside-avoid md:px-5";
 const GRID_CLASS = "grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-3";
 const SKELETON_KEYS = ["k1", "k2", "k3", "k4", "k5", "k6"];
 
@@ -15,26 +15,43 @@ const SKELETON_KEYS = ["k1", "k2", "k3", "k4", "k5", "k6"];
 const TONE_CLASS: Record<DeltaTone, string> = {
   good: "text-success",
   bad: "text-destructive",
-  none: "text-muted-foreground",
+  none: "text-foreground",
 };
 
-// Tiklanabilir kart: tamami baglanti, sag ustte ok (Figma: KpiCard, Genel Bakis)
+// Tiklanabilir kart: tamami baglanti (Figma: 08 Yeni Stil (A) > Genel Bakis, KpiCard)
 const LINK_CLASS =
-  "block h-full rounded-[inherit] p-3.5 transition-colors outline-none hover:bg-muted/40 focus-visible:ring-3 focus-visible:ring-ring/50 md:p-5";
+  "block h-full rounded-[inherit] p-4 transition-colors outline-none hover:bg-muted/40 " +
+  "focus-visible:ring-3 focus-visible:ring-ring/50 md:px-5";
+
+// Degisim sag ustte cerceveli rozet; karsilastirma yoksa rozet yok
+function DeltaBadge({ card }: { card: KpiCardView }) {
+  if (!card.hasPrevious) {
+    return null;
+  }
+  return (
+    <span
+      className={cn(
+        "inline-flex h-6 shrink-0 items-center rounded-md border bg-card px-1.5 text-xs font-medium",
+        TONE_CLASS[card.delta.tone],
+      )}
+    >
+      {card.delta.text}
+    </span>
+  );
+}
 
 function KpiCardBody({ card, days }: { card: KpiCardView; days: number }) {
   return (
     <>
-      <p className="flex items-center justify-between gap-2 text-sm font-medium">
-        {card.label}
-        {card.href ? <ChevronRightIcon aria-hidden className="size-4 shrink-0 text-muted-foreground" /> : null}
+      <p className="flex items-start justify-between gap-2 text-sm text-muted-foreground">
+        <span className="flex items-center gap-1">
+          {card.label}
+          {card.href ? <ChevronRightIcon aria-hidden className="size-4 shrink-0" /> : null}
+        </span>
+        <DeltaBadge card={card} />
       </p>
-      <p className="mt-1 text-2xl font-semibold md:text-3xl">{card.value}</p>
-      <p className="mt-1 flex flex-col text-xs text-muted-foreground md:flex-row md:items-center md:gap-1.5">
-        {/* Karsilastirma yoksa tek basina duran tire gosterilmez */}
-        {card.hasPrevious ? (
-          <span className={cn("text-sm font-medium", TONE_CLASS[card.delta.tone])}>{card.delta.text}</span>
-        ) : null}
+      <p className="mt-1.5 text-2xl font-semibold tracking-tight tabular-nums md:text-3xl">{card.value}</p>
+      <p className="mt-2 text-xs text-muted-foreground md:text-sm">
         {card.hasPrevious ? `önceki ${days} güne göre` : "önceki dönemde veri yok"}
       </p>
     </>
@@ -54,7 +71,7 @@ function KpiCard({ card, days }: { card: KpiCardView; days: number }) {
   }
   return (
     <li>
-      <div role="group" aria-label={card.label} className="h-full rounded-lg border bg-card break-inside-avoid">
+      <div role="group" aria-label={card.label} className="h-full surface-kpi break-inside-avoid">
         <Link href={card.href} className={LINK_CLASS}>
           <KpiCardBody card={card} days={days} />
         </Link>

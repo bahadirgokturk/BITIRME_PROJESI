@@ -1,10 +1,11 @@
 import type { ReactNode } from "react";
 
-const HEAD_CLASS = "px-4 py-2.5 text-left text-xs font-medium text-muted-foreground";
+// Yeni stil tablo basligi: gri satir, 40 px, okunur yazi (Figma: 08 Yeni Stil (A) > tablolar)
+const HEAD_CLASS = "h-10 px-4 text-left text-sm font-medium whitespace-nowrap";
 // Telefonda her satir bir kart: ad ve durum ustte, diger degerler basliklariyla alt alta (tek DOM, iki yerlesim)
 export const ROW_CLASS =
-  "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 rounded-lg border bg-card p-3.5 " +
-  "md:table-row md:rounded-none md:border-0 md:border-t md:bg-transparent";
+  "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 surface p-3.5 " +
+  "md:table-row md:rounded-none md:border-0 md:shadow-none md:border-t md:bg-transparent";
 export const CELL_CLASS = "md:px-4 md:py-3 md:align-middle";
 // Telefonda sutun basligi degerin ustune yazilir (data-label); masaustunde baslik satiri gorunur
 export const LABELLED_CLASS =
@@ -26,7 +27,7 @@ interface AdminTableProps {
 // Yonetim tablosu (Figma: 06 Admin): masaustunde klasik tablo, telefonda her satir bir kart
 export function AdminTable({ label, columns, actions = true, children }: AdminTableProps) {
   return (
-    <div className="md:overflow-x-auto md:rounded-xl md:border">
+    <div className="md:overflow-x-auto md:rounded-xl md:border md:bg-card md:shadow-xs">
       <table aria-label={label} className="block w-full text-sm md:table">
         <thead className="hidden bg-muted md:table-header-group">
           <tr>
