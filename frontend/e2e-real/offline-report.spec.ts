@@ -27,7 +27,11 @@ test("a report written without internet is saved and goes out by itself when the
     await context.setOffline(false);
     await page.getByRole("link", { name: "Bildirimlerim" }).first().click();
     await expect(page.getByText(/^Bekleyen bildirimin gönderildi: CASE-/)).toBeVisible({ timeout: SYNC_TIMEOUT_MS });
-    await expect(page.getByRole("list", { name: "Bildirimleriniz" }).getByText(DESCRIPTION.slice(0, 40))).toBeVisible();
+    // Bu calismanin konumu: onceki calismalarin ayni aciklamali bildirimleri karismaz. Tek kayit: ayni
+    // anahtarla (Idempotency-Key) tekrar gonderilse de bildirim bir kez acilir
+    const mine = page.getByRole("list", { name: "Bildirimleriniz" }).getByRole("link").filter({ hasText: location.name });
+    await expect(mine).toHaveCount(1);
+    await expect(mine).toContainText(DESCRIPTION.slice(0, 40));
   } finally {
     await location.retire(request);
   }

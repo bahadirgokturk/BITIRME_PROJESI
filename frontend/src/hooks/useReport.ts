@@ -78,9 +78,10 @@ async function uploadAll(caseId: number, files: File[]): Promise<UploadFailure[]
 }
 
 // Bildirimi olusturur, sonra dosyalari yukler. Form ve cevrimdisi sira ayni yoldan gonderir
-// (hooks/usePendingReports.ts)
-export async function sendReport({ description, locationId, files }: ReportInput): Promise<ReportResult> {
+// (hooks/usePendingReports.ts). key: bildirimin anahtari (Idempotency-Key). Ayni bildirim tekrar
+// gonderilirse (cevap kaybolup siradan yeniden) backend yeni kayit acmaz, ilkini dondurur (docs/API.md)
+export async function sendReport({ description, locationId, files }: ReportInput, key: string): Promise<ReportResult> {
   const body: Schemas["CaseCreate"] = { description: description.trim(), location_id: locationId };
-  const created = await apiPost<Schemas["CaseRead"]>("/cases", body);
+  const created = await apiPost<Schemas["CaseRead"]>("/cases", body, { "Idempotency-Key": key });
   return { created, failedUploads: await uploadAll(created.id, files) };
 }

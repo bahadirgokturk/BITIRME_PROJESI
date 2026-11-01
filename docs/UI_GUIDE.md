@@ -443,6 +443,8 @@ Figma: OfflineBanner, `/report - … - bağlantı yok`, `/login - mobil - bağla
 "İnternet yok: bildirimin bu cihaza kaydedilir, bağlantı gelince kendiliğinden gönderilir." yazar. Bildirim (fotoğraflarla)
 tarayıcının IndexedDB'sine yazılır (`lib/pendingStore.ts`), ekran "Bildiriminiz kaydedildi" der. Gönderirken bağlantı
 koparsa (ağ hatası, backend cevap vermedi) da sıraya alınır; backend cevap verdiyse (422 vb.) hata formda kalır.
+Her bildirim `Idempotency-Key` başlığıyla gider; sıradaki kaydın kimliği bu anahtarla aynıdır. İstek backend'e ulaşıp
+cevabı kaybolduysa sıra aynı anahtarla tekrar gönderir ve backend ikinci kayıt açmaz, ilk bildirimi döndürür.
 Bildirim kaydedildikten sonra yalnız fotoğraf yüklemesi koparsa bildirim yeniden gönderilmez (iki kez oluşmasın):
 onay ekranında "Bağlantı koptuğu için yüklenemedi." yazar. Uygulama açıkken bağlantı gelince sıra (hangi sayfada olunursa
 olsun, `PendingSync` kabukta) en eskiden başlayarak gönderilir; Bildirimlerim'in üstünde "Gönderilmeyi bekleyen N
