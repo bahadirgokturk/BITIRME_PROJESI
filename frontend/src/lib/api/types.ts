@@ -129,6 +129,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/cases/photo-suggest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Suggest From Photo
+         * @description Fotograftan tur onerisi (Vision Agent); fotograf saklanmaz. Model yoksa `available` false.
+         */
+        post: operations["suggest_from_photo_api_v1_cases_photo_suggest_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/cases": {
         parameters: {
             query?: never;
@@ -1384,6 +1404,11 @@ export interface components {
          * @enum {string}
          */
         AutonomyLevel: "L1_AUTONOMOUS" | "L2_NOTIFY" | "L3_ESCALATE";
+        /** Body_suggest_from_photo_api_v1_cases_photo_suggest_post */
+        Body_suggest_from_photo_api_v1_cases_photo_suggest_post: {
+            /** File */
+            file: string;
+        };
         /** Body_upload_attachment_api_v1_cases__case_id__attachments_post */
         Body_upload_attachment_api_v1_cases__case_id__attachments_post: {
             /** File */
@@ -2173,6 +2198,22 @@ export interface components {
              * Format: date
              */
             to: string;
+        };
+        /** PhotoSuggestRead */
+        PhotoSuggestRead: {
+            /** Available */
+            available: boolean;
+            /** Suggestions */
+            suggestions: components["schemas"]["PhotoTypeSuggestion"][];
+        };
+        /** PhotoTypeSuggestion */
+        PhotoTypeSuggestion: {
+            /** Case Type Code */
+            case_type_code: string;
+            /** Name */
+            name: string;
+            /** Confidence */
+            confidence: number;
         };
         /**
          * PolicyScope
@@ -3009,6 +3050,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LocationOption"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    suggest_from_photo_api_v1_cases_photo_suggest_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_suggest_from_photo_api_v1_cases_photo_suggest_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PhotoSuggestRead"];
                 };
             };
             /** @description Unauthorized */

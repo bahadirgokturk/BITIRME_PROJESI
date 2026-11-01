@@ -7,6 +7,7 @@ from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
+from app.agents.vision_model import VisionModel, get_vision
 from app.core.clock import Clock, get_clock
 from app.core.config import Settings
 from app.core.database import get_session, get_session_factory
@@ -38,6 +39,13 @@ def get_storage(request: Request) -> Storage:
     # Uygulama basina tek adaptor (app/main.py create_app); testler gecici klasorle degistirir
     storage: Storage = request.app.state.storage
     return storage
+
+
+def get_vision_model(
+    settings: Annotated[Settings, Depends(get_app_settings)],
+) -> VisionModel | None:
+    # Ilk fotografta yuklenir (~180 MB); kapaliysa ya da model yoksa form "kullanilamiyor" gorur
+    return get_vision(settings.vision_model_path) if settings.vision_enabled else None
 
 
 def get_analysis_sessions() -> SessionScope:

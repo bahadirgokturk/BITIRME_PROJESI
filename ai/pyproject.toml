@@ -4,8 +4,10 @@ version = "0.1.0"
 description = "CampusFlow AI: sentetik veri uretici, model egitimi ve degerlendirme"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "onnxruntime>=1.20",
     "pyyaml>=6.0",
     "scikit-learn>=1.6",
+    "tokenizers>=0.20",
 ]
 
 [dependency-groups]
@@ -31,8 +33,8 @@ files = ["generators", "training"]
 mypy_path = "../backend"
 
 [[tool.mypy.overrides]]
-# scikit-learn ve joblib tip bilgisi yayinlamiyor
-module = ["sklearn.*", "joblib"]
+# scikit-learn, joblib ve onnxruntime tip bilgisi yayinlamiyor
+module = ["sklearn.*", "joblib", "onnxruntime"]
 ignore_missing_imports = true
 
 [tool.ruff]

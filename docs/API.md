@@ -75,6 +75,7 @@ belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanı
 
 | Method | Path | Rol | Açıklama |
 |---|---|---|---|
+| POST | `/cases/photo-suggest` | tümü | Fotoğraftan tür önerisi (Vision Agent, multipart `file`); fotoğraf saklanmaz. 200 `{available, suggestions:[{case_type_code, name, confidence}]}` (en fazla 3; anlaşılmazsa boş liste; model yoksa `available: false`). Fotoğraf kuralları yüklemeyle aynı: boyut 413, tür/bozuk dosya 415 |
 | POST | `/cases` | tümü | case oluştur (JSON; foto ayrı istekle) → 201 `ANALYZING`. İsteğe bağlı `Idempotency-Key` başlığı (1–100 karakter, ör. UUID): aynı kullanıcı aynı anahtarla tekrar gönderirse yeni kayıt açılmaz, ilk bildirim 201 ve `Idempotent-Replayed: true` ile döner, agent hattı ikinci kez çalışmaz; aynı anahtarla farklı açıklama/konum → 409 `IDEMPOTENCY_KEY_REUSED` |
 | GET | `/cases` | M/A (tümü), R (kendi), S (kapsam) | filtre: status, priority, sla_status (BREACHED), q ✅; category, location_id, department_id, from, to (planlı) |
 | GET | `/cases/mine` | tümü | kendi bildirimlerim; `/cases` ile aynı süzgeç ve `order` seçenekleri |

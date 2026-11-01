@@ -333,6 +333,27 @@ eşzamanlı çalışır; kural tabanlı, hızlı).
   aşımı, yalnız http/https; ek bağımlılık yok (standart kütüphane).
 - `POST /analytics/summary` endpoint'i KPI servisi (E6-2) ile bağlanır; agent hazır.
 
+### 4.11 Vision Agent (K2, fotoğraftan tür önerisi)
+
+**Amaç:** bildirim formunda fotoğraf çekilince sorun türünü önermek ("Sabun bitti mi?"); öğrenci tek
+dokunuşla açıklamayı doldurur. **Yalnız öneridir:** türü yine Classification Agent metinden belirler.
+
+- **Model:** CLIP ViT-B/32 görüntü kodlayıcısı (ONNX, int8, 89 MB, MIT lisansı), zero-shot: eğitim verisi
+  gerekmez. Her tür için İngilizce tarif cümleleri `backend/ml_models/vision/v1/prompts.yaml`'da; cümle
+  vektörleri `ai/training/vision_prompts.py` ile bir kez üretilir (`prompts.npz`). Sunucuda yalnız görüntü
+  modeli çalışır; metin modeli girmez.
+- **Karar:** benzerlikler ×100 (CLIP sıcaklığı) → softmax; tür skoru, türün cümlelerine düşen olasılıkların
+  toplamı. En olası tür ≥ 0,35 değilse ya da kazanan `_NONE` (kişi, bina dışı, ekran görüntüsü) ise öneri
+  yok; en fazla 3 öneri, ilk dışındakiler ≥ 0,10.
+- **Kapsam:** 14 görsel tür. Güvenlik olayı, kayıp eşya, diğer ve kapsam dışı fotoğraftan anlaşılmaz;
+  turnike tarifleri asansör paneline karıştığı için çıkarıldı.
+- **Kaynak:** ilk fotoğrafta yüklenir (~180 MB, 1 iş parçacığı), fotoğraf başına ~90 ms (CPU). Model dosyası
+  Docker imajı kurulurken sabit sürümden indirilir, SHA-256 tutmazsa imaj kurulmaz. Dosya yoksa (CI) uç
+  `available: false` döner, sistemin geri kalanı etkilenmez.
+- **Ön deneme (01.11.2026):** Wikimedia Commons'tan 30 rastgele fotoğraf (10 tür × 3): öneri verilen 24'ün
+  21'inde ilk öneri doğru, 6'sında "anlaşılamadı". Tarifler bu fotoğraflara bakılarak düzeltildiği için bu
+  bir ölçüm değildir; ölçüm kampüste çekilen fotoğraflarla yapılır.
+
 ## 5. Autonomy Policy
 
 | Seviye | Anlam | Örnek case type'lar |

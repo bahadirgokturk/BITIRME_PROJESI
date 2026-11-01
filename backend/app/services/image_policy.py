@@ -37,7 +37,7 @@ _SIGNATURES: tuple[tuple[bytes, int, ImageType], ...] = (
 )
 _RIFF = b"RIFF"
 # Pillow'un kabul ettigi okuma hatalari: bozuk/kesik dosya, tanimsiz bicim, sikistirma bombasi
-_DECODE_ERRORS = (
+DECODE_ERRORS = (
     UnidentifiedImageError,
     OSError,
     SyntaxError,
@@ -90,6 +90,6 @@ def _reencode(data: bytes, image_type: ImageType) -> bytes:
                 output = BytesIO()
                 # exif verilmez: kaydedilen dosyada EXIF olmaz
                 upright.save(output, format=image_type.pillow_format)
-    except _DECODE_ERRORS as error:
+    except DECODE_ERRORS as error:
         raise UnsupportedMediaTypeError() from error
     return output.getvalue()

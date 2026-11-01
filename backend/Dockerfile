@@ -14,6 +14,12 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-install-project
 
+# Fotograf onerisi (Vision Agent): CLIP goruntu modeli repoda degil (89 MB). Sabit surum indirilir,
+# SHA-256 tutmazsa imaj kurulmaz. Degerler ml_models/vision/v1/manifest.json ile ayni (testte denetlenir)
+ARG CLIP_URL=https://huggingface.co/Xenova/clip-vit-base-patch32/resolve/6b7c523703ae26e39be4b03774966f8571c7f523/onnx/vision_model_quantized.onnx
+ARG CLIP_SHA256=583fd1110a514667812fee7d684952aaf82a99b959760c8d7dca7e0ab9839299
+RUN mkdir -p /opt/models && python -c "import hashlib, sys, urllib.request; data = urllib.request.urlopen(sys.argv[1], timeout=300).read(); assert hashlib.sha256(data).hexdigest() == sys.argv[2], 'CLIP modeli SHA-256 tutmuyor'; open('/opt/models/clip-vision-int8.onnx', 'wb').write(data)" "$CLIP_URL" "$CLIP_SHA256"
+
 COPY . .
 
 EXPOSE 8000
