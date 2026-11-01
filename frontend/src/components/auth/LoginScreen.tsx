@@ -4,24 +4,20 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 import { LoginForm } from "./LoginForm";
 
-// Iki taraftaki blok ayni yukseklikte: sagdaki kutu soldaki logonun ustunden son satirin altina kadar
-// uzanir (Figma: 08 Yeni Stil (A) > 01 giris masaustu)
-const BLOCK_HEIGHT = "md:min-h-[470px]";
-
-// Masaustunde soldaki turkuaz tanitim paneli; telefonda gizli (Figma: /login - masaustu, BrandPanel)
+// Masaustunde soldaki turkuaz tanitim paneli; telefonda gizli. Panel yazinin bittigi yere kadar dar,
+// boylece sagdaki giris alani genisler (Figma: 08 Yeni Stil (A) > 01 giris masaustu)
 function BrandPanel() {
   return (
-    <section className="hidden flex-1 flex-col justify-center bg-primary px-20 text-primary-foreground md:flex">
-      <div className={`flex flex-col justify-between gap-6 ${BLOCK_HEIGHT}`}>
-        {/* Zemin de logo da turkuaz: ince beyaz cerceve logonun kenarini belli eder (yalniz bu panelde) */}
-        <LogoMark className="size-24 ring-1 ring-white" />
-        <div className="space-y-6">
-          <p className="max-w-[18ch] text-4xl leading-tight font-semibold">
-            Kampüsteki sorunları bildir, çözülene kadar takip et.
-          </p>
-          <p>İzmir Bakırçay Üniversitesi · BakırçayFlow</p>
-        </div>
-      </div>
+    <section
+      className={
+        "hidden flex-col justify-center gap-6 bg-primary px-12 text-primary-foreground " +
+        "md:flex md:w-[min(560px,45vw)] md:shrink-0 lg:px-20"
+      }
+    >
+      {/* Zemin de logo da turkuaz: ince beyaz cerceve logonun kenarini belli eder (yalniz bu panelde) */}
+      <LogoMark className="size-24 ring-1 ring-white" />
+      <p className="text-4xl leading-tight font-semibold">Kampüsteki sorunları bildir, çözülene kadar takip et.</p>
+      <p>İzmir Bakırçay Üniversitesi · BakırçayFlow</p>
     </section>
   );
 }
@@ -30,30 +26,30 @@ function BrandPanel() {
 function LoginCard({ next }: { next?: string }) {
   return (
     <div className="flex flex-1 flex-col rounded-xl border bg-card shadow-xs">
-      <header className="space-y-1 px-6 pt-6">
-        <h1 className="text-2xl font-semibold">Giriş yap</h1>
-        <p className="text-sm text-muted-foreground">Kurum e-postan ve parolanla giriş yap.</p>
+      <header className="space-y-1 px-6 pt-6 md:px-8 md:pt-8">
+        <h1 className="text-2xl font-semibold md:text-[26px]">Giriş yap</h1>
+        <p className="text-sm text-muted-foreground md:text-base">Kurum e-postan ve parolanla giriş yap.</p>
       </header>
-      <div className="flex flex-1 flex-col justify-center px-6 py-5">
+      <div className="flex flex-1 flex-col justify-center px-6 py-5 md:px-8 md:py-6">
         <LoginForm next={next} />
       </div>
-      <p className="border-t px-6 py-4 text-[13px] text-muted-foreground">
+      <p className="border-t px-6 py-4 text-[13px] text-muted-foreground md:px-8 md:py-5 md:text-sm">
         Parolanı mı unuttun? Birim yöneticine ya da sistem yöneticisine başvur.
       </p>
     </div>
   );
 }
 
-// Giris formu sutunu: telefonda tam ekran, masaustunde sag tarafta ortada; logo kutunun ustunde ortali
+// Giris formu sutunu: telefonda tam ekran, masaustunde sag tarafta ortada;
+// logo kutunun ustunde (telefonda ortali, masaustunde solda)
 function LoginMain({ next }: { next?: string }) {
   return (
     <main className="flex flex-1 flex-col px-6 pt-18 pb-6 md:items-center md:justify-center md:p-8">
-      <div className={`flex w-full flex-col gap-10 md:max-w-[400px] md:gap-5 ${BLOCK_HEIGHT}`}>
-        <div className="flex justify-center md:hidden">
+      <div className="flex w-full flex-col gap-10 md:max-w-[500px] md:gap-6">
+        {/* Telefonda simge solda agirlik yaptigi icin tam ortada saga kaymis gorunur, logo biraz sola alinir;
+            masaustunde logo kutunun sol kenarina hizali */}
+        <div className="flex justify-center pr-6 md:justify-start md:pr-0">
           <LogoWordmark size="lg" />
-        </div>
-        <div className="hidden justify-center md:flex">
-          <LogoWordmark />
         </div>
         <LoginCard next={next} />
       </div>

@@ -30,7 +30,7 @@ Tasarım sırası: **REPORTER ve STAFF önce mobil** (375 px), sonra masaüstü;
 
 | Route | Rol | Faz (kod) | Not |
 |---|---|---|---|
-| `/login` | herkes | FAZ 2 | Masaüstünde solda turkuaz tanıtım paneli; sağda ortalanmış logo ve kart içinde form, iki blok aynı yükseklikte. Telefonda ortalanmış logo + kart |
+| `/login` | herkes | FAZ 2 | Masaüstünde solda dar turkuaz tanıtım paneli (yazının bittiği yere kadar); sağda geniş alanda kart içinde form, logo kartın sol kenarına hizalı. Telefonda ortalanmış logo + kart |
 | `/` | herkes | FAZ 2 | Role göre yönlendirme (reporter → `/report`, staff → `/staff/tasks`, manager → `/manager/dashboard`) |
 | `/admin/*` | ADMIN | FAZ 2 | users, departments, locations (ağaç), case-types, sla-rules, agent-policies, audit-logs |
 | `/report` | herkes | FAZ 3 | **En kritik ekran** — bkz. bölüm 5.1 |

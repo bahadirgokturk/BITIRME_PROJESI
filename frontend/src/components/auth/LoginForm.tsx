@@ -46,8 +46,9 @@ function useLogin(next: string | undefined) {
   return { error, pending, submit };
 }
 
-// Telefonda 44 px alan ve 16 px yazi (dokunma hedefi, iOS otomatik zoom'u), masaustunde varsayilan boy
-const FIELD_CLASS = "h-11 text-base md:h-8 md:text-sm";
+// Her ekranda 44 px alan ve 16 px yazi: telefonda dokunma hedefi ve iOS otomatik zoom'u,
+// masaustunde giris kutusu okunakli olsun diye ayni boy
+const FIELD_CLASS = "h-11 text-base";
 
 function ErrorAlert({ message }: { message: string }) {
   return (
@@ -65,11 +66,11 @@ export function LoginForm({ next }: { next?: string }) {
     <form className="space-y-4" onSubmit={submit}>
       {error && <ErrorAlert message={error} />}
       <div className="space-y-1.5">
-        <Label htmlFor="email">E-posta</Label>
+        <Label htmlFor="email" className="text-[15px]">E-posta</Label>
         <Input id="email" name="email" type="email" autoComplete="email" required className={FIELD_CLASS} />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="password">Parola</Label>
+        <Label htmlFor="password" className="text-[15px]">Parola</Label>
         <Input
           id="password"
           name="password"
@@ -79,7 +80,7 @@ export function LoginForm({ next }: { next?: string }) {
           className={FIELD_CLASS}
         />
       </div>
-      <Button type="submit" className="h-11 w-full md:h-9" disabled={pending}>
+      <Button type="submit" className="h-11 w-full text-base" disabled={pending}>
         {pending ? "Giriş yapılıyor…" : "Giriş yap"}
       </Button>
     </form>
