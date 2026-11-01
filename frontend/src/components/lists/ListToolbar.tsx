@@ -1,6 +1,7 @@
 "use client";
 
 import { LayoutGridIcon, ListIcon } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { cn } from "cn";
 
@@ -53,11 +54,13 @@ interface ListToolbarProps {
   view: ListView;
   onTools: (tools: ListTools) => void;
   onView: (view: ListView) => void;
+  // Gorunum dugmelerinin solunda ek arac (ornek: Excel'e aktar)
+  extra?: ReactNode;
 }
 
 // Oncelik (tikli), siralama ve gorunum; telefonda tek satirda filtre genisler, masaustunde gorunum sagda durur
 // (Figma: ListToolbar; /my-cases, /staff/tasks, /manager/cases - liste araclari / kart gorunumu)
-export function ListToolbar({ tools, orders, view, onTools, onView }: ListToolbarProps) {
+export function ListToolbar({ tools, orders, view, onTools, onView, extra }: ListToolbarProps) {
   return (
     <div className="flex items-center gap-2">
       <div className="flex min-w-0 flex-1 gap-2 *:min-w-0 max-md:*:first:flex-1 md:flex-none">
@@ -81,7 +84,8 @@ export function ListToolbar({ tools, orders, view, onTools, onView }: ListToolba
           ))}
         </select>
       </div>
-      <div className="md:ml-auto">
+      <div className="flex items-start gap-2 md:ml-auto">
+        {extra}
         <ViewToggle value={view} onChange={onView} />
       </div>
     </div>

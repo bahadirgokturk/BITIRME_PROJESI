@@ -1,11 +1,12 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
 import type { AuditTarget } from "@/lib/auditLogs";
+import { saveXlsx } from "@/lib/exportFile";
 import { createQueryClient } from "@/lib/queryClient";
 import { server } from "@/mocks/node";
 
@@ -13,6 +14,20 @@ import { AuditLogsScreen } from "./AuditLogsScreen";
 
 const PAGE_SIZE = 50;
 const MANY = 120;
+
+vi.mock("@/lib/exportFile", async (original) => ({
+  ...(await original<typeof import("@/lib/exportFile")>()),
+  saveXlsx: vi.fn(),
+}));
+
+// Son "Excel'e aktar" ile kaydedilen tablo ve dosya adi
+async function exportSheet(user: ReturnType<typeof userEvent.setup>) {
+  vi.mocked(saveXlsx).mockClear();
+  await user.click(await screen.findByRole("button", { name: "Excel'e aktar" }));
+  await waitFor(() => expect(saveXlsx).toHaveBeenCalled());
+  const [sheet, fileName] = vi.mocked(saveXlsx).mock.calls[0] ?? [];
+  return { sheet: sheet!, fileName: fileName! };
+}
 
 function renderScreen(target: AuditTarget | null = null) {
   const user = userEvent.setup();
@@ -160,5 +175,25 @@ describe("AuditLogsScreen", () => {
 
     expect(await screen.findByText("İşlem kayıtları yüklenemedi.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Tekrar dene" })).toBeInTheDocument();
+  });
+});
+
+describe("AuditLogsScreen export", () => {
+  // Ekranda 50'lik sayfa gorunse de dosyaya butun kayitlar yazilir
+  it("exports every page of the log, not only the one on screen", async () => {
+    server.use(
+      http.get(apiUrl("/admin/audit-logs"), ({ request }) => {
+        const page = Number(new URL(request.url).searchParams.get("page"));
+        return HttpResponse.json({ items: manyLogs(page), total: MANY, page });
+      }),
+    );
+    const user = renderScreen();
+    await screen.findByText("1–50 / 120 kayıt");
+
+    const { sheet, fileName } = await exportSheet(user);
+
+    expect(fileName).toMatch(/^islem-kayitlari-/);
+    expect(sheet.columns).toEqual(["Zaman", "Kim", "İşlem", "Kayıt", "Değişiklik"]);
+    expect(sheet.rows).toHaveLength(MANY);
   });
 });

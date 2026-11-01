@@ -2,16 +2,22 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
 import type { StatusGroup } from "@/lib/caseList";
+import { saveXlsx } from "@/lib/exportFile";
 import { createQueryClient } from "@/lib/queryClient";
 import { USERS } from "@/mocks/fixtures";
 import { server } from "@/mocks/node";
 import { signInAs } from "@/mocks/session";
 
 import { CaseList } from "./CaseList";
+
+vi.mock("@/lib/exportFile", async (original) => ({
+  ...(await original<typeof import("@/lib/exportFile")>()),
+  saveXlsx: vi.fn(),
+}));
 
 function renderList(initialGroup?: StatusGroup) {
   render(
@@ -204,5 +210,29 @@ describe("CaseList", () => {
 
     expect(screen.getByRole("list", { name: "Bildirimler" })).toHaveAttribute("data-view", "grid");
     expect(rows()[0]!.querySelector("a")).toHaveAttribute("href", expect.stringMatching(/^\/manager\/cases\/\d+$/));
+  });
+});
+
+describe("CaseList export", () => {
+  beforeEach(() => signInAs(USERS.MANAGER));
+  afterEach(() => signInAs(null));
+
+  // Liste 20'ser yuklenir; dosyaya secili filtreye uyan butun bildirimler 200'erlik sayfalarla cekilip yazilir
+  it("exports every case matching the filters, page by page", async () => {
+    const asked: URLSearchParams[] = [];
+    listenTo("/cases", asked);
+    const user = renderList("open");
+    await waitFor(() => expect(rows().length).toBeGreaterThan(0));
+    asked.length = 0;
+
+    await user.click(screen.getByRole("button", { name: "Excel'e aktar" }));
+    await waitFor(() => expect(saveXlsx).toHaveBeenCalled());
+
+    const [sheet, fileName] = vi.mocked(saveXlsx).mock.calls[0] ?? [];
+    expect(fileName).toMatch(/^tum-bildirimler-/);
+    expect(asked[0]?.get("page_size")).toBe("200");
+    expect(asked[0]?.getAll("status").length).toBeGreaterThan(0);
+    expect(sheet?.columns[0]).toBe("Bildirim no");
+    expect(sheet?.rows).toHaveLength(rows().length);
   });
 });

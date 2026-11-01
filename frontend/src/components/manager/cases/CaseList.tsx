@@ -3,12 +3,14 @@
 import { useState } from "react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
+import { ExportButton } from "@/components/export/ExportButton";
 import { ErrorState } from "@/components/states/ErrorState";
 import { Button } from "@/components/ui/button";
-import { useCaseList } from "@/hooks/useCases";
+import { fetchAllCases, useCaseList } from "@/hooks/useCases";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useListView } from "@/hooks/useListView";
 import { ApiError } from "@/lib/api/client";
+import { casesSheet } from "@/lib/exportSheets";
 import type { ListView } from "@/lib/listTools";
 import {
   CASE_LIST_VIEWS,
@@ -177,11 +179,20 @@ export function CaseList({ view = "all", initialGroup = "all" }: CaseListProps) 
   const search = useDebouncedValue(filters.search, SEARCH_DELAY_MS);
   const applied = { ...filters, search };
   const query = useCaseList(applied);
-  const { title, description, path } = CASE_LIST_VIEWS[view];
+  const { title, description, path, exportName } = CASE_LIST_VIEWS[view];
+  // Liste 20'ser yuklenir; dosyaya ayni suzgecle butun bildirimler yazilir
+  const exportButton = (
+    <ExportButton
+      compact
+      fileName={exportName}
+      disabled={!query.data?.total}
+      load={async () => casesSheet(await fetchAllCases(applied), title)}
+    />
+  );
   return (
     <div className="mx-auto w-full max-w-[1152px] space-y-4 md:space-y-6">
       <PageHeader title={title} description={description} />
-      <CaseFilters value={filters} view={layout} onChange={setFilters} onView={setLayout} />
+      <CaseFilters value={filters} view={layout} onChange={setFilters} onView={setLayout} extra={exportButton} />
       <CaseListBody
         query={query}
         filtered={isFiltered(applied)}

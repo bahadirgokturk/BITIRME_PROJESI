@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { ExportButton } from "@/components/export/ExportButton";
+import { caseTypesSheet } from "@/lib/exportSheets";
 import { ErrorState } from "@/components/states/ErrorState";
 import { useAdminCaseTypes } from "@/hooks/useAdminCaseTypes";
 import { useAdminDepartments } from "@/hooks/useAdminDepartments";
@@ -14,7 +16,7 @@ import {
 } from "@/lib/adminCaseTypes";
 import { CATEGORY_LABELS } from "@/lib/reports";
 
-import { ActionNote, ListSkeleton, NoMatch, ScreenHeader } from "../AdminParts";
+import { ActionNote, ListSkeleton, NoMatch, ScreenHeader, Toolbar } from "../AdminParts";
 import { AdminSections } from "../AdminSections";
 import { FilterSelect, SearchFilters } from "../SearchFilters";
 import { CaseTypeSheet, type CaseTypeTarget } from "./CaseTypeSheet";
@@ -84,6 +86,33 @@ function CategoryFilter({ value, onChange }: CategoryFilterProps) {
 const DESCRIPTION =
   "Bildirimlerin ayrıldığı türler. Her türün hangi birime gideceğini, önceliğini ve yapay zekânın tanıdığı anahtar kelimeleri buradan yönetirsiniz.";
 
+interface ToolbarProps extends Omit<BodyProps, "onEdit" | "onClear"> {
+  onChange: (filters: Filters) => void;
+}
+
+// Arama + kategori + durum solda, ekranda gorunen turleri aktaran dugme sagda
+function CaseTypesToolbar({ query, filters, departments, onChange }: ToolbarProps) {
+  const exportButton = (
+    <ExportButton
+      fileName="bildirim-turleri"
+      disabled={!query.data}
+      load={() => caseTypesSheet(filterCaseTypes(query.data ?? [], filters), departments)}
+    />
+  );
+  return (
+    <Toolbar action={exportButton}>
+      <SearchFilters
+        searchLabel="Tür ara"
+        placeholder="Tür adı, kod ya da anahtar kelime ara"
+        value={filters}
+        onChange={onChange}
+      >
+        <CategoryFilter value={filters.category} onChange={(category) => onChange({ ...filters, category })} />
+      </SearchFilters>
+    </Toolbar>
+  );
+}
+
 // Yonetim > Bildirim Turleri (docs/UI_GUIDE.md bolum 5.5): arama + suzgec + tablo + sagdan acilan panel
 export function CaseTypesScreen() {
   const caseTypes = useAdminCaseTypes();
@@ -102,9 +131,7 @@ export function CaseTypesScreen() {
       <AdminSections active="/admin/case-types" />
       <ScreenHeader title="Bildirim Türleri" description={DESCRIPTION} addLabel="Tür ekle" onAdd={() => setTarget({ mode: "create" })} />
       <ActionNote message={lastAction} />
-      <SearchFilters searchLabel="Tür ara" placeholder="Tür adı, kod ya da anahtar kelime ara" value={filters} onChange={setFilters}>
-        <CategoryFilter value={filters.category} onChange={(category) => setFilters({ ...filters, category })} />
-      </SearchFilters>
+      <CaseTypesToolbar query={caseTypes} filters={filters} departments={departments.data} onChange={setFilters} />
       <CaseTypesBody
         query={caseTypes}
         filters={filters}

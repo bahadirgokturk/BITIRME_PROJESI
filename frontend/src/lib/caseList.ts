@@ -81,6 +81,8 @@ export type CaseListView = "all" | "unit";
 
 interface CaseListViewText {
   title: string;
+  // Excel dosyasinin tarihsiz adi
+  exportName: string;
   description: string;
   path: string;
   // Turkce ek basliga gore degisir ("Bildirimler'e", "Bildirimleri'ne")
@@ -90,12 +92,14 @@ interface CaseListViewText {
 export const CASE_LIST_VIEWS: Record<CaseListView, CaseListViewText> = {
   all: {
     title: "Tüm Bildirimler",
+    exportName: "tum-bildirimler",
     description: "Kurumdaki bütün bildirimler. Aramak ya da filtrelemek için aşağıdaki alanları kullanın.",
     path: "/manager/cases",
     backText: "Tüm Bildirimler'e dön",
   },
   unit: {
     title: "Birim Bildirimleri",
+    exportName: "birim-bildirimleri",
     description: "Biriminize gelen ve size atanan bildirimler. Aramak ya da filtrelemek için aşağıdaki alanları kullanın.",
     path: "/staff/cases",
     backText: "Birim Bildirimleri'ne dön",
@@ -139,8 +143,8 @@ export function isFiltered(filters: CaseFilters): boolean {
 }
 
 // Ortak filtreler (docs/API.md "Cases"): status (tekrarlanir), priority (tekrarlanir), sla_status, order, q
-export function caseListQuery(filters: CaseFilters, page: number): string {
-  const params = new URLSearchParams({ page: String(page), page_size: String(CASE_LIST_PAGE_SIZE) });
+export function caseListQuery(filters: CaseFilters, page: number, pageSize: number = CASE_LIST_PAGE_SIZE): string {
+  const params = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
   const group = STATUS_GROUPS.find((item) => item.value === filters.group);
   group?.statuses.forEach((status) => params.append("status", status));
   if (group?.lateOnly) {

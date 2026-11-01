@@ -2,14 +2,29 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
+import { saveXlsx } from "@/lib/exportFile";
 import { createQueryClient } from "@/lib/queryClient";
 import { resetAdminUsers } from "@/mocks/adminHandlers";
 import { server } from "@/mocks/node";
 
 import { UsersScreen } from "./UsersScreen";
+
+vi.mock("@/lib/exportFile", async (original) => ({
+  ...(await original<typeof import("@/lib/exportFile")>()),
+  saveXlsx: vi.fn(),
+}));
+
+// Son "Excel'e aktar" ile kaydedilen tablo ve dosya adi
+async function exportSheet(user: ReturnType<typeof userEvent.setup>) {
+  vi.mocked(saveXlsx).mockClear();
+  await user.click(await screen.findByRole("button", { name: "Excel'e aktar" }));
+  await waitFor(() => expect(saveXlsx).toHaveBeenCalled());
+  const [sheet, fileName] = vi.mocked(saveXlsx).mock.calls[0] ?? [];
+  return { sheet: sheet!, fileName: fileName! };
+}
 
 function renderScreen() {
   const user = userEvent.setup();
@@ -163,5 +178,28 @@ describe("UsersScreen", () => {
     await user.click(within(alert).getByRole("button", { name: "Tekrar dene" }));
 
     expect(await row(/Mehmet Demir/)).toBeInTheDocument();
+  });
+});
+
+describe("UsersScreen export", () => {
+  beforeEach(() => resetAdminUsers());
+
+  // Aktarim ekranda gorunen (suzulmus) satirlari yazar
+  it("exports the filtered users to Excel", async () => {
+    const user = renderScreen();
+    await row(/Mehmet Demir/);
+    await user.type(screen.getByLabelText("Kullanıcı ara"), "zeynep");
+
+    const { sheet, fileName } = await exportSheet(user);
+
+    expect(fileName).toMatch(/^kullanicilar-\d{4}-\d{2}-\d{2}\.xlsx$/);
+    expect(sheet.columns).toEqual(["Ad soyad", "E-posta", "Rol", "Birim / tür", "Son giriş", "Durum"]);
+    expect(sheet.rows).toHaveLength(1);
+    expect(sheet.rows[0]?.slice(0, 4)).toEqual([
+      "Zeynep Kaya",
+      "zeynep.mudur@example.edu.tr",
+      "Birim müdürü",
+      "Destek Hizmetleri Şube Müdürlüğü",
+    ]);
   });
 });

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { ExportButton } from "@/components/export/ExportButton";
+import { departmentsSheet } from "@/lib/exportSheets";
 import { ErrorState } from "@/components/states/ErrorState";
 import { useAdminDepartments } from "@/hooks/useAdminDepartments";
 import { useAdminUsers } from "@/hooks/useAdminUsers";
@@ -12,7 +14,7 @@ import {
   type DepartmentFilters as Filters,
 } from "@/lib/adminDepartments";
 
-import { ActionNote, ListSkeleton, NoMatch, ScreenHeader } from "../AdminParts";
+import { ActionNote, ListSkeleton, NoMatch, ScreenHeader, Toolbar } from "../AdminParts";
 import { AdminSections } from "../AdminSections";
 import { SearchFilters } from "../SearchFilters";
 import { DepartmentSheet, type DepartmentTarget } from "./DepartmentSheet";
@@ -53,6 +55,35 @@ function DepartmentsBody({ query, filters, counts, onEdit, onClear }: BodyProps)
   );
 }
 
+interface ToolbarProps extends Omit<BodyProps, "onEdit" | "onClear"> {
+  onChange: (filters: Filters) => void;
+}
+
+// Arama + durum solda, ekranda gorunen birimleri aktaran dugme sagda
+function DepartmentsToolbar({ query, filters, counts, onChange }: ToolbarProps) {
+  const exportButton = (
+    <ExportButton
+      fileName="birimler"
+      disabled={!query.data}
+      load={() => departmentsSheet(filterDepartments(query.data ?? [], filters), counts)}
+    />
+  );
+  return (
+    <Toolbar action={exportButton}>
+      <SearchFilters
+        searchLabel="Birim ara"
+        placeholder="Birim adı ya da kod ara"
+        value={filters}
+        onChange={onChange}
+      />
+    </Toolbar>
+  );
+}
+
+const DESCRIPTION =
+  "Bildirimlerin yönlendirildiği birimler. Yeni birim ekleyebilir, adını düzenleyebilir " +
+  "ya da birimi pasifleştirebilirsiniz.";
+
 // Yonetim > Birimler (docs/UI_GUIDE.md bolum 5.5): arama + suzgec + tablo + sagdan acilan panel
 export function DepartmentsScreen() {
   const departments = useAdminDepartments();
@@ -60,6 +91,7 @@ export function DepartmentsScreen() {
   const [filters, setFilters] = useState<Filters>(NO_DEPARTMENT_FILTERS);
   const [target, setTarget] = useState<DepartmentTarget | null>(null);
   const [lastAction, setLastAction] = useState<string | null>(null);
+  const counts = users.data ? memberCounts(users.data) : null;
 
   function done(message: string) {
     setTarget(null);
@@ -71,16 +103,16 @@ export function DepartmentsScreen() {
       <AdminSections active="/admin/departments" />
       <ScreenHeader
         title="Birimler"
-        description="Bildirimlerin yönlendirildiği birimler. Yeni birim ekleyebilir, adını düzenleyebilir ya da birimi pasifleştirebilirsiniz."
+        description={DESCRIPTION}
         addLabel="Birim ekle"
         onAdd={() => setTarget({ mode: "create" })}
       />
       <ActionNote message={lastAction} />
-      <SearchFilters searchLabel="Birim ara" placeholder="Birim adı ya da kod ara" value={filters} onChange={setFilters} />
+      <DepartmentsToolbar query={departments} filters={filters} counts={counts} onChange={setFilters} />
       <DepartmentsBody
         query={departments}
         filters={filters}
-        counts={users.data ? memberCounts(users.data) : null}
+        counts={counts}
         onEdit={setTarget}
         onClear={() => setFilters(NO_DEPARTMENT_FILTERS)}
       />

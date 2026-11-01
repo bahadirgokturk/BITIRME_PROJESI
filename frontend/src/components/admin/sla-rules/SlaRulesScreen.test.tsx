@@ -2,9 +2,10 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
+import { saveXlsx } from "@/lib/exportFile";
 import { createQueryClient } from "@/lib/queryClient";
 import { resetAdminCaseTypes } from "@/mocks/adminCaseTypeHandlers";
 import { resetAdminSlaRules } from "@/mocks/adminSlaRuleHandlers";
@@ -15,6 +16,20 @@ import { SlaRulesScreen } from "./SlaRulesScreen";
 type User = ReturnType<typeof userEvent.setup>;
 
 const DEFAULT = "Varsayılan (tüm türler)";
+
+vi.mock("@/lib/exportFile", async (original) => ({
+  ...(await original<typeof import("@/lib/exportFile")>()),
+  saveXlsx: vi.fn(),
+}));
+
+// Son "Excel'e aktar" ile kaydedilen tablo ve dosya adi
+async function exportSheet(user: ReturnType<typeof userEvent.setup>) {
+  vi.mocked(saveXlsx).mockClear();
+  await user.click(await screen.findByRole("button", { name: "Excel'e aktar" }));
+  await waitFor(() => expect(saveXlsx).toHaveBeenCalled());
+  const [sheet, fileName] = vi.mocked(saveXlsx).mock.calls[0] ?? [];
+  return { sheet: sheet!, fileName: fileName! };
+}
 
 function renderScreen() {
   const user = userEvent.setup();
@@ -196,5 +211,24 @@ describe("SlaRulesScreen", () => {
 
     expect(await screen.findByText("Süre hedefleri yüklenemedi.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Tekrar dene" })).toBeInTheDocument();
+  });
+});
+
+describe("SlaRulesScreen export", () => {
+  beforeEach(() => {
+    resetAdminSlaRules();
+    resetAdminCaseTypes();
+  });
+
+  it("exports rules with readable durations and the threshold as a number", async () => {
+    const user = renderScreen();
+    await row(/Sabun bitti/);
+
+    const { sheet, fileName } = await exportSheet(user);
+
+    expect(fileName).toMatch(/^sure-hedefleri-/);
+    expect(sheet.rows).toHaveLength(7);
+    const power = ["Elektrik arızası", "ELECTRICAL_FAILURE", "Yüksek", "15 dk", "2 saat", 75, "Aktif"];
+    expect(sheet.rows).toContainEqual(power);
   });
 });

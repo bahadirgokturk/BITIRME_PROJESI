@@ -5,11 +5,26 @@ import { http, HttpResponse } from "msw";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
+import { saveXlsx } from "@/lib/exportFile";
 import { createQueryClient } from "@/lib/queryClient";
 import { resetAdminLocations } from "@/mocks/adminLocationHandlers";
 import { server } from "@/mocks/node";
 
 import { LocationsScreen } from "./LocationsScreen";
+
+vi.mock("@/lib/exportFile", async (original) => ({
+  ...(await original<typeof import("@/lib/exportFile")>()),
+  saveXlsx: vi.fn(),
+}));
+
+// Son "Excel'e aktar" ile kaydedilen tablo ve dosya adi
+async function exportSheet(user: ReturnType<typeof userEvent.setup>) {
+  vi.mocked(saveXlsx).mockClear();
+  await user.click(await screen.findByRole("button", { name: "Excel'e aktar" }));
+  await waitFor(() => expect(saveXlsx).toHaveBeenCalled());
+  const [sheet, fileName] = vi.mocked(saveXlsx).mock.calls[0] ?? [];
+  return { sheet: sheet!, fileName: fileName! };
+}
 
 function renderScreen() {
   const user = userEvent.setup();
@@ -200,5 +215,21 @@ describe("LocationsScreen", () => {
     await user.click(within(alert).getByRole("button", { name: "Tekrar dene" }));
 
     expect(await item("B Blok")).toBeInTheDocument();
+  });
+});
+
+describe("LocationsScreen export", () => {
+  beforeEach(() => resetAdminLocations());
+
+  // Kapali dallar da aktarilir; her konumun yeri ayri sutunda
+  it("exports the whole tree with where each location is", async () => {
+    const user = renderScreen();
+    await item("B Blok");
+
+    const { sheet, fileName } = await exportSheet(user);
+
+    expect(fileName).toMatch(/^konumlar-/);
+    expect(sheet.rows).toHaveLength(6);
+    expect(sheet.rows).toContainEqual(["B Blok 2. Kat", "Merkez Kampüs › B Blok", "Kat", "B-2", 50, "Aktif"]);
   });
 });

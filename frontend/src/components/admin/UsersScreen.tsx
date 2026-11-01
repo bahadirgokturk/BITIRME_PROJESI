@@ -1,5 +1,7 @@
 "use client";
 
+import { ExportButton } from "@/components/export/ExportButton";
+import { usersSheet } from "@/lib/exportSheets";
 import { useState } from "react";
 
 import { ErrorState } from "@/components/states/ErrorState";
@@ -7,7 +9,7 @@ import { useAdminDepartments } from "@/hooks/useAdminDepartments";
 import { useAdminUsers } from "@/hooks/useAdminUsers";
 import { filterUsers, type UserFilters as Filters } from "@/lib/admin";
 
-import { ActionNote, ListSkeleton, NoMatch, ScreenHeader } from "./AdminParts";
+import { ActionNote, ListSkeleton, NoMatch, ScreenHeader, Toolbar } from "./AdminParts";
 import { AdminSections } from "./AdminSections";
 import { UserFilters } from "./UserFilters";
 import { UserSheet, type SheetTarget } from "./UserSheet";
@@ -51,6 +53,17 @@ function UsersBody({ query, filters, departments, onEdit, onClear }: BodyProps) 
   );
 }
 
+// Ekranda gorunen (suzulmus) kullanicilar aktarilir
+function UsersExport({ query, filters, departments }: Omit<BodyProps, "onEdit" | "onClear">) {
+  return (
+    <ExportButton
+      fileName="kullanicilar"
+      disabled={!query.data}
+      load={() => usersSheet(filterUsers(query.data ?? [], filters), departments)}
+    />
+  );
+}
+
 // Yonetim > Kullanicilar (docs/UI_GUIDE.md bolum 5.5): arama + suzgec + tablo + sagdan acilan panel
 export function UsersScreen() {
   const users = useAdminUsers();
@@ -74,7 +87,9 @@ export function UsersScreen() {
         onAdd={() => setTarget({ mode: "create" })}
       />
       <ActionNote message={lastAction} />
-      <UserFilters value={filters} onChange={setFilters} />
+      <Toolbar action={<UsersExport query={users} filters={filters} departments={departments.data ?? []} />}>
+        <UserFilters value={filters} onChange={setFilters} />
+      </Toolbar>
       <UsersBody query={users} filters={filters} departments={departments.data ?? []} onEdit={setTarget} onClear={() => setFilters(NO_FILTERS)} />
       {target ? (
         <UserSheet

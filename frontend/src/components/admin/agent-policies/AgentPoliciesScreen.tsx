@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { ExportButton } from "@/components/export/ExportButton";
+import { agentPoliciesSheet } from "@/lib/exportSheets";
 import { ErrorState } from "@/components/states/ErrorState";
 import { useAdminAgentPolicies } from "@/hooks/useAdminAgentPolicies";
 import { useAdminCaseTypes } from "@/hooks/useAdminCaseTypes";
@@ -15,7 +17,7 @@ import {
   type AutonomyLevel,
 } from "@/lib/adminAgentPolicies";
 
-import { ActionNote, ListSkeleton, NoMatch, ScreenHeader } from "../AdminParts";
+import { ActionNote, ListSkeleton, NoMatch, ScreenHeader, Toolbar } from "../AdminParts";
 import { AdminSections } from "../AdminSections";
 import { FilterSelect, SearchInput } from "../SearchFilters";
 import { AgentPoliciesTable } from "./AgentPoliciesTable";
@@ -85,6 +87,16 @@ function PolicyFilters({ value, onChange }: { value: Filters; onChange: (filters
   );
 }
 
+function PoliciesExport({ query, filters, caseTypes }: Omit<BodyProps, "onEdit" | "onClear">) {
+  return (
+    <ExportButton
+      fileName="yapay-zeka-politikalari"
+      disabled={!query.data}
+      load={() => agentPoliciesSheet(filterAgentPolicies(agentPolicyRows(query.data ?? [], caseTypes), filters))}
+    />
+  );
+}
+
 // Yonetim > Yapay Zeka Politikalari (docs/UI_GUIDE.md bolum 5.5): arama + suzgec + tablo + duzenleme paneli
 export function AgentPoliciesScreen() {
   const policies = useAdminAgentPolicies();
@@ -103,7 +115,9 @@ export function AgentPoliciesScreen() {
       <AdminSections active="/admin/agent-policies" />
       <ScreenHeader title="Yapay Zekâ Politikaları" description={DESCRIPTION} />
       <ActionNote message={lastAction} />
-      <PolicyFilters value={filters} onChange={setFilters} />
+      <Toolbar action={<PoliciesExport query={policies} filters={filters} caseTypes={caseTypes.data} />}>
+        <PolicyFilters value={filters} onChange={setFilters} />
+      </Toolbar>
       <PoliciesBody
         query={policies}
         filters={filters}

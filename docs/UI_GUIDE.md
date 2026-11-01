@@ -232,6 +232,15 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   gelene kadar ekranda kalır. Liste/Kart seçimi bu cihazda her liste için ayrı hatırlanır (`useListView`; tarayıcı
   deposu kapalıysa her açılışta liste) (Figma: ListToolbar, CaseTile, TaskTile, ManagerCaseTile; `… - liste araçları`,
   `… - kart görünümü`).
+- **Excel'e aktar** (Tüm Bildirimler, Birim Bildirimleri ve yedi yönetim listesi; `ExportButton`): gerçek `.xlsx`
+  indirir, paket kullanılmaz (`lib/xlsx.ts` sıkıştırmasız zip + Office Open XML). Dosya adı tarihlidir
+  (`kullanicilar-2026-11-02.xlsx`); ilk satır kalın başlık ve kaydırmada sabit, sayılar (önem, eşik, kullanıcı sayısı)
+  sayı olarak yazılır, sütunlar ekrandaki sözcüklerle (`lib/exportSheets.ts`). Seçili filtreye uyan **bütün** kayıtlar
+  aktarılır: yönetim listeleri zaten tamdır; sayfalı listelerde (bildirimler, işlem kayıtları) sayfalar 200'erli
+  sırayla çekilir (`fetchAllPages`, `lib/pagination.ts`). Konumlarda arama yoksa ağacın tamamı (kapalı dallar dahil)
+  ve her konumun yeri yazılır. Hazırlanırken düğme "Hazırlanıyor…" der; hata düğmenin altında gösterilir. Liste
+  yüklenmeden ya da boşken düğme kapalıdır. Yönetimde süzgeçlerin sağında, bildirim listelerinde Liste/Kart
+  düğmelerinin solunda durur; telefonda bildirim listelerinde yalnız simge görünür (ad ekran okuyucuda kalır).
 - Detay: zaman çizelgesi reporter'a sade dilde ("Temizlik birimine yönlendirildi", "Görevli çalışmaya başladı").
   Agent adları, güven skorları, iç notlar reporter'a **gösterilmez**.
   Zaman çizelgesi 5 ya da daha fazla adımsa kapalı gelir: son 3 adım görünür, üstte "N önceki adımı göster";
