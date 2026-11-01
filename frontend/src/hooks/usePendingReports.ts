@@ -20,9 +20,9 @@ export interface SentReport {
 const pendingKey = (userId: number | undefined) => ["pending-reports", userId] as const;
 const sentKey = (userId: number | undefined) => ["pending-reports", "sent", userId] as const;
 
-function toPending(input: ReportInput, userId: number): PendingReport {
+function toPending(input: ReportInput, userId: number, id: string): PendingReport {
   return {
-    id: crypto.randomUUID(),
+    id,
     userId,
     description: input.description.trim(),
     locationId: input.locationId,
@@ -33,18 +33,20 @@ function toPending(input: ReportInput, userId: number): PendingReport {
 }
 
 // Internet yoksa bildirim hic gonderilmeden siraya alinir; gonderirken ag hatasi olursa da (backend cevap
-// vermedi). Backend cevap verdiyse hata formda gosterilir. Sira yoksa (IndexedDB yok) eskisi gibi hata
+// vermedi). Backend cevap verdiyse hata formda gosterilir. Sira yoksa (IndexedDB yok) eskisi gibi hata.
+// Siradaki kaydin kimligi gonderimdeki anahtarla ayni: istek ulasip cevap kaybolduysa tekrar acilmaz
 async function submit(input: ReportInput, online: boolean, userId: number | undefined): Promise<SubmitResult> {
   const store = pendingStore();
+  const key = crypto.randomUUID();
   const queue = async (id: number) => {
-    await store?.put(toPending(input, id));
+    await store?.put(toPending(input, id, key));
     return { kind: "queued" } as const;
   };
   if (!online && store && userId !== undefined) {
     return queue(userId);
   }
   try {
-    return { kind: "sent", result: await sendReport(input) };
+    return { kind: "sent", result: await sendReport(input, key) };
   } catch (error) {
     if (store && userId !== undefined && queuedAfter(error)) {
       return queue(userId);
@@ -109,7 +111,7 @@ export function useRemovePending() {
 async function sendWaiting(reports: PendingReport[], store: PendingStore, queryClient: QueryClient, userId: number) {
   for (const report of reports) {
     try {
-      const { created } = await sendReport({ ...report });
+      const { created } = await sendReport(report, report.id);
       await store.remove(report.id);
       const sent: SentReport = { caseId: created.id, caseNumber: created.case_number };
       queryClient.setQueryData<SentReport[]>(sentKey(userId), (old = []) => [...old, sent]);

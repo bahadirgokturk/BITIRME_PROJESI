@@ -165,11 +165,11 @@ export function apiGet<T>(path: string, init: RequestInit = {}): Promise<T> {
   return apiRequest<T>(path, init);
 }
 
-export function apiPost<T>(path: string, body?: unknown): Promise<T> {
-  const init: RequestInit = { method: "POST" };
+export function apiPost<T>(path: string, body?: unknown, headers: Record<string, string> = {}): Promise<T> {
+  const init: RequestInit = { method: "POST", headers };
   if (body !== undefined) {
     init.body = JSON.stringify(body);
-    init.headers = { "Content-Type": "application/json" };
+    init.headers = { "Content-Type": "application/json", ...headers };
   }
   return apiRequest<T>(path, init);
 }

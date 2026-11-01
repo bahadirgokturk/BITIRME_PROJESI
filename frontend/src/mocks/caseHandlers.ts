@@ -24,6 +24,8 @@ const PAGE_SIZE_DEFAULT = 20;
 
 // Oturum boyunca olusturulan bildirimler burada tutulur; sayfa yenilenince sifirlanir
 const cases: Schemas["CaseRead"][] = [...CASES];
+// Idempotency-Key -> ilk olusan bildirim: ayni anahtarla tekrar gonderim yeni kayit acmaz (backend gibi)
+const byKey = new Map<string, Schemas["CaseRead"]>();
 
 function error(status: number, code: string, message: string) {
   const body: Schemas["ErrorRead"] = { error: { code, message, details: {} } };
@@ -141,8 +143,16 @@ export const caseHandlers = [
       ) {
         return error(422, "VALIDATION_ERROR", "Gönderilen veriler geçersiz.");
       }
+      const key = request.headers.get("Idempotency-Key");
+      const replayed = key === null ? undefined : byKey.get(key);
+      if (replayed) {
+        return HttpResponse.json(replayed, { status: 201, headers: { "Idempotent-Replayed": "true" } });
+      }
       const created = newCase(body, location);
       cases.unshift(created);
+      if (key !== null) {
+        byKey.set(key, created);
+      }
       return HttpResponse.json(created, { status: 201 });
     },
   ),
