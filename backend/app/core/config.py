@@ -62,6 +62,9 @@ class Settings(BaseSettings):
     s3_secret_access_key: SecretStr | None = None
     max_upload_mb: int = Field(default=MAX_UPLOAD_MB_DEFAULT, gt=0)
     max_video_mb: int = Field(default=MAX_VIDEO_MB_DEFAULT, gt=0)
+    # Fotograftan tur onerisi (Vision Agent): model Docker imajinda; dosya yoksa oneri kapali
+    vision_enabled: bool = True
+    vision_model_path: str = "/opt/models/clip-vision-int8.onnx"
     # Opsiyonel yerel LLM: yalniz yonetim ozetini akicilastirir (E5-12); ucretli API yok
     llm_provider: LlmProvider = LlmProvider.NONE
     ollama_url: str = "http://localhost:11434"

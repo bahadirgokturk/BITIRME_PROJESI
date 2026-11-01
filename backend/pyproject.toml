@@ -19,6 +19,7 @@ dependencies = [
     "scikit-learn==1.9.1",
     "segno>=1.6",
     "boto3>=1.35",
+    "onnxruntime>=1.20",
 ]
 
 [dependency-groups]
@@ -49,8 +50,8 @@ plugins = ["pydantic.mypy"]
 files = ["app", "seeds"]
 
 [[tool.mypy.overrides]]
-# scikit-learn, joblib ve boto3 tip bilgisi yayinlamiyor (model_store.py, storage/__init__.py)
-module = ["sklearn.*", "joblib", "boto3"]
+# scikit-learn, joblib, boto3 ve onnxruntime tip bilgisi yayinlamiyor
+module = ["sklearn.*", "joblib", "boto3", "onnxruntime"]
 ignore_missing_imports = true
 
 [tool.ruff]

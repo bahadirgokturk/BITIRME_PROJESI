@@ -45,3 +45,6 @@ Thumbs.db
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# CLIP metin modeli ve tokenizer (vision_prompts indirir; sabit surum, SHA-256 dogrulanir)
+ai/models/clip/

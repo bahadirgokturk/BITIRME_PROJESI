@@ -1,0 +1,70 @@
+# Fotograftan tur onerisi (Vision Agent): her tur icin goruntuyu tarif eden Ingilizce cumleler.
+# CLIP Ingilizce egitildi; cumleler "a photo of ..." kalibina konur. Tur skoru, turun cumlelerine
+# dusen olasiliklarin toplamidir. Degistirince embedding'ler yeniden uretilir:
+#   cd ai && uv run python -m training.vision_prompts
+# Fotograftan anlasilmayan turler (guvenlik olayi, kayip esya, diger, kapsam disi) listede yoktur.
+# Turnike/kart okuyucu da yok: tarifleri asansor dugme paneline karisiyordu (01.11.2026 denemesi).
+# _NONE: sorun gostermeyen fotograf (kisi, bina disi, ekran goruntusu); kazanirsa oneri verilmez.
+model: Xenova/clip-vit-base-patch32
+types:
+  SOAP_EMPTY:
+    - an empty soap dispenser in a restroom
+    - a soap dispenser on a bathroom wall above a sink
+    - a sink with a liquid soap dispenser
+  TOILET_PAPER_EMPTY:
+    - an empty toilet paper roll
+    - a toilet paper holder with no paper
+    - an empty paper towel dispenser
+  TRASH_FULL:
+    - an overflowing trash can
+    - a full garbage bin with trash
+    - garbage bags piled next to a bin
+  AREA_DIRTY:
+    - a dirty floor with stains
+    - a messy dirty corridor
+    - litter on the floor
+  WATER_LEAK:
+    - water leaking from the ceiling
+    - a flooded floor with water
+    - water damage stains on a ceiling
+    - a leaking pipe under a sink
+  FURNITURE_DAMAGE:
+    - a broken chair
+    - a broken desk
+    - a damaged door
+    - a broken window
+  PROJECTOR_FAILURE:
+    - a classroom projector
+    - a projector screen in a lecture hall
+    - a ceiling mounted projector
+  ELECTRICAL_FAILURE:
+    - a broken ceiling light
+    - a damaged electrical socket
+    - exposed electrical wires
+    - a fluorescent light fixture on a ceiling
+  ELEVATOR_FAILURE:
+    - an elevator with an out of order sign
+    - closed elevator doors
+  COMPUTER_FAILURE:
+    - a computer with an error screen
+    - a broken computer monitor
+    - a computer lab with desktop computers
+  WIFI_FAILURE:
+    - a wifi router
+    - a wireless access point
+  AIR_CONDITIONER_FAILURE:
+    - an air conditioner unit on a wall
+    - a radiator heater
+  GREEN_AREA:
+    - overgrown grass in a garden
+    - a fallen tree branch
+  CAFETERIA_ISSUE:
+    - a cafeteria food counter
+    - trays of food in a cafeteria
+  _NONE:
+    - a person
+    - a building exterior
+    - a screenshot of a phone
+    - a street
+    - a selfie
+    - a document with text

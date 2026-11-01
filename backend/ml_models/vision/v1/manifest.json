@@ -1,0 +1,14 @@
+{
+  "model": "Xenova/clip-vit-base-patch32",
+  "license": "MIT",
+  "revision": "6b7c523703ae26e39be4b03774966f8571c7f523",
+  "vision_file": "onnx/vision_model_quantized.onnx",
+  "vision_sha256": "583fd1110a514667812fee7d684952aaf82a99b959760c8d7dca7e0ab9839299",
+  "text_file": "onnx/text_model_quantized.onnx",
+  "text_sha256": "73baab855d406190da9faa498cfedf65f15cf309f4cc7385b7b032e6d08e5c3a",
+  "tokenizer_file": "tokenizer.json",
+  "tokenizer_sha256": "f7f3b7af117d467b58374797691a6438d3e6b9e9cef800dfd5dced7f697a90cd",
+  "image_size": 224,
+  "image_mean": [0.48145466, 0.4578275, 0.40821073],
+  "image_std": [0.26862954, 0.26130258, 0.27577711]
+}

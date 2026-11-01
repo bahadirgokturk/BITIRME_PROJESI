@@ -8,20 +8,24 @@ from dataclasses import dataclass
 from http import HTTPStatus
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Header, Query, Response
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, Query, Response, UploadFile
 from sqlalchemy.orm import Session
 
-from app.api.deps import Analysis, CurrentUser, require_roles
+from app.agents.vision_model import VisionModel
+from app.api.deps import Analysis, CurrentUser, get_app_settings, get_vision_model, require_roles
 from app.api.v1.pagination import page_params
 from app.api.v1.responses import AUTHENTICATED_RESPONSES
 from app.core.clock import Clock, get_clock
-from app.core.constants import CASE_SEARCH_MAX_LENGTH, IDEMPOTENCY_KEY_MAX_LENGTH
+from app.core.config import Settings
+from app.core.constants import BYTES_PER_MB, CASE_SEARCH_MAX_LENGTH, IDEMPOTENCY_KEY_MAX_LENGTH
 from app.core.database import get_session
 from app.models.enums import CaseStatus, Priority, UserRole
 from app.schemas.case import AgentDecisionRead, CaseCreate, CaseEventRead, CaseRead, CaseSearch
 from app.schemas.common import ListOrder, Page, PageParams
+from app.schemas.photo_suggest import PhotoSuggestRead
 from app.services.analysis_service import AnalysisLauncher
 from app.services.case_service import CaseService
+from app.services.photo_suggest_service import PhotoSuggestService
 
 router = APIRouter(prefix="/cases", tags=["cases"], responses=AUTHENTICATED_RESPONSES)
 Paging = Annotated[PageParams, Depends(page_params)]
@@ -63,6 +67,24 @@ def create_options(
 
 
 CreateOptions = Annotated[CreateOptionsData, Depends(create_options)]
+
+
+def get_photo_suggest_service(
+    session: Annotated[Session, Depends(get_session)],
+    user: CurrentUser,
+    vision: Annotated[VisionModel | None, Depends(get_vision_model)],
+    settings: Annotated[Settings, Depends(get_app_settings)],
+) -> PhotoSuggestService:
+    return PhotoSuggestService(session, user, vision, settings.max_upload_mb * BYTES_PER_MB)
+
+
+PhotoSuggest = Annotated[PhotoSuggestService, Depends(get_photo_suggest_service)]
+
+
+@router.post("/photo-suggest")
+async def suggest_from_photo(file: UploadFile, service: PhotoSuggest) -> PhotoSuggestRead:
+    """Fotograftan tur onerisi (Vision Agent); fotograf saklanmaz. Model yoksa `available` false."""
+    return service.suggest(await file.read())
 
 
 @router.post("", status_code=HTTPStatus.CREATED)
