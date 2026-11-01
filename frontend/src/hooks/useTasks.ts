@@ -73,6 +73,20 @@ function uploadEvidence(caseId: number, photo: File) {
   return apiRequest<Schemas["AttachmentRead"]>(`/cases/${caseId}/attachments`, { method: "POST", body: form });
 }
 
+// Is surerken "Is sonrasi fotograf ekle": fotograflar tamamlamayi beklemeden bildirime kanit olarak eklenir
+export function useAddWorkPhotos(caseId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (photos: File[]) => {
+      for (const photo of photos) {
+        await uploadEvidence(caseId, photo);
+      }
+      return photos.length;
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: caseAttachmentsKey(caseId) }),
+  });
+}
+
 // Once kanit fotograflari sirayla yuklenir; biri basarisizsa gorev tamamlanmaz (kanitsiz kapanmasin).
 // Yuklenenler hatirlanir: kullanici yeniden denediginde ayni fotograf ikinci kez yuklenmez.
 export function useCompleteTask(task: Pick<TaskRead, "id" | "case_id">) {
