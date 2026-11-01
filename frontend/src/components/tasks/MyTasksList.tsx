@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { PageTitle } from "@/components/layout/PageTitle";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { ListToolbar } from "@/components/lists/ListToolbar";
 import { ErrorState } from "@/components/states/ErrorState";
 import { Button } from "@/components/ui/button";
@@ -87,10 +87,7 @@ export function MyTasksList() {
   const showTools = filtered || count > 0;
   return (
     <div className="mx-auto w-full max-w-[720px] space-y-4 md:space-y-6">
-      <header className="space-y-2">
-        <PageTitle>Görevlerim</PageTitle>
-        {count > 0 ? <p className="text-sm text-muted-foreground">{taskListSummary(count, tools.order)}</p> : null}
-      </header>
+      <PageHeader title="Görevlerim" description={count > 0 ? taskListSummary(count, tools.order) : null} />
       {showTools ? <ListToolbar tools={tools} orders={TASK_ORDERS} view={view} onTools={setTools} onView={setView} /> : null}
       <MyTasksBody query={query} view={view} filtered={filtered} onClear={() => setTools({ ...tools, priorities: [] })} />
     </div>

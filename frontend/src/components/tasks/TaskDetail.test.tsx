@@ -127,6 +127,46 @@ describe("TaskDetail", () => {
     await user.click(within(dialog).getByRole("button", { name: "Vazgeç" }));
   });
 
+  // Yeni stil (Figma: 08 Yeni Stil (A) > gorev detayi): suresi gecen acik iste ne yapilacagi soylenir
+  it("warns that the target time has passed on an open overdue task", async () => {
+    renderDetail(IN_PROGRESS.id);
+
+    expect(await screen.findByText("Hedef süre geçti.")).toBeInTheDocument();
+  });
+
+  it("does not warn while there is still time", async () => {
+    renderDetail(ACCEPTED.id);
+
+    await screen.findByRole("heading", { level: 1 });
+    expect(screen.queryByText("Hedef süre geçti.")).not.toBeInTheDocument();
+  });
+
+  // Is surerken fotograf hemen bildirime eklenir; tamamlamayi beklemez
+  it("adds an after-work photo while the job is in progress", async () => {
+    const uploaded: FormDataEntryValue[] = [];
+    server.use(
+      http.post(apiUrl(`/cases/${IN_PROGRESS.case_id}/attachments`), async ({ request }) => {
+        uploaded.push((await request.formData()).get("file")!);
+        return HttpResponse.json({ id: 950 }, { status: 201 });
+      }),
+    );
+    const user = renderDetail(IN_PROGRESS.id);
+
+    const input = await screen.findByLabelText("İş sonrası fotoğraf ekle");
+    await user.upload(input, new File(["foto"], "zemin.jpg", { type: "image/jpeg" }));
+
+    expect(await screen.findByText("1 fotoğraf eklendi.")).toBeInTheDocument();
+    expect(uploaded).toHaveLength(1);
+    expect(screen.queryByText("Görev tamamlandı")).not.toBeInTheDocument();
+  });
+
+  it("offers the after-work photo only while the job is in progress", async () => {
+    renderDetail(ACCEPTED.id);
+
+    await screen.findByRole("heading", { level: 1 });
+    expect(screen.queryByLabelText("İş sonrası fotoğraf ekle")).not.toBeInTheDocument();
+  });
+
   it("explains what is missing when the completed work was sent back", async () => {
     const sentBack = { ...IN_PROGRESS, id: 778 };
     server.use(

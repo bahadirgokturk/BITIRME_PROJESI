@@ -263,6 +263,11 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   backend'de); gönderilmeden önce denetlenir. Önce fotoğraflar sırayla yüklenir (`POST /cases/{id}/attachments`,
   backend personelin dosyasını `EVIDENCE` olarak kaydeder), sonra görev tamamlanır; yükleme başarısızsa görev
   tamamlanmaz. Tamamlanan görevin sonuç kartında kanıt fotoğrafları küçük görsel olarak gösterilir.
+- **Yeni stil detay (Figma: 08 Yeni Stil (A)):** iş kartında iş adı ve açıklama, altında satır satır birim, öncelik,
+  atanma. İş sürerken (`IN_PROGRESS`) kartın altında **"İş sonrası fotoğraf ekle"**: seçilen fotoğraf tamamlamayı
+  beklemeden kanıt olarak yüklenir (aynı kurallar, `useAddWorkPhotos`), eklenenler kartta görünür. Görev açıkken
+  hedef süre geçtiyse (`sla_status = BREACHED`) üstte kırmızı kutu: "Hedef süre geçti. İşi bitirdiysen
+  "Tamamla"ya bas; bitmediyse yorumla durumu yaz." (`isOverdue`, `lib/tasks.ts`).
 - Eksik kanıt: Resolution Agent işi yetersiz bulursa görev `IN_PROGRESS`'e geri döner. Detayda sarı kutu
   ("Eksik kanıt: görev sana geri döndü") nedeni gösterir; metin bildirimin olay geçmişindeki son
   `EVIDENCE_REQUESTED` olayının `metadata.message` alanıdır (ekran uydurmaz). Tamamla panelinde fotoğraf eklemenin

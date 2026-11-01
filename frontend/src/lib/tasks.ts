@@ -50,6 +50,18 @@ export const PRIORITY_TONES: Record<Priority, PriorityTone> = {
   CRITICAL: "critical",
 };
 
+// Is hala acikken hedef sure gectiyse gorev detayinda uyari cikar; biten iste cikmaz (Figma: 08 Yeni Stil (A))
+const OPEN_STATUSES: readonly TaskStatus[] = ["PENDING", "ACCEPTED", "IN_PROGRESS"];
+
+export function isOverdue(task: Pick<TaskRead, "status" | "sla_status">): boolean {
+  return OPEN_STATUSES.includes(task.status) && task.sla_status === "BREACHED";
+}
+
+// Is sonrasi fotograf yalniz is surerken eklenir; tamamlarken eklenen fotograf ayni yere gider
+export function canAddWorkPhoto(status: TaskStatus): boolean {
+  return status === "IN_PROGRESS";
+}
+
 export type TaskAction = "accept" | "start" | "complete";
 
 export interface TaskActions {

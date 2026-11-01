@@ -11,6 +11,8 @@ import {
   evidenceProblem,
   isValidTaskNote,
   PRIORITY_TONES,
+  canAddWorkPhoto,
+  isOverdue,
   slaView,
   TASK_NOTE_MAX_LENGTH,
   taskActions,
@@ -149,5 +151,23 @@ describe("showsTaskTitle", () => {
 describe("PRIORITY_TONES", () => {
   it("yalniz yuksek ve kritik oncelik renkle one cikar", () => {
     expect(PRIORITY_TONES).toEqual({ LOW: "plain", MEDIUM: "plain", HIGH: "warning", CRITICAL: "critical" });
+  });
+});
+
+describe("isOverdue", () => {
+  it("is true only for an open task whose target time has passed", () => {
+    expect(isOverdue({ status: "IN_PROGRESS", sla_status: "BREACHED" })).toBe(true);
+    expect(isOverdue({ status: "ACCEPTED", sla_status: "BREACHED" })).toBe(true);
+    expect(isOverdue({ status: "IN_PROGRESS", sla_status: "AT_RISK" })).toBe(false);
+    expect(isOverdue({ status: "COMPLETED", sla_status: "BREACHED" })).toBe(false);
+    expect(isOverdue({ status: "IN_PROGRESS", sla_status: null })).toBe(false);
+  });
+});
+
+describe("canAddWorkPhoto", () => {
+  it("allows an after-work photo only while the job is in progress", () => {
+    expect(canAddWorkPhoto("IN_PROGRESS")).toBe(true);
+    expect(canAddWorkPhoto("ACCEPTED")).toBe(false);
+    expect(canAddWorkPhoto("COMPLETED")).toBe(false);
   });
 });
