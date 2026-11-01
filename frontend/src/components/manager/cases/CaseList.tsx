@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { PageTitle } from "@/components/layout/PageTitle";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { ErrorState } from "@/components/states/ErrorState";
 import { Button } from "@/components/ui/button";
 import { useCaseList } from "@/hooks/useCases";
@@ -180,10 +180,7 @@ export function CaseList({ view = "all", initialGroup = "all" }: CaseListProps) 
   const { title, description, path } = CASE_LIST_VIEWS[view];
   return (
     <div className="mx-auto w-full max-w-[1152px] space-y-4 md:space-y-6">
-      <header className="space-y-2">
-        <PageTitle>{title}</PageTitle>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </header>
+      <PageHeader title={title} description={description} />
       <CaseFilters value={filters} view={layout} onChange={setFilters} onView={setLayout} />
       <CaseListBody
         query={query}

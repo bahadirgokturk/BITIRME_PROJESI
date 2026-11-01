@@ -13,17 +13,63 @@ export interface ReviewBadge {
   tone: BadgeTone;
 }
 
+// Kuyruktaki bildirimin neden burada oldugu; sekmeler bu gruplarla suzer (Figma: 08 Yeni Stil (A))
+export type ReviewGroup = "escalated" | "duplicate" | "verification" | "low_confidence";
+export type ReviewGroupFilter = ReviewGroup | "all";
+
 // Ilk eslesen kazanir. ESCALATED kirmizi; etiket durum etiketiyle ayni (UI_GUIDE 4.1, lib/caseList.ts)
-const BADGE_RULES: readonly { applies: (item: ReviewItem) => boolean; badge: ReviewBadge }[] = [
-  { applies: (item) => item.case.status === "VERIFICATION", badge: { label: "Çözüm doğrulama", tone: "neutral" } },
-  { applies: (item) => item.case.status === "ESCALATED", badge: { label: "Yöneticiye iletildi", tone: "danger" } },
-  { applies: (item) => Boolean(item.possible_duplicate_of), badge: { label: "Olası tekrar", tone: "neutral" } },
+const BADGE_RULES: readonly { applies: (item: ReviewItem) => boolean; group: ReviewGroup; badge: ReviewBadge }[] = [
+  {
+    applies: (item) => item.case.status === "VERIFICATION",
+    group: "verification",
+    badge: { label: "Çözüm doğrulama", tone: "neutral" },
+  },
+  {
+    applies: (item) => item.case.status === "ESCALATED",
+    group: "escalated",
+    badge: { label: "Yöneticiye iletildi", tone: "danger" },
+  },
+  {
+    applies: (item) => Boolean(item.possible_duplicate_of),
+    group: "duplicate",
+    badge: { label: "Olası tekrar", tone: "neutral" },
+  },
 ];
 // Kalan durum: Supervisor "emin degilim, insan baksin" dedi (SEND_TO_HUMAN_REVIEW)
 const LOW_CONFIDENCE: ReviewBadge = { label: "Düşük güven", tone: "neutral" };
 
 export function reviewBadge(item: ReviewItem): ReviewBadge {
   return BADGE_RULES.find((rule) => rule.applies(item))?.badge ?? LOW_CONFIDENCE;
+}
+
+export function reviewGroup(item: ReviewItem): ReviewGroup {
+  return BADGE_RULES.find((rule) => rule.applies(item))?.group ?? "low_confidence";
+}
+
+// Sekme sirasi ve adlari; bos grup sekmesi gosterilmez
+const GROUP_TABS: readonly { value: ReviewGroup; label: string }[] = [
+  { value: "escalated", label: "Yöneticiye iletilen" },
+  { value: "duplicate", label: "Olası tekrar" },
+  { value: "verification", label: "Çözüm doğrulama" },
+  { value: "low_confidence", label: "Düşük güven" },
+];
+
+export interface ReviewGroupTab {
+  value: ReviewGroupFilter;
+  label: string;
+  count: number;
+}
+
+export function reviewGroups(items: readonly ReviewItem[]): ReviewGroupTab[] {
+  const tabs = GROUP_TABS.map((tab) => ({
+    ...tab,
+    count: items.filter((item) => reviewGroup(item) === tab.value).length,
+  }));
+  return [{ value: "all", label: "Tümü", count: items.length }, ...tabs.filter((tab) => tab.count > 0)];
+}
+
+export function inReviewGroup(item: ReviewItem, filter: ReviewGroupFilter): boolean {
+  return filter === "all" || reviewGroup(item) === filter;
 }
 
 export interface ReviewActions {

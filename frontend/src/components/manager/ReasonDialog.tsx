@@ -20,12 +20,26 @@ interface ReasonDialogProps<Body> {
   extra?: ReactNode;
   // Ek alan da dolu olmali (ornek: yeni deger secildi)
   canSubmit?: boolean;
+  // Reddet gibi geri alinamayan islem dugmesi cercevesiz ve kirmizi (Figma: 08 Yeni Stil (A))
+  danger?: boolean;
+}
+
+// Telefonda 44 px dokunma alani, masaustunde 36 px
+const TRIGGER_CLASS = "h-11 px-4 md:h-9";
+
+function ReasonTrigger({ label, danger }: { label: string; danger: boolean }) {
+  const className = danger ? `${TRIGGER_CLASS} text-destructive hover:text-destructive` : TRIGGER_CLASS;
+  return (
+    <DialogTrigger render={<Button variant={danger ? "ghost" : "outline"} className={className} />}>
+      {label}
+    </DialogTrigger>
+  );
 }
 
 // Gerekce isteyen manager islemleri (reddet, birlestir, kapat, duzelt): gerekce zorunlu ve
 // decision_feedback'e yazilir; backend hatasi pencerede gosterilir, pencere acik kalir
 export function ReasonDialog<Body>(props: ReasonDialogProps<Body>) {
-  const { trigger, title, description, confirm, mutation, toBody, extra, canSubmit = true } = props;
+  const { trigger, title, description, confirm, mutation, toBody, extra, canSubmit = true, danger = false } = props;
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   const fieldId = useId();
@@ -38,7 +52,7 @@ export function ReasonDialog<Body>(props: ReasonDialogProps<Body>) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="outline" className="h-11 px-4" />}>{trigger}</DialogTrigger>
+      <ReasonTrigger label={trigger} danger={danger} />
       <DialogContent showCloseButton={false} className="gap-4 p-6 md:max-w-[480px]">
         <DialogTitle className="text-lg font-semibold">{title}</DialogTitle>
         <DialogDescription>{description}</DialogDescription>

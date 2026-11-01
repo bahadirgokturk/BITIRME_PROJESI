@@ -45,11 +45,9 @@ function TimelineBody({ query }: { query: EventsQuery }) {
 export function ManagerTimeline({ caseId }: { caseId: string }) {
   const query = useCaseEvents(caseId);
   return (
-    <section className="space-y-3">
-      <h2 className="font-semibold">Zaman çizelgesi</h2>
-      <div className={CARD_CLASS}>
-        <TimelineBody query={query} />
-      </div>
+    <section className={`${CARD_CLASS} space-y-3`}>
+      <h2 className="text-base font-semibold">Zaman çizelgesi</h2>
+      <TimelineBody query={query} />
     </section>
   );
 }

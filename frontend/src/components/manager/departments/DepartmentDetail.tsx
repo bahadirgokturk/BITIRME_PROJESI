@@ -6,7 +6,7 @@ import { useState } from "react";
 
 import { cn } from "cn";
 
-import { PageTitle } from "@/components/layout/PageTitle";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { PrintMeta } from "@/components/print/PrintButton";
 import { ErrorState } from "@/components/states/ErrorState";
 import { buttonVariants } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import { DEPARTMENTS_PATH, departmentStaff, departmentStats } from "@/lib/depart
 import type { DepartmentPerformance } from "@/lib/reports";
 
 import { CategoryBars } from "../dashboard/CategoryBars";
-import { PanelSkeleton } from "../dashboard/ChartCard";
+import { CardFooter, PanelSkeleton } from "../dashboard/ChartCard";
 import { DelayRiskCard } from "../dashboard/DelayRiskCard";
 import { KpiGrid, KpiGridSkeleton } from "../dashboard/KpiGrid";
 import { TrendChart } from "../dashboard/TrendChart";
@@ -30,12 +30,10 @@ const CHARTS_CLASS = "grid gap-4 lg:grid-cols-3";
 // Listedeki kartla ayni sayilar; masaustunde dort sayi tek satirda
 function UnitSummary({ item }: { item: DepartmentPerformance }) {
   return (
-    <section role="group" aria-label="Birim özeti" className={`${CARD_CLASS} space-y-3`}>
-      <h2 className="font-semibold">Birim özeti</h2>
-      <div className="md:[&_dl]:grid-cols-4">
-        <StatGrid stats={departmentStats(item)} />
-      </div>
-      <p className="text-xs text-muted-foreground">{departmentStaff(item)}</p>
+    <section role="group" aria-label="Birim özeti" className={`${CARD_CLASS} space-y-4`}>
+      <h2 className="text-base font-semibold">Birim özeti</h2>
+      <StatGrid stats={departmentStats(item)} />
+      <CardFooter>{departmentStaff(item)}</CardFooter>
     </section>
   );
 }
@@ -134,13 +132,11 @@ function DetailBody({ query, item, period, onPeriod }: DetailBodyProps) {
   }
   return (
     <>
-      <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-2">
-          <PageTitle>{item.department.name}</PageTitle>
-          <PrintMeta period={period} />
-        </div>
-        <PeriodActions value={period} onChange={onPeriod} />
-      </header>
+      <PageHeader
+        title={item.department.name}
+        meta={<PrintMeta period={period} />}
+        actions={<PeriodActions value={period} onChange={onPeriod} />}
+      />
       <UnitSummary item={item} />
       <UnitAnalytics period={period} departmentId={item.department.id} />
     </>

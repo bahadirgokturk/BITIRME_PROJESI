@@ -9,18 +9,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useSummary } from "@/hooks/useAnalytics";
 import type { SummaryPeriod } from "@/lib/analytics";
 
-import { PANEL_CLASS } from "./ChartCard";
+import { CardFooter, PANEL_CLASS } from "./ChartCard";
 
 function SummaryPanel({ action, children }: { action?: ReactNode; children: ReactNode }) {
   return (
     <section className={`${PANEL_CLASS} relative`}>
       <div className="flex min-h-9 items-center gap-2">
         <SparklesIcon aria-hidden className="size-[18px] text-primary" />
-        <h2 className="font-semibold">Yapay zekâ yönetim özeti</h2>
+        <h2 className="text-base font-semibold">Yapay zekâ yönetim özeti</h2>
       </div>
       {children}
       {/* Telefonda metnin altinda tam genislik, masaustunde basligin saginda (Figma: AiSummary) */}
-      {action ? <div className="md:absolute md:top-5 md:right-5">{action}</div> : null}
+      {action ? <div className="md:absolute md:top-6 md:right-6">{action}</div> : null}
     </section>
   );
 }
@@ -58,7 +58,7 @@ export function AiSummary({ period }: { period: SummaryPeriod }) {
   return (
     <SummaryPanel action={regenerate}>
       {summary.isError ? <FormAlert error={summary.error} /> : <p className="text-sm">{summary.data.text}</p>}
-      <p className="text-xs text-muted-foreground">Bu metin gösterilen rakamlardan otomatik üretildi.</p>
+      <CardFooter>Bu metin gösterilen rakamlardan otomatik üretildi.</CardFooter>
     </SummaryPanel>
   );
 }

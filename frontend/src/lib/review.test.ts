@@ -12,6 +12,7 @@ import {
   priorityLabel,
   reviewActions,
   reviewBadge,
+  reviewGroups,
   suggestionSummary,
   weightDetail,
 } from "./review";
@@ -193,5 +194,23 @@ describe("suggestionSummary", () => {
     const empty = item({ case: { ...base, case_type: null, priority: null, department: null } });
 
     expect(suggestionSummary(empty)).toBe("Öneri: Tür belirlenmedi · Öncelik belirlenmedi · Birim belirlenmedi");
+  });
+});
+
+describe("reviewGroups", () => {
+  it("counts the queue by why each case is here; empty groups are left out", () => {
+    const items = [
+      item({ case: { ...base, status: "ESCALATED" } }),
+      item({ possible_duplicate_of: { id: 102, case_number: "CASE-000102", title: "Amfi" } }),
+      item(),
+      item(),
+    ];
+
+    expect(reviewGroups(items)).toEqual([
+      { value: "all", label: "Tümü", count: 4 },
+      { value: "escalated", label: "Yöneticiye iletilen", count: 1 },
+      { value: "duplicate", label: "Olası tekrar", count: 1 },
+      { value: "low_confidence", label: "Düşük güven", count: 2 },
+    ]);
   });
 });

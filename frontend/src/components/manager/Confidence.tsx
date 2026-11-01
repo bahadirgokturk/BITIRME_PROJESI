@@ -1,19 +1,15 @@
 import { confidencePercent } from "@/lib/review";
 
-const PERCENT = 100;
+const BADGE_CLASS =
+  "inline-flex h-6 shrink-0 items-center rounded-md border px-2 text-xs font-medium whitespace-nowrap";
 
-// Guven: yuzde metni + cubuk (durum yalniz renkle anlatilmaz, UI_GUIDE bolum 8)
+// Guven: cerceveli rozette yuzde (Figma: 08 Yeni Stil (A)); deger yoksa ya da sifirsa gosterilmez
 export function Confidence({ value }: { value: number | null }) {
   const label = confidencePercent(value);
-  if (value === null || label === null) {
+  if (label === null) {
     return null;
   }
   return (
-    <div className="flex w-24 flex-col items-end gap-1">
-      <span className="text-xs font-medium">Güven {label}</span>
-      <span aria-hidden className="block h-1 w-full rounded-full bg-border">
-        <span className="block h-1 rounded-full bg-primary" style={{ width: `${Math.round(value * PERCENT)}%` }} />
-      </span>
-    </div>
+    <span className={BADGE_CLASS}>Güven {label}</span>
   );
 }

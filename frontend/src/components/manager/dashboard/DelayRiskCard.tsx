@@ -24,7 +24,7 @@ import {
 } from "@/lib/delayRisk";
 
 import { ShowAllButton, useShowAll } from "../reports/ShowAll";
-import { PANEL_CLASS } from "./ChartCard";
+import { CardFooter, PANEL_CLASS, PANEL_SUBTITLE_CLASS, PANEL_TITLE_CLASS } from "./ChartCard";
 
 const CARD_NAME = "Gecikme riski";
 // Yuksek risk kirmizi, orta turuncu, dusuk gri; renk yaninda metin de soyler (UI_GUIDE bolum 8)
@@ -116,7 +116,7 @@ function RiskBody({ data }: { data: DelayRiskRead }) {
       <AlreadyLate data={data} />
       {empty ? <p className="text-sm text-muted-foreground">{empty}</p> : null}
       {data.items.length > 0 ? <RiskList items={data.items} /> : null}
-      {data.model ? <p className="text-xs text-muted-foreground">{modelNote(data.model)}</p> : null}
+      {data.model ? <CardFooter>{modelNote(data.model)}</CardFooter> : null}
     </>
   );
 }
@@ -144,9 +144,9 @@ export function DelayRiskCard({ departmentId }: { departmentId?: number }) {
   }
   return (
     <section aria-label={CARD_NAME} className={PANEL_CLASS}>
-      <div>
-        <h2 className="font-semibold">{delayRiskHeadline(query.data)}</h2>
-        <p className="text-xs text-muted-foreground">{delayRiskSubtitle(departmentId)}</p>
+      <div className="space-y-0.5">
+        <h2 className={PANEL_TITLE_CLASS}>{delayRiskHeadline(query.data)}</h2>
+        <p className={PANEL_SUBTITLE_CLASS}>{delayRiskSubtitle(departmentId)}</p>
       </div>
       <RiskBody data={query.data} />
     </section>

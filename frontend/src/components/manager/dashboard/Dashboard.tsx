@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { PageTitle } from "@/components/layout/PageTitle";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { ErrorState } from "@/components/states/ErrorState";
 import { useCategories, useKpis, useTrend } from "@/hooks/useAnalytics";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -66,10 +66,7 @@ export function Dashboard() {
   const [period, setPeriod] = useState<SummaryPeriod>("7d");
   return (
     <div className="mx-auto w-full max-w-[1152px] space-y-4 md:space-y-6">
-      <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <PageTitle>Genel Bakış</PageTitle>
-        <PeriodSwitch value={period} onChange={setPeriod} />
-      </header>
+      <PageHeader title="Genel Bakış" actions={<PeriodSwitch value={period} onChange={setPeriod} />} />
       <DashboardBody period={period} />
     </div>
   );

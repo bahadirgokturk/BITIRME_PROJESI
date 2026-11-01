@@ -64,14 +64,12 @@ export function CaseComments({ caseId }: { caseId: number }) {
   const query = useCaseComments(caseId);
   const role = useCurrentUser().data?.role;
   return (
-    <section className="space-y-3">
-      <h2 className="font-semibold">Yorumlar</h2>
-      <div className="space-y-4 surface p-4">
-        <CommentList query={query} />
-        {role && canComment(role) && !query.isError ? (
-          <CommentForm caseId={caseId} allowInternal={canWriteInternal(role)} />
-        ) : null}
-      </div>
+    <section className="space-y-4 surface p-4 md:p-6">
+      <h2 className="text-base font-semibold">Yorumlar</h2>
+      <CommentList query={query} />
+      {role && canComment(role) && !query.isError ? (
+        <CommentForm caseId={caseId} allowInternal={canWriteInternal(role)} />
+      ) : null}
     </section>
   );
 }

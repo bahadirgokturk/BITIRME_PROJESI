@@ -19,7 +19,7 @@ import { awaitsManager, caseDetailSections } from "@/lib/managerCase";
 import { DecisionPanel } from "../DecisionPanel";
 import { CaseDecision } from "./CaseDecision";
 import { CasePhotos } from "./CasePhotos";
-import { CaseHeader, CaseInfo } from "./CaseSummary";
+import { CARD_CLASS, CaseHeader, CaseInfo } from "./CaseSummary";
 import { ManagerTimeline } from "./ManagerTimeline";
 
 const NOT_FOUND = 404;
@@ -28,20 +28,20 @@ type CaseQuery = ReturnType<typeof useCase>;
 
 function AiDecisions({ caseId }: { caseId: number }) {
   return (
-    <section className="space-y-3">
+    <section className={`${CARD_CLASS} space-y-4`}>
       <div className="space-y-0.5">
-        <h2 className="font-semibold">Yapay zekâ kararları</h2>
+        <h2 className="text-base font-semibold">Yapay zekâ kararları</h2>
         <p className="text-sm text-muted-foreground">
           Bildirim açılınca yapay zekânın attığı adımlar ve her birinin gerekçesi.
         </p>
       </div>
-      <DecisionPanel caseId={caseId} />
+      <DecisionPanel caseId={caseId} plain />
     </section>
   );
 }
 
-// Genis ekranda iki sutun: solda kararlar ve zaman cizelgesi, sagda bilgiler ve fotograflar.
-// Dar ekranda once bilgiler gelir (Figma: 05 Manager > /manager/cases/[id])
+// Genis ekranda iki sutun: solda kararlar ve yorumlar, sagda bilgiler, fotograflar ve zaman cizelgesi.
+// Dar ekranda once bilgiler gelir (Figma: 08 Yeni Stil (A) > bildirim detayi)
 function CaseView({ item }: { item: CaseRead }) {
   // Karardan sonra karar kutusu kaybolur; onay notu burada kalir
   const [lastAction, setLastAction] = useState<string | null>(null);
@@ -54,14 +54,14 @@ function CaseView({ item }: { item: CaseRead }) {
         {lastAction}
       </p>
       {sections.decide && awaitsManager(item) ? <CaseDecision item={item} onDone={setLastAction} /> : null}
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-4 xl:order-2">
           <CaseInfo item={item} showRisk={sections.delayRisk} />
           <CasePhotos caseId={item.id} />
-        </div>
-        <div className="space-y-6">
-          {sections.aiDecisions ? <AiDecisions caseId={item.id} /> : null}
           <ManagerTimeline caseId={String(item.id)} />
+        </div>
+        <div className="space-y-4">
+          {sections.aiDecisions ? <AiDecisions caseId={item.id} /> : null}
           <CaseComments caseId={item.id} />
         </div>
       </div>

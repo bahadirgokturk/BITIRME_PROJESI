@@ -270,9 +270,17 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
 
 ### 5.4 Manager
 
+Müdür sayfalarının başı ortak (`PageHeader`): başlık, hemen altında açıklama, sağda dönem / Yazdır / görünüm düğmeleri.
+Kartlar başlık (16 px) + açıklama (14 px) ile başlar, notları ince çizginin altındaki alt bilgidedir (`CardFooter`);
+rapor tabloları çerçeveli, başlık satırı gri (`StatTable`). Birim kartlarında dört sayı tek satırda, iki sütun.
+
 - **İnceleme kuyruğu:** Her satırda AI önerisi (tip, öncelik, departman), güven skoru ve **neden buraya düştü**
   (düşük güven / olası tekrar / güvenlik). Satırdan çıkmadan: onayla · düzelt (override) · birleştir · reddet.
-  Sağ üstte **Liste / Kart** düğmeleri (`ViewToggle`; seçim cihazda hatırlanır). Kare kart (`ReviewTile`): başlık
+  Kartın üstünde neden rozeti ve "Güven %91" rozeti, ortada "Neden burada?" kutusu ve önerinin üç kutusu, altta
+  çizgiyle ayrılan "Yapay zekâ gerekçesi" bağlantısı ve işlemler (Reddet çerçevesiz kırmızı). Listenin üstünde nedene
+  göre **sayılı sekmeler** (Tümü 3 · Yöneticiye iletilen 1 · Olası tekrar 1 · Düşük güven 1; boş grup gösterilmez,
+  `reviewGroups` `lib/review.ts`). Sağ üstte **Liste / Kart** düğmeleri (`ViewToggle`; seçim cihazda hatırlanır).
+  Kare kart (`ReviewTile`): başlık
   iki satır, neden ve "Öneri: tür · öncelik · birim" kısaltılır, işlem düğmeleri aynen kalır; gerekçe paneli yerine
   "Ayrıntı" bildirim detayına gider. Telefonda tek, geniş ekranda üç sütun (Figma: `/manager/review-queue - … - kart
   görünümü`).
@@ -351,7 +359,9 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   telefonda her bildirim ayrı kart (tek DOM, iki yerleşim). Liste 20'şer yüklenir ("Daha fazla göster"). Filtreyle
   sonuç çıkmazsa "Filtreleri temizle" düğmesi, hiç bildirim yoksa düz açıklama gösterilir. Kurallar: `lib/caseList.ts`.
 - **Bildirim detayı (`/manager/cases/[id]`):** müdürün ayrıntılı ekranı; bildirenin sade ekranı (`/cases/[id]`)
-  değişmedi. Üstte numara, başlık ve üç rozet (durum, öncelik, kalan süre). **Bildirim bilgileri** kartı: açıklama,
+  değişmedi. Üstte numara, başlık ve üç rozet (durum, öncelik, kalan süre). Geniş ekranda solda yapay zekâ kararları
+  ve yorumlar, sağda bilgiler, fotoğraflar ve zaman çizelgesi; her bölüm başlıklı bir kart (yeni stil).
+  **Bildirim bilgileri** kartı satır satır (solda ad, sağda değer): açıklama,
   konum, tür · kategori, birim, açılış; varsa hedef süre, çözüm, kapanış, bildirenin puanı, aynı sorunu bildirenler,
   yeniden açılma (olmayan şey gösterilmez). **Yapay zekâ kararları:** İnceleme Kuyruğu'ndaki gerekçe panelinin aynısı,
   burada hep açık; kendiliğinden atanan bildirimde de görünür. Gerekçeler sade yazılır; ağırlıklar ("Konumun önemi ·

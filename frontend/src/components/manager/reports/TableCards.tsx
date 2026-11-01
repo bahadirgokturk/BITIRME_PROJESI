@@ -10,7 +10,6 @@ import {
 import { ChartCard } from "../dashboard/ChartCard";
 import { StatTable } from "../StatTable";
 
-const NOTE_CLASS = "text-xs text-muted-foreground";
 const EMPTY_CLASS = "text-sm text-muted-foreground";
 
 // Istatistik terimleri yerine duz Turkce: medyan = tipik sure, p90 = 10 isten 9'u (UI_GUIDE bolum 6)
@@ -25,14 +24,16 @@ export function ResolutionCard({ times }: { times: ResolutionTimesRead }) {
     cells: [String(row.count), formatMinutes(row.avg_min), formatMinutes(row.median_min), formatMinutes(row.p90_min)],
   }));
   return (
-    <ChartCard title={slowestCategoryHeadline(times.items)} subtitle={subtitle} className="h-full">
+    <ChartCard
+      title={slowestCategoryHeadline(times.items)}
+      subtitle={subtitle}
+      className="h-full"
+      footer={rows.length === 0 ? null : TIME_NOTE}
+    >
       {rows.length === 0 ? (
         <p className={EMPTY_CLASS}>Bu dönemde çözülen bildirim yok.</p>
       ) : (
-        <>
-          <StatTable label={subtitle} nameHeader="Kategori" columns={TIME_COLUMNS} rows={rows} />
-          <p className={NOTE_CLASS}>{TIME_NOTE}</p>
-        </>
+        <StatTable label={subtitle} nameHeader="Kategori" columns={TIME_COLUMNS} rows={rows} />
       )}
     </ChartCard>
   );
