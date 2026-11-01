@@ -19,6 +19,13 @@ export const AUTONOMY_LABELS: Record<AutonomyLevel, string> = {
   L3_ESCALATE: "Müdür karar verir",
 };
 
+// Rozet tonu: kendi uygulayan yesil, haber veren turkuaz, mudure birakan amber (Figma: 08 Yeni Stil (A))
+export const AUTONOMY_TONES: Record<AutonomyLevel, "success" | "info" | "warning"> = {
+  L1_AUTONOMOUS: "success",
+  L2_NOTIFY: "info",
+  L3_ESCALATE: "warning",
+};
+
 export const AUTONOMY_NOTES: Record<AutonomyLevel, string> = {
   L1_AUTONOMOUS: "Yapay zekâ türü belirler ve görevi kendisi açar.",
   L2_NOTIFY: "Görevi açar; birim müdürü bilgilendirilir.",
@@ -72,7 +79,7 @@ export function filterAgentPolicies(rows: readonly AgentPolicyRow[], filters: Ag
 }
 
 // API 0-1 arasi deger tutar; ekranda yuzde gosterilir ve yuzde olarak yazilir
-const toPercent = (value: number) => Math.round(value * PERCENT);
+export const toPercent = (value: number) => Math.round(value * PERCENT);
 
 export function formatConfidence(value: number): string {
   return `%${toPercent(value)}`;

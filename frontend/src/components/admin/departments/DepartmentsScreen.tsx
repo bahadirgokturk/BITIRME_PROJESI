@@ -38,7 +38,7 @@ function DepartmentsBody({ query, filters, counts, onEdit, onClear }: BodyProps)
   const shown = filterDepartments(query.data, filters);
   const active = query.data.filter((department) => department.is_active).length;
   return (
-    <div className="space-y-3">
+    <>
       {shown.length === 0 ? (
         <NoMatch title="Aramanıza uyan birim yok." onClear={onClear} />
       ) : (
@@ -46,12 +46,10 @@ function DepartmentsBody({ query, filters, counts, onEdit, onClear }: BodyProps)
           departments={shown}
           counts={counts}
           onEdit={(department) => onEdit({ mode: "edit", department })}
+          footer={`${query.data.length} birim, ${active} aktif`}
         />
       )}
-      <p className="text-sm text-muted-foreground">
-        {query.data.length} birim · {active} aktif
-      </p>
-    </div>
+    </>
   );
 }
 

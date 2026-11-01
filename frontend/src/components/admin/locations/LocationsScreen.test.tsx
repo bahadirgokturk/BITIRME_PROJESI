@@ -21,7 +21,7 @@ function renderScreen() {
   return user;
 }
 
-const item = (name: string | RegExp) => screen.findByRole("listitem", { name });
+const item = (name: string | RegExp) => screen.findByRole("row", { name });
 
 // Sahte liste modul icinde tutulur; her test ayni listeyle baslasin
 beforeEach(() => resetAdminLocations());
@@ -37,9 +37,10 @@ describe("LocationsScreen", () => {
     renderScreen();
 
     const building = await item("B Blok");
-    expect(within(building).getByText(/Bina/)).toBeInTheDocument();
-    expect(screen.getByRole("listitem", { name: "Merkez Kampüs" })).toBeInTheDocument();
-    expect(screen.queryByRole("listitem", { name: "B Blok 2. Kat" })).not.toBeInTheDocument();
+    expect(within(building).getByText("Bina").closest("td")).toHaveAttribute("data-label", "Tür");
+    expect(screen.getByRole("columnheader", { name: "Önem" })).toBeInTheDocument();
+    expect(screen.getByRole("row", { name: "Merkez Kampüs" })).toBeInTheDocument();
+    expect(screen.queryByRole("row", { name: "B Blok 2. Kat" })).not.toBeInTheDocument();
     expect(within(await item("A Blok Otoparkı")).getByText("Pasif")).toBeInTheDocument();
   });
 
@@ -50,7 +51,7 @@ describe("LocationsScreen", () => {
     expect(await item("B Blok 2. Kat")).toBeInTheDocument();
 
     await user.click(within(await item("B Blok")).getByRole("button", { name: "B Blok altını kapat" }));
-    expect(screen.queryByRole("listitem", { name: "B Blok 2. Kat" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("row", { name: "B Blok 2. Kat" })).not.toBeInTheDocument();
   });
 
   it("searches every level and shows where each result is", async () => {
@@ -61,7 +62,7 @@ describe("LocationsScreen", () => {
 
     const result = await item("B201 Amfi");
     expect(within(result).getByText("Merkez Kampüs › B Blok › B Blok 2. Kat")).toBeInTheDocument();
-    expect(screen.queryByRole("listitem", { name: "Merkez Kampüs" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("row", { name: "Merkez Kampüs" })).not.toBeInTheDocument();
   });
 
   it("offers to clear the filters when nothing matches", async () => {
@@ -72,7 +73,7 @@ describe("LocationsScreen", () => {
     expect(screen.getByText("Aramanıza uyan konum yok.")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Filtreleri temizle" }));
 
-    expect(screen.getByRole("listitem", { name: "B Blok" })).toBeInTheDocument();
+    expect(screen.getByRole("row", { name: "B Blok" })).toBeInTheDocument();
   });
 
   it("adds a location under the chosen parent", async () => {

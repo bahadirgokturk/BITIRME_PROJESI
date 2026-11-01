@@ -1,7 +1,16 @@
+import type { ReactNode } from "react";
+
 import { cn } from "cn";
 
-import { AUTONOMY_LABELS, formatConfidence, type AgentPolicyRow } from "@/lib/adminAgentPolicies";
+import {
+  AUTONOMY_LABELS,
+  AUTONOMY_TONES,
+  formatConfidence,
+  toPercent,
+  type AgentPolicyRow,
+} from "@/lib/adminAgentPolicies";
 
+import { Tag } from "../AdminParts";
 import { AdminTable, CELL_CLASS, EDIT_BUTTON_CLASS, LABELLED_CLASS, ROW_CLASS } from "../AdminTable";
 
 // Mudure haber sutunu yok: haberi karar yetkisi belirler (#93)
@@ -10,6 +19,20 @@ const COLUMNS = ["Tür", "Karar yetkisi", "Güven eşiği"];
 interface AgentPoliciesTableProps {
   rows: AgentPolicyRow[];
   onEdit: (row: AgentPolicyRow) => void;
+  // Kayit sayaci; tablonun alt bilgisi
+  footer?: ReactNode;
+}
+
+// Esik hem cubukla hem yaziyla; cubuk susleme, deger yazidan okunur
+function Threshold({ value }: { value: number }) {
+  return (
+    <span className="inline-flex items-center gap-3">
+      <span aria-hidden className="hidden h-1.5 w-24 overflow-hidden rounded-full bg-muted md:block">
+        <span className="block h-full rounded-full bg-primary" style={{ width: `${toPercent(value)}%` }} />
+      </span>
+      <span className="tabular-nums">{formatConfidence(value)}</span>
+    </span>
+  );
 }
 
 function PolicyRow({ row, onEdit }: { row: AgentPolicyRow; onEdit: (row: AgentPolicyRow) => void }) {
@@ -21,10 +44,10 @@ function PolicyRow({ row, onEdit }: { row: AgentPolicyRow; onEdit: (row: AgentPo
         {row.code ? <span className="block text-xs break-all text-muted-foreground">{row.code}</span> : null}
       </td>
       <td data-label="Karar yetkisi" className={cn(CELL_CLASS, LABELLED_CLASS, "col-span-2")}>
-        {AUTONOMY_LABELS[policy.autonomy_level]}
+        <Tag tone={AUTONOMY_TONES[policy.autonomy_level]}>{AUTONOMY_LABELS[policy.autonomy_level]}</Tag>
       </td>
       <td data-label="Güven eşiği" className={cn(CELL_CLASS, LABELLED_CLASS)}>
-        {formatConfidence(policy.min_confidence_auto)}
+        <Threshold value={policy.min_confidence_auto} />
       </td>
       <td className={cn(CELL_CLASS, "justify-self-end md:text-right")}>
         <button
@@ -41,9 +64,9 @@ function PolicyRow({ row, onEdit }: { row: AgentPolicyRow; onEdit: (row: AgentPo
 }
 
 // Yapay zeka politikalari tablosu (Figma: 06 Admin > /admin/agent-policies); tur basina bir satir
-export function AgentPoliciesTable({ rows, onEdit }: AgentPoliciesTableProps) {
+export function AgentPoliciesTable({ rows, onEdit, footer }: AgentPoliciesTableProps) {
   return (
-    <AdminTable label="Yapay zekâ politikaları" columns={COLUMNS}>
+    <AdminTable label="Yapay zekâ politikaları" columns={COLUMNS} footer={footer}>
       {rows.map((row) => (
         <PolicyRow key={row.policy.id} row={row} onEdit={onEdit} />
       ))}

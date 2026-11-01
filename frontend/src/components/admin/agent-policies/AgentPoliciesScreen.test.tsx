@@ -56,7 +56,7 @@ describe("AgentPoliciesScreen", () => {
     expect(within(power).getByText("Müdür karar verir")).toBeInTheDocument();
     expect(within(power).getByText("%70")).toBeInTheDocument();
     expect(within(await row(/Sabun bitti/)).getByText("Kendi uygular")).toBeInTheDocument();
-    expect(screen.getByText("6 politika")).toBeInTheDocument();
+    expect(screen.getByText("6 politika").closest("[data-slot=admin-table]")).not.toBeNull();
     expect(screen.queryByRole("button", { name: /ekle/i })).not.toBeInTheDocument();
   });
 
@@ -66,6 +66,15 @@ describe("AgentPoliciesScreen", () => {
     const power = await row(/Elektrik arızası/);
     expect(within(power).getByText("Müdür karar verir").closest("td")).toHaveAttribute("data-label", "Karar yetkisi");
     expect(within(power).getByText("%70").closest("td")).toHaveAttribute("data-label", "Güven eşiği");
+  });
+
+  // Mudure birakan seviye amber, kendi uygulayan yesil rozet (Figma: 08 Yeni Stil (A) > Yapay Zeka Politikalari)
+  it("shows the autonomy level as a toned badge", async () => {
+    renderScreen();
+
+    const power = await row(/Elektrik arızası/);
+    expect(within(power).getByText("Müdür karar verir")).toHaveAttribute("data-tone", "warning");
+    expect(within(await row(/Sabun bitti/)).getByText("Kendi uygular")).toHaveAttribute("data-tone", "success");
   });
 
   it("filters by search and by autonomy, and offers to clear when nothing matches", async () => {

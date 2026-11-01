@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 
-import { cn } from "cn";
-
 import { ErrorState } from "@/components/states/ErrorState";
 import { useAdminCaseTypes } from "@/hooks/useAdminCaseTypes";
 import { useAdminDepartments } from "@/hooks/useAdminDepartments";
@@ -18,7 +16,7 @@ import { CATEGORY_LABELS } from "@/lib/reports";
 
 import { ActionNote, ListSkeleton, NoMatch, ScreenHeader } from "../AdminParts";
 import { AdminSections } from "../AdminSections";
-import { FILTER_FIELD_CLASS, SearchFilters } from "../SearchFilters";
+import { FilterSelect, SearchFilters } from "../SearchFilters";
 import { CaseTypeSheet, type CaseTypeTarget } from "./CaseTypeSheet";
 import { CaseTypesTable } from "./CaseTypesTable";
 
@@ -45,7 +43,7 @@ function CaseTypesBody({ query, filters, departments, onEdit, onClear }: BodyPro
   const shown = filterCaseTypes(query.data, filters);
   const active = query.data.filter((caseType) => caseType.is_active).length;
   return (
-    <div className="space-y-3">
+    <>
       {shown.length === 0 ? (
         <NoMatch title="Aramanıza uyan tür yok." onClear={onClear} />
       ) : (
@@ -53,12 +51,10 @@ function CaseTypesBody({ query, filters, departments, onEdit, onClear }: BodyPro
           caseTypes={shown}
           departments={departments}
           onEdit={(caseType) => onEdit({ mode: "edit", caseType })}
+          footer={`${query.data.length} tür, ${active} aktif`}
         />
       )}
-      <p className="text-sm text-muted-foreground">
-        {query.data.length} tür · {active} aktif
-      </p>
-    </div>
+    </>
   );
 }
 
@@ -69,11 +65,11 @@ interface CategoryFilterProps {
 
 function CategoryFilter({ value, onChange }: CategoryFilterProps) {
   return (
-    <select
+    <FilterSelect
       aria-label="Kategori"
       value={value ?? ALL}
       onChange={(event) => onChange((event.target.value || null) as CaseCategory | null)}
-      className={cn(FILTER_FIELD_CLASS, "w-full md:w-52")}
+      className="w-full md:w-52"
     >
       <option value={ALL}>Tüm kategoriler</option>
       {Object.entries(CATEGORY_LABELS).map(([category, label]) => (
@@ -81,7 +77,7 @@ function CategoryFilter({ value, onChange }: CategoryFilterProps) {
           {label}
         </option>
       ))}
-    </select>
+    </FilterSelect>
   );
 }
 

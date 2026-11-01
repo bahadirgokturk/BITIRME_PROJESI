@@ -52,6 +52,7 @@ describe("DepartmentsScreen", () => {
 
     const support = await row(/Destek Hizmetleri Şube Müdürlüğü/);
     expect(within(support).getByText("SUPPORT_SERVICES").closest("td")).toHaveAttribute("data-label", "Kod");
+    expect(screen.getByText("4 birim, 4 aktif").closest("[data-slot=admin-table]")).not.toBeNull();
   });
 
   it("filters by search text and offers to clear when nothing matches", async () => {

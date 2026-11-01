@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { cn } from "cn";
-
 import { ErrorState } from "@/components/states/ErrorState";
 import { Button } from "@/components/ui/button";
 import { AUDIT_PAGE_SIZE, useAuditLogs, useAuditNameLookup } from "@/hooks/useAuditLogs";
@@ -12,7 +10,7 @@ import { ENTITY_LABELS, pageSummary, type AuditEntity, type AuditTarget, type Na
 
 import { ActionNote, ListSkeleton, NoMatch, ScreenHeader } from "../AdminParts";
 import { AdminSections } from "../AdminSections";
-import { FILTER_FIELD_CLASS } from "../SearchFilters";
+import { FilterSelect } from "../SearchFilters";
 import { AuditLogTable } from "./AuditLogTable";
 
 type LogsQuery = ReturnType<typeof useAuditLogs>;
@@ -21,6 +19,7 @@ const ALL = "";
 // Bu ekranda arama kutusu yok; oneri yalniz tur suzgecinden soz eder
 const KIND_HINT = "Farklı bir kayıt türü seçin ya da filtreleri temizleyin.";
 const AUDIT_PATH = "/admin/audit-logs";
+const DESCRIPTION = "Yönetim ekranlarında yapılan her değişiklik: kim, ne zaman, neyi değiştirdi.";
 
 function EmptyNote({ title, note }: { title: string; note: string }) {
   return (
@@ -45,10 +44,15 @@ function Pager({ page, total, onPage }: PagerProps) {
       <p className="mr-auto text-sm text-muted-foreground md:mr-2">{pageSummary({ page, pageSize: AUDIT_PAGE_SIZE, total })}</p>
       {lastPage > 1 ? (
         <>
-          <Button variant="outline" className="h-11 px-4" disabled={page <= 1} onClick={() => onPage(page - 1)}>
+          <Button variant="outline" className="h-11 px-4 md:h-9" disabled={page <= 1} onClick={() => onPage(page - 1)}>
             Önceki
           </Button>
-          <Button variant="outline" className="h-11 px-4" disabled={page >= lastPage} onClick={() => onPage(page + 1)}>
+          <Button
+            variant="outline"
+            className="h-11 px-4 md:h-9"
+            disabled={page >= lastPage}
+            onClick={() => onPage(page + 1)}
+          >
             Sonraki
           </Button>
         </>
@@ -89,20 +93,21 @@ function AuditLogsBody({ query, lookup, page, filtered, onPage, onClear }: BodyP
     return emptyState(filtered, onClear);
   }
   return (
-    <div className="space-y-3">
-      <AuditLogTable logs={query.data.items} lookup={lookup} />
-      <Pager page={page} total={query.data.total} onPage={onPage} />
-    </div>
+    <AuditLogTable
+      logs={query.data.items}
+      lookup={lookup}
+      footer={<Pager page={page} total={query.data.total} onPage={onPage} />}
+    />
   );
 }
 
 function KindFilter({ value, onChange }: { value: AuditEntity | null; onChange: (kind: AuditEntity | null) => void }) {
   return (
-    <select
+    <FilterSelect
       aria-label="Kayıt türü"
       value={value ?? ALL}
       onChange={(event) => onChange((event.target.value || null) as AuditEntity | null)}
-      className={cn(FILTER_FIELD_CLASS, "w-full md:w-64")}
+      className="w-full md:w-64"
     >
       <option value={ALL}>Tüm kayıt türleri</option>
       {Object.entries(ENTITY_LABELS).map(([kind, label]) => (
@@ -110,7 +115,7 @@ function KindFilter({ value, onChange }: { value: AuditEntity | null; onChange: 
           {label}
         </option>
       ))}
-    </select>
+    </FilterSelect>
   );
 }
 
@@ -141,7 +146,7 @@ export function AuditLogsScreen({ target }: { target: AuditTarget | null }) {
   return (
     <div className="mx-auto w-full max-w-[1152px] space-y-4 md:space-y-6">
       <AdminSections active={AUDIT_PATH} />
-      <ScreenHeader title="İşlem Kayıtları" />
+      <ScreenHeader title="İşlem Kayıtları" description={DESCRIPTION} />
       <ActionNote message={null} />
       {target ? (
         <HistoryBar name={lookup(target.entityType, target.entityId) ?? `#${target.entityId}`} />

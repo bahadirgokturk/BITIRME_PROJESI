@@ -76,7 +76,7 @@ describe("SlaRulesScreen", () => {
     expect(rows.slice(0, 4).every((item) => within(item).queryByText(DEFAULT))).toBe(true);
     expect(within(rows[0] as HTMLElement).getByText("1 gün")).toBeInTheDocument();
     expect(within(await row(/Kayıp/)).getByText("Pasif")).toBeInTheDocument();
-    expect(screen.getByText("7 kural · 6 aktif")).toBeInTheDocument();
+    expect(screen.getByText("7 kural, 6 aktif").closest("[data-slot=admin-table]")).not.toBeNull();
   });
 
   it("labels each value for the phone card layout", async () => {

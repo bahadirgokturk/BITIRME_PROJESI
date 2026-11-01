@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 
-import { cn } from "cn";
-
 import { ErrorState } from "@/components/states/ErrorState";
 import { useAdminCaseTypes } from "@/hooks/useAdminCaseTypes";
 import { useAdminSlaRules } from "@/hooks/useAdminSlaRules";
@@ -18,7 +16,7 @@ import { PRIORITY_LABELS } from "@/lib/tasks";
 
 import { ActionNote, ListSkeleton, NoMatch, ScreenHeader } from "../AdminParts";
 import { AdminSections } from "../AdminSections";
-import { FILTER_FIELD_CLASS, SearchFilters } from "../SearchFilters";
+import { FilterSelect, SearchFilters } from "../SearchFilters";
 import { SlaRuleSheet, type SlaRuleTarget } from "./SlaRuleSheet";
 import { SlaRulesTable } from "./SlaRulesTable";
 
@@ -47,26 +45,27 @@ function SlaRulesBody({ query, filters, caseTypes, onEdit, onClear }: BodyProps)
   const shown = filterSlaRules(slaRuleRows(query.data, caseTypes), filters);
   const active = query.data.filter((rule) => rule.is_active).length;
   return (
-    <div className="space-y-3">
+    <>
       {shown.length === 0 ? (
         <NoMatch title="Aramanıza uyan kural yok." onClear={onClear} />
       ) : (
-        <SlaRulesTable rows={shown} onEdit={(row) => onEdit({ mode: "edit", row })} />
+        <SlaRulesTable
+          rows={shown}
+          onEdit={(row) => onEdit({ mode: "edit", row })}
+          footer={`${query.data.length} kural, ${active} aktif`}
+        />
       )}
-      <p className="text-sm text-muted-foreground">
-        {query.data.length} kural · {active} aktif
-      </p>
-    </div>
+    </>
   );
 }
 
 function PriorityFilter({ value, onChange }: { value: Priority | null; onChange: (priority: Priority | null) => void }) {
   return (
-    <select
+    <FilterSelect
       aria-label="Öncelik"
       value={value ?? ALL}
       onChange={(event) => onChange((event.target.value || null) as Priority | null)}
-      className={cn(FILTER_FIELD_CLASS, "w-full md:w-52")}
+      className="w-full md:w-52"
     >
       <option value={ALL}>Tüm öncelikler</option>
       {Object.entries(PRIORITY_LABELS).map(([priority, label]) => (
@@ -74,7 +73,7 @@ function PriorityFilter({ value, onChange }: { value: Priority | null; onChange:
           {label}
         </option>
       ))}
-    </select>
+    </FilterSelect>
   );
 }
 
