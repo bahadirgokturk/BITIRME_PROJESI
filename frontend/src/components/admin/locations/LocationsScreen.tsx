@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { ExportButton } from "@/components/export/ExportButton";
+import { locationsSheet } from "@/lib/exportSheets";
 import { ErrorState } from "@/components/states/ErrorState";
 import { useAdminLocations } from "@/hooks/useAdminLocations";
 import {
@@ -15,7 +17,7 @@ import {
   type LocationFilters as Filters,
 } from "@/lib/adminLocations";
 
-import { ActionNote, ListSkeleton, NoMatch, ScreenHeader } from "../AdminParts";
+import { ActionNote, ListSkeleton, NoMatch, ScreenHeader, Toolbar } from "../AdminParts";
 import { AdminSections } from "../AdminSections";
 import { SearchFilters } from "../SearchFilters";
 import { LocationList, type ListRow } from "./LocationList";
@@ -81,6 +83,17 @@ function LocationsBody({ query, filters, onEdit, onClear }: BodyProps) {
   );
 }
 
+// Aramasiz aktarimda agacin tamami, aramada uyan konumlar (lib/exportSheets.ts)
+function LocationsExport({ query, filters }: Pick<BodyProps, "query" | "filters">) {
+  return (
+    <ExportButton
+      fileName="konumlar"
+      disabled={!query.data}
+      load={() => locationsSheet(query.data ?? [], filters)}
+    />
+  );
+}
+
 // Yonetim > Konumlar (docs/UI_GUIDE.md bolum 5.5): agac gorunumu + arama + sagdan acilan panel
 export function LocationsScreen() {
   const locations = useAdminLocations();
@@ -103,7 +116,14 @@ export function LocationsScreen() {
         onAdd={() => setTarget({ mode: "create" })}
       />
       <ActionNote message={lastAction} />
-      <SearchFilters searchLabel="Konum ara" placeholder="Ad, kod ya da diğer ad ara" value={filters} onChange={setFilters} />
+      <Toolbar action={<LocationsExport query={locations} filters={filters} />}>
+        <SearchFilters
+          searchLabel="Konum ara"
+          placeholder="Ad, kod ya da diğer ad ara"
+          value={filters}
+          onChange={setFilters}
+        />
+      </Toolbar>
       <LocationsBody query={locations} filters={filters} onEdit={setTarget} onClear={() => setFilters(NO_LOCATION_FILTERS)} />
       {target ? (
         <LocationSheet

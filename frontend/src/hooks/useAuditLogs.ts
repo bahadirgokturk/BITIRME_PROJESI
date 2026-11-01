@@ -9,6 +9,7 @@ import { useAdminSlaRules } from "@/hooks/useAdminSlaRules";
 import { useAdminUsers } from "@/hooks/useAdminUsers";
 import { apiGet } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
+import { EXPORT_PAGE_SIZE, fetchAllPages } from "@/lib/pagination";
 import { buildNameLookup, type AuditEntity, type NameLookup } from "@/lib/auditLogs";
 
 type Schemas = components["schemas"];
@@ -23,8 +24,8 @@ export interface AuditQuery {
   page: number;
 }
 
-function auditPath({ entityType, entityId, page }: AuditQuery): string {
-  const params = new URLSearchParams({ page: String(page), page_size: String(AUDIT_PAGE_SIZE) });
+function auditPath({ entityType, entityId, page }: AuditQuery, pageSize: number = AUDIT_PAGE_SIZE): string {
+  const params = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
   if (entityType) {
     params.set("entity_type", entityType);
   }
@@ -32,6 +33,11 @@ function auditPath({ entityType, entityId, page }: AuditQuery): string {
     params.set("entity_id", String(entityId));
   }
   return `/admin/audit-logs?${params.toString()}`;
+}
+
+// Excel'e aktar: ayni suzgecle butun kayitlar, en yeni ustte
+export function fetchAllAuditLogs(query: Omit<AuditQuery, "page">): Promise<Schemas["AuditLogRead"][]> {
+  return fetchAllPages((page) => auditPath({ ...query, page }, EXPORT_PAGE_SIZE));
 }
 
 // Sayfa degisirken eski sayfa ekranda kalir (liste bosalip dolmaz)

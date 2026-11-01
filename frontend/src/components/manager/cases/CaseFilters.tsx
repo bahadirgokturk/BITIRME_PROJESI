@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { FilterChips } from "@/components/filters/FilterChips";
 import { ListToolbar } from "@/components/lists/ListToolbar";
 import { STATUS_GROUPS, type CaseFilters as Filters } from "@/lib/caseList";
@@ -11,11 +13,13 @@ interface CaseFiltersProps {
   view: ListView;
   onChange: (filters: Filters) => void;
   onView: (view: ListView) => void;
+  // Arac satirinda gorunum dugmelerinin solu (Excel'e aktar)
+  extra?: ReactNode;
 }
 
 // Arama, durum grubu ve liste araclari: tikli oncelik, siralama, liste/kart (Figma: 05 Manager > /manager/cases -
 // liste araclari)
-export function CaseFilters({ value, view, onChange, onView }: CaseFiltersProps) {
+export function CaseFilters({ value, view, onChange, onView, extra }: CaseFiltersProps) {
   return (
     <div className="space-y-3">
       <input
@@ -39,6 +43,7 @@ export function CaseFilters({ value, view, onChange, onView }: CaseFiltersProps)
         view={view}
         onTools={(tools) => onChange({ ...value, ...tools })}
         onView={onView}
+        extra={extra}
       />
     </div>
   );

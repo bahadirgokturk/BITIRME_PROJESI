@@ -3,7 +3,7 @@ import { keepPreviousData, useInfiniteQuery, useQuery } from "@tanstack/react-qu
 import { apiGet } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
 import { caseListQuery, type CaseFilters } from "@/lib/caseList";
-import { nextPage } from "@/lib/pagination";
+import { EXPORT_PAGE_SIZE, fetchAllPages, nextPage } from "@/lib/pagination";
 import { LIVE_QUERY } from "@/lib/queryClient";
 import { myCasesPath, type MyCasesQuery } from "@/lib/status";
 
@@ -56,6 +56,11 @@ export function useCaseEvents(caseId: string) {
     queryFn: () => apiGet<CaseEventRead[]>(`/cases/${encodeURIComponent(caseId)}/events`),
     ...LIVE_QUERY,
   });
+}
+
+// Excel'e aktar: ayni suzgeclerle bildirimlerin tamami (ekranda yuklenen sayfalarla sinirli degil)
+export function fetchAllCases(filters: CaseFilters): Promise<CaseRead[]> {
+  return fetchAllPages<CaseRead>((page) => `/cases?${caseListQuery(filters, page, EXPORT_PAGE_SIZE)}`);
 }
 
 // Mudurun tum bildirimleri, suzgeclerle ve sayfa sayfa. Suzgec degisince yeni cevap gelene kadar

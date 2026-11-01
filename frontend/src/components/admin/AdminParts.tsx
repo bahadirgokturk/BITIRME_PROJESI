@@ -63,6 +63,16 @@ export function Tag({ tone = "plain", children }: { tone?: TagTone; children: Re
   );
 }
 
+// Suzgecler solda, "Excel'e aktar" sagda (Figma: 08 Yeni Stil (A) > Yonetim); telefonda alt alta
+export function Toolbar({ children, action }: { children: ReactNode; action: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+      <div className="min-w-0">{children}</div>
+      {action}
+    </div>
+  );
+}
+
 // Ad soyadin bas harfleri; adin yaninda susleme, ekran okuyucu adi zaten okur
 export function Initials({ name }: { name: string }) {
   return (

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { ExportButton } from "@/components/export/ExportButton";
+import { slaRulesSheet } from "@/lib/exportSheets";
 import { ErrorState } from "@/components/states/ErrorState";
 import { useAdminCaseTypes } from "@/hooks/useAdminCaseTypes";
 import { useAdminSlaRules } from "@/hooks/useAdminSlaRules";
@@ -14,7 +16,7 @@ import {
 } from "@/lib/adminSlaRules";
 import { PRIORITY_LABELS } from "@/lib/tasks";
 
-import { ActionNote, ListSkeleton, NoMatch, ScreenHeader } from "../AdminParts";
+import { ActionNote, ListSkeleton, NoMatch, ScreenHeader, Toolbar } from "../AdminParts";
 import { AdminSections } from "../AdminSections";
 import { FilterSelect, SearchFilters } from "../SearchFilters";
 import { SlaRuleSheet, type SlaRuleTarget } from "./SlaRuleSheet";
@@ -83,6 +85,16 @@ function selectableTypes(caseTypes: CaseTypes, target: SlaRuleTarget) {
   return (caseTypes ?? []).filter((type) => type.is_active || type.id === linked);
 }
 
+function SlaRulesExport({ query, filters, caseTypes }: Omit<BodyProps, "onEdit" | "onClear">) {
+  return (
+    <ExportButton
+      fileName="sure-hedefleri"
+      disabled={!query.data}
+      load={() => slaRulesSheet(filterSlaRules(slaRuleRows(query.data ?? [], caseTypes), filters))}
+    />
+  );
+}
+
 // Yonetim > Sure Hedefleri (docs/UI_GUIDE.md bolum 5.5): arama + suzgec + tablo + sagdan acilan panel
 export function SlaRulesScreen() {
   const rules = useAdminSlaRules();
@@ -101,9 +113,11 @@ export function SlaRulesScreen() {
       <AdminSections active="/admin/sla-rules" />
       <ScreenHeader title="Süre Hedefleri" description={DESCRIPTION} addLabel="Kural ekle" onAdd={() => setTarget({ mode: "create" })} />
       <ActionNote message={lastAction} />
-      <SearchFilters searchLabel="Kural ara" placeholder="Tür adı ara" value={filters} onChange={setFilters}>
-        <PriorityFilter value={filters.priority} onChange={(priority) => setFilters({ ...filters, priority })} />
-      </SearchFilters>
+      <Toolbar action={<SlaRulesExport query={rules} filters={filters} caseTypes={caseTypes.data} />}>
+        <SearchFilters searchLabel="Kural ara" placeholder="Tür adı ara" value={filters} onChange={setFilters}>
+          <PriorityFilter value={filters.priority} onChange={(priority) => setFilters({ ...filters, priority })} />
+        </SearchFilters>
+      </Toolbar>
       <SlaRulesBody
         query={rules}
         filters={filters}

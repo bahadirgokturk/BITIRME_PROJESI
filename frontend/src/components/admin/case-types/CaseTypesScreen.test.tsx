@@ -2,9 +2,10 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
+import { saveXlsx } from "@/lib/exportFile";
 import { createQueryClient } from "@/lib/queryClient";
 import { resetAdminCaseTypes } from "@/mocks/adminCaseTypeHandlers";
 import { resetAdminDepartments } from "@/mocks/adminDepartmentHandlers";
@@ -15,6 +16,20 @@ import { CaseTypesScreen } from "./CaseTypesScreen";
 const MAINTENANCE = "Bakım Onarım ve Peyzaj Şube Müdürlüğü";
 
 type User = ReturnType<typeof userEvent.setup>;
+
+vi.mock("@/lib/exportFile", async (original) => ({
+  ...(await original<typeof import("@/lib/exportFile")>()),
+  saveXlsx: vi.fn(),
+}));
+
+// Son "Excel'e aktar" ile kaydedilen tablo ve dosya adi
+async function exportSheet(user: ReturnType<typeof userEvent.setup>) {
+  vi.mocked(saveXlsx).mockClear();
+  await user.click(await screen.findByRole("button", { name: "Excel'e aktar" }));
+  await waitFor(() => expect(saveXlsx).toHaveBeenCalled());
+  const [sheet, fileName] = vi.mocked(saveXlsx).mock.calls[0] ?? [];
+  return { sheet: sheet!, fileName: fileName! };
+}
 
 function renderScreen() {
   // Tuslar arasinda bekleme yok: uzun metin yazan testler tam takimda zaman asimina dusmesin
@@ -188,5 +203,30 @@ describe("CaseTypesScreen", () => {
 
     expect(await screen.findByText("Bildirim türleri yüklenemedi.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Tekrar dene" })).toBeInTheDocument();
+  });
+});
+
+describe("CaseTypesScreen export", () => {
+  beforeEach(() => {
+    resetAdminCaseTypes();
+    resetAdminDepartments();
+  });
+
+  it("exports case types with category, department, priority and safety note", async () => {
+    const user = renderScreen();
+    await row(/Sabun bitti/);
+
+    const { sheet, fileName } = await exportSheet(user);
+
+    expect(fileName).toMatch(/^bildirim-turleri-/);
+    const power = sheet.rows.find((cells) => cells[0] === "Elektrik arızası");
+    expect(power?.slice(1)).toEqual([
+      "ELECTRICAL_FAILURE",
+      "Teknik",
+      "Bakım Onarım ve Peyzaj Şube Müdürlüğü",
+      "Yüksek",
+      "Evet",
+      "Aktif",
+    ]);
   });
 });

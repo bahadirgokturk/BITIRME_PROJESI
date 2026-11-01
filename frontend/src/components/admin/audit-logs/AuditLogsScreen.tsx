@@ -3,12 +3,20 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { ExportButton } from "@/components/export/ExportButton";
 import { ErrorState } from "@/components/states/ErrorState";
 import { Button } from "@/components/ui/button";
-import { AUDIT_PAGE_SIZE, useAuditLogs, useAuditNameLookup } from "@/hooks/useAuditLogs";
+import {
+  AUDIT_PAGE_SIZE,
+  fetchAllAuditLogs,
+  useAuditLogs,
+  useAuditNameLookup,
+  type AuditQuery,
+} from "@/hooks/useAuditLogs";
+import { auditLogsSheet } from "@/lib/exportSheets";
 import { ENTITY_LABELS, pageSummary, type AuditEntity, type AuditTarget, type NameLookup } from "@/lib/auditLogs";
 
-import { ActionNote, ListSkeleton, NoMatch, ScreenHeader } from "../AdminParts";
+import { ActionNote, ListSkeleton, NoMatch, ScreenHeader, Toolbar } from "../AdminParts";
 import { AdminSections } from "../AdminSections";
 import { FilterSelect } from "../SearchFilters";
 import { AuditLogTable } from "./AuditLogTable";
@@ -131,12 +139,35 @@ function HistoryBar({ name }: { name: string }) {
   );
 }
 
+// Adresteki tek kayit suzgeci varsa o, yoksa secili kayit turu
+function auditFilter(target: AuditTarget | null, kind: AuditEntity | null): Omit<AuditQuery, "page"> {
+  return target ? { entityType: target.entityType, entityId: target.entityId } : { entityType: kind, entityId: null };
+}
+
+interface AuditExportProps {
+  query: Omit<AuditQuery, "page">;
+  lookup: NameLookup;
+  disabled: boolean;
+}
+
+// Ekranda 50'lik sayfa gorunur; dosyaya ayni suzgecle butun kayitlar yazilir
+function AuditExport({ query, lookup, disabled }: AuditExportProps) {
+  return (
+    <ExportButton
+      fileName="islem-kayitlari"
+      disabled={disabled}
+      load={async () => auditLogsSheet(await fetchAllAuditLogs(query), lookup)}
+    />
+  );
+}
+
 // Yonetim > Islem Kayitlari (docs/UI_GUIDE.md bolum 5.5). target: adresteki tek kayit suzgeci (yoksa null)
 export function AuditLogsScreen({ target }: { target: AuditTarget | null }) {
   const [kind, setKind] = useState<AuditEntity | null>(null);
   const [page, setPage] = useState(1);
   const lookup = useAuditNameLookup();
-  const logs = useAuditLogs({ entityType: target?.entityType ?? kind, entityId: target?.entityId ?? null, page });
+  const filter = auditFilter(target, kind);
+  const logs = useAuditLogs({ ...filter, page });
 
   function chooseKind(next: AuditEntity | null) {
     setKind(next);
@@ -148,11 +179,13 @@ export function AuditLogsScreen({ target }: { target: AuditTarget | null }) {
       <AdminSections active={AUDIT_PATH} />
       <ScreenHeader title="İşlem Kayıtları" description={DESCRIPTION} />
       <ActionNote message={null} />
-      {target ? (
-        <HistoryBar name={lookup(target.entityType, target.entityId) ?? `#${target.entityId}`} />
-      ) : (
-        <KindFilter value={kind} onChange={chooseKind} />
-      )}
+      <Toolbar action={<AuditExport query={filter} lookup={lookup} disabled={!logs.data?.total} />}>
+        {target ? (
+          <HistoryBar name={lookup(target.entityType, target.entityId) ?? `#${target.entityId}`} />
+        ) : (
+          <KindFilter value={kind} onChange={chooseKind} />
+        )}
+      </Toolbar>
       <AuditLogsBody
         query={logs}
         lookup={lookup}
