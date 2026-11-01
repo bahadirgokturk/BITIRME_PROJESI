@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { CheckboxFilter } from "@/components/filters/CheckboxFilter";
-import { PageTitle } from "@/components/layout/PageTitle";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { PrintMeta } from "@/components/print/PrintButton";
 import { ErrorState } from "@/components/states/ErrorState";
 import { useDepartments } from "@/hooks/useAnalytics";
@@ -21,7 +21,8 @@ import { PanelSkeleton } from "../dashboard/ChartCard";
 import { PeriodActions } from "../PeriodActions";
 import { DepartmentCard } from "./DepartmentCard";
 
-const GRID_CLASS = "grid gap-4 sm:grid-cols-2 xl:grid-cols-3";
+// Iki sutun: kartta dort sayi tek satira sigar (Figma: 08 Yeni Stil (A) > Birim Performansi)
+const GRID_CLASS = "grid gap-4 lg:grid-cols-2";
 const SKELETON_KEYS = ["d1", "d2", "d3"];
 
 interface DepartmentListProps {
@@ -83,16 +84,12 @@ export function DepartmentPerformance() {
   const [period, setPeriod] = useState<SummaryPeriod>("7d");
   return (
     <div className="mx-auto w-full max-w-[1152px] space-y-4 md:space-y-6">
-      <header className="space-y-2">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <PageTitle>Birim Performansı</PageTitle>
-          <PeriodActions value={period} onChange={setPeriod} />
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Her birimin bu dönemdeki bildirim, süre ve iş yükü durumu. Ayrıntılar için birime tıklayın.
-        </p>
-        <PrintMeta period={period} />
-      </header>
+      <PageHeader
+        title="Birim Performansı"
+        description="Her birimin bu dönemdeki bildirim, süre ve iş yükü durumu. Ayrıntılar için birime tıklayın."
+        meta={<PrintMeta period={period} />}
+        actions={<PeriodActions value={period} onChange={setPeriod} />}
+      />
       <DepartmentBody period={period} />
     </div>
   );

@@ -52,7 +52,19 @@ describe("ReviewQueue", () => {
     expect(within(safety).getByText(/müdüre iletilir/)).toBeInTheDocument();
     expect(within(safety).getByText("Elektrik arızası")).toBeInTheDocument();
     expect(within(safety).getByText("Kritik")).toBeInTheDocument();
-    expect(screen.getByText("3 bildirim")).toBeInTheDocument();
+  });
+
+  // Yeni stil (Figma: 08 Yeni Stil (A)): kuyruk nedene gore sayili sekmelerle suzulur
+  it("filters the queue by reason with counted tabs", async () => {
+    const user = renderQueue();
+    await card(SAFETY);
+
+    const tabs = screen.getByRole("group", { name: "Neden burada" });
+    expect(within(tabs).getByRole("button", { name: "Tümü 3" })).toHaveAttribute("aria-pressed", "true");
+    await user.click(within(tabs).getByRole("button", { name: "Olası tekrar 1" }));
+
+    expect(screen.getByRole("article", { name: DUPLICATE })).toBeInTheDocument();
+    expect(screen.queryByRole("article", { name: SAFETY })).not.toBeInTheDocument();
   });
 
   it("opens the AI decision panel with every agent's reasons and model", async () => {

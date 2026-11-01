@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { PageTitle } from "@/components/layout/PageTitle";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { PrintMeta } from "@/components/print/PrintButton";
 import { ErrorState } from "@/components/states/ErrorState";
 import {
@@ -115,13 +115,12 @@ export function Reports() {
   const [period, setPeriod] = useState<SummaryPeriod>("7d");
   return (
     <div className="mx-auto w-full max-w-[1152px] space-y-4 md:space-y-6">
-      <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-2">
-          <PageTitle>Raporlar</PageTitle>
-          <PrintMeta period={period} />
-        </div>
-        <PeriodActions value={period} onChange={setPeriod} />
-      </header>
+      <PageHeader
+        title="Raporlar"
+        description="Seçilen dönemde kampüsteki bildirimler: nerede, ne kadar sürede, hangi birimde."
+        meta={<PrintMeta period={period} />}
+        actions={<PeriodActions value={period} onChange={setPeriod} />}
+      />
       <ReportsBody period={period} />
     </div>
   );

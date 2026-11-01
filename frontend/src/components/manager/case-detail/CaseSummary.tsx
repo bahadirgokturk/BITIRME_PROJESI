@@ -10,7 +10,7 @@ import { caseInfoFields } from "@/lib/managerCase";
 
 import { RiskBadge } from "../dashboard/DelayRiskCard";
 
-export const CARD_CLASS = "surface p-4";
+export const CARD_CLASS = "surface p-4 md:p-6";
 const INFO_TITLE_ID = "case-info-title";
 const LINK_CLASS = "font-medium text-primary outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50";
 
@@ -19,13 +19,13 @@ export function CaseHeader({ item }: { item: CaseRead }) {
   const sla = caseSla(item);
   return (
     <header className="space-y-2.5">
-      <p className="text-xs text-muted-foreground">
+      <p className="text-xs text-muted-foreground md:text-sm">
         {item.case_number} ·{" "}
         <time dateTime={item.created_at} title={formatDateTime(item.created_at)}>
           {relativeTime(item.created_at)}
         </time>
       </p>
-      <PageTitle size="md">{item.title}</PageTitle>
+      <PageTitle>{item.title}</PageTitle>
       <ul aria-label="Durum" className="flex flex-wrap gap-2">
         <li>
           <CaseStatusBadge status={item.status} />
@@ -57,11 +57,12 @@ export function ReviewNotice() {
   );
 }
 
+// Bilgi satiri: solda ad, sagda deger; satirlar ince cizgiyle ayrilir (Figma: 08 Yeni Stil (A) > Bildirim bilgileri)
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div>
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5 text-sm">{children}</dd>
+    <div className="flex items-start justify-between gap-4 py-2.5 first:pt-0 last:pb-0">
+      <dt className="shrink-0 text-sm text-muted-foreground">{label}</dt>
+      <dd className="min-w-0 text-right text-sm font-medium break-words">{children}</dd>
     </div>
   );
 }
@@ -75,7 +76,7 @@ function DelayRiskField({ item }: { item: CaseRead }) {
   const factors = factorsText(risk);
   return (
     <Field label="Gecikme riski">
-      <span className="flex flex-col gap-1">
+      <span className="flex flex-col items-end gap-1">
         <RiskBadge item={risk} />
         {factors ? <span className="text-xs text-muted-foreground">{factors}</span> : null}
       </span>
@@ -87,10 +88,10 @@ function DelayRiskField({ item }: { item: CaseRead }) {
 export function CaseInfo({ item, showRisk = false }: { item: CaseRead; showRisk?: boolean }) {
   return (
     <section aria-labelledby={INFO_TITLE_ID} className={`${CARD_CLASS} space-y-3`}>
-      <h2 id={INFO_TITLE_ID} className="font-semibold">
+      <h2 id={INFO_TITLE_ID} className="text-base font-semibold">
         Bildirim bilgileri
       </h2>
-      <dl className="space-y-3">
+      <dl className="divide-y">
         {caseInfoFields(item).map((field) => (
           <Field key={field.label} label={field.label}>
             {field.value}

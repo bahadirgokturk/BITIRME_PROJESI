@@ -25,7 +25,7 @@ function ApproveButton({ item, onDone }: ActionProps) {
   return (
     <>
       <Button
-        className="h-11 px-4"
+        className="h-11 px-4 md:h-9"
         disabled={departmentId === undefined || assign.isPending}
         onClick={() =>
           departmentId !== undefined &&
@@ -57,6 +57,7 @@ function SimpleReasonAction({ item, onDone, kind }: ActionProps & { kind: "rejec
       confirm={texts.label}
       mutation={action}
       toBody={(reason) => (kind === "merge" && parent ? { parent_case_id: parent.id, reason } : { reason })}
+      danger={kind === "reject"}
     />
   );
 }

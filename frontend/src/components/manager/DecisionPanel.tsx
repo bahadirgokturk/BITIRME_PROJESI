@@ -1,5 +1,7 @@
 "use client";
 
+import { CheckIcon } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCaseDecisions, type AgentDecision } from "@/hooks/useReview";
@@ -7,6 +9,8 @@ import { ApiError } from "@/lib/api/client";
 import { decisionReasons, decisionTitles, weightDetail, type DecisionReason } from "@/lib/review";
 
 import { Confidence } from "./Confidence";
+
+const CHECK_CLASS = "mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-primary/10 text-primary";
 
 // Agirliklar ve model adi muduru yormasin diye kapali durur; merak eden acar (Figma: DecisionRow > Ayrintilar)
 function DecisionDetails({ reasons, model }: { reasons: DecisionReason[]; model: string }) {
@@ -33,10 +37,15 @@ function DecisionRow({ decision }: { decision: AgentDecision }) {
   const titles = decisionTitles(decision);
   const reasons = decisionReasons(decision.reasons);
   return (
-    <li className="grid gap-2 border-t py-3 first:border-t-0 md:grid-cols-[12rem_1fr_6rem] md:gap-6">
-      <div>
-        <p className="text-xs text-muted-foreground">{titles.agent}</p>
-        <p className="text-sm font-semibold break-words">{titles.decision}</p>
+    <li className="grid gap-2 border-t py-3 first:border-t-0 md:grid-cols-[14rem_1fr_6rem] md:gap-6">
+      <div className="flex items-start gap-2.5">
+        <span aria-hidden className={CHECK_CLASS}>
+          <CheckIcon className="size-3.5" />
+        </span>
+        <div className="min-w-0">
+          <p className="text-xs text-muted-foreground">{titles.agent}</p>
+          <p className="text-sm font-semibold break-words">{titles.decision}</p>
+        </div>
       </div>
       <div className="space-y-1">
         {reasons.length > 0 ? (
@@ -48,13 +57,16 @@ function DecisionRow({ decision }: { decision: AgentDecision }) {
         ) : null}
         <DecisionDetails reasons={reasons} model={decision.model} />
       </div>
-      <Confidence value={decision.confidence} />
+      <div className="md:justify-self-end">
+        <Confidence value={decision.confidence} />
+      </div>
     </li>
   );
 }
 
-// AI karar gerekce paneli (docs/UI_GUIDE.md bolum 5.4): her agent icin karar, guven, gerekceler, model
-export function DecisionPanel({ caseId }: { caseId: number }) {
+// AI karar gerekce paneli (docs/UI_GUIDE.md bolum 5.4): her agent icin karar, guven, gerekceler, model.
+// plain: zaten bir kartin icindeyse (bildirim detayi) gri zemin cizilmez
+export function DecisionPanel({ caseId, plain = false }: { caseId: number; plain?: boolean }) {
   const decisions = useCaseDecisions(caseId, true);
   if (decisions.isPending) {
     // Tipik agent hatti 4-6 adim (~300 px): yuklenirken ayni yer tutulur, alttaki zaman cizelgesi kaymaz (CLS)
@@ -76,7 +88,7 @@ export function DecisionPanel({ caseId }: { caseId: number }) {
     return <p className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">Bu bildirim için yapay zekâ kararı yok.</p>;
   }
   return (
-    <ol aria-label="Yapay zekâ kararları" className="rounded-lg bg-muted px-4 py-1">
+    <ol aria-label="Yapay zekâ kararları" className={plain ? "-my-3" : "rounded-lg bg-muted px-4 py-1"}>
       {decisions.data.map((decision) => (
         <DecisionRow key={decision.id} decision={decision} />
       ))}

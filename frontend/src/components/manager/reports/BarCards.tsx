@@ -21,7 +21,6 @@ import { BarList, type BarItem } from "../BarList";
 import { ChartCard } from "../dashboard/ChartCard";
 import { ShowAllButton, useShowAll } from "./ShowAll";
 
-const NOTE_CLASS = "text-xs text-muted-foreground";
 const EMPTY_CLASS = "text-sm text-muted-foreground";
 
 export function LocationsCard({ locations }: { locations: LocationsRead }) {
@@ -46,14 +45,16 @@ export function SlaCard({ sla }: { sla: SlaRead }) {
   const subtitle = "Hedef süreye (SLA) uyum, önceliğe göre";
   const items: BarItem[] = slaRows(sla).map((row) => ({ ...row, key: row.priority }));
   return (
-    <ChartCard title={slaHeadline(sla)} subtitle={subtitle} className="h-full">
+    <ChartCard
+      title={slaHeadline(sla)}
+      subtitle={subtitle}
+      className="h-full"
+      footer={sla.with_sla === 0 ? null : slaSummary(sla)}
+    >
       {sla.with_sla === 0 ? (
         <p className={EMPTY_CLASS}>Bu dönemde hedef süresi olan bildirim yok.</p>
       ) : (
-        <>
-          <BarList label={subtitle} items={items} />
-          <p className={NOTE_CLASS}>{slaSummary(sla)}</p>
-        </>
+        <BarList label={subtitle} items={items} />
       )}
     </ChartCard>
   );
@@ -72,14 +73,16 @@ export function AgingCard({ aging }: { aging: AgingRead }) {
   }));
   const note = agingNote(aging);
   return (
-    <ChartCard title={agingHeadline(aging)} subtitle={subtitle} className="h-full">
+    <ChartCard
+      title={agingHeadline(aging)}
+      subtitle={subtitle}
+      className="h-full"
+      footer={aging.total_open === 0 ? null : note}
+    >
       {aging.total_open === 0 ? (
         <p className={EMPTY_CLASS}>Şu anda açık bildirim yok.</p>
       ) : (
-        <>
-          <BarList label={subtitle} items={items} />
-          {note && <p className={NOTE_CLASS}>{note}</p>}
-        </>
+        <BarList label={subtitle} items={items} />
       )}
     </ChartCard>
   );

@@ -2,9 +2,9 @@ import type { ReactNode } from "react";
 
 import { cn } from "cn";
 
-// Liste sayfalarinda 24 px, alt sayfalarda (bildirim detayi) 20 px (Figma: 03 Reporter)
+// Liste sayfalarinda 24 px (masaustunde 28 px, yeni stil), alt sayfalarda (bildirim detayi) 20 px (Figma: 03 Reporter)
 const SIZE_CLASS = {
-  lg: "text-2xl",
+  lg: "text-2xl tracking-tight md:text-[28px]",
   md: "text-xl",
 } as const;
 

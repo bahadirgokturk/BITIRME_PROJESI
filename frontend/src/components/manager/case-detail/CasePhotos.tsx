@@ -18,7 +18,7 @@ export function CasePhotos({ caseId }: { caseId: number }) {
   }
   return (
     <section className={`${CARD_CLASS} space-y-3`}>
-      <h2 className="font-semibold">Fotoğraflar</h2>
+      <h2 className="text-base font-semibold">Fotoğraflar</h2>
       <ul className="flex flex-wrap gap-3">
         {photos.map((photo) => (
           <li key={photo.attachment.id} className="space-y-1">

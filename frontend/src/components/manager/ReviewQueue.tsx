@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 
-import { PageTitle } from "@/components/layout/PageTitle";
+import { FilterChips } from "@/components/filters/FilterChips";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { ViewToggle } from "@/components/lists/ListToolbar";
 import { ErrorState } from "@/components/states/ErrorState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useListView } from "@/hooks/useListView";
-import { useReviewQueue } from "@/hooks/useReview";
+import { useReviewQueue, type ReviewItem } from "@/hooks/useReview";
 import type { ListView } from "@/lib/listTools";
+import { inReviewGroup, reviewGroups, type ReviewGroupFilter } from "@/lib/review";
 
 import { ReviewItemCard } from "./ReviewItemCard";
 import { ReviewTile } from "./ReviewTile";
@@ -27,10 +29,12 @@ type QueueQuery = ReturnType<typeof useReviewQueue>;
 interface QueueBodyProps {
   query: QueueQuery;
   view: ListView;
+  group: ReviewGroupFilter;
+  onGroup: (group: ReviewGroupFilter) => void;
   onDone: (message: string) => void;
 }
 
-function QueueBody({ query, view, onDone }: QueueBodyProps) {
+function QueueBody({ query, view, group, onGroup, onDone }: QueueBodyProps) {
   if (query.isPending) {
     return (
       <ul aria-label="İnceleme kuyruğu yükleniyor" aria-busy="true" className="space-y-3">
@@ -56,10 +60,28 @@ function QueueBody({ query, view, onDone }: QueueBodyProps) {
       </div>
     );
   }
+  const tabs = reviewGroups(query.data.items);
+  // Secili grup bosaldiysa (son karti islendi) Tumu gosterilir
+  const active = tabs.some((tab) => tab.value === group) ? group : "all";
+  return (
+    <div className="space-y-4">
+      <FilterChips label="Neden burada" options={tabs} value={active} onChange={onGroup} />
+      <QueueItems items={query.data.items.filter((item) => inReviewGroup(item, active))} view={view} onDone={onDone} />
+    </div>
+  );
+}
+
+interface QueueItemsProps {
+  items: ReviewItem[];
+  view: ListView;
+  onDone: (message: string) => void;
+}
+
+function QueueItems({ items, view, onDone }: QueueItemsProps) {
   const Item = view === "grid" ? ReviewTile : ReviewItemCard;
   return (
     <ul aria-label="İnceleme kuyruğu" data-view={view} className={LIST_CLASS[view]}>
-      {query.data.items.map((item) => (
+      {items.map((item) => (
         <li key={item.case.id}>
           <Item item={item} onDone={onDone} />
         </li>
@@ -72,28 +94,20 @@ export function ReviewQueue() {
   const query = useReviewQueue();
   // Son islemin sonucu ekran okuyucuya da duyurulur (kart kuyruktan kayboldugu icin)
   const [lastAction, setLastAction] = useState<string | null>(null);
+  const [group, setGroup] = useState<ReviewGroupFilter>("all");
   const [view, setView] = useListView("review");
+  const hasItems = query.isSuccess && query.data.total > 0;
   return (
-    <div className="mx-auto w-full max-w-[1120px] space-y-6">
-      <header className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between md:gap-4">
-        <div className="space-y-3">
-          <PageTitle>İnceleme Kuyruğu</PageTitle>
-          <p className="text-sm text-muted-foreground">
-            Yapay zekânın emin olamadığı ya da size iletilen bildirimler. En kritik ve en eski üstte.
-          </p>
-        </div>
-        {/* Bos kuyrukta sayi da gorunum de yok; telefonda ayri satir: solda sayi, sagda gorunum */}
-        {query.isSuccess && query.data.total > 0 ? (
-          <div className="flex shrink-0 items-center justify-between gap-3">
-            <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium">{query.data.total} bildirim</span>
-            <ViewToggle value={view} onChange={setView} />
-          </div>
-        ) : null}
-      </header>
+    <div className="mx-auto w-full max-w-[1120px] space-y-4 md:space-y-6">
+      <PageHeader
+        title="İnceleme Kuyruğu"
+        description="Yapay zekânın emin olamadığı ya da size iletilen bildirimler. En kritik ve en eski üstte."
+        actions={hasItems ? <ViewToggle value={view} onChange={setView} /> : null}
+      />
       <p role="status" className={lastAction ? "rounded-md bg-muted px-3 py-2 text-sm" : "sr-only"}>
         {lastAction}
       </p>
-      <QueueBody query={query} view={view} onDone={setLastAction} />
+      <QueueBody query={query} view={view} group={group} onGroup={setGroup} onDone={setLastAction} />
     </div>
   );
 }
