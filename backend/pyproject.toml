@@ -51,7 +51,7 @@ files = ["app", "seeds"]
 
 [[tool.mypy.overrides]]
 # scikit-learn, joblib, boto3 ve onnxruntime tip bilgisi yayinlamiyor
-module = ["sklearn.*", "joblib", "boto3", "onnxruntime"]
+module = ["sklearn.*", "joblib", "boto3", "botocore.*", "onnxruntime"]
 ignore_missing_imports = true
 
 [tool.ruff]
