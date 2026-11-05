@@ -1,0 +1,269 @@
+import { QueryClientProvider } from "@tanstack/react-query";
+import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { beforeAll, describe, expect, it } from "vitest";
+
+import { apiUrl } from "@/lib/api/client";
+import { createQueryClient } from "@/lib/queryClient";
+import { EVIDENCE_MAX_BYTES } from "@/lib/tasks";
+import { server } from "@/mocks/node";
+import { TASKS } from "@/mocks/taskFixtures";
+
+import { TaskDetail } from "./TaskDetail";
+
+// Her test ayri bir gorevle calisir: sahte API durumu dosya boyunca saklar
+const PENDING = TASKS.filter((item) => item.status === "PENDING");
+const ACCEPTED = TASKS.find((item) => item.status === "ACCEPTED")!;
+const IN_PROGRESS = TASKS.find((item) => item.status === "IN_PROGRESS")!;
+
+// jsdom'da createObjectURL yok (tum tarayicilarda var)
+beforeAll(() => {
+  URL.createObjectURL = () => "blob:kanit";
+});
+
+function renderDetail(taskId: number) {
+  render(
+    <QueryClientProvider client={createQueryClient()}>
+      <TaskDetail taskId={String(taskId)} />
+    </QueryClientProvider>,
+  );
+  return userEvent.setup();
+}
+
+describe("TaskDetail", () => {
+  it("shows the location as the title with the job details", async () => {
+    renderDetail(PENDING[0]!.id);
+
+    expect(await screen.findByRole("heading", { level: 1, name: "B Blok 2. Kat Erkek WC" })).toBeInTheDocument();
+    expect(screen.getByText("CASE-000101")).toBeInTheDocument();
+    expect(screen.getByText("Tuvalette sabun bitmiş")).toBeInTheDocument();
+    expect(screen.getByText("Destek Hizmetleri Şube Müdürlüğü")).toBeInTheDocument();
+    expect(screen.getByText("Düşük")).toBeInTheDocument();
+  });
+
+  // Gorevli ana dugmeleri kaydirmadan gorur; yorumlar dugmelerin altinda kalir
+  it("puts the task actions above the comments", async () => {
+    renderDetail(PENDING[0]!.id);
+
+    const accept = await screen.findByRole("button", { name: "Kabul et" });
+    const comments = screen.getByRole("heading", { name: "Yorumlar" });
+
+    expect(accept.compareDocumentPosition(comments) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("walks a pending task: accept, then start", async () => {
+    const user = renderDetail(PENDING[0]!.id);
+
+    await user.click(await screen.findByRole("button", { name: "Kabul et" }));
+
+    await user.click(await screen.findByRole("button", { name: "Başlat" }));
+
+    expect(await screen.findByRole("button", { name: "Tamamla" })).toBeInTheDocument();
+    expect(screen.getByText("Çalışılıyor")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Reddet" })).not.toBeInTheDocument();
+  });
+
+  it("uploads the evidence photos before completing", async () => {
+    // Onceki test bu gorevi IN_PROGRESS durumuna getirdi
+    const task = PENDING[0]!;
+    const uploaded: FormDataEntryValue[] = [];
+    server.use(
+      http.post(apiUrl(`/cases/${task.case_id}/attachments`), async ({ request }) => {
+        uploaded.push((await request.formData()).get("file")!);
+        return HttpResponse.json({ id: 900 + uploaded.length }, { status: 201 });
+      }),
+    );
+    const user = renderDetail(task.id);
+
+    await user.click(await screen.findByRole("button", { name: "Tamamla" }));
+    const dialog = await screen.findByRole("dialog", { name: "Görevi tamamla" });
+    const input = within(dialog).getByLabelText(/Kanıt fotoğrafı/);
+
+    await user.upload(input, new File(["x".repeat(EVIDENCE_MAX_BYTES + 1)], "buyuk.jpg", { type: "image/jpeg" }));
+    expect(within(dialog).getByRole("alert")).toHaveTextContent("en fazla 10 MB");
+
+    await user.upload(input, new File(["foto"], "sabunluk.jpg", { type: "image/jpeg" }));
+    await user.upload(input, [
+      new File(["foto"], "lavabo.png", { type: "image/png" }),
+      new File(["foto"], "yanlis.webp", { type: "image/webp" }),
+    ]);
+    await user.click(within(dialog).getByRole("button", { name: "yanlis.webp dosyasını kaldır" }));
+    await user.type(within(dialog).getByLabelText("Not (isteğe bağlı)"), "Sabunluklar dolduruldu.");
+    const picked = within(dialog).getByRole("list", { name: "Eklenen dosyalar" });
+    expect(within(picked).getByRole("listitem", { name: "sabunluk.jpg" })).toBeInTheDocument();
+    expect(within(picked).getByRole("listitem", { name: "lavabo.png" })).toBeInTheDocument();
+    expect(within(picked).queryByRole("listitem", { name: "yanlis.webp" })).not.toBeInTheDocument();
+    expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+    await user.click(within(dialog).getByRole("button", { name: "Tamamla" }));
+
+    expect(await screen.findByText("Görev tamamlandı")).toBeInTheDocument();
+    // Test ortaminda (jsdom File + Node Request) dosyanin adi ve icerigi istekte tasinmaz;
+    // burada yalniz her fotograf icin bir yukleme istegi gittigi dogrulanir
+    expect(uploaded).toHaveLength(2);
+  });
+
+  it("does not complete the task when the photo upload fails", async () => {
+    server.use(
+      http.post(apiUrl(`/cases/${IN_PROGRESS.case_id}/attachments`), () =>
+        HttpResponse.json(
+          { error: { code: "CONFLICT", message: "Bu bildirime en fazla 5 fotoğraf eklenebilir.", details: {} } },
+          { status: 409 },
+        ),
+      ),
+    );
+    const user = renderDetail(IN_PROGRESS.id);
+
+    await user.click(await screen.findByRole("button", { name: "Tamamla" }));
+    const dialog = await screen.findByRole("dialog", { name: "Görevi tamamla" });
+    await user.upload(
+      within(dialog).getByLabelText(/Kanıt fotoğrafı/),
+      new File(["foto"], "zemin.png", { type: "image/png" }),
+    );
+    await user.click(within(dialog).getByRole("button", { name: "Tamamla" }));
+
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent("en fazla 5 fotoğraf eklenebilir");
+    expect(screen.queryByText("Görev tamamlandı")).not.toBeInTheDocument();
+    await user.click(within(dialog).getByRole("button", { name: "Vazgeç" }));
+  });
+
+  // Yeni stil (Figma: 08 Yeni Stil (A) > gorev detayi): suresi gecen acik iste ne yapilacagi soylenir
+  it("warns that the target time has passed on an open overdue task", async () => {
+    renderDetail(IN_PROGRESS.id);
+
+    expect(await screen.findByText("Hedef süre geçti.")).toBeInTheDocument();
+  });
+
+  it("does not warn while there is still time", async () => {
+    renderDetail(ACCEPTED.id);
+
+    await screen.findByRole("heading", { level: 1 });
+    expect(screen.queryByText("Hedef süre geçti.")).not.toBeInTheDocument();
+  });
+
+  // Is surerken fotograf hemen bildirime eklenir; tamamlamayi beklemez
+  it("adds an after-work photo while the job is in progress", async () => {
+    const uploaded: FormDataEntryValue[] = [];
+    server.use(
+      http.post(apiUrl(`/cases/${IN_PROGRESS.case_id}/attachments`), async ({ request }) => {
+        uploaded.push((await request.formData()).get("file")!);
+        return HttpResponse.json({ id: 950 }, { status: 201 });
+      }),
+    );
+    const user = renderDetail(IN_PROGRESS.id);
+
+    const input = await screen.findByLabelText("İş sonrası fotoğraf ekle");
+    await user.upload(input, new File(["foto"], "zemin.jpg", { type: "image/jpeg" }));
+
+    expect(await screen.findByText("1 fotoğraf eklendi.")).toBeInTheDocument();
+    expect(uploaded).toHaveLength(1);
+    expect(screen.queryByText("Görev tamamlandı")).not.toBeInTheDocument();
+  });
+
+  it("offers the after-work photo only while the job is in progress", async () => {
+    renderDetail(ACCEPTED.id);
+
+    await screen.findByRole("heading", { level: 1 });
+    expect(screen.queryByLabelText("İş sonrası fotoğraf ekle")).not.toBeInTheDocument();
+  });
+
+  it("explains what is missing when the completed work was sent back", async () => {
+    const sentBack = { ...IN_PROGRESS, id: 778 };
+    server.use(
+      http.get(apiUrl("/tasks/778"), () => HttpResponse.json(sentBack)),
+      http.get(apiUrl(`/cases/${sentBack.case_id}/events`), () =>
+        HttpResponse.json([
+          { id: 1, event_type: "EVIDENCE_REQUESTED", metadata: { task_id: 778, message: "Ne yapıldığını yazın." } },
+        ]),
+      ),
+    );
+
+    const user = renderDetail(778);
+
+    const note = await screen.findByRole("status");
+    expect(note).toHaveTextContent("Eksik kanıt");
+    expect(note).toHaveTextContent("Ne yapıldığını yazın.");
+
+    await user.click(screen.getByRole("button", { name: "Tamamla" }));
+    const dialog = await screen.findByRole("dialog", { name: "Görevi tamamla" });
+    expect(within(dialog).getByText(/Fotoğraf eklersen/)).toBeInTheDocument();
+    await user.click(within(dialog).getByRole("button", { name: "Vazgeç" }));
+  });
+
+  it("shows no missing evidence note on an ordinary task", async () => {
+    renderDetail(PENDING[1]!.id);
+
+    await screen.findByRole("button", { name: "Kabul et" });
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it("shows the evidence photos of a completed task", async () => {
+    const done = { ...IN_PROGRESS, id: 777, status: "COMPLETED", completed_at: new Date().toISOString() };
+    const photo = (id: number, kind: string) => ({ id, case_id: done.case_id, kind, url: `/api/v1/attachments/${id}` });
+    server.use(
+      http.get(apiUrl("/tasks/777"), () => HttpResponse.json(done)),
+      http.get(apiUrl(`/cases/${done.case_id}/attachments`), () =>
+        HttpResponse.json([photo(901, "REPORT"), photo(902, "EVIDENCE"), photo(903, "EVIDENCE")]),
+      ),
+      http.get(apiUrl("/attachments/:id"), () => new HttpResponse("png", { headers: { "Content-Type": "image/png" } })),
+    );
+
+    renderDetail(777);
+
+    expect(await screen.findByRole("img", { name: "Kanıt fotoğrafı 2" })).toHaveAttribute("src", "blob:kanit");
+    expect(screen.getAllByRole("img")).toHaveLength(2);
+    expect(screen.getByText("Kanıt fotoğrafları")).toBeInTheDocument();
+  });
+
+  it("completes a task with an optional note", async () => {
+    const user = renderDetail(IN_PROGRESS.id);
+
+    await user.click(await screen.findByRole("button", { name: "Tamamla" }));
+    const dialog = await screen.findByRole("dialog", { name: "Görevi tamamla" });
+    await user.type(within(dialog).getByLabelText("Not (isteğe bağlı)"), "Zemin kurulandı.");
+    await user.click(within(dialog).getByRole("button", { name: "Tamamla" }));
+
+    expect(await screen.findByText("Görev tamamlandı")).toBeInTheDocument();
+    expect(screen.getByText("Zemin kurulandı.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Tamamla" })).not.toBeInTheDocument();
+  });
+
+  it("declines a task only with a reason", async () => {
+    const user = renderDetail(ACCEPTED.id);
+
+    await user.click(await screen.findByRole("button", { name: "Reddet" }));
+    const dialog = await screen.findByRole("dialog", { name: "Görevi reddet" });
+    const submit = within(dialog).getByRole("button", { name: "Reddet" });
+    expect(submit).toBeDisabled();
+
+    await user.type(within(dialog).getByLabelText("Reddetme nedeni"), "Bu iş teknik ekibin alanına giriyor.");
+    await user.click(submit);
+
+    expect(await screen.findByText("Görev reddedildi")).toBeInTheDocument();
+    expect(screen.getByText("Bu iş teknik ekibin alanına giriyor.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Başlat" })).not.toBeInTheDocument();
+  });
+
+  it("shows the backend message when an action fails", async () => {
+    server.use(
+      http.post(apiUrl(`/tasks/${PENDING[1]!.id}/accept`), () =>
+        HttpResponse.json(
+          { error: { code: "INVALID_TRANSITION", message: "Görev başka birine atandı.", details: {} } },
+          { status: 409 },
+        ),
+      ),
+    );
+    const user = renderDetail(PENDING[1]!.id);
+
+    await user.click(await screen.findByRole("button", { name: "Kabul et" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Görev başka birine atandı.");
+  });
+
+  it("shows the same not found screen for a missing or foreign task", async () => {
+    renderDetail(999999);
+
+    expect(await screen.findByText("Kayıt bulunamadı")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Görevlerime dön" })).toHaveAttribute("href", "/staff/tasks");
+  });
+});

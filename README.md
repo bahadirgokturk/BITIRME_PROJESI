@@ -19,10 +19,128 @@ Tüm süreç event log'a yazılır ve yönetici dashboard'unda KPI / karar deste
 | AI | Python kural motoru, scikit-learn (TF-IDF + Logistic Regression), opsiyonel sentence-transformers & Ollama |
 | DevOps | Docker Compose, GitHub Actions |
 
+## Ekip Arkadaşları İçin Hızlı Başlangıç
+
+Ayrıntılı rehber: **[docs/ONBOARDING.md](docs/ONBOARDING.md)** · Kod kuralları: **[KOD_KURALLARI.md](KOD_KURALLARI.md)**
+
+### En kolay yol: Claude ile kurulum
+
+Repoyu klonladıktan sonra klasörü Claude Code'da açıp şunu yazın:
+
+> `docs/ONBOARDING.md` rehberine göre bilgisayarımı bu proje için hazırla. Önce ortam kontrol
+> scriptini çalıştır, eksikleri tek tek göster ve düzeltmemde bana yardım et.
+
+Claude, repo kökündeki `CLAUDE.md` ve `KOD_KURALLARI.md` dosyalarını otomatik okur; yazdırdığınız
+kod bu kurallara uyar.
+
+### 1. İlk kurulum (bir kez)
+
+Git kimliğini ayarla (commit'lerde görünür):
+
+```bash
+git config --global user.name "Ad Soyad"
+```
+
+```bash
+git config --global user.email "github-e-postan@example.com"
+```
+
+```bash
+git config --global core.autocrlf false
+```
+
+Repoyu **OneDrive dışına** klonla ve klasöre gir:
+
+```bash
+git clone https://github.com/bahadirgokturk/BITIRME_PROJESI.git C:\dev\campusflow
+```
+
+```bash
+cd C:\dev\campusflow
+```
+
+Ortamı kontrol et (Windows / macOS-Linux):
+
+```bash
+powershell -ExecutionPolicy Bypass -File scripts\check-setup.ps1
+```
+
+```bash
+bash scripts/check-setup.sh
+```
+
+> Repoyu varsayılan branch `develop` olmadan önce klonladıysan bir kez `git fetch origin` ve
+> `git checkout develop` çalıştır.
+
+### 2. Her yeni iş için
+
+```bash
+git checkout develop
+```
+
+```bash
+git pull
+```
+
+```bash
+git checkout -b feature/kisa-aciklama
+```
+
+Kodla, test yaz, commit at (ör. `feat(cases): add case creation endpoint`), sonra:
+
+```bash
+git push -u origin feature/kisa-aciklama
+```
+
+GitHub'da **`develop`'a** Pull Request aç ve şablonu doldur. Onay gerekmez: testler (CI) yeşilse
+**kendin Squash and merge** yap. Canlıya (`main`) geçiş Bahadır'ın onayıyla olur. `main` ve `develop`'a
+doğrudan push yapılamaz.
+
+> 💡 **PR şablonunu elle doldurma.** İş bitince Claude'a şunu yaz:
+>
+> ```
+> Bu işi bitirdim. Testleri ve kontrolleri çalıştır, branch'i push'la ve bana PR şablonu doldurulmuş hazır PR linkini ver.
+> ```
+>
+> Claude şablonu yaptığın işe göre (gerçek test sayıları dahil) doldurup bir link verir; linki açınca form
+> **dolu gelir**. Sen okuyup kontrol et, yanlış işaretlenmiş bir kutu varsa düzelt, sonra **Create pull request**.
+
+> 🎨 **Ekran yaparken:** Figma'nın MCP sunucusunu Claude Code'a bağla (bir kez), frame'i seç ve
+> *"campusflow-screen skill'ini kullanarak Figma'da seçili ekranı yap"* de. Ayrıntı: [frontend/README.md](frontend/README.md#claude-ile-ekran-yapmak-önerilen-yol).
+
+### 3. Projeyi çalıştırma
+
+Veritabanı + backend (Docker):
+
+```bash
+docker compose up --build -d
+```
+
+```bash
+docker compose exec backend alembic upgrade head
+```
+
+Frontend (ikinci terminalde, Docker dışında):
+
+```bash
+cd frontend
+```
+
+```bash
+npm ci
+```
+
+```bash
+npm run dev
+```
+
+Frontend: http://localhost:3000 · API dokümanı: http://localhost:8000/docs · Ayrıntı: [docs/ONBOARDING.md](docs/ONBOARDING.md) §5
+
 ## Dokümantasyon
 
 | Doküman | İçerik |
 |---|---|
+| [CLAUDE.md](CLAUDE.md) | AI kod asistanları için proje özeti ve kurallar |
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Mimari, katmanlar, repo ağacı, mimari kararlar (ADR) |
 | [DATABASE.md](docs/DATABASE.md) | ER diyagramı, tablo şemaları, index'ler |
 | [WORKFLOW.md](docs/WORKFLOW.md) | Case/Task state machine, RBAC matrisi |
@@ -36,4 +154,14 @@ Tüm süreç event log'a yazılır ve yönetici dashboard'unda KPI / karar deste
 
 ## Durum
 
-FAZ 0 (mimari & planlama) tamamlandı. Kurulum talimatları FAZ 1'de eklenecek.
+**Test ortamı (staging, `develop`'tan otomatik güncellenir):** https://bitirme-projesi-mu.vercel.app
+Demo hesapları ve staging parolası ekip içinde paylaşılır (repoya yazılmaz). Ücretsiz sunucu boştayken uyur:
+ilk açılış 30–60 sn sürebilir. Ayrıntı: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) bölüm 1.1.
+
+| Bölüm | Durum |
+|---|---|
+| Bildirim akışı (bildirim, görev, SLA, fotoğraf) | ✅ |
+| AI agent'ları (sınıflandırma, tekrar, doğrulama, öncelik, yönlendirme, karar, izleme, iş kontrolü, özet) | ✅ |
+| Analitik ve yönetici raporları | ✅ backend; ekranlar ilerliyor |
+| Staging (Vercel + Render + Neon) | ✅ |
+| Production, kalıcı fotoğraf deposu, gerçek veriyle model değerlendirmesi (RQ1) | ⏳ |

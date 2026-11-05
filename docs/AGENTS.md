@@ -31,6 +31,11 @@ yerel bir "zekâ yığını" kullanılır:
 
 ## 2. Ortak Agent Sözleşmesi
 
+> **Uygulama durumu:** sözleşme `backend/app/agents/base.py` (✅ E5-1), Türkçe normalizasyon
+> `backend/app/agents/text.py` ve Intake Agent `backend/app/agents/intake.py` (✅ E5-2). Model eğitimi (`ai/`)
+> **aynı** `normalize()` fonksiyonunu kullanır: `ai/training/normalization.py` backend'deki fonksiyonu doğrudan
+> yükler, model onu adıyla saklar (✅ E5-3). Normalizasyon değişirse model yeniden eğitilir.
+
 ```python
 class AgentResult(BaseModel, Generic[TOut]):
     agent_name: str
@@ -80,6 +85,25 @@ flowchart TD
 
 Orchestrator sıralı ve basittir (Python fonksiyonları). LangChain/LangGraph kullanılmaz.
 
+✅ **Uygulandı (E5-8b):** `backend/app/services/analysis_service.py`.
+- `POST /cases` yanıtı `ANALYZING` döner; hat yanıttan sonra (`BackgroundTasks`, kendi DB oturumuyla) çalışır:
+  Intake → Classification → Duplicate → Verification → Priority → Routing → Supervisor. Duplicate
+  Classification'dan sonra çalışır (tür eşleşmesi skorun parçası). Her karar aynı `run_id` ile
+  `agent_decisions`'a yazılır.
+- Kararın uygulanması: `AUTO_ASSIGN`/`CREATE_TASK` → `CLASSIFIED` (AI_CLASSIFIED) + `ROUTED` + görev ve SLA
+  (`TaskOpener`, manager atamasıyla ortak) → `ASSIGNED`; `ESCALATE` → `ESCALATED`; `SEND_TO_HUMAN_REVIEW` →
+  `CLASSIFIED` + `needs_human_review`; `REJECT_OUT_OF_SCOPE` → `REJECTED`; `REQUEST_MORE_INFO` → `NEEDS_INFO`
+  (soru `info_request`'e yazılır); `MERGE_WITH_EXISTING_CASE` → `MERGED` (ana bildirime bağlanır, görev
+  açılmaz). Her koşu `SUPERVISOR_DECIDED` olayı bırakır.
+- Bildirim yapan ek bilgi verince (`POST /cases/{id}/info`) hat yeniden çalışır; yanıt açıklamaya eklenir.
+  Agent aynı bildirim için **bir kez** soru sorar; ikinci kez anlaşılmazsa manager'a gider (sonsuz soru döngüsü yok).
+- Bildirim bu arada `ANALYZING` dışına çıktıysa (manager el koydu) hat hiçbir şey yapmaz.
+- Fotoğraf bildirimden sonra ayrı istekle yüklendiği için analiz anında `has_photo=false` (Verification'ın
+  fotoğraf sinyali ileride yeniden analizle kullanılacak). L2 "manager'a bildirim" henüz yalnız kararda
+  (Supervisor çıktısı `notify_manager`, seviyeden hesaplanır; politikada ayrı bir ayar yok); bildirim tablosu FAZ 6.
+- **Acil durum anahtarı:** `AGENTS_ENABLED=false` → hat çalışmaz, bildirim manager'ı bekler (FAZ 4 davranışı).
+- Kararlar: `GET /cases/{id}/decisions` (MANAGER, ADMIN).
+
 ## 4. Agent'lar
 
 ### 4.1 Intake Agent (K1, opsiyonel K3)
@@ -88,27 +112,77 @@ Orchestrator sıralı ve basittir (Python fonksiyonları). LangChain/LangGraph k
   "tuvalet"≈"wc"≈"lavabo" eşanlam sözlüğü), yazım hatası toleransı (`rapidfuzz`),
   regex ile lokasyon ipuçları (`B blok`, `2. kat`, `Z-12`, `erkek/kadın wc`),
   aciliyet sözlüğü (`acil, kıvılcım, duman, yanık kokusu, su basıyor, elektrik çarptı, yangın`).
-- **Çıktı:** `normalized_text, problem_phrase, location_hints[], urgency_hints[], entities{}, location_consistency`
+- **Çıktı (v1.0):** `normalized_text, urgency_hints[], location_hints[], location_consistency, is_meaningful, has_photo`.
+  `problem_phrase` / `entities` ve yazım hatası toleransı (`rapidfuzz`) ileride; karakter n-gram modeli ekli ve
+  hatalı yazımları zaten tolere eder.
+- Başlık boş bırakılınca açıklamanın başından üretilir; Intake o zaman metni iki kez saymaz (uçtan uca denemede
+  "?? !! ... asdf ??" harfler iki kez sayıldığı için "anlaşılır" görünüyordu; şimdi `NEEDS_INFO`).
 - Seçilen lokasyon ile metindeki lokasyon ipucu çelişiyorsa `location_consistency=false` (Verification sinyali).
+  Kontrol: metindeki bina harfi (`b blok`) ve oda kodu (`a101`/`a-101`) seçilen lokasyonun yolunda var mı; ipucu
+  yoksa `null`. Eş anlamlılar yalnız **tam kelime** eşlenir (`wc`/`lavabo` → `tuvalet`).
 
 ### 4.2 Classification Agent (K2 + K1)
 - **Model:** `TfidfVectorizer(analyzer="char_wb", ngram_range=(2,5))` ∪ kelime (1,2)-gram →
   `LogisticRegression(class_weight="balanced")` + `CalibratedClassifierCV` (güvenilir olasılık).
   Karakter n-gram, Türkçe eklemeli yapıya ("sabunluk", "sabunu", "sabunlar") lemmatizer olmadan dayanıklıdır.
 - **Kural katmanı:** Güvenlik sözlüğü eşleşirse (kıvılcım, yangın…) model sonucu ne olursa olsun
-  `ELECTRICAL_FAILURE`/`SECURITY` adayına yükseltilir ve gerekçeye `SAFETY_RULE` eklenir.
+  `ELECTRICAL_FAILURE`/`SECURITY_INCIDENT` adayına yükseltilir ve gerekçeye `SAFETY_RULE` eklenir.
+- **Kapsam dışı:** idari hizmet talepleri (transkript, kayıt, maaş) `OUT_OF_SCOPE` sınıfına düşer; görev
+  oluşturulmaz, kullanıcıya ilgili birim gösterilir ([DEPARTMENTS.md](DEPARTMENTS.md) bölüm 1).
 - **Çıktı:** `case_type_code, category, confidence, top_k[{code, prob}], explanation.top_features[]`
 - **Karar eşiği:** `confidence < policy.min_confidence_auto` → human review.
 - Model dosyası yoksa: anahtar kelime puanlaması (case_types.keywords) → `model="rules@1.0"`.
+- ✅ **Uygulandı (E5-4):** `backend/app/agents/classification.py` + `model_store.py`.
+  - Model `backend/ml_models/classifier/v1/` (ai'de `--publish` ile kopyalanır, ~4 MB sıkıştırılmış).
+  - Yüklenmezse (dosya yok **ya da** scikit-learn sürümü `metrics.json`'dakinden farklı) kural tabanına
+    düşülür. Farklı sürümle kaydedilmiş pickle sessizce yanlış sonuç verebilir; bu yüzden hiç yüklenmez.
+    Backend ve ai aynı sürümü sabitler (`scikit-learn==1.9.1`).
+  - Yalnız girdideki (kurumun aktif) türler arasından seçilir. Güvenlik kuralı (`SAFETY_RULES`: kıvılcım,
+    elektrik çarptı, yanık kokusu → ELECTRICAL_FAILURE; yangın, duman, patlama, gaz kokusu →
+    SECURITY_INCIDENT; su basıyor → WATER_LEAK) model zaten güvenlik türü seçmediyse kararı değiştirir.
+  - Çıktı: `case_type_code, category, top_k (3), matched_keywords, safety_override`; gerekçe kodları
+    `MODEL_PREDICTION | RULE_MATCH | NO_KEYWORD_MATCH | SAFETY_RULE`.
+  - Henüz bildirim akışına bağlı değil: Supervisor ve orchestrator ile birlikte bağlanacak (E5-8).
 
 ### 4.3 Duplicate Agent (K2 + K1)
-1. **Aday üretimi (servis):** aynı organizasyon, terminal olmayan, son 24 saat, aynı bina (path prefix).
+1. **Aday üretimi (servis):** aynı organizasyon, terminal olmayan, son 24 saat, aynı bina (path prefix);
+   yalnız bildirimden **önce** açılmış kayıtlar (geçmiş veri yüklenirken saat geriye gider; sonradan açılan
+   kayıt eski bildirimin kopyası olamaz). Agent da bu kuralı ayrıca uygular.
 2. **Skor:** `dup = 0.45·text_sim + 0.25·type_match + 0.20·location_score + 0.10·time_decay`
    - `text_sim`: TF-IDF kosinüs (varsayılan) veya yerel embedding kosinüs (opsiyonel)
    - `location_score`: aynı alan 1.0, aynı kat 0.6, aynı bina 0.3
    - `time_decay = exp(-Δdakika / τ)`, τ case type'a göre (sabun: 120 dk, su kaçağı: 60 dk)
 - **Eşikler (config):** ≥ 0.80 → `MERGE` önerisi; 0.60–0.80 → olası duplicate, human review; < 0.60 → yeni case.
 - **Çıktı:** `duplicate_probability, possible_parent_case_id, similar_cases[{case_id, score, components}]`
+
+✅ **Uygulandı (E5-6):** `backend/app/agents/duplicate.py`; adaylar `analysis_repository.duplicate_candidates`.
+- **Adaylar:** sorunu hâlâ açık ve sınıflandırılmış bildirimler (`CLASSIFIED, ESCALATED, ASSIGNED, ACCEPTED,
+  IN_PROGRESS, REOPENED`). Çözülmüş bildirimden sonra gelen bildirim sorunun tekrarladığını gösterir, ayrı tutulur.
+- **text_sim:** karakter 3-5 gram **TF** kosinüs (IDF yok), metinler Türkçe normalize edilir. Aday kümesi 2-10
+  metin olduğundan IDF tam da benzerliği gösteren ortak kelimeleri cezalandırıyordu (aynı sorunun farklı
+  yazımları 0,27-0,50'de kalıyordu; TF ile 0,42-0,63).
+- **Konum:** kat, yer kattan derinse vardır (`KMP/A/A-1/A-1-WCE` → kat `A-1`); doğrudan binaya bağlı yerler
+  (yemekhane salonu) aynı bina sayılır. τ: varsayılan 120 dk, `WATER_LEAK` 60 dk.
+- **Ölçülen örnekler** (aynı WC, aynı anda): "Sabun bitmiş" → 0,83 birleştir; "Erkek tuvaletinde sabun yok" →
+  0,74 manager incelesin; aynı yerde "çöp kutusu dolmuş" → 0,44 yeni bildirim. Tür eşleşmesi ayrımı taşır;
+  metin tek başına zayıf ("klima çalışmıyor" / "projeksiyon çalışmıyor" metin benzerliği 0,58).
+- **Uçtan uca denemeden sonra eklenen kurallar (temiz veritabanında 17 senaryo):**
+  - **Noktasal / yayılan sorun:** sabun, kâğıt, çöp, mobilya, projektör gibi noktasal sorunlarda yalnız aynı yer aday
+    olur (başka kattaki sabunluk "olası tekrar" çıkıyordu). Yayılan türler (`SPREADING_TYPES`: Wi-Fi, elektrik, su,
+    asansör, klima, güvenlik, bahçe, yemekhane) başka odadan da bildirilebilir; kat/bina yakınlığı sayılır.
+  - **Aynı nokta kuralı:** noktasal sorunda aynı yerde aynı türde açık bildirim varsa sorun aynıdır; yazım farkı
+    ("sabun bitmiş" / "sabun kalmamış") ayrı sorun yapmaz → skor en az 0,80 (`components.same_spot = 1`). Yayılan
+    türlerde uygulanmaz (yemekhanede "yemek soğuk" ile "kasada kuyruk" ayrı sorun).
+  - **Kapsama:** aynı yerde kısa metnin n-gramları uzun metinde geçiyorsa metin benzerliği kapsama oranıdır
+    ("wifi yok" ⊂ "Kütüphanede wifi yok, hiçbir cihaz bağlanmıyor"); kosinüs uzunluk farkından düşük kalıyordu.
+    Başka yerde uygulanmaz (başka odadan kısa şikâyet otomatik birleşmez, manager karar verir).
+- `duplicate_count` (Verification ve Priority sinyali) = eşik (0,60) üstündeki her benzer bildirim + ona daha
+  önce bağlananlar. Karar kodları `DUPLICATE | POSSIBLE_DUPLICATE | NEW_CASE`; eşikler Supervisor ile ortak.
+- **Birleştirme** (`services/merge.py`, agent ve manager ortak): bildirim `MERGED`, `parent_case_id` dolar, ana
+  bildirimin `duplicate_count`'u artar, iki bildirime de `CASE_MERGED` olayı. Manager olası tekrarı
+  `POST /cases/{id}/merge` ile bağlar; karar `decision_feedback`'e (`field=duplicate`) yazılır.
+- İleride: ana bildirimin önceliği yeni bildirimlerle yeniden hesaplanmıyor (öncelik ilk analizde sabit);
+  bağlanan bildirim sahiplerine ana bildirim kapanınca haber verilmesi bildirim tablosuyla (FAZ 6) gelir.
 
 ### 4.4 Verification Agent (K1)
 Ağırlıklı skor (0..1), her sinyal gerekçeye yazılır:
@@ -124,6 +198,10 @@ Ağırlıklı skor (0..1), her sinyal gerekçeye yazılır:
 
 Başlangıç 0.40. `verification_level`: LOW (<0.4) / MEDIUM / HIGH (≥0.7).
 
+✅ **Uygulandı (E5-7):** `backend/app/agents/verification.py`. Bildirim yapanın geçmişi: en az 3 bildirimi
+varsa değerlendirilir; reddedilen oranı ≤ %10 → +0.10, ≥ %50 → −0.20, arası etkisiz. Skor [0, 1]
+aralığına kırpılır ve 2 ondalığa yuvarlanır. Sayılar (tekrar, geçmiş) girdi olarak gelir; agent DB'ye dokunmaz.
+
 ### 4.5 Priority Agent (K1)
 `impact_score = clamp(Σ sinyal katkıları, 0, 100)`:
 
@@ -138,14 +216,32 @@ Başlangıç 0.40. `verification_level`: LOW (<0.4) / MEDIUM / HIGH (≥0.7).
 | Aciliyet ifadeleri | 0–10 |
 
 Bantlar: LOW 0–39 · MEDIUM 40–64 · HIGH 65–84 · CRITICAL 85–100.
-UI'da her katkı bir bar olarak gösterilir ("neden HIGH?"). Örnek: sabun bitti → ~50 (MEDIUM),
-"prizden kıvılcım çıkıyor" → ≥ 90 (CRITICAL).
+UI'da her katkı bir bar olarak gösterilir ("neden HIGH?").
+
+✅ **Uygulandı (E5-5):** `backend/app/agents/priority.py`. Tablodaki katkılara ek iki **taban**:
+- **Türün başlangıç önceliği** (seed `priority`): skor o bandın altına inmez (asansör arızası en az HIGH).
+  Yalnız formülle asansör ~40 (MEDIUM) çıkıyordu; seed'deki birim önceliğiyle çelişmesin diye.
+- **Metinde güvenlik ifadesi** (Intake aciliyet ipucu / Classification `SAFETY_RULE`): en az 85 (CRITICAL).
+  Türün kendisinin güvenlikle ilgili olması (`is_safety_related`) yalnız +30 verir, tabana çekmez.
+
+Ders saati: hafta içi 08:00–18:00 Türkiye saati (sabit UTC+3) → +5. Sınav haftası takvimi henüz yok.
+Yarım puanlar yukarı yuvarlanır (lokasyon 70 → 10,5 → 11). Örnekler: tek "sabun bitti" (WC, ders saati)
+→ 22 LOW; aynı sabun 5 kişi daha bildirmiş + son 30 günde 4 benzer → 40 MEDIUM; elektrik arızası → ~73 HIGH;
+"prizden kıvılcım çıkıyor" → ≥ 85 CRITICAL.
 
 ### 4.6 Routing Agent (K1)
-1. Departman: `case_types.default_department_id` (override: kategori bazlı kural).
+1. Departman: `case_types.default_department_id` (birincil; görevi alır). `case_types.secondary_department_id`
+   varsa o birim yalnız bilgilendirilir (ör. su taşkını: Bakım Onarım + Destek Hizmetleri). Eşleşme
+   [DEPARTMENTS.md](DEPARTMENTS.md) bölüm 3'teki tablodur; `OUT_OF_SCOPE` için departman yoktur.
 2. Personel: departmandaki aktif STAFF arasından
    `skor = −açık_task_sayısı·w1 − (farklı_bina ? w2 : 0) + son_30g_aynı_tip_tecrübe·w3` en yüksek olan.
 3. Uygun personel yoksa `assigned_user_id=NULL` → departman havuzu + Supervisor'a sinyal.
+
+✅ **Uygulandı (E5-7):** `backend/app/agents/routing.py`. Ağırlıklar (varsayım, gerçek veriyle ayarlanacak):
+w1 = 1 (açık görev başına), w2 = 0,5 (başka binada; aktif görevi yoksa binası bilinmez, ceza yok),
+w3 = 0,2 (son 30 günde aynı türde iş başına, en fazla 5 iş → tecrübe en fazla 1 görevlik yükü dengeler).
+5 ve üstü açık görevi olan personel aday değildir. Eşitlikte küçük kullanıcı id'si. Kararlar:
+`ASSIGN_STAFF | ROUTE_TO_POOL | NO_DEPARTMENT`; gerekçede en iyi 3 aday ve puanları.
 
 ### 4.7 Supervisor Agent (K1 — deterministik karar tablosu)
 Sırayla değerlendirilir, ilk eşleşen kural kazanır:
@@ -155,9 +251,17 @@ Sırayla değerlendirilir, ilk eşleşen kural kazanır:
 | 1 | Metin geçersiz/boş veya verification < 0.2 | `REQUEST_MORE_INFO` |
 | 2 | duplicate_probability ≥ 0.80 | `MERGE_WITH_EXISTING_CASE` |
 | 3 | Policy L3 **veya** priority = CRITICAL **veya** güvenlik kuralı | `ESCALATE` |
-| 4 | classification confidence < min_confidence_auto **veya** 0.60 ≤ dup < 0.80 | `SEND_TO_HUMAN_REVIEW` |
-| 5 | Routing personel buldu | `AUTO_ASSIGN` (L2 ise manager'a bildirim) |
-| 6 | Personel yok | `CREATE_TASK` (departman havuzu) |
+| 4 | Tür `OUT_OF_SCOPE` (idari talep: transkript, maaş…) | `REJECT_OUT_OF_SCOPE` |
+| 5 | classification confidence < min_confidence_auto (bilinmiyorsa da) **veya** 0.60 ≤ dup < 0.80 **veya** Routing birim bulamadı (OTHER) | `SEND_TO_HUMAN_REVIEW` |
+| 6 | Routing personel buldu | `AUTO_ASSIGN` (L2 ise manager'a bildirim) |
+| 7 | Personel yok | `CREATE_TASK` (departman havuzu; L2 ise manager'a bildirim) |
+
+✅ **Uygulandı (E5-8a):** `backend/app/agents/supervisor.py` (saf karar tablosu; uygulamayı orchestrator
+yapar). Sınırlar güvenli tarafa aittir: doğrulama tam 0.20 yeterli, güven tam `min_confidence_auto` yeterli,
+benzerlik 0.60'ın altı yok sayılır. `ESCALATE` ve `SEND_TO_HUMAN_REVIEW` → `needs_human_review`.
+Kural 4 spec'e eklendi (kapsam dışı taleplerin gidecek birimi yok). `safety_term` Classification çıktısından
+gelir: model zaten güvenlik türü seçtiyse karar değişmez ama ifade yine raporlanır.
+Politika: `agent_policies` (tür başına bir satır, seed'den; `min_confidence_auto` varsayılanı 0.70).
 
 Çıktı gerekçesi, tetiklenen kuralı ve diğer agent'ların hangi değerlerinin kullanıldığını içerir.
 
@@ -175,6 +279,19 @@ Sırayla değerlendirilir, ilk eşleşen kural kazanır:
 
 İdempotent: aynı uyarı aynı case için bir kez üretilir (event varlığı kontrolü).
 
+✅ **Uygulandı (E5-10):** `backend/app/agents/monitoring.py` (saf karar tablosu) + `services/monitoring_service.py`.
+- **SLA:** durum `services/sla.py`'deki okuma anı hesabından (`AT_RISK`/`BREACHED`, kuralın uyarı yüzdesiyle).
+  Uyarı → `SLA_WARNING`; aşım → `SLA_BREACHED` + `ESCALATED` olayı, `escalation_level += 1`, durum değişmez. Aşımda
+  geç uyarı üretilmez. Çözülmüş/kapalı bildirimler izlenmez.
+- **Kabul edilmeyen görev** (`ASSIGNED`, `response_due_at` geçti) → `REASSIGN_RECOMMENDED`; öneri Routing Agent'ın
+  aynı birimden, şu anki personel hariç seçtiği kişi (`suggested_user_id`, yoksa boş). Her atama için bir kez.
+- **ANALYZING ≥ 5 dk** → agent hattı yeniden çalışır. Hat kapalıysa (`AGENTS_ENABLED=false`) izlenmez (manager bekler).
+- **NEEDS_INFO ≥ 48 sa** → `REJECTED` (`CASE_REJECTED`, aktör monitoring).
+- Eylem üreten her kontrol `agent_decisions`'a yazılır (`agent_name=monitoring`); eylemsiz turlar yazılmaz.
+- **Zamanlayıcı:** uygulama içi asyncio döngüsü (`MONITORING_ENABLED`, `MONITORING_INTERVAL_SECONDS=300`); tur
+  oturum seviyesi Postgres advisory lock ile tek sunucuda çalışır. Veritabanı hatası döngüyü durdurmaz.
+- Staff/manager'a **bildirim** (e-posta, uygulama içi) FAZ 6 bildirim tablosuyla; şimdilik olay kaydında.
+
 ### 4.9 Resolution Agent (K1)
 Girdi: completion_note, kanıt fotoğrafı var mı, çalışma süresi, case type.
 - Not çok kısa (< 10 karakter) ve fotoğraf yok → `needs_more_evidence`
@@ -182,6 +299,18 @@ Girdi: completion_note, kanıt fotoğrafı var mı, çalışma süresi, case typ
 - Notta olumsuz ifade ("yapılamadı", "parça yok", "tedarik") → `reopen` / escalation önerisi
 - Aksi halde `resolved` → VERIFICATION → CLOSED
 Fotoğrafın AI ile doğrulanması MVP dışı (ileride yerel görsel model eklenebilir).
+
+✅ **Uygulandı (E5-11):** `backend/app/agents/resolution.py` + `services/resolution_service.py` (görev tamamlanınca
+eşzamanlı çalışır; kural tabanlı, hızlı).
+- Sıra: notta olumsuz ifade (`yapılamadı, giderilemedi, onarılamadı, çözülemedi, parça yok, malzeme yok, tedarik`…,
+  normalize metinde tam kelime) → `REOPEN` (fotoğraf olsa da). Sonra **kanıt fotoğrafı** (o görevin personelinin
+  eklediği `EVIDENCE`) varsa → `RESOLVED`; fotoğraf kısa notu ve kısa süreyi telafi eder. Yoksa not < 10 karakter
+  ya da süre alt sınırın altındaysa → `NEEDS_MORE_EVIDENCE`.
+- Süre alt sınırı (varsayım, gerçek veriyle ayarlanacak): varsayılan 2 dk; asansör 10, elektrik ve klima 5 dk.
+  Süre = görevin başlatılmasından tamamlanmaya.
+- Kanıt **bir kez** istenir; ikinci kez yetersizse manager karar verir (sonsuz döngü yok).
+- `REOPEN` → `REOPENED` (`reopened_count` artar) → `ESCALATED`; personel ataması kalkar.
+- Kararlar `agent_decisions`'a (`agent_name=resolution`); manager kapatırsa `decision_feedback` (`field=resolution`).
 
 ### 4.10 Analytics Summary Agent (K1 şablon + opsiyonel K3)
 - Backend KPI JSON'unu hesaplar; agent **SQL üretmez, DB'ye erişmez**.
@@ -193,13 +322,47 @@ Fotoğrafın AI ile doğrulanması MVP dışı (ileride yerel görsel model ekle
   sayı varsa LLM çıktısı atılır, şablon metin döner. Nedensellik ifadeleri ("çünkü", "nedeniyle")
   yerine "ilişkili olabilir" dili zorunlu tutulur.
 
+✅ **Uygulandı (E5-12, agent):** `backend/app/agents/analytics_summary.py` + `agents/providers/ollama.py`.
+- Girdi [ANALYTICS.md](ANALYTICS.md) bölüm 5 şeması (`SummaryInput`); boş alanın cümlesi yazılmaz (uydurulmaz).
+  Her cümle dayandığı alanla döner (`sentences[{field, text}]`, izlenebilirlik).
+- LLM koruması: çıktıdaki her sayı girdi JSON'unda ya da şablon metninde olmalı (şablonun türettiği "5 saat 10
+  dakika" da geçerli); tarih noktaları ayırıcı sayılır. Nedensellik sözlüğü (`çünkü, nedeniyle, yüzünden,
+  sebebiyle, dolayı`) normalize metinde aranır. Red ya da ulaşılamama → şablon metin + gerekçe
+  (`LLM_REJECTED_NUMBERS | LLM_REJECTED_CAUSAL | LLM_UNAVAILABLE`).
+- `LLM_PROVIDER=none` (varsayılan) → yalnız şablon. `ollama` → `OLLAMA_URL`/`OLLAMA_MODEL`, sıcaklık 0, 20 sn zaman
+  aşımı, yalnız http/https; ek bağımlılık yok (standart kütüphane).
+- `POST /analytics/summary` endpoint'i KPI servisi (E6-2) ile bağlanır; agent hazır.
+
+### 4.11 Vision Agent (K2, fotoğraftan tür önerisi)
+
+**Amaç:** bildirim formunda fotoğraf çekilince sorun türünü önermek ("Sabun bitti mi?"); öğrenci tek
+dokunuşla açıklamayı doldurur. **Yalnız öneridir:** türü yine Classification Agent metinden belirler.
+
+- **Model:** CLIP ViT-B/32 görüntü kodlayıcısı (ONNX, int8, 89 MB, MIT lisansı), zero-shot: eğitim verisi
+  gerekmez. Her tür için İngilizce tarif cümleleri `backend/ml_models/vision/v1/prompts.yaml`'da; cümle
+  vektörleri `ai/training/vision_prompts.py` ile bir kez üretilir (`prompts.npz`). Sunucuda yalnız görüntü
+  modeli çalışır; metin modeli girmez.
+- **Karar:** benzerlikler ×100 (CLIP sıcaklığı) → softmax; tür skoru, türün cümlelerine düşen olasılıkların
+  toplamı. En olası tür ≥ 0,35 değilse ya da kazanan `_NONE` (kişi, bina dışı, ekran görüntüsü) ise öneri
+  yok; en fazla 3 öneri, ilk dışındakiler ≥ 0,10.
+- **Kapsam:** 14 görsel tür. Güvenlik olayı, kayıp eşya, diğer ve kapsam dışı fotoğraftan anlaşılmaz;
+  turnike tarifleri asansör paneline karıştığı için çıkarıldı.
+- **Kaynak:** ilk fotoğrafta yüklenir (~180 MB, 1 iş parçacığı), fotoğraf başına ~90 ms (CPU). Model dosyası
+  Docker imajı kurulurken sabit sürümden indirilir, SHA-256 tutmazsa imaj kurulmaz. Dosya yoksa (CI) uç
+  `available: false` döner, sistemin geri kalanı etkilenmez.
+- **Ön deneme (01.11.2026):** Wikimedia Commons'tan 30 rastgele fotoğraf (10 tür × 3): öneri verilen 24'ün
+  21'inde ilk öneri doğru, 6'sında "anlaşılamadı". Tarifler bu fotoğraflara bakılarak düzeltildiği için bu
+  bir ölçüm değildir; ölçüm kampüste çekilen fotoğraflarla yapılır.
+
 ## 5. Autonomy Policy
 
 | Seviye | Anlam | Örnek case type'lar |
 |---|---|---|
-| L1_AUTONOMOUS | Agent karar verir ve uygular | SOAP_EMPTY, TOILET_PAPER_EMPTY, TRASH_FULL, AREA_DIRTY |
-| L2_NOTIFY | Agent uygular, manager bilgilendirilir | PROJECTOR_FAILURE, AIR_CONDITIONER_FAILURE, WIFI_FAILURE, FURNITURE_DAMAGE, OTHER |
-| L3_ESCALATE | Agent `ESCALATE` kararı verir, insan karar verir | ELECTRICAL_FAILURE, WATER_LEAK (yüksek şiddet), güvenlik |
+| L1_AUTONOMOUS | Agent karar verir ve uygular | SOAP_EMPTY, TOILET_PAPER_EMPTY, TRASH_FULL, AREA_DIRTY, LOST_ITEM, GREEN_AREA, OUT_OF_SCOPE (yönlendirme) |
+| L2_NOTIFY | Agent uygular, manager bilgilendirilir | AIR_CONDITIONER_FAILURE, ELEVATOR_FAILURE, FURNITURE_DAMAGE, WIFI_FAILURE, COMPUTER_FAILURE, PROJECTOR_FAILURE, ACCESS_CONTROL_FAILURE, CAFETERIA_ISSUE, OTHER |
+| L3_ESCALATE | Agent `ESCALATE` kararı verir, insan karar verir | ELECTRICAL_FAILURE, WATER_LEAK, SECURITY_INCIDENT |
+
+Tam liste, kategoriler ve birim eşleşmesi: [DEPARTMENTS.md](DEPARTMENTS.md) (üniversitenin görev tanımlarından).
 
 `agent_policies` tablosundan okunur; admin panelinden değiştirilebilir (değişiklik `audit_logs`'a yazılır).
 
@@ -212,6 +375,15 @@ Fotoğrafın AI ile doğrulanması MVP dışı (ileride yerel görsel model ekle
    metin bildirim toplanır, ekip tarafından 2 kişi bağımsız etiketler (Cohen's kappa raporlanır).
 3. **Değerlendirme dürüstlüğü:** Test seti **yalnızca gerçek veriden** oluşur (sentetik veri ile test
    etmek başarıyı şişirir). Eğitim: sentetik + gerçeğin eğitim kısmı.
+   **Uygulandı (E5-3):** `ai/generators/synthesize.py` (19 tür × 160 = 3.040 örnek, tohumlu), `ai/training/`.
+   Sentetik ölçüm **şablon bazlı 5 katlı çapraz doğrulama** ile yapılır: bir şablonun bütün örnekleri aynı
+   parçadadır, model test cümlesinin şablonunu hiç görmez (rastgele bölme aynı cümleyi farklı lokasyonla iki
+   tarafa koyar, sonucu şişirir). Model v1 (`ai/models/classifier/v1/metrics.json`): accuracy **0,82 ± 0,03**,
+   macro-F1 **0,82 ± 0,03**, tek tahmin p50 ≈ 15 ms. En zayıf türler OTHER, ELECTRICAL_FAILURE,
+   SECURITY_INCIDENT (karışanlar: güvenlik ↔ kayıp eşya, bahçe ↔ su). İlk denemede her anahtar kelime tek
+   şablonda geçtiği için sonuç 0,63'tü; şimdi her seed anahtar kelimesi türünün en az 3 şablonunda geçer
+   (testle korunur). **Bu sayılar sentetik veridedir**; gerçek başarı Google Form verisiyle
+   `training/evaluate_model.py` ile ölçülür.
 4. **Karşılaştırmalı deney (tez için):** (a) yalnız kural, (b) TF-IDF+LR, (c) embedding+LR →
    accuracy, macro-F1, confusion matrix, gecikme (ms). Sonuçlar `ai/models/.../metrics.json` ve `ml_models`.
 5. **Yeniden eğitim döngüsü:** `decision_feedback` → `scripts/export_feedback.py` → eğitim → yeni versiyon;

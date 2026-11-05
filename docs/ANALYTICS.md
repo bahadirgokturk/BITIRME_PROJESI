@@ -21,35 +21,81 @@ süre metriklerine dahil edilmez (sayım metriklerinde ayrı gösterilir).
 | Automation Rate | Supervisor kararı `AUTO_ASSIGN`/`CREATE_TASK` olan **ve** kapanışa kadar `DECISION_OVERRIDDEN` veya manuel atama olmayan case / analiz edilen case |
 | Human Review Rate | `SEND_TO_HUMAN_REVIEW` + `ESCALATE` kararlı case / analiz edilen case |
 
-Her KPI önceki eşit uzunluktaki dönemle karşılaştırılır (`delta_pct`).
+Her KPI önceki eşit uzunluktaki dönemle karşılaştırılır (`delta_pct`; önceki değer 0 ya da yoksa `null`).
+
+**Uygulamadaki netleştirmeler** (`backend/app/analytics/`, E6-2):
+
+| Konu | Karar |
+|---|---|
+| Dönem | `from`–`to` Europe/Istanbul günleri, iki uç dahil; sorgular `[başlangıç, bitiş)` yarı açık aralık |
+| Süre metrikleri | Ölçülen olay dönemde olanlar: çözüm süresi dönemde **çözülenler**, ilk yanıt dönemde **kabul edilenler**, atama dönemde **atananlar** |
+| Open Cases | Dönem sonundaki (bugünse şu anki) açık sayı: o ana kadar açılmış, kapanmamış; REJECTED/MERGED hiç açık sayılmaz. Önceki değer = önceki dönemin sonu |
+| Cases Today | Bugün; önceki değer dün |
+| SLA Compliance | Dönemde kapanan ve `due_at`'i olan bildirimler |
+| SLA Breach | Dönemde açılan ve `due_at`'i olan bildirimler içinde `SLA_BREACHED` olayı olanlar |
+| Automation / Human Review | Dönemde açılan ve Supervisor'dan geçen bildirimler; her bildirimin **son** Supervisor kararı. "İnsan dokundu" = `DECISION_OVERRIDDEN` olayı ya da kullanıcının yaptığı `TASK_CREATED`/`TASK_REASSIGNED` |
+| Sayım dışı | MERGED tüm sayımlardan, REJECTED ayrıca süre metriklerinden düşer |
 
 ## 2. Raporlar
 
 - **Trend:** `date_trunc(granularity, created_at)` bazında sayım; açılan vs kapanan iki seri.
 - **Kategori dağılımı:** category → case_type kırılımı.
 - **Lokasyon analizi:** `locations.path` ile bina / kat / alan seviyesinde toplama (heatmap: bina × kategori).
+  Seviye derinlikten değil türden bulunur: bina = yoldaki `BUILDING` (yoksa kampüsün doğrudan alt düğümü, ör. bahçe);
+  kat = yoldaki `FLOOR` (yoksa binası); alan = lokasyonun kendisi.
 - **Çözüm süresi:** kategori bazında avg, median (`percentile_cont(0.5)`), p90 (`percentile_cont(0.9)`).
 - **Aging:** açık case'ler `now − created_at` → 0–2, 2–6, 6–12, 12–24, 24+ saat kovaları.
 - **Departman performansı:** case sayısı, avg/median çözüm, SLA uyumu, açık iş yükü, personel başına açık task.
+  Kurumun tüm aktif birimleri satır olarak döner (bildirimi olmayan da). Açık görev = `PENDING/ACCEPTED/IN_PROGRESS`
+  (anlık); aktif personel = birimdeki aktif `STAFF`; personeli olmayan birimde oran `null`.
 - **Recurring problems:** son 30 gün, `(location_id, case_type_id)` grubunda `count ≥ RECURRING_THRESHOLD`
   (varsayılan 5; config). Çıktı: lokasyon yolu, tip, sayı, son olay, ortalama çözüm süresi, trend.
   Örn. *B Blok / 2. Kat / Erkek WC — SOAP_EMPTY — 17 case*. Öneri metni: "Kalıcı çözüm (dispenser
   kapasitesi / periyodik kontrol) değerlendirilebilir."
+  Uygulama: pencere, filtredeki `to` gününe kadarki son 30 gün (`from` kullanılmaz). MERGED (aynı olayın
+  kopyası) ve REJECTED (gerçek bir kampüs sorunu değil, ör. kapsam dışı talep) kayıtlar sayılmaz.
+  Trend: pencerenin ikinci yarısı ilk yarısından fazlaysa `up`, azsa `down`.
+  Öneri metni kategoriye göre (`core/messages.py` `RECURRING_SUGGESTIONS`); karar değil öneridir.
+  Doğrulama (RQ4): boş veritabanına yüklenen 60 günlük demo geçmişinde gömülü 4 örüntünün 4'ü de bulundu.
+  **Önleyici bakım önerisi:** aynı grupta ardışık iki bildirim arasındaki **ortanca** süre
+  (`median_interval_hours`) ve buna göre rutin kontrol sıklığı (`routine_every_days` = ortanca aralığın
+  tam gün kısmı, en az 1; sorun dönmeden önce kontrol edilsin diye aşağı yuvarlanır). Ortanca kullanılır:
+  tek bir uzun boşluk (ör. tatil) ortalamayı şişirmez. Metin (`routine_suggestion`): "Genellikle 2 günde
+  bir tekrarlıyor; 2 günde bir rutin kontrol planlanabilir." (bir günden kısa aralıkta "her gün").
 - **Süreç analitiği (event log):** ardışık event çiftleri arasındaki ortalama/medyan süre
   (ör. `TASK_CREATED → TASK_ACCEPTED`) → en uzun adım = darboğaz. Departman bazında karşılaştırma.
+  Uygulama: dönemde açılan bildirimler; 5 adım `CASE_CREATED → TASK_CREATED → TASK_ACCEPTED → WORK_STARTED →
+  WORK_COMPLETED → CASE_CLOSED`. Adım süresi = başlangıç olayının ilk görülmesinden ondan sonraki ilk bitiş
+  olayına (yeniden atama ilk süreyi bozmaz). Darboğaz = medyanı en uzun adım; departman karşılaştırması
+  `department_id` filtresiyle yapılır.
+- **Süreç haritası (süreç madenciliği, `GET /analytics/process-map`):** dönemde açılan bildirimlerin (MERGED
+  hariç) iş olayları zaman sırasıyla bir iz oluşturur; arka arkaya aynı olay bir kez sayılır. Haritadaki
+  adımlar: bildirim, bilgi isteği/cevabı, müdür incelemesi, yöneticiye iletme, görev oluşturma/ret/yeniden
+  atama/kabul, işe başlama, ek kanıt, tamamlama, kapanış, yeniden açılma, ret. Agent'ların her bildirimde
+  aynı sırayla yazdığı iç olaylar, yorumlar ve SLA uyarıları girmez. Çıktı: doğrudan-takip okları (A'dan
+  hemen sonra B: kaç kez, A'nın görüldüğü andan ortanca bekleme) ve en sık 10 yol (varyant; pay ve ortanca
+  toplam süre). Örnek (60 günlük demo, 484 bildirim): düz yol %59,9 / 55 dk; yöneticiye iletilen yollar
+  7–25 saat sürüyor → darboğaz iletme sonrası bekleme.
+- **Gecikme riski (`GET /analytics/delay-risk`):** açık bildirimin hedef süreyi aşma olasılığı. Model kurumun
+  son 180 gününden öğrenir: kapanmış bildirimler örnek, "çözüm hedeften sonra mı" etikettir. Özellikler yalnız
+  açılış anında bilinenler (tür kategorisi, öncelik, birim, hafta sonu/mesai dışı, birimin o anki açık iş
+  sayısı, hedef süre); sonradan öğrenilen bilgi girmez. Ölçeklenmiş özellikler + lojistik regresyon
+  (açıklanabilir: gerekçe = katsayı × değeri en yüksek 3 özellik). Ölçüm zaman sıralı: eski %70 ile eğit, en
+  yeni %30'da ROC-AUC. Seviye: olasılık ≥ 0,60 HIGH, ≥ 0,35 MEDIUM. 40'tan az kapanmış bildirim ya da tek sınıf
+  (hiç gecikme yok) → model kurulmaz. Demo (yerel, 425 kapanmış bildirim): AUC 0,85, gecikme oranı %28.
 
 ## 3. Agent Performansı
 
 | Metrik | Tanım |
 |---|---|
-| Classification accuracy | AI tahmini = nihai (insan onaylı/düzeltilmiş) case_type olan / etiketli case. Seed verisinde `ground_truth` alanı ile; canlıda override yoksa onaylanmış kabul edilir (varsayım raporlanır) |
+| Classification accuracy | Dönemde açılan bildirimlerde Classification Agent'ın **son** tahmini = bildirimin son türü olan / tahmin. Gerçek tür etiketi saklanmadığı için (demo geçmişi dahil) manager'ın düzeltmediği tahmin doğru sayılır → **iyimser** ölçüm; RQ1'in dürüst cevabı gerçek test setindeki offline değerlendirmedir |
 | Macro-F1 (offline) | `ml_models.metrics_json` — gerçek test seti |
 | Average confidence | classification kararlarının ortalama confidence'ı; doğru/yanlış tahminler için ayrı (kalibrasyon grafiği) |
 | Automatic routing rate | Routing önerisi değiştirilmeden uygulanan / toplam |
 | Routing accuracy | Nihai departman = önerilen departman / toplam |
 | Human review rate | yukarıda |
-| Decision override rate | `decision_feedback` sayısı / ilgili agent karar sayısı (agent bazında) |
-| Duplicate detection precision / recall | Seed'de bilinen duplicate kümelerine göre; canlıda manager onay/ret |
+| Decision override rate | Dönemde verilen kararlardan `decision_feedback`'e bağlananlar / karar sayısı (agent bazında). Ortalama güven aynı tabloda (yalnız güven üreten agent'lar) |
+| Duplicate detection precision / recall | Uygulanan: precision = tekrar diye işaretlenip (DUPLICATE ya da POSSIBLE_DUPLICATE, son karar) birleştirilen / işaretlenen; inceleme kuyruğunda bekleyenler sayılmaz. Kesin tekrar otomatik birleştiği için doğru kabul edilir. Recall için bilinen küme etiketi gerekir: offline ölçüm elle kurulan cümle çiftleriyle yapılır (`docker compose exec -T backend python -m scripts.eval_duplicates < ciftler.csv`; şablon `backend/scripts/templates/duplicate_pairs.csv`). Her çift gerçek Duplicate Agent'tan geçer; otomatik birleştirme (≥ 0,80) ve müdüre soran dahil (≥ 0,60) için precision, recall, F1 |
 | Automation rate | yukarıda |
 
 ## 4. Araştırma Soruları ↔ Metrikler
@@ -57,7 +103,7 @@ Her KPI önceki eşit uzunluktaki dönemle karşılaştırılır (`delta_pct`).
 | RQ | Ölçüm |
 |---|---|
 | RQ1 Sınıflandırma doğruluğu | Offline: gerçek test setinde accuracy, macro-F1, confusion matrix; kural vs ML karşılaştırması. Online: classification accuracy |
-| RQ2 Routing doğruluğu | Routing accuracy, reassignment oranı |
+| RQ2 Routing doğruluğu | Offline: aynı gerçek test setinde tahmin edilen türün birimi (seed `primary`) beklenen birimle aynı mı; tür yanlış ama birim doğruysa doğru sayılır. Ayrıca başka birime giden, birimsiz kalan ve gereksiz yere birime giden sayısı; model ve anahtar kelime yöntemi yan yana (`training.real_data evaluate` çıktısında). Online: reassignment oranı |
 | RQ3 İnsan müdahalesinin azalması | Automation rate, human review rate, override rate; "tamamen manuel" senaryoya göre insan dokunuşu sayısı |
 | RQ4 Tekrarlayan problemler & darboğazlar | Recurring problems raporu (seed'e gömülü pattern'lerin bulunma oranı), süreç analitiği darboğaz adımı |
 | RQ5 Süre & SLA ölçülebilirliği | Tüm lifecycle zaman damgalarının event log'dan türetilebilmesi, SLA compliance / breach, aging |

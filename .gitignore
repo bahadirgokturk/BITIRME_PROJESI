@@ -1,0 +1,50 @@
+# Secrets
+.env
+.env.*
+!.env.example
+# Gizli olmayan gelistirme varsayilanlari (NEXT_PUBLIC_API_URL)
+!frontend/.env.development
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+playwright-report/
+test-results/
+
+# Uploads and local data
+/storage/
+/backend/storage/
+ai/data/raw/
+# Gercek (Google Form) cumleleri acik repoya girmez (KVKK, form metni); yalniz sayisal sonuclar
+ai/data/labeled/*.csv
+# Tohumla yeniden uretilir (python -m training.train_classifier); metrics.json repoda kalir
+ai/data/synthetic/*.csv
+ai/models/**/model.joblib
+
+# Editors / OS
+.idea/
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# CLIP metin modeli ve tokenizer (vision_prompts indirir; sabit surum, SHA-256 dogrulanir)
+ai/models/clip/

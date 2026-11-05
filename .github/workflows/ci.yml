@@ -1,0 +1,207 @@
+# Her PR'da lint + tip + test (docs/DEPLOYMENT.md bolum 4)
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  repo:
+    name: repo (ASCII comments, scripts)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - name: ASCII comment check (KOD_KURALLARI kural 3)
+        run: uv run --no-project python scripts/check_ascii_comments.py backend ai frontend/src scripts
+      - name: Lint scripts
+        run: |
+          uvx ruff check scripts
+          uvx ruff format --check scripts
+      - name: Test scripts
+        # pyyaml: DEPARTMENTS.md <-> seed YAML uyum testi (scripts/tests/test_departments_sync.py)
+        run: uvx --with pyyaml pytest -q scripts/tests
+
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DATABASE_URL: postgresql+psycopg://campusflow:campusflow@localhost:5432/campusflow
+      # Yalniz CI testleri icin; gercek ortam anahtarlari GitHub Environments'ta tutulur
+      JWT_SECRET: ci-only-test-secret-not-used-anywhere-else-000
+    steps:
+      - uses: actions/checkout@v5
+      # services: yerine: imaj indirme hatasinda yeniden dener (.github/actions/postgres)
+      - uses: ./.github/actions/postgres
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: Ruff
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+      - name: Mypy
+        run: uv run mypy
+      - name: Alembic upgrade / downgrade / upgrade
+        run: |
+          uv run alembic upgrade head
+          uv run alembic downgrade base
+          uv run alembic upgrade head
+          uv run alembic check
+      - name: Collected test count (KOD_KURALLARI kural 9)
+        run: uv run pytest --co -q | tail -1
+      - name: Pytest
+        run: uv run pytest --cov=app --cov-report=term-missing
+
+  ai:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ai
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: Ruff
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+      - name: Mypy
+        run: uv run mypy
+      - name: Collected test count
+        run: uv run pytest --co -q | tail -1
+      - name: Pytest
+        run: uv run pytest
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  # Uctan uca ana senaryo (docs/PROJECT_PLAN.md E7-1): sahte API ile kosar, backend gerekmez
+  e2e:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+
+  # Gercek backend ile uctan uca senaryolar (docs/TESTING.md "E2E Ana Senaryo"): agent'lar gercekten karar verir.
+  # Backend Docker'siz, backend job'undaki gibi calisir (Docker Hub indirme sinirina takilmamak icin).
+  e2e-real:
+    name: e2e-real (real backend + agents)
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql+psycopg://campusflow:campusflow@localhost:5432/campusflow
+      # Yalniz CI icin; gercek ortam anahtarlari GitHub Environments'ta tutulur
+      JWT_SECRET: ci-only-test-secret-not-used-anywhere-else-000
+      SEED_DEMO_PASSWORD: ci-only-demo-parola-000
+      # Senaryolar frontend'i bu adreste acar (frontend/playwright.real.config.ts)
+      CORS_ORIGINS: http://localhost:3000
+      STORAGE_LOCAL_PATH: /tmp/campusflow-storage
+      # Periyodik izleme senaryonun ortasinda bildirimlere dokunmasin
+      MONITORING_ENABLED: "false"
+    steps:
+      - uses: actions/checkout@v5
+      # services: yerine: imaj indirme hatasinda yeniden dener (.github/actions/postgres)
+      - uses: ./.github/actions/postgres
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Backend (migration, seed, start)
+        working-directory: backend
+        run: |
+          mkdir -p "$STORAGE_LOCAL_PATH"
+          uv sync --frozen
+          uv run alembic upgrade head
+          uv run python -m seeds.run --demo
+          nohup uv run uvicorn app.main:create_app --factory --port 8000 > "$RUNNER_TEMP/backend.log" 2>&1 &
+          for attempt in $(seq 1 30); do
+            curl -sf http://localhost:8000/api/v1/health && exit 0
+            sleep 2
+          done
+          cat "$RUNNER_TEMP/backend.log"
+          exit 1
+      - name: Playwright senaryolari
+        working-directory: frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npm run test:e2e:real
+      - name: Backend log (hata olursa)
+        if: failure()
+        run: cat "$RUNNER_TEMP/backend.log"
+
+  api-contract:
+    name: api-contract (OpenAPI types up to date)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Export OpenAPI schema from backend (DB gerekmez)
+        working-directory: backend
+        run: |
+          uv sync --frozen
+          uv run python -m scripts.export_openapi > "$RUNNER_TEMP/openapi.json"
+      - name: Regenerate frontend types and fail on drift (ADR-7)
+        working-directory: frontend
+        run: |
+          npm ci
+          npx openapi-typescript "$RUNNER_TEMP/openapi.json" -o src/lib/api/types.ts
+          git diff --exit-code -- src/lib/api/types.ts

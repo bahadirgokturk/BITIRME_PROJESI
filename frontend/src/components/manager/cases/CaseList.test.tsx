@@ -1,0 +1,238 @@
+import { QueryClientProvider } from "@tanstack/react-query";
+import { render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { apiUrl } from "@/lib/api/client";
+import type { StatusGroup } from "@/lib/caseList";
+import { saveXlsx } from "@/lib/exportFile";
+import { createQueryClient } from "@/lib/queryClient";
+import { USERS } from "@/mocks/fixtures";
+import { server } from "@/mocks/node";
+import { signInAs } from "@/mocks/session";
+
+import { CaseList } from "./CaseList";
+
+vi.mock("@/lib/exportFile", async (original) => ({
+  ...(await original<typeof import("@/lib/exportFile")>()),
+  saveXlsx: vi.fn(),
+}));
+
+function renderList(initialGroup?: StatusGroup) {
+  render(
+    <QueryClientProvider client={createQueryClient()}>
+      <CaseList initialGroup={initialGroup} />
+    </QueryClientProvider>,
+  );
+  return userEvent.setup();
+}
+
+const rows = () => within(screen.getByRole("list", { name: "Bildirimler" })).getAllByRole("listitem");
+const waitForRows = (count: number) => waitFor(() => expect(rows()).toHaveLength(count));
+
+// Istek adreslerini sahte yaniti degistirmeden dinler (oncelik ve siralama parametreleri)
+function listenTo(path: string, asked: URLSearchParams[]) {
+  server.events.on("request:start", ({ request }) => {
+    const url = new URL(request.url);
+    if (url.pathname.endsWith(path)) {
+      asked.push(url.searchParams);
+    }
+  });
+}
+afterEach(() => server.events.removeAllListeners());
+
+describe("CaseList", () => {
+  // Sahte API de backend gibi kapsami role gore daraltir; bu liste mudurun
+  beforeEach(() => signInAs(USERS.MANAGER));
+  afterEach(() => signInAs(null));
+
+  it("shows a skeleton while the cases load", () => {
+    renderList();
+
+    expect(screen.getByRole("heading", { level: 1, name: "Tüm Bildirimler" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Bildirimler yükleniyor")).toBeInTheDocument();
+  });
+
+  it("lists the newest cases with unit, priority, status and time left, each linking to its detail", async () => {
+    renderList();
+
+    await screen.findByRole("list", { name: "Bildirimler" });
+    expect(rows()).toHaveLength(20);
+    const first = rows()[0]!;
+    expect(within(first).getByRole("link")).toHaveAttribute("href", "/manager/cases/301");
+    expect(first).toHaveTextContent("CASE-000301");
+    expect(first).toHaveTextContent("B Blok Zemin Kat WC'de sabun bitmiş");
+    expect(first).toHaveTextContent("Sabun bitti · B Blok Zemin Kat WC");
+    expect(first).toHaveTextContent("Destek Hizmetleri Şube Müdürlüğü");
+    expect(first).toHaveTextContent("Düşük");
+    expect(first).toHaveTextContent("Atandı");
+    expect(first).toHaveTextContent(/1 sa \d+ dk kaldı/);
+    expect(rows()[2]).toHaveTextContent("Yöneticiye iletildi");
+    expect(rows()[2]).toHaveTextContent(/\d+ dk gecikti/);
+  });
+
+  it("shows staff the cases of their unit, each linking to the staff detail", async () => {
+    render(
+      <QueryClientProvider client={createQueryClient()}>
+        <CaseList view="unit" />
+      </QueryClientProvider>,
+    );
+
+    expect(screen.getByRole("heading", { level: 1, name: "Birim Bildirimleri" })).toBeInTheDocument();
+    await screen.findByRole("list", { name: "Bildirimler" });
+    expect(within(rows()[0]!).getByRole("link")).toHaveAttribute("href", "/staff/cases/301");
+  });
+
+  it("loads the rest on request and says how many are shown", async () => {
+    const user = renderList();
+
+    expect(await screen.findByText("28 bildirimin ilk 20 tanesi gösteriliyor")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Daha fazla göster" }));
+
+    await waitForRows(28);
+    expect(screen.getByText("28 bildirim")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Daha fazla göster" })).not.toBeInTheDocument();
+  });
+
+  it("narrows the list by status group", async () => {
+    const user = renderList();
+    await screen.findByRole("list", { name: "Bildirimler" });
+    expect(screen.getByRole("button", { name: "Tümü" })).toHaveAttribute("aria-pressed", "true");
+
+    await user.click(screen.getByRole("button", { name: "Geciken" }));
+
+    await waitForRows(3);
+    expect(screen.getByRole("button", { name: "Geciken" })).toHaveAttribute("aria-pressed", "true");
+    rows().forEach((row) => expect(row).toHaveTextContent("gecikti"));
+
+    await user.click(screen.getByRole("button", { name: "Reddedilen ve birleştirilen" }));
+
+    await waitForRows(6);
+  });
+
+  it("opens already narrowed when a dashboard card sends the manager here", async () => {
+    renderList("late");
+
+    await waitForRows(3);
+    expect(screen.getByRole("button", { name: "Geciken" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("narrows the list by priority and by search text", async () => {
+    const user = renderList();
+    await screen.findByRole("list", { name: "Bildirimler" });
+
+    await user.click(screen.getByRole("button", { name: "Öncelik: Tümü" }));
+    await user.click(await screen.findByRole("checkbox", { name: "Kritik" }));
+
+    await waitForRows(3);
+    rows().forEach((row) => expect(row).toHaveTextContent("Asansör katlar arasında kaldı"));
+
+    await user.click(screen.getByRole("button", { name: "Seçimi temizle" }));
+    await user.keyboard("{Escape}");
+    await user.type(screen.getByRole("searchbox", { name: "Bildirim ara" }), "kantin");
+
+    await waitForRows(3);
+    rows().forEach((row) => expect(row).toHaveTextContent("Kantin fiyat listesi hakkında"));
+  });
+
+  it("explains an empty search result and clears the filters on request", async () => {
+    const user = renderList();
+    await screen.findByRole("list", { name: "Bildirimler" });
+
+    await user.type(screen.getByRole("searchbox", { name: "Bildirim ara" }), "olmayan kelime");
+
+    expect(await screen.findByText("Aramanıza uyan bildirim yok.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Filtreleri temizle" }));
+
+    await waitForRows(20);
+    expect(screen.getByRole("searchbox", { name: "Bildirim ara" })).toHaveValue("");
+  });
+
+  it("says the list covers the whole institution (a manager sees every unit's cases)", () => {
+    renderList();
+
+    expect(screen.getByText(/^Kurumdaki bütün bildirimler\./)).toBeInTheDocument();
+  });
+
+  it("says so when there are no cases yet", async () => {
+    server.use(http.get(apiUrl("/cases"), () => HttpResponse.json({ items: [], total: 0, page: 1 })));
+    renderList();
+
+    expect(await screen.findByText("Henüz bildirim yok.")).toBeInTheDocument();
+    expect(screen.getByText("Bir bildirim geldiğinde burada görünür.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Filtreleri temizle" })).not.toBeInTheDocument();
+  });
+
+  it("shows the backend error and loads again on retry", async () => {
+    server.use(
+      http.get(
+        apiUrl("/cases"),
+        () => HttpResponse.json({ error: { code: "INTERNAL", message: "Beklenmeyen bir hata oluştu.", details: {} } }, { status: 500 }),
+        { once: true },
+      ),
+    );
+    const user = renderList();
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("Bildirimler yüklenemedi.");
+    expect(alert).toHaveTextContent("Beklenmeyen bir hata oluştu.");
+
+    await user.click(within(alert).getByRole("button", { name: "Tekrar dene" }));
+
+    await waitForRows(20);
+  });
+
+  it("asks for several priorities at once and the oldest first", async () => {
+    const asked: URLSearchParams[] = [];
+    listenTo("/cases", asked);
+    const user = renderList();
+    await screen.findByRole("list", { name: "Bildirimler" });
+
+    await user.click(screen.getByRole("button", { name: "Öncelik: Tümü" }));
+    await user.click(await screen.findByRole("checkbox", { name: "Kritik" }));
+    await user.click(screen.getByRole("checkbox", { name: "Yüksek" }));
+    await user.keyboard("{Escape}");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Sıralama" }), "En eski");
+
+    await waitFor(() => expect(asked.at(-1)?.get("order")).toBe("oldest"));
+    expect(asked.at(-1)?.getAll("priority")).toEqual(["CRITICAL", "HIGH"]);
+    expect(screen.getByRole("button", { name: "Öncelik: 2 seçili" })).toBeInTheDocument();
+  });
+
+  it("shows the cases as square cards on request", async () => {
+    const user = renderList();
+    await screen.findByRole("list", { name: "Bildirimler" });
+
+    await user.click(screen.getByRole("button", { name: "Kart görünümü" }));
+
+    expect(screen.getByRole("list", { name: "Bildirimler" })).toHaveAttribute("data-view", "grid");
+    expect(rows()[0]!.querySelector("a")).toHaveAttribute("href", expect.stringMatching(/^\/manager\/cases\/\d+$/));
+  });
+});
+
+describe("CaseList export", () => {
+  beforeEach(() => signInAs(USERS.MANAGER));
+  afterEach(() => signInAs(null));
+
+  // Liste 20'ser yuklenir; dosyaya secili filtreye uyan butun bildirimler 200'erlik sayfalarla cekilip yazilir
+  it("exports every case matching the filters, page by page", async () => {
+    const asked: URLSearchParams[] = [];
+    listenTo("/cases", asked);
+    const user = renderList("open");
+    await waitFor(() => expect(rows().length).toBeGreaterThan(0));
+    asked.length = 0;
+
+    await user.click(screen.getByRole("button", { name: "Excel'e aktar" }));
+    await waitFor(() => expect(saveXlsx).toHaveBeenCalled());
+
+    const [sheet, fileName] = vi.mocked(saveXlsx).mock.calls[0] ?? [];
+    expect(fileName).toMatch(/^tum-bildirimler-/);
+    expect(asked[0]?.get("page_size")).toBe("200");
+    expect(asked[0]?.getAll("status").length).toBeGreaterThan(0);
+    expect(sheet?.columns[0]).toBe("Bildirim no");
+    expect(sheet?.rows).toHaveLength(rows().length);
+  });
+});

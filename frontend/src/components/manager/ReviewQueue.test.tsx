@@ -1,0 +1,239 @@
+import { QueryClientProvider } from "@tanstack/react-query";
+import { render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { delay, http, HttpResponse } from "msw";
+import { beforeEach, describe, expect, it } from "vitest";
+
+import { apiUrl } from "@/lib/api/client";
+import { listViewKey } from "@/lib/listTools";
+import { createQueryClient } from "@/lib/queryClient";
+import { resetReviewQueue } from "@/mocks/managerHandlers";
+import { server } from "@/mocks/node";
+
+import { ReviewQueue } from "./ReviewQueue";
+
+const SAFETY = "Laboratuvarda priz kıvılcım çıkarıyor";
+const DUPLICATE = "Amfide projeksiyon yine bozuk";
+const UNSURE = "Koridorda garip bir ses var";
+const SLOW_REFETCH_MS = 300;
+
+function renderQueue() {
+  const user = userEvent.setup();
+  render(
+    <QueryClientProvider client={createQueryClient()}>
+      <ReviewQueue />
+    </QueryClientProvider>,
+  );
+  return user;
+}
+
+const card = (title: string) => screen.findByRole("article", { name: title });
+
+function errorBody(code: string, message: string) {
+  return { error: { code, message, details: {} } };
+}
+
+// Sahte kuyruk modul icinde tutulur; her test ayni baslangic durumundan baslasin
+beforeEach(() => resetReviewQueue());
+
+describe("ReviewQueue", () => {
+  it("shows a skeleton while the queue loads", () => {
+    renderQueue();
+
+    expect(screen.getByLabelText("İnceleme kuyruğu yükleniyor")).toBeInTheDocument();
+  });
+
+  it("explains why each case is here, how sure the AI is and what it suggests", async () => {
+    renderQueue();
+
+    const safety = await card(SAFETY);
+    expect(within(safety).getByText("Yöneticiye iletildi")).toBeInTheDocument();
+    expect(within(safety).getByText("Güven %91")).toBeInTheDocument();
+    expect(within(safety).getByText(/müdüre iletilir/)).toBeInTheDocument();
+    expect(within(safety).getByText("Elektrik arızası")).toBeInTheDocument();
+    expect(within(safety).getByText("Kritik")).toBeInTheDocument();
+  });
+
+  // Yeni stil (Figma: 08 Yeni Stil (A)): kuyruk nedene gore sayili sekmelerle suzulur
+  it("filters the queue by reason with counted tabs", async () => {
+    const user = renderQueue();
+    await card(SAFETY);
+
+    const tabs = screen.getByRole("group", { name: "Neden burada" });
+    expect(within(tabs).getByRole("button", { name: "Tümü 3" })).toHaveAttribute("aria-pressed", "true");
+    await user.click(within(tabs).getByRole("button", { name: "Olası tekrar 1" }));
+
+    expect(screen.getByRole("article", { name: DUPLICATE })).toBeInTheDocument();
+    expect(screen.queryByRole("article", { name: SAFETY })).not.toBeInTheDocument();
+  });
+
+  it("opens the AI decision panel with every agent's reasons and model", async () => {
+    const user = renderQueue();
+    const safety = await card(SAFETY);
+
+    await user.click(within(safety).getByRole("button", { name: "Yapay zekâ gerekçesi" }));
+
+    const panel = await within(safety).findByRole("list", { name: "Yapay zekâ kararları" });
+    expect(within(panel).getByText("Sınıflandırma")).toBeInTheDocument();
+    expect(within(panel).getByText(/^• .*kıvılcım/)).toBeInTheDocument();
+    expect(within(panel).getByText("Model: tfidf-logreg@2026.10.1")).toBeInTheDocument();
+    // Kararlarin Turkce adi API'den gelir (decision_label); kod gosterilmez
+    expect(within(panel).getByText("Müdüre yükseltildi")).toBeInTheDocument();
+    expect(within(panel).queryByText("ESCALATE")).not.toBeInTheDocument();
+  });
+
+  it("shows the queue as square cards that keep the actions and link to the case details", async () => {
+    const user = renderQueue();
+    await card(SAFETY);
+
+    await user.click(screen.getByRole("button", { name: "Kart görünümü" }));
+
+    expect(screen.getByRole("button", { name: "Kart görünümü" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("list", { name: "İnceleme kuyruğu" })).toHaveAttribute("data-view", "grid");
+    const safety = await card(SAFETY);
+    expect(within(safety).getByText("Yöneticiye iletildi")).toBeInTheDocument();
+    expect(within(safety).getByText("Güven %91")).toBeInTheDocument();
+    expect(within(safety).getByText(/^Öneri: Elektrik arızası · Kritik · /)).toBeInTheDocument();
+    expect(within(safety).getByRole("button", { name: "Onayla ve ata" })).toBeInTheDocument();
+    const details = within(safety).getByRole("link", { name: "Ayrıntı" });
+    expect(details).toHaveAttribute("href", expect.stringMatching(/^\/manager\/cases\/\d+$/));
+    // Gerekce paneli karta sigmaz; ayrintida okunur
+    expect(within(safety).queryByRole("button", { name: "Yapay zekâ gerekçesi" })).not.toBeInTheDocument();
+    expect(window.localStorage.getItem(listViewKey("review"))).toBe("grid");
+  });
+
+  it("opens in the list view with the full rows by default", async () => {
+    renderQueue();
+    await card(SAFETY);
+
+    expect(screen.getByRole("list", { name: "İnceleme kuyruğu" })).toHaveAttribute("data-view", "list");
+    expect(screen.getByRole("button", { name: "Liste görünümü" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("approves the suggestion and assigns the case to the suggested department", async () => {
+    const user = renderQueue();
+    const safety = await card(SAFETY);
+
+    await user.click(within(safety).getByRole("button", { name: "Onayla ve ata" }));
+
+    await waitFor(() => expect(screen.queryByRole("article", { name: SAFETY })).not.toBeInTheDocument());
+    expect(screen.getByRole("status")).toHaveTextContent("CASE-000131 atandı.");
+  });
+
+  // Islemden sonra kuyruk ve bildirim sorgulari yenilenir. Kuyruk once donerse kart, digerleri surerken
+  // kaybolur; onay notu karta bagli kalirsa hic gorunmez (gercek backend'de gorulen hata).
+  it("still confirms the action when the card leaves before the other refetches finish", async () => {
+    server.use(
+      // Yalniz geciktirir; cevabi asil sahte handler verir
+      http.get(apiUrl("/cases/:id/decisions"), async () => {
+        await delay(SLOW_REFETCH_MS);
+      }),
+    );
+    const user = renderQueue();
+    const safety = await card(SAFETY);
+    await user.click(within(safety).getByRole("button", { name: "Yapay zekâ gerekçesi" }));
+    await within(safety).findByRole("list", { name: "Yapay zekâ kararları" });
+
+    await user.click(within(safety).getByRole("button", { name: "Onayla ve ata" }));
+
+    await waitFor(() => expect(screen.queryByRole("article", { name: SAFETY })).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("CASE-000131 atandı."));
+  });
+
+  it("requires a reason before rejecting", async () => {
+    const user = renderQueue();
+    await user.click(within(await card(UNSURE)).getByRole("button", { name: "Reddet" }));
+
+    const dialog = await screen.findByRole("dialog");
+    const confirm = within(dialog).getByRole("button", { name: "Reddet" });
+    expect(confirm).toBeDisabled();
+
+    await user.type(within(dialog).getByLabelText("Gerekçe (zorunlu)"), "Kampüs dışı bir talep.");
+    await user.click(confirm);
+
+    await waitFor(() => expect(screen.queryByRole("article", { name: UNSURE })).not.toBeInTheDocument());
+  });
+
+  it("corrects the priority with a reason", async () => {
+    const user = renderQueue();
+    await user.click(within(await card(SAFETY)).getByRole("button", { name: "Düzelt" }));
+
+    const dialog = await screen.findByRole("dialog");
+    await user.selectOptions(within(dialog).getByLabelText("Düzeltilecek alan"), "Öncelik");
+    await user.selectOptions(within(dialog).getByLabelText("Yeni değer"), "Yüksek");
+    await user.type(within(dialog).getByLabelText("Gerekçe (zorunlu)"), "Kıvılcım bağlı cihazdan geliyor.");
+    await user.click(within(dialog).getByRole("button", { name: "Düzeltmeyi kaydet" }));
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(within(await card(SAFETY)).getByText("Yüksek")).toBeInTheDocument();
+  });
+
+  it("corrects the department from the department list", async () => {
+    const user = renderQueue();
+    await user.click(within(await card(UNSURE)).getByRole("button", { name: "Düzelt" }));
+
+    const dialog = await screen.findByRole("dialog");
+    await user.selectOptions(within(dialog).getByLabelText("Düzeltilecek alan"), "Birim");
+    await within(dialog).findByRole("option", { name: "Bakım Onarım ve Peyzaj Şube Müdürlüğü" });
+    await user.selectOptions(within(dialog).getByLabelText("Yeni değer"), "Bakım Onarım ve Peyzaj Şube Müdürlüğü");
+    await user.type(within(dialog).getByLabelText("Gerekçe (zorunlu)"), "Ses havalandırma tesisatından geliyor.");
+    await user.click(within(dialog).getByRole("button", { name: "Düzeltmeyi kaydet" }));
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(within(await card(UNSURE)).getByText("Bakım Onarım ve Peyzaj Şube Müdürlüğü")).toBeInTheDocument();
+  });
+
+  it("offers merging only for a possible duplicate and names the other case", async () => {
+    const user = renderQueue();
+    expect(within(await card(UNSURE)).queryByRole("button", { name: "Birleştir" })).not.toBeInTheDocument();
+
+    await user.click(within(await card(DUPLICATE)).getByRole("button", { name: "Birleştir" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("CASE-000102");
+    await user.type(within(dialog).getByLabelText("Gerekçe (zorunlu)"), "Aynı projeksiyon arızası.");
+    await user.click(within(dialog).getByRole("button", { name: "Birleştir" }));
+
+    await waitFor(() => expect(screen.queryByRole("article", { name: DUPLICATE })).not.toBeInTheDocument());
+  });
+
+  it("keeps the dialog open and shows the backend error when an action fails", async () => {
+    server.use(
+      http.post(apiUrl("/cases/:id/reject"), () =>
+        HttpResponse.json(errorBody("INVALID_TRANSITION", "Bu bildirim şu an reddedilemez."), { status: 409 }),
+      ),
+    );
+    const user = renderQueue();
+    await user.click(within(await card(UNSURE)).getByRole("button", { name: "Reddet" }));
+    const dialog = await screen.findByRole("dialog");
+
+    await user.type(within(dialog).getByLabelText("Gerekçe (zorunlu)"), "Kapsam dışı.");
+    await user.click(within(dialog).getByRole("button", { name: "Reddet" }));
+
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent("Bu bildirim şu an reddedilemez.");
+  });
+
+  it("says when there is nothing to review", async () => {
+    server.use(http.get(apiUrl("/manager/review-queue"), () => HttpResponse.json({ items: [], total: 0, page: 1 })));
+
+    renderQueue();
+
+    expect(await screen.findByText("İncelenecek bildirim yok.")).toBeInTheDocument();
+  });
+
+  it("shows an error with retry when the queue cannot be loaded", async () => {
+    server.use(
+      http.get(
+        apiUrl("/manager/review-queue"),
+        () => HttpResponse.json(errorBody("INTERNAL", "Beklenmeyen bir hata oluştu."), { status: 500 }),
+        { once: true },
+      ),
+    );
+    const user = renderQueue();
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("İnceleme kuyruğu yüklenemedi.");
+    await user.click(within(alert).getByRole("button", { name: "Tekrar dene" }));
+
+    expect(await card(SAFETY)).toBeInTheDocument();
+  });
+});

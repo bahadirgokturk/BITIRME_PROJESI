@@ -1,0 +1,104 @@
+[project]
+name = "campusflow-backend"
+version = "0.1.0"
+description = "CampusFlow AI backend (FastAPI moduler monolit)"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "sqlalchemy>=2.0.36",
+    "alembic>=1.14",
+    "psycopg[binary]>=3.2",
+    "pydantic[email]>=2.9",
+    "pydantic-settings>=2.6",
+    "argon2-cffi>=23.1",
+    "pyjwt>=2.9",
+    "pyyaml>=6.0",
+    "pillow>=11.0",
+    "python-multipart>=0.0.18",
+    "scikit-learn==1.9.1",
+    "segno>=1.6",
+    "boto3>=1.35",
+    "onnxruntime>=1.20",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "httpx>=0.28",
+    "ruff>=0.8",
+    "mypy>=1.13",
+    "types-pyyaml>=6.0.12.20260906",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+
+[tool.coverage.report]
+# Test plani kabul kriteri: backend satir kapsami >= %85 (CI --cov ile calisinca altinda kirmizi)
+fail_under = 85
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+files = ["app", "seeds"]
+
+[[tool.mypy.overrides]]
+# scikit-learn, joblib, boto3 ve onnxruntime tip bilgisi yayinlamiyor
+module = ["sklearn.*", "joblib", "boto3", "botocore.*", "onnxruntime"]
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+
+[tool.ruff.lint]
+# Kural kunyesi: KOD_KURALLARI.md (fail fast, az dallanma, olu kod, sihirli sayi, guvenlik)
+select = [
+    "E", "W", "F", "I", "N", "B", "UP", "SIM", "RUF",
+    "C90",      # C901 karmasiklik (kural 2)
+    "PLR0912",  # cok dal (kural 2)
+    "PLR2004",  # sihirli sayi (kural 7)
+    "BLE",      # BLE001 kor except (kural 1)
+    "S",        # guvenlik; S110/S112 try-except-pass (kural 1, 14)
+    "ERA",      # yoruma alinmis kod (kural 6)
+    "PLR0913",  # en fazla 4 parametre; fazlasi nesne (kural 2)
+    "PLR0917",  # en fazla 4 konumsal parametre (kural 2)
+    "PLR0915",  # fonksiyon basina en fazla 25 ifade: ~40 satir siniri (kural 2)
+    "RET505", "RET506", "RET507", "RET508",  # return/raise sonrasi else yok: early return (kural 2)
+]
+
+# Turkce kullanici metinlerinde noktasiz i (ı) mesrudur
+allowed-confusables = ["ı"]
+
+[tool.ruff.lint.isort]
+# backend/alembic klasoru ayni adli paketi golgeler; paket ucuncu parti sayilir
+known-third-party = ["alembic"]
+known-first-party = ["app", "seeds", "tests"]
+
+[tool.ruff.lint.pylint]
+max-args = 4
+max-positional-args = 4
+max-statements = 25
+
+[tool.ruff.lint.mccabe]
+max-complexity = 8
+
+[tool.ruff.lint.per-file-ignores]
+# Testlerde assert ve sabit beklenen degerler dogaldir
+# Testlerde sabit test anahtarlari (S105/S106) bilinclidir; gercek gizli bilgi degildir.
+# Test fonksiyonlarinin parametreleri pytest fixture'laridir (enjekte edilir), 4 sinirindan muaf
+"tests/**" = ["S101", "PLR2004", "S105", "S106", "PLR0913", "PLR0917"]
+# FastAPI route parametreleri cagirandan gelen arguman degil, framework'un enjekte ettigi
+# bagimliliklardir (Depends, Body, Cookie); 4 parametre kurali route'lara uygulanmaz
+"app/api/v1/**" = ["PLR0913", "PLR0917"]
+"alembic/**" = ["ERA001"]
+# Autogenerate cikti satirlari uzun olabilir
+"alembic/versions/**" = ["E501"]

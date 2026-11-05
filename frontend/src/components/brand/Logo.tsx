@@ -1,0 +1,37 @@
+import { cn } from "cn";
+
+// Uygulama simgesi: turkuazdan bakira yedi tonda akan su, ortasinda beyaz universite logosu.
+// Su akan cayi (Bakircay) ve isin akisini (Flow) anlatir. Cizim public/brand/logo-art.svg,
+// zemin primary token'i (Figma: 02 Components > Logo/Simge). Boyut className ile verilir.
+export function LogoMark({ className }: { className?: string }) {
+  return (
+    <span className={cn("block size-10 shrink-0 overflow-hidden rounded-[0.55rem] bg-primary", className)}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- sabit SVG, optimizasyon gerekmez */}
+      <img src="/brand/logo-art.svg" alt="" width={40} height={40} className="block size-full" />
+    </span>
+  );
+}
+
+// Giris ekrani telefonda logo buyuk (50 px simge, 25 px yazi); menulerde 40 px (Figma: Logo/Yatay)
+const WORDMARK_SIZES = {
+  md: { mark: "size-10", gap: "gap-2.5", text: "text-xl" },
+  lg: { mark: "size-[50px]", gap: "gap-3", text: "text-[25px]" },
+} as const;
+
+interface LogoWordmarkProps {
+  size?: keyof typeof WORDMARK_SIZES;
+  // Gri zeminde (masaustu kenar cubugu) "Flow" koyu turkuazla yazilir; ana turkuaz orada 4.25:1 kalir
+  onMuted?: boolean;
+}
+
+export function LogoWordmark({ size = "md", onMuted = false }: LogoWordmarkProps) {
+  const classes = WORDMARK_SIZES[size];
+  return (
+    <span className={cn("flex items-center", classes.gap)}>
+      <LogoMark className={classes.mark} />
+      <span className={cn("font-semibold tracking-tight", classes.text)}>
+        Bakırçay<span className={onMuted ? "text-primary-text" : "text-primary"}>Flow</span>
+      </span>
+    </span>
+  );
+}

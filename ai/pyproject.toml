@@ -1,0 +1,50 @@
+[project]
+name = "campusflow-ai"
+version = "0.1.0"
+description = "CampusFlow AI: sentetik veri uretici, model egitimi ve degerlendirme"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "onnxruntime>=1.20",
+    "pyyaml>=6.0",
+    "scikit-learn>=1.6",
+    "tokenizers>=0.20",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "ruff>=0.8",
+    "mypy>=1.13",
+    "types-pyyaml>=6.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["generators", "training"]
+# training/normalization.py backend'deki normalize()'i yukler (egitim ve calisma ani ayni metin)
+mypy_path = "../backend"
+
+[[tool.mypy.overrides]]
+# scikit-learn, joblib ve onnxruntime tip bilgisi yayinlamiyor
+module = ["sklearn.*", "joblib", "onnxruntime"]
+ignore_missing_imports = true
+
+[tool.ruff]
+# Lint kurallari backend ile ayni (KOD_KURALLARI kural kunyesi)
+extend = "../backend/pyproject.toml"
+
+[tool.ruff.lint.isort]
+known-first-party = ["generators", "training", "tests"]
+
+[tool.ruff.lint.per-file-ignores]
+# Sentetik veri tohumlu random ile uretilir (tekrarlanabilirlik); kriptografik kullanim yok
+"generators/**" = ["S311"]
+"tests/**" = ["S101", "PLR2004", "S311"]

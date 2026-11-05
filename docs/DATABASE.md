@@ -42,7 +42,7 @@ erDiagram
 | `user_role` | REPORTER, STAFF, MANAGER, ADMIN |
 | `reporter_kind` | STUDENT, ACADEMIC, PERSONNEL |
 | `location_kind` | CAMPUS, BUILDING, FLOOR, ROOM, WC, CORRIDOR, OUTDOOR, OTHER |
-| `case_category` | CLEANING, CONSUMABLE, TECHNICAL, IT, INFRASTRUCTURE, SECURITY, OTHER |
+| `case_category` | CLEANING, CONSUMABLE, TECHNICAL, IT, INFRASTRUCTURE, SECURITY, FOOD_SERVICE, OTHER |
 | `priority` | LOW, MEDIUM, HIGH, CRITICAL |
 | `case_status` | NEW, ANALYZING, NEEDS_INFO, CLASSIFIED, ASSIGNED, ACCEPTED, IN_PROGRESS, RESOLVED, VERIFICATION, CLOSED, REOPENED, ESCALATED, REJECTED, MERGED |
 | `task_status` | PENDING, ACCEPTED, IN_PROGRESS, COMPLETED, DECLINED, CANCELLED |
@@ -64,7 +64,8 @@ erDiagram
 | created_at | timestamptz | |
 
 ### departments
-id, organization_id FK, code (uniq/org, ör. `CLEANING`), name, is_active, created_at
+id, organization_id FK, code (uniq/org, ör. `SUPPORT_SERVICES`), name, is_active, created_at.
+Kampüs şablonunda şube müdürlüğü düzeyindedir: [DEPARTMENTS.md](DEPARTMENTS.md) bölüm 2.
 
 ### locations
 | Kolon | Tip | Not |
@@ -88,10 +89,11 @@ department_id NULL (STAFF/MANAGER için), is_active, last_login_at, created_at
 | Kolon | Tip | Not |
 |---|---|---|
 | id, organization_id | | |
-| code | varchar(50) | SOAP_EMPTY … OTHER |
+| code | varchar(50) | SOAP_EMPTY … OUT_OF_SCOPE (19 tip, [DEPARTMENTS.md](DEPARTMENTS.md)) |
 | name | varchar(100) | "Sabun Bitti" |
 | category | case_category | |
-| default_department_id | FK | Routing Agent |
+| default_department_id | FK NULL | Routing Agent — birincil birim (görevi alır); OUT_OF_SCOPE/OTHER için NULL |
+| secondary_department_id | FK NULL | Yalnız bilgilendirilen birim (ör. su taşkını → Destek Hizmetleri) |
 | base_priority | priority | Priority Agent başlangıç sinyali |
 | base_severity | smallint | 0–100 |
 | is_safety_related | bool | L3 escalation tetikleyicisi |
@@ -101,7 +103,8 @@ department_id NULL (STAFF/MANAGER için), is_active, last_login_at, created_at
 ### sla_rules
 id, organization_id, case_type_id NULL (NULL = kategori/default kural), priority,
 response_minutes (kabul hedefi), resolution_minutes, warning_threshold_pct (ör. 75), is_active.
-Unique: (organization_id, case_type_id, priority). Eşleşme sırası: tam eşleşme → case_type NULL + priority.
+Unique: (organization_id, case_type_id, priority), `NULLS NOT DISTINCT` (bir öncelik için tek varsayılan kural).
+Eşleşme sırası: tam eşleşme → case_type NULL + priority. Kampüs değerleri: `backend/seeds/templates/campus/sla_rules.yaml`.
 
 ### cases
 | Kolon | Tip | Not |
@@ -122,7 +125,7 @@ Unique: (organization_id, case_type_id, priority). Eşleşme sırası: tam eşle
 | verification_score | numeric(4,3) NULL | |
 | status | case_status | |
 | assigned_staff_id | FK users NULL | aktif task'ın atanan kişisi (denormalize) |
-| sla_rule_id | FK NULL | |
+| sla_rule_id | FK NULL | İlk atamada eşleşen SLA kuralı (E4-2) |
 | parent_case_id | FK cases NULL | MERGED ise ana case |
 | duplicate_count | int default 0 | ana case'e bağlanan bildirim sayısı |
 | needs_human_review | bool | Manager inceleme kuyruğu |
@@ -133,6 +136,7 @@ Unique: (organization_id, case_type_id, priority). Eşleşme sırası: tam eşle
 | reopened_count | int default 0 | |
 | satisfaction_rating | smallint NULL | 1–5, reporter geri bildirimi |
 | satisfaction_comment | text NULL | |
+| info_request | text NULL | NEEDS_INFO iken reporter'a sorulan soru; yanıtlanınca boşalır (geçmişi `case_events`'te) |
 | is_seed | bool default false | demo verisini ayırt etmek için |
 
 Index'ler: `(organization_id, status)`, `(location_id, case_type_id, created_at)` (recurring + duplicate),
@@ -162,18 +166,34 @@ MVP kuralı: bir case'in aynı anda en fazla **1 aktif** task'ı olur (partial u
 | latency_ms | int |
 | created_at | |
 
+✅ E5-8a: tablo ve `repositories/agent_decision_repository.py` (`record`, `list_for_case`). Kayıt append-only;
+`created_at` uygulama saatinden (Clock) yazılır.
+
 ### decision_feedback
 id, decision_id FK, case_id, user_id (manager), field (`case_type`, `priority`, `department`, `duplicate`),
 original_value, corrected_value, reason, created_at.
+✅ E5-9: değerler kod olarak saklanır (`SOAP_EMPTY`, `HIGH`, `SUPPORT_SERVICES`); `decision_id` agent hattı kapalıyken
+yapılan düzeltmede boştur. ✅ E5-6: `duplicate` = manager birleştirmesi; değerler bildirim numarası (agent'ın önerdiği ana bildirim → manager'ın seçtiği), Duplicate Agent kararına bağlı. ✅ E5-11: `resolution` = manager doğrulayıp kapattı (`NEEDS_MORE_EVIDENCE`/`REOPEN` → `RESOLVED`).
 → *Decision override rate* ve modelin yeniden eğitimi için **etiketli veri kaynağı**.
 
 ### agent_policies
 id, organization_id, scope (`CATEGORY`/`CASE_TYPE`), category NULL, case_type_id NULL,
-autonomy_level, min_confidence_auto numeric (ör. 0.70), notify_manager bool, is_active.
+autonomy_level, min_confidence_auto numeric (ör. 0.70), is_active. (`notify_manager` 25 Ekim'de kaldırıldı: müdüre haber
+L2_NOTIFY seviyesinin kendisi.)
+✅ E5-8a: kapsam ile hedef tutarlılığı CHECK ile (CASE_TYPE → case_type_id, CATEGORY → category), aynı kapsam
+için tek satır (NULL'lar eşit sayılır). Kampüs seed'i tür başına bir CASE_TYPE satırı yazar.
 
 ### ml_models
 id, organization_id, name (`classifier`), version, algorithm, metrics_json (accuracy, macro_f1,
 confusion matrix), trained_at, dataset_hash, artifact_path, is_active.
+
+### refresh_tokens
+id, user_id FK users, token_hash char(64) **unique** (sha256; ham token saklanmaz), family_id uuid (aynı girişten
+rotasyonla doğan kayıtlar = bir oturum; indeksli), created_at, expires_at,
+revoked_at NULL, replaced_by_id FK refresh_tokens NULL (rotasyonla iptal edildiyse yerine gelen kayıt;
+çıkış/toplu iptalde NULL — eşzamanlı istek toleransı bunu kullanır). Rotasyonda eski kayıt `revoked_at` alır, yenisi eklenir; iptal edilmiş kayıt tekrar
+kullanılırsa o oturumun (`family_id`) açık kayıtları iptal edilir, diğer cihazlar etkilenmez (bkz. API.md "Auth"). Süresi dolan kayıtların
+temizliği ileride Monitoring tick'ine eklenebilir.
 
 ### comments
 id, case_id, author_id, body, is_internal (staff/manager notu, reporter görmez), created_at
@@ -187,8 +207,11 @@ id, user_id NULL, channel (`IN_APP`/`WEBHOOK`), type, payload jsonb, status (`PE
 read_at, created_at, sent_at
 
 ### audit_logs
-id, organization_id, user_id, action (`USER_CREATED`, `SLA_UPDATED`…), entity_type, entity_id,
+id, organization_id, user_id, action (`USER_CREATED`, `SLA_RULE_UPDATED`…), entity_type, entity_id,
 before_json, after_json, ip_address, created_at
+✅ E2-5: yalnız ekleme. Admin tanımları (kullanıcı, birim, lokasyon, bildirim türü, SLA kuralı, agent
+politikası) değişince aynı transaction'da yazılır; güncellemede before/after yalnız değişen alanlar.
+İndeksler: (organization_id, created_at), (organization_id, entity_type, entity_id).
 
 ## 4. Veri Bütünlüğü Kuralları
 

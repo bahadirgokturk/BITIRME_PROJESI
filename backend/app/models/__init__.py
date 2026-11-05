@@ -1,0 +1,38 @@
+"""Tum modeller burada import edilir; Alembic metadata'yi buradan okur."""
+
+from app.models.agent_decision import AgentDecision
+from app.models.agent_policy import AgentPolicy
+from app.models.attachment import Attachment
+from app.models.audit_log import AuditLog
+from app.models.base import Base
+from app.models.case import Case, CaseEvent
+from app.models.case_type import CaseType
+from app.models.comment import Comment
+from app.models.decision_feedback import DecisionFeedback
+from app.models.department import Department
+from app.models.location import Location
+from app.models.organization import Organization
+from app.models.refresh_token import RefreshToken
+from app.models.sla_rule import SlaRule
+from app.models.task import Task
+from app.models.user import User
+
+__all__ = [
+    "AgentDecision",
+    "AgentPolicy",
+    "Attachment",
+    "AuditLog",
+    "Base",
+    "Case",
+    "CaseEvent",
+    "CaseType",
+    "Comment",
+    "DecisionFeedback",
+    "Department",
+    "Location",
+    "Organization",
+    "RefreshToken",
+    "SlaRule",
+    "Task",
+    "User",
+]

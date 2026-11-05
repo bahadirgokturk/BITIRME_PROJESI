@@ -1,0 +1,47 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useEffect, type ReactNode } from "react";
+
+import { PendingSync } from "@/components/report/PendingReports";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { ApiError } from "@/lib/api/client";
+import { loginHref } from "@/lib/loginReturn";
+import { userDetail } from "@/lib/shell";
+
+import { AppShell } from "./AppShell";
+
+// Menu, giris yapan kullanicinin rolune gore cizilir; rol tahmin edilmez (KOD_KURALLARI kural 1)
+export function CurrentUserShell({ children }: { children: ReactNode }) {
+  const { data: user, isPending, error } = useCurrentUser();
+  const router = useRouter();
+  // Oturum yok ya da yenilenemedi (refresh cerezi de gecersiz): giris sayfasina
+  const signedOut = error instanceof ApiError && error.status === 401;
+
+  useEffect(() => {
+    if (signedOut) {
+      // QR'dan acilan form adresi giristen sonra donmek icin saklanir
+      router.replace(loginHref(window.location.pathname, window.location.search));
+    }
+  }, [signedOut, router]);
+
+  if (isPending || signedOut) {
+    return <p className="p-6 text-sm text-muted-foreground">Yükleniyor…</p>;
+  }
+  // Arka plan yenilemesi basarisiz olsa da bilinen kullanici gosterilmeye devam eder;
+  // hata yalniz hic veri yokken tam ekran gosterilir
+  if (!user) {
+    return (
+      <p role="alert" className="p-6 text-sm">
+        Kullanıcı bilgisi alınamadı: {error?.message}
+      </p>
+    );
+  }
+  return (
+    <AppShell role={user.role} userName={user.full_name} userDetail={userDetail(user)}>
+      {/* Cevrimdisi kaydedilen bildirimler hangi sayfada olunursa olsun baglanti gelince gonderilir */}
+      <PendingSync />
+      {children}
+    </AppShell>
+  );
+}

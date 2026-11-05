@@ -1,0 +1,179 @@
+// Mudurun "Tum Bildirimler" listesinin kurallari (/manager/cases; docs/UI_GUIDE.md bolum 5.4):
+// durum adlari ve renkleri, filtre gruplari, istek sorgusu ve satir metinleri.
+import type { components } from "@/lib/api/types";
+import { listParams, type ListTools } from "@/lib/listTools";
+import { duration, type SlaView } from "@/lib/tasks";
+
+type Schemas = components["schemas"];
+export type CaseRead = Schemas["CaseRead"];
+export type CaseStatus = Schemas["CaseStatus"];
+
+// Backend varsayilani ile ayni (backend/app/core/constants.py PAGE_SIZE_DEFAULT)
+export const CASE_LIST_PAGE_SIZE = 20;
+const MS_PER_MINUTE = 60_000;
+
+// Mudurun gordugu durum adlari (bildirim yapan 4 adimli sade gorunumu gorur: lib/status.ts)
+export const CASE_STATUS_LABELS: Record<CaseStatus, string> = {
+  NEW: "Yeni",
+  ANALYZING: "İnceleniyor",
+  NEEDS_INFO: "Bilgi bekleniyor",
+  CLASSIFIED: "Sınıflandırıldı",
+  ASSIGNED: "Atandı",
+  ACCEPTED: "Kabul edildi",
+  IN_PROGRESS: "Çalışılıyor",
+  RESOLVED: "Çözüldü",
+  VERIFICATION: "Doğrulanıyor",
+  CLOSED: "Kapandı",
+  REOPENED: "Yeniden açıldı",
+  ESCALATED: "Yöneticiye iletildi",
+  REJECTED: "Reddedildi",
+  MERGED: "Birleştirildi",
+};
+
+// Durum rozetinin rengi (docs/UI_GUIDE.md bolum 4.1): gorev rozetleriyle ayni renk yolculugu;
+// beklerken turuncu, calisirken gecisli, cozulunce turkuaz. Mudure iletilen kirmizi ve ikonlu.
+export type StatusTone =
+  | "neutral"
+  | "info"
+  | "warning"
+  | "waiting"
+  | "accepted"
+  | "working"
+  | "solved"
+  | "closed"
+  | "alert";
+
+export const CASE_STATUS_TONES: Record<CaseStatus, StatusTone> = {
+  NEW: "neutral",
+  ANALYZING: "info",
+  NEEDS_INFO: "warning",
+  CLASSIFIED: "info",
+  ASSIGNED: "waiting",
+  ACCEPTED: "accepted",
+  IN_PROGRESS: "working",
+  RESOLVED: "solved",
+  VERIFICATION: "solved",
+  CLOSED: "closed",
+  REOPENED: "warning",
+  ESCALATED: "alert",
+  REJECTED: "neutral",
+  MERGED: "neutral",
+};
+
+// Kapanana kadar gecen butun durumlar; kalan sure rozeti yalniz bunlarda gosterilir
+const OPEN_STATUSES: readonly CaseStatus[] = [
+  "NEW",
+  "ANALYZING",
+  "NEEDS_INFO",
+  "CLASSIFIED",
+  "ASSIGNED",
+  "ACCEPTED",
+  "IN_PROGRESS",
+  "RESOLVED",
+  "VERIFICATION",
+  "REOPENED",
+  "ESCALATED",
+];
+
+// Ayni liste iki yerde: mudur ve yonetici kurumun butun bildirimlerini, personel kendi biriminin
+// bildirimlerini gorur (backend scope_for). Satirlar listenin kendi adresi altindaki detaya gider.
+export type CaseListView = "all" | "unit";
+
+interface CaseListViewText {
+  title: string;
+  // Excel dosyasinin tarihsiz adi
+  exportName: string;
+  description: string;
+  path: string;
+  // Turkce ek basliga gore degisir ("Bildirimler'e", "Bildirimleri'ne")
+  backText: string;
+}
+
+export const CASE_LIST_VIEWS: Record<CaseListView, CaseListViewText> = {
+  all: {
+    title: "Tüm Bildirimler",
+    exportName: "tum-bildirimler",
+    description: "Kurumdaki bütün bildirimler. Aramak ya da filtrelemek için aşağıdaki alanları kullanın.",
+    path: "/manager/cases",
+    backText: "Tüm Bildirimler'e dön",
+  },
+  unit: {
+    title: "Birim Bildirimleri",
+    exportName: "birim-bildirimleri",
+    description: "Biriminize gelen ve size atanan bildirimler. Aramak ya da filtrelemek için aşağıdaki alanları kullanın.",
+    path: "/staff/cases",
+    backText: "Birim Bildirimleri'ne dön",
+  },
+};
+
+export type StatusGroup = "all" | "open" | "closed" | "dismissed" | "late";
+
+interface StatusGroupOption {
+  value: StatusGroup;
+  label: string;
+  statuses: readonly CaseStatus[];
+  // Yalniz hedef suresi asilanlar
+  lateOnly?: boolean;
+}
+
+// 14 durum yerine 5 secenek: mudur tek tek durum secmek zorunda kalmaz
+export const STATUS_GROUPS: readonly StatusGroupOption[] = [
+  { value: "all", label: "Tümü", statuses: [] },
+  { value: "open", label: "Açık", statuses: OPEN_STATUSES },
+  { value: "closed", label: "Kapanan", statuses: ["CLOSED"] },
+  { value: "dismissed", label: "Reddedilen ve birleştirilen", statuses: ["REJECTED", "MERGED"] },
+  { value: "late", label: "Geciken", statuses: OPEN_STATUSES, lateOnly: true },
+];
+
+// Adresten gelen durum grubu (?group=open): Pano kartlari listeyi filtreli acar; bilinmeyen deger "Tumu"
+export function groupFromParam(value: string | string[] | undefined): StatusGroup {
+  return STATUS_GROUPS.find((item) => item.value === value)?.value ?? "all";
+}
+
+export interface CaseFilters extends ListTools {
+  group: StatusGroup;
+  search: string;
+}
+
+export const DEFAULT_FILTERS: CaseFilters = { group: "all", priorities: [], order: "newest", search: "" };
+
+// Siralama listeyi daraltmaz; bos sonucta yalniz gercek filtreler "temizle" onerir
+export function isFiltered(filters: CaseFilters): boolean {
+  return filters.group !== "all" || filters.priorities.length > 0 || filters.search.trim() !== "";
+}
+
+// Ortak filtreler (docs/API.md "Cases"): status (tekrarlanir), priority (tekrarlanir), sla_status, order, q
+export function caseListQuery(filters: CaseFilters, page: number, pageSize: number = CASE_LIST_PAGE_SIZE): string {
+  const params = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
+  const group = STATUS_GROUPS.find((item) => item.value === filters.group);
+  group?.statuses.forEach((status) => params.append("status", status));
+  if (group?.lateOnly) {
+    params.set("sla_status", "BREACHED");
+  }
+  listParams(filters, params);
+  const search = filters.search.trim();
+  if (search) {
+    params.set("q", search);
+  }
+  return params.toString();
+}
+
+// Konum okunur adiyla yazilir; path kod yoludur ("KMP/B/B-Z/B-Z-WC")
+export function caseSubtitle(item: CaseRead): string {
+  return `${item.case_type?.name ?? "Tür belirlenmedi"} · ${item.location.name}`;
+}
+
+// Kalan sure rozeti: renk backend'in sla_status degerinden, metin bitis zamanina kalan sureden gelir.
+// Bitmis (kapanan, reddedilen, birlestirilen) ya da hedef suresi olmayan bildirimde gosterilmez.
+export function caseSla(item: CaseRead, now: Date = new Date()): SlaView | null {
+  if (!item.due_at || !item.sla_status || !OPEN_STATUSES.includes(item.status)) {
+    return null;
+  }
+  const minutes = Math.floor((new Date(item.due_at).getTime() - now.getTime()) / MS_PER_MINUTE);
+  const label = minutes >= 0 ? `${duration(minutes)} kaldı` : `${duration(-minutes)} gecikti`;
+  return { status: item.sla_status, label };
+}
+
+export function shownSummary(loaded: number, total: number): string {
+  return loaded < total ? `${total} bildirimin ilk ${loaded} tanesi gösteriliyor` : `${total} bildirim`;
+}

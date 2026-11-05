@@ -1,0 +1,185 @@
+# Demo gecmisi (E6-1): son 60 gunun bildirimleri gercek agent hattindan gecirilerek uretilir
+# (seeds/history.py). Dashboard ve tezdeki olcumler (docs/ANALYTICS.md) bu veriyle anlam kazanir.
+#
+# patterns: GOMULU ORUNTULER = RQ4 icin dogru cevap. Analitik bunlari bulmali (tekrarlayan sorunlar,
+# darbogaz). count: son 30 gundeki bildirim sayisi (plan kisaysa orantili azalir).
+
+# Tur basina bildirim cumleleri (bir kismi Turkce karaktersiz / gunluk dil)
+phrases:
+  SOAP_EMPTY:
+    - "Tuvalette sabun bitmiş"
+    - "Sabunluklar bomboş, el yıkayamıyoruz"
+    - "wc de sabun yok"
+    - "Lavabolarda sabun kalmamış"
+    - "Sıvı sabun dispenseri boş"
+  TOILET_PAPER_EMPTY:
+    - "Tuvalet kağıdı bitmiş"
+    - "kabinlerde kagit yok"
+    - "Tuvalette kağıt kalmamış, acil"
+    - "Peçete ve tuvalet kağıdı bitti"
+  TRASH_FULL:
+    - "Çöp kutusu taşmış"
+    - "Çöpler dolmuş, etrafa koku yayılıyor"
+    - "cop kutulari doldu bosaltilmasi lazim"
+    - "Masaların yanındaki çöp kovası taşıyor"
+  AREA_DIRTY:
+    - "Zemin çok kirli, çamur var"
+    - "Koridora kahve dökülmüş, kaygan"
+    - "Merdivenler çok pis"
+    - "Sınıf çok kirli, ders öncesi temizlenmemiş"
+  SECURITY_INCIDENT:
+    - "Koridorda sahipsiz şüpheli bir çanta var"
+    - "Girişte kavga çıktı, güvenlik lazım"
+    - "Binaya yabancı biri girdi, şüpheli davranıyor"
+  LOST_ITEM:
+    - "Okuma salonunda cüzdan buldum"
+    - "Sınıfta unutulmuş bir telefon var"
+    - "Anahtarlık buldum, kime teslim edeyim"
+  ELECTRICAL_FAILURE:
+    - "Sınıfta ışıklar yanmıyor"
+    - "Priz çalışmıyor, şarj olmuyor"
+    - "Koridorun lambaları sönük"
+    - "Sigorta atmış, bir kısım elektrik yok"
+  WATER_LEAK:
+    - "Lavabonun altından su sızıyor"
+    - "Tavandan su damlıyor"
+    - "Musluk bozuk, sürekli su akıyor"
+  AIR_CONDITIONER_FAILURE:
+    - "Klima çalışmıyor, sınıf çok sıcak"
+    - "klima soguk ufluyor kapanmiyor"
+    - "Kalorifer yanmıyor, sınıf buz gibi"
+  ELEVATOR_FAILURE:
+    - "Asansör çalışmıyor"
+    - "Asansör katlar arasında takıldı"
+    - "Asansörün kapısı kapanmıyor"
+  FURNITURE_DAMAGE:
+    - "Sıranın ayağı kırık"
+    - "Sandalye kırılmış, oturulmuyor"
+    - "Dolabın kapağı düşmüş"
+  GREEN_AREA:
+    - "Bahçedeki çimler çok uzamış"
+    - "Ağaç dalı yola sarkmış"
+    - "Sulama sistemi bozuk, çimler kurumuş"
+  WIFI_FAILURE:
+    - "Wifi bağlanmıyor"
+    - "İnternet çok yavaş, sürekli kopuyor"
+    - "kablosuz ag gorunmuyor"
+  COMPUTER_FAILURE:
+    - "Laboratuvardaki bilgisayar açılmıyor"
+    - "Bilgisayarın ekranı gelmiyor"
+    - "pc donuyor surekli yeniden basliyor"
+  PROJECTOR_FAILURE:
+    - "Projeksiyon görüntü vermiyor"
+    - "Projektör açılmıyor, ders başlayamıyor"
+    - "Projeksiyon cihazının lambası yanmıyor"
+  ACCESS_CONTROL_FAILURE:
+    - "Turnike kartımı okumuyor"
+    - "Kartlı kapı açılmıyor"
+  CAFETERIA_ISSUE:
+    - "Yemekler soğuk geliyor"
+    - "Kantinde kasa kuyruğu çok uzun"
+    - "Yemekhanede tepsiler kirli"
+  OUT_OF_SCOPE:
+    - "Transkriptim ne zaman hazır olur"
+    - "Ders kaydımı yapamıyorum"
+  MEANINGLESS:
+    # Form en az 10 karakter ister; anlamsiz ama gecerli uzunlukta
+    - "?? !! ... ??"
+    - "asd asd ..."
+    - ".........."
+
+# Turun gecebilecegi yerler (lokasyon kodlari, seeds/templates/campus/locations.yaml)
+locations:
+  SOAP_EMPTY: [A-Z-WCE, A-Z-WCK, A-1-WCE, A-1-WCK, B-Z-WC, YMK-WC]
+  TOILET_PAPER_EMPTY: [A-Z-WCE, A-Z-WCK, A-1-WCE, A-1-WCK, B-Z-WC, YMK-WC]
+  TRASH_FULL: [YMK-SAL, YMK-KNT, A-Z-KOR, BHC, OTP]
+  AREA_DIRTY: [A-Z-KOR, A-101, A-102, B-KUT, YMK-SAL, OTP]
+  SECURITY_INCIDENT: [A-Z-KOR, A-Z-TUR, OTP, B-KUT]
+  LOST_ITEM: [B-KUT, A-101, A-102, YMK-SAL]
+  ELECTRICAL_FAILURE: [A-101, A-102, A-1-LAB, A-Z-KOR, B-KUT]
+  WATER_LEAK: [A-Z-WCE, A-1-WCK, B-Z-WC, YMK-WC]
+  AIR_CONDITIONER_FAILURE: [A-101, A-102, A-1-LAB, B-KUT]
+  ELEVATOR_FAILURE: [B-ASN]
+  FURNITURE_DAMAGE: [A-101, A-102, B-KUT, YMK-SAL]
+  GREEN_AREA: [BHC]
+  WIFI_FAILURE: [B-KUT, A-101, A-102, A-1-LAB, YMK-SAL]
+  COMPUTER_FAILURE: [A-1-LAB]
+  PROJECTOR_FAILURE: [A-101, A-102]
+  ACCESS_CONTROL_FAILURE: [A-Z-TUR]
+  CAFETERIA_ISSUE: [YMK-SAL, YMK-KNT]
+  OUT_OF_SCOPE: [A-102, B-KUT]
+  MEANINGLESS: [A-Z-KOR, B-KUT]
+
+# Arka plan bildirimlerinde turlerin agirligi (kampuste sik olanlar onde)
+weights:
+  SOAP_EMPTY: 14
+  TOILET_PAPER_EMPTY: 12
+  TRASH_FULL: 12
+  AREA_DIRTY: 9
+  WIFI_FAILURE: 8
+  ELECTRICAL_FAILURE: 6
+  AIR_CONDITIONER_FAILURE: 6
+  PROJECTOR_FAILURE: 5
+  COMPUTER_FAILURE: 5
+  FURNITURE_DAMAGE: 5
+  WATER_LEAK: 4
+  CAFETERIA_ISSUE: 4
+  LOST_ITEM: 3
+  GREEN_AREA: 2
+  ACCESS_CONTROL_FAILURE: 2
+  SECURITY_INCIDENT: 1
+  ELEVATOR_FAILURE: 1
+  OUT_OF_SCOPE: 2
+  MEANINGLESS: 2
+
+# Gomulu oruntuler (RQ4): analitik bunlari "tekrarlayan sorun" olarak bulmali
+patterns:
+  - {location: B-Z-WC, case_type: SOAP_EMPTY, count: 17, hour: 9, note: "B Blok zemin WC sabunlugu kapasitesi yetersiz"}
+  - {location: YMK-SAL, case_type: TRASH_FULL, count: 12, hour: 14, note: "Ogle yemeginden sonra cop kutulari tasiyor"}
+  - {location: A-101, case_type: PROJECTOR_FAILURE, count: 8, hour: 10, note: "A-101 projektoru omrunu doldurmus"}
+  - {location: B-ASN, case_type: ELEVATOR_FAILURE, count: 6, hour: 11, note: "B Blok asansoru sik ariza"}
+
+# Ayni sorunu dakikalar icinde birden fazla kisi bildirir (Duplicate Agent birlestirir)
+bursts:
+  count: 15
+  reporters: [2, 4]
+  within_minutes: 20
+
+# Birim profilleri: gorevi kabul gecikmesi (dk). Bakim Onarim yavas: surec analitiginde darbogaz
+departments:
+  SUPPORT_SERVICES: {accept: [5, 40]}
+  IT_SUPPORT: {accept: [10, 60]}
+  NUTRITION: {accept: [5, 30]}
+  MAINTENANCE: {accept: [90, 300]}
+
+# Calisma suresi (dk): baslatma -> tamamlama
+work_minutes:
+  default: [15, 45]
+  SOAP_EMPTY: [5, 15]
+  TOILET_PAPER_EMPTY: [5, 12]
+  TRASH_FULL: [10, 25]
+  AREA_DIRTY: [20, 45]
+  ELECTRICAL_FAILURE: [30, 120]
+  WATER_LEAK: [30, 90]
+  AIR_CONDITIONER_FAILURE: [60, 180]
+  ELEVATOR_FAILURE: [90, 300]
+  GREEN_AREA: [60, 180]
+
+# Personelin tamamlama notlari (Resolution Agent icin anlamli). Bir kismi yapilamamis is
+completion_notes:
+  done:
+    - "Sorun giderildi, kontrol edildi."
+    - "Gerekli malzeme takıldı, çalışıyor."
+    - "Alan temizlendi ve yenilendi."
+    - "Arıza onarıldı, test edildi."
+  not_done:
+    - "Parça yok, tedarik bekleniyor."
+    - "Arıza giderilemedi, dış servis gerekli."
+
+# Ek demo kullanicilari (gecmisin cesitliligi icin; parola SEED_DEMO_PASSWORD)
+extra_users:
+  reporters: 24
+  staff:
+    - {email: temizlik2@kampus.example.com, full_name: "Temizlik Görevlisi 2", department: SUPPORT_SERVICES}
+    - {email: teknisyen2@kampus.example.com, full_name: "Bakım Teknisyeni 2", department: MAINTENANCE}
+    - {email: bt2@kampus.example.com, full_name: "BT Destek Uzmanı 2", department: IT_SUPPORT}

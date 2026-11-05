@@ -1,0 +1,69 @@
+import { cn } from "cn";
+
+import { PROGRESS_STEPS, stepState, type ProgressStep, type ReporterView, type StepState } from "@/lib/status";
+
+// Renk yolculugu: yolda turuncu, cozuldukce turkuaz (Figma: ReporterProgress, docs/UI_GUIDE.md bolum 4.1)
+const STEP_COLOR: Record<ProgressStep, string> = {
+  Alındı: "bg-brand-accent",
+  Yönlendirildi: "bg-brand-accent",
+  Çalışılıyor: "bg-linear-to-r from-brand-accent to-primary",
+  Çözüldü: "bg-primary",
+};
+const TODO_COLOR = "bg-border";
+
+// 375 px'te de 4 etiket yan yana yazilir (Figma: /my-cases - mobil, 12 px etiketler sigiyor)
+const LABEL_CLASS: Record<StepState, string> = {
+  done: "text-foreground",
+  current: "font-semibold text-foreground",
+  todo: "text-muted-foreground",
+};
+
+// Durum yalniz renkle degil metinle de anlatilir: aktif adim kalin ve aria-current (UI_GUIDE bolum 8)
+function CaseProgress({ step }: { step: ProgressStep }) {
+  return (
+    <ol aria-label="İlerleme" className="grid grid-cols-4 gap-1">
+      {PROGRESS_STEPS.map((label) => {
+        const state = stepState(label, step);
+        return (
+          <li key={label} aria-current={state === "current" ? "step" : undefined} className="space-y-1.5">
+            <span
+              aria-hidden
+              className={cn("block h-1 rounded-full", state === "todo" ? TODO_COLOR : STEP_COLOR[label])}
+            />
+            <span className={cn("block text-xs whitespace-nowrap", LABEL_CLASS[state])}>{label}</span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+// Kare kartta 4 etiket sigmaz: yalniz bulunulan adim yazilir, cubuklar altinda (Figma: CaseTile > Progress)
+function CompactProgress({ step }: { step: ProgressStep }) {
+  return (
+    <div className="space-y-1.5">
+      <p className="text-xs font-semibold">{step}</p>
+      <ol aria-label="İlerleme" className="grid grid-cols-4 gap-1">
+        {PROGRESS_STEPS.map((label) => {
+          const state = stepState(label, step);
+          return (
+            <li key={label} aria-current={state === "current" ? "step" : undefined}>
+              <span className="sr-only">{label}</span>
+              <span
+                aria-hidden
+                className={cn("block h-1 rounded-full", state === "todo" ? TODO_COLOR : STEP_COLOR[label])}
+              />
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+}
+
+export function CaseStatusView({ view, compact = false }: { view: ReporterView; compact?: boolean }) {
+  if (view.kind === "notice") {
+    return <p className={cn("rounded-md bg-muted", compact ? "line-clamp-3 p-2 text-xs" : "p-3 text-sm")}>{view.message}</p>;
+  }
+  return compact ? <CompactProgress step={view.step} /> : <CaseProgress step={view.step} />;
+}

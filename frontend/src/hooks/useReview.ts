@@ -1,0 +1,69 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import { apiGet, apiPost } from "@/lib/api/client";
+import type { components } from "@/lib/api/types";
+import { LIVE_QUERY } from "@/lib/queryClient";
+
+type Schemas = components["schemas"];
+export type ReviewItem = Schemas["ReviewItemRead"];
+export type AgentDecision = Schemas["AgentDecisionRead"];
+type CaseRead = Schemas["CaseRead"];
+
+const REVIEW_QUEUE_KEY = ["manager", "review-queue"];
+// Kuyruk kisa tutulur (agent'larin emin olamadigi kayitlar); 100 kayit tek sayfada gelir, backend siniri 200
+const REVIEW_PAGE_SIZE = 100;
+
+export function useReviewQueue() {
+  return useQuery({
+    queryKey: REVIEW_QUEUE_KEY,
+    queryFn: () => apiGet<Schemas["Page_ReviewItemRead_"]>(`/manager/review-queue?page_size=${REVIEW_PAGE_SIZE}`),
+    ...LIVE_QUERY,
+  });
+}
+
+// Gerekce paneli acilinca yuklenir; kapaliyken istek atilmaz
+export function useCaseDecisions(caseId: number, enabled: boolean) {
+  return useQuery({
+    queryKey: ["cases", String(caseId), "decisions"],
+    queryFn: () => apiGet<AgentDecision[]>(`/cases/${caseId}/decisions`),
+    enabled,
+  });
+}
+
+// Duzeltme sozlukleri (MANAGER/ADMIN): pencere acilinca yuklenir, oturum boyunca degismez
+export function useCaseTypes(enabled: boolean) {
+  return useQuery({
+    queryKey: ["lookups", "case-types"],
+    queryFn: () => apiGet<Schemas["CaseTypeOption"][]>("/case-types"),
+    enabled,
+    staleTime: Infinity,
+  });
+}
+
+export function useDepartments(enabled: boolean) {
+  return useQuery({
+    queryKey: ["lookups", "departments"],
+    queryFn: () => apiGet<Schemas["DepartmentOption"][]>("/departments"),
+    enabled,
+    staleTime: Infinity,
+  });
+}
+
+export type ReviewAction = "assign" | "override" | "reject" | "merge" | "close";
+
+// Her islem guncel bildirimi doner; kuyruk ve bildirim listeleri yeniden okunur.
+// onDone burada, yenilemeden once cagrilir: kuyruk yenilenince kart kaybolur ve mutate()'e verilen
+// onSuccess kaybolan bilesende calismaz (onay notu hic gorunmezdi).
+export function useReviewAction<Body>(caseId: number, action: ReviewAction, onDone: () => void) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: Body) => apiPost<CaseRead>(`/cases/${caseId}/${action}`, body),
+    onSuccess: () => {
+      onDone();
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: REVIEW_QUEUE_KEY }),
+        queryClient.invalidateQueries({ queryKey: ["cases"] }),
+      ]);
+    },
+  });
+}

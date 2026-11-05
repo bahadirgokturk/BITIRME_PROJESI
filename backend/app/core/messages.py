@@ -1,0 +1,94 @@
+"""Kullaniciya donen mesajlar tek yerde (KOD_KURALLARI kural 3). Metinler tam Turkce kalir."""
+
+NOT_FOUND = "Kayıt bulunamadı."
+CONFLICT = "Kayıt mevcut durumla çakışıyor."
+VALIDATION_ERROR = "Gönderilen veriler geçersiz."
+HTTP_ERROR = "İstek işlenemedi."
+NOT_IMPLEMENTED = "Bu özellik henüz hazır değil."
+# Yanlis e-posta ile yanlis parola ayni mesaji alir: kayitli e-postalar disaridan anlasilamaz
+INVALID_CREDENTIALS = "E-posta veya parola hatalı."
+TOO_MANY_LOGIN_ATTEMPTS = "Çok fazla hatalı giriş denemesi. Lütfen biraz sonra tekrar deneyin."
+FORBIDDEN = "Bu işlem için yetkiniz yok."
+DUPLICATE_CODE = "Bu kod zaten kullanılıyor."
+DUPLICATE_SLA_RULE = "Bu bildirim türü ve öncelik için zaten bir SLA kuralı var."
+INVALID_SLA_TARGETS = "Çözüm süresi, kabul süresinden kısa olamaz."
+DUPLICATE_EMAIL = "Bu e-posta adresi zaten kayıtlı."
+INVALID_USER_ROLE = (
+    "Rol bilgileri tutarsız: bildirim yapanlarda kullanıcı türü, "
+    "personel ve müdürlerde birim zorunludur."
+)
+INVALID_TRANSITION = "Bildirim bu durumdan istenen duruma geçirilemez."
+FILE_TOO_LARGE = "Dosya çok büyük. En fazla {limit_mb} MB yüklenebilir."
+TOO_MANY_ATTACHMENTS = "Bu bildirime en fazla {limit} fotoğraf eklenebilir."
+VIDEO_TOO_LONG = "Video en fazla {limit} saniye olabilir."
+UNSUPPORTED_MEDIA_TYPE = "Yalnız JPG, PNG, WEBP fotoğraf ya da MP4, MOV video yüklenebilir."
+REOPEN_WINDOW_CLOSED = "Bildirim kapandıktan sonraki {hours} saat içinde yeniden açılabilir."
+CASE_NOT_CLOSED = "Yalnız kapanmış bildirim puanlanabilir."
+RATING_WINDOW_CLOSED = "Bildirim kapandıktan sonraki {hours} saat içinde puanlanabilir."
+ALREADY_RATED = "Bu bildirim zaten puanlandı."
+INVALID_PERIOD = (
+    "Tarih aralığı geçerli değil: başlangıç bitişten önce olmalı "
+    "ve en fazla {max_days} gün sürmeli."
+)
+INVALID_MERGE_TARGET = "Bildirim yalnız sorunu hâlâ açık olan başka bir bildirime bağlanabilir."
+INVALID_OVERRIDE_VALUE = "Düzeltilen değer geçerli değil: {field} için '{value}' bulunamadı."
+INVALID_ASSIGNEE = "Seçilen kişi bu birimde çalışan aktif bir personel değil."
+IDEMPOTENCY_KEY_REUSED = (
+    "Bu gönderim anahtarı başka bir bildirim için kullanılmış. Sayfayı yenileyip tekrar deneyin."
+)
+INTERNAL_TOKEN_INVALID = "Dahili istek anahtarı eksik ya da hatalı."  # noqa: S105 - mesaj, parola degil
+SELF_LOCKOUT = "Kendi hesabınızı pasifleştiremez ya da yönetici rolünüzü kaldıramazsınız."
+INVALID_PARENT = "Lokasyon kendisinin ya da kendi alt lokasyonunun altına taşınamaz."
+UNAUTHORIZED = "Oturumunuz geçersiz ya da süresi dolmuş. Lütfen yeniden giriş yapın."
+
+# Onleyici bakim (tekrarlayan sorunun tipik araligi). Karar degil, oneri.
+ROUTINE_SUGGESTION = "Genellikle {gap} bir tekrarlıyor; {every} rutin kontrol planlanabilir."
+ROUTINE_GAP_DAYS = "{days} günde"
+ROUTINE_GAP_HOURS = "{hours} saatte"
+ROUTINE_EVERY_DAYS = "{days} günde bir"
+ROUTINE_EVERY_DAY = "her gün"
+
+# SLA gecikme riski gerekceleri (analytics/delay_risk.py ozellikleri)
+DELAY_RISK_NO_MODEL = (
+    "Gecikme riski için yeterli geçmiş yok: en az {count} kapanmış ve hem zamanında hem geç "
+    "biten bildirim gerekli."
+)
+DELAY_FACTOR_PRIORITY = "Öncelik: {value}"
+DELAY_FACTOR_BACKLOG = "Açıldığında birimde {value} açık iş vardı"
+DELAY_FACTOR_WEEKEND = "Hafta sonu açıldı"
+DELAY_FACTOR_AFTER_HOURS = "Mesai dışında açıldı"
+DELAY_FACTOR_SLA = "Hedef süre {value} saat"
+DELAY_FACTOR_CATEGORY = "Kategori: {value}"
+DELAY_FACTOR_DEPARTMENT = "Birim: {value}"
+
+# Surec haritasindaki adimlarin adlari (analytics/process_map.py MAP_ACTIVITIES)
+PROCESS_ACTIVITY_LABELS = {
+    "CASE_CREATED": "Bildirim açıldı",
+    "INFO_REQUESTED": "Bilgi istendi",
+    "INFO_PROVIDED": "Bilgi verildi",
+    "HUMAN_REVIEW_REQUESTED": "Müdür incelemesine gitti",
+    "ESCALATED": "Yöneticiye iletildi",
+    "TASK_CREATED": "Görev oluşturuldu",
+    "TASK_DECLINED": "Görev reddedildi",
+    "TASK_REASSIGNED": "Görev yeniden atandı",
+    "TASK_ACCEPTED": "Görev kabul edildi",
+    "WORK_STARTED": "İşe başlandı",
+    "EVIDENCE_REQUESTED": "Ek kanıt istendi",
+    "WORK_COMPLETED": "İş tamamlandı",
+    "CASE_CLOSED": "Kapatıldı",
+    "CASE_REOPENED": "Yeniden açıldı",
+    "CASE_REJECTED": "Reddedildi",
+}
+
+# Tekrarlayan sorun onerisi, kategoriye gore (yonetici dashboard'u).
+# Karar degil, oneri: "...edilebilir"
+RECURRING_SUGGESTIONS = {
+    "CLEANING": "Bu alanın temizlik sıklığı veya ayrılan personel gözden geçirilebilir.",
+    "CONSUMABLE": "Kalıcı çözüm (dispenser kapasitesi / periyodik kontrol) değerlendirilebilir.",
+    "TECHNICAL": "Cihazın bakım geçmişi incelenip kalıcı onarım veya yenileme değerlendirilebilir.",
+    "IT": "Bu alandaki ağ veya donanım altyapısının kapasitesi gözden geçirilebilir.",
+    "INFRASTRUCTURE": "Tesisatın kapsamlı bakımı veya yenilenmesi değerlendirilebilir.",
+    "SECURITY": "Bu alandaki güvenlik önlemleri (kamera, devriye) gözden geçirilebilir.",
+    "FOOD_SERVICE": "Hizmet süreci ve tedarik planı gözden geçirilebilir.",
+    "OTHER": "Sorunun kök nedeni yerinde incelenebilir.",
+}

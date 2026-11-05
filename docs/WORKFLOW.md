@@ -12,7 +12,7 @@ stateDiagram-v2
     ANALYZING --> ESCALATED : L3 / ESCALATE
     ANALYZING --> REJECTED : spam / geçersiz
     NEEDS_INFO --> ANALYZING : reporter bilgi ekledi
-    NEEDS_INFO --> REJECTED : 48 saat yanıt yok
+    NEEDS_INFO --> REJECTED : 48 saat yanıt yok (henüz uygulanmadı)
     CLASSIFIED --> ASSIGNED : task oluşturuldu
     CLASSIFIED --> ESCALATED
     CLASSIFIED --> MERGED
@@ -45,7 +45,9 @@ stateDiagram-v2
 - Geçişler `backend/app/services/workflow.py` içinde **tek bir tablo** (`ALLOWED_TRANSITIONS: dict[CaseStatus, set[CaseStatus]]`)
   olarak tanımlanır. Tablo dışı geçiş `InvalidTransitionError` → HTTP 409.
 - Her geçiş: ilgili zaman damgası (`assigned_at`…) + `case_events` kaydı aynı transaction'da.
-- Zaman damgaları **ilk** gerçekleşmede yazılır (reopen sonrası `resolved_at` güncellenir, ilk değer event log'da korunur).
+- Zaman damgaları **ilk** gerçekleşmede yazılır. İstisna: reopen sonrası `resolved_at` ve `closed_at` güncellenir
+  (SLA son çözüme göre ölçülür; reporter'ın 72 saatlik itiraz/puan penceresi son kapanıştan başlar). İlk değerler
+  event log'da korunur.
 - `ESCALATED` **durumu** = manager karar kuyruğu (atama öncesi risk). SLA gecikmesi escalation'ı ise
   status'u değiştirmez; `escalation_level` artar + `ESCALATED` event yazılır. Böylece devam eden iş bozulmaz.
 - Terminal durumlar: `CLOSED` (reopen penceresi hariç), `REJECTED`, `MERGED`.
@@ -53,12 +55,24 @@ stateDiagram-v2
 
 ### Case ↔ Task senkronizasyonu
 
+Uygulama: `backend/app/services/task_service.py`. ✅ **E5-11:** tamamlanan görevi Resolution Agent doğrular
+(`services/resolution_service.py`, [AGENTS.md](AGENTS.md) 4.9); FAZ 4'teki geçici otomatik kapatma kaldırıldı.
+`RESOLVED → VERIFICATION` sonrası: `RESOLVED` → `CLOSED`; kanıt yetersiz → görev ve bildirim `IN_PROGRESS`'e döner
+(`EVIDENCE_REQUESTED`, eksik metadata'da), ikinci kez yetersizse `VERIFICATION` + `needs_human_review` (manager
+`POST /cases/{id}/close` ile kapatır ya da yeniden açar); notta "yapılamadı" → `REOPENED → ESCALATED` (personel
+ataması kalkar, manager yeniden atar). Agent hattı kapalıysa (`AGENTS_ENABLED=false`) bildirim `VERIFICATION` +
+`needs_human_review` ile manager'ı bekler. Agent hattı (E5-8b) bildirimi kendisi sınıflandırıp
+atar (docs/AGENTS.md bölüm 3); hat kapalıysa (`AGENTS_ENABLED=false`) ya da manager el koyarsa, manager ataması
+`ANALYZING` bildirimi önce `CLASSIFIED` yapar (`ROUTED`, elle yönlendirme). Reddedilen görevde bildirim `ESCALATED`
+olur (manager yeniden atar; otomatik yeniden yönlendirme ileride).
+
 | Task olayı | Task status | Case status |
 |---|---|---|
 | Task oluşturuldu | PENDING | ASSIGNED |
 | Staff kabul etti | ACCEPTED | ACCEPTED |
 | Staff başladı | IN_PROGRESS | IN_PROGRESS |
-| Staff tamamladı | COMPLETED | RESOLVED → (Resolution Agent) VERIFICATION → CLOSED |
+| Staff tamamladı | COMPLETED | RESOLVED → VERIFICATION → (Resolution Agent) CLOSED / IN_PROGRESS / ESCALATED |
+| Kanıt yetersiz (Resolution) | IN_PROGRESS | IN_PROGRESS |
 | Staff reddetti | DECLINED | ASSIGNED (yeni task) veya ESCALATED |
 | Case merge/reject | CANCELLED | MERGED / REJECTED |
 
@@ -69,6 +83,7 @@ PENDING → ACCEPTED → IN_PROGRESS → COMPLETED
 PENDING → DECLINED | CANCELLED
 ACCEPTED → DECLINED | CANCELLED
 IN_PROGRESS → CANCELLED
+COMPLETED → IN_PROGRESS   (Resolution Agent kanıt istedi, E5-11)
 ```
 
 ## 3. Event Tipleri
@@ -76,8 +91,8 @@ IN_PROGRESS → CANCELLED
 `CASE_CREATED, ANALYSIS_STARTED, AI_CLASSIFIED, DUPLICATE_CHECKED, VERIFICATION_SCORED,
 PRIORITY_CALCULATED, ROUTED, SUPERVISOR_DECIDED, HUMAN_REVIEW_REQUESTED, INFO_REQUESTED, INFO_PROVIDED,
 CASE_MERGED, TASK_CREATED, TASK_ACCEPTED, TASK_DECLINED, TASK_REASSIGNED, WORK_STARTED, WORK_COMPLETED,
-EVIDENCE_UPLOADED, RESOLUTION_EVALUATED, RESOLUTION_VERIFIED, CASE_CLOSED, CASE_REOPENED, CASE_REJECTED,
-SLA_WARNING, SLA_BREACHED, ESCALATED, DECISION_OVERRIDDEN, COMMENT_ADDED, FEEDBACK_SUBMITTED`
+EVIDENCE_UPLOADED, RESOLUTION_EVALUATED, EVIDENCE_REQUESTED, RESOLUTION_VERIFIED, CASE_CLOSED, CASE_REOPENED, CASE_REJECTED,
+SLA_WARNING, SLA_BREACHED, REASSIGN_RECOMMENDED, ESCALATED, DECISION_OVERRIDDEN, COMMENT_ADDED, FEEDBACK_SUBMITTED`
 
 `metadata_json` örneği (`PRIORITY_CALCULATED`):
 ```json
@@ -99,6 +114,8 @@ SLA_WARNING, SLA_BREACHED, ESCALATED, DECISION_OVERRIDDEN, COMMENT_ADDED, FEEDBA
 | Task listeleme | ❌ | 🔸 kendi | ✅ | ✅ (salt okuma) |
 | Task kabul/başlat/tamamla/reddet | ❌ | 🔸 kendi | ❌ | ❌ |
 | Case (yeniden) atama | ❌ | ❌ | ✅ | ❌ |
+| Ek bilgi isteme (`request-info`) | ❌ | ❌ | ✅ | ❌ |
+| Ek bilgiyi yanıtlama (`info`) | 🔸 kendi | ❌ | ❌ | ❌ |
 | Agent kararını düzeltme (override) | ❌ | ❌ | ✅ | ❌ |
 | Human review kuyruğu | ❌ | ❌ | ✅ | ❌ |
 | Escalated case kararı | ❌ | ❌ | ✅ | ❌ |
