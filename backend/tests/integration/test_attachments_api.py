@@ -202,3 +202,16 @@ def test_long_video_is_422(client: TestClient, case_id: int) -> None:
 
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "VIDEO_TOO_LONG"
+
+
+def test_admin_can_attach_a_photo_to_a_report_they_opened(client: TestClient, case_id: int) -> None:
+    # Menude admin'e de "Bildirim Yap" gorunur; kendi bildiriminde o da bildirendir
+    admin = _as(client, "admin")
+    location_id = client.get(f"/api/v1/cases/{case_id}", headers=admin).json()["location"]["id"]
+    body = {"description": "Admin olarak açtığım bildirim, fotoğraflı", "location_id": location_id}
+    own = client.post("/api/v1/cases", json=body, headers=admin).json()["id"]
+
+    status, created = _upload(client, own, admin)
+
+    assert status == 201, created
+    assert created["kind"] == "REPORT"

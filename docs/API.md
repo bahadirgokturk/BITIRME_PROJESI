@@ -85,7 +85,7 @@ belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanı
 | POST | `/cases/{id}/info` | R (sahip) | NEEDS_INFO iken `{body}` → `ANALYZING`, yanıt herkese açık yorum olarak da eklenir ✅ |
 | POST | `/cases/{id}/comments` | kapsam (ADMIN hariç) | `{body, is_internal}` ✅ |
 | GET | `/cases/{id}/comments` | kapsam | yorumlar (reporter iç notları görmez) ✅ |
-| POST | `/cases/{id}/attachments` | kapsam (ADMIN hariç) | fotoğraf yükleme (multipart, alan adı `file`) ✅ |
+| POST | `/cases/{id}/attachments` | kapsam (ADMIN yalnız kendi açtığı bildirime) | fotoğraf yükleme (multipart, alan adı `file`) ✅ |
 | GET | `/cases/{id}/attachments` | kapsam | bildirimin fotoğrafları ✅ |
 | GET | `/attachments/{id}` | kapsam | fotoğrafı indirme (yetki kontrollü) ✅ |
 | POST | `/cases/{id}/feedback` | R (sahip) | `{rating 1–5, comment?}` → `CaseRead` ✅ |
