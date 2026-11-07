@@ -353,6 +353,7 @@ dokunuşla açıklamayı doldurur. **Yalnız öneridir:** türü yine Classifica
 - **Ön deneme (01.11.2026):** Wikimedia Commons'tan 30 rastgele fotoğraf (10 tür × 3): öneri verilen 24'ün
   21'inde ilk öneri doğru, 6'sında "anlaşılamadı". Tarifler bu fotoğraflara bakılarak düzeltildiği için bu
   bir ölçüm değildir; ölçüm kampüste çekilen fotoğraflarla yapılır.
+- **Ölçüm (`scripts/eval_photos.py`):** fotoğraflar tür koduyla adlandırılmış klasörlere konur (`SOAP_EMPTY/`…), sorun göstermeyenler `_NONE/`'a; komut kapsam, ilk öneri doğruluğu, ilk 3'te doğru tür, yanlış alarm oranı, tür bazında sonuç ve karışan türleri tez tablosu olarak yazar. Fotoğraflar repoya girmez (`ai/data/raw/fotograflar`). HEIC atlanır.
 
 ## 5. Autonomy Policy
 
