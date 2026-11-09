@@ -4,19 +4,21 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 import { LoginForm } from "./LoginForm";
 
-// Masaustunde soldaki turkuaz tanitim paneli; telefonda gizli. Panel yazinin bittigi yere kadar dar,
-// boylece sagdaki giris alani genisler (Figma: 08 Yeni Stil (A) > 01 giris masaustu)
+// Masaustunde soldaki turkuaz tanitim paneli; telefonda gizli. Genis ekranda altin oran: panel %38,2,
+// giris alani %61,8 (Figma: 08 Yeni Stil (A) > giris E). Tablette %38 yaziya dar kalir: orada %45.
 function BrandPanel() {
   return (
     <section
       className={
         "hidden flex-col justify-center gap-6 bg-primary px-12 text-primary-foreground " +
-        "md:flex md:w-[min(560px,45vw)] md:shrink-0 lg:px-20"
+        "md:flex md:w-[45vw] md:shrink-0 lg:w-[38.2vw] lg:px-[72px]"
       }
     >
       {/* Zemin de logo da turkuaz: ince beyaz cerceve logonun kenarini belli eder (yalniz bu panelde) */}
       <LogoMark className="size-24 ring-1 ring-white" />
-      <p className="text-4xl leading-tight font-semibold">Kampüsteki sorunları bildir, çözülene kadar takip et.</p>
+      <p className="text-4xl leading-tight font-semibold lg:text-[40px] lg:leading-[1.2]">
+        Kampüsteki sorunları bildir, çözülene kadar takip et.
+      </p>
       <p>İzmir Bakırçay Üniversitesi · BakırçayFlow</p>
     </section>
   );
@@ -45,7 +47,7 @@ function LoginCard({ next }: { next?: string }) {
 function LoginMain({ next }: { next?: string }) {
   return (
     <main className="flex flex-1 flex-col px-6 pt-18 pb-6 md:items-center md:justify-center md:p-8">
-      <div className="flex w-full flex-col gap-10 md:max-w-[500px] md:gap-6">
+      <div className="flex w-full flex-col gap-10 md:max-w-[520px] md:gap-6">
         {/* Telefonda simge solda agirlik yaptigi icin tam ortada saga kaymis gorunur, logo biraz sola alinir;
             masaustunde logo kutunun sol kenarina hizali */}
         <div className="flex justify-center pr-6 md:justify-start md:pr-0">
