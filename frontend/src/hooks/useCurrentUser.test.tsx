@@ -1,5 +1,5 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { renderHook, waitFor } from "@testing-library/react";
+import { render, renderHook, screen, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import type { ReactNode } from "react";
 import { describe, expect, it } from "vitest";
@@ -15,7 +15,37 @@ function wrapper({ children }: { children: ReactNode }) {
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 }
 
+function UserName() {
+  return <p>{useCurrentUser().data?.full_name ?? "yok"}</p>;
+}
+
 describe("useCurrentUser", () => {
+  // Kabuk ve sayfa ayni sorguyu kullanir; sonradan acilan bilesen ikinci istek gondermez (Lighthouse: cift /auth/me)
+  it("asks /auth/me once even when a second component mounts later", async () => {
+    let calls = 0;
+    server.events.on("request:start", ({ request }) => {
+      if (new URL(request.url).pathname.endsWith("/auth/me")) calls += 1;
+    });
+    const client = createQueryClient();
+    const view = render(
+      <QueryClientProvider client={client}>
+        <UserName />
+      </QueryClientProvider>,
+    );
+    await screen.findByText("Ayşe Yılmaz");
+
+    view.rerender(
+      <QueryClientProvider client={client}>
+        <UserName />
+        <UserName />
+      </QueryClientProvider>,
+    );
+    await waitFor(() => expect(screen.getAllByText("Ayşe Yılmaz")).toHaveLength(2));
+
+    expect(calls).toBe(1);
+    server.events.removeAllListeners();
+  });
+
   it("returns the signed-in user from the mocked /auth/me", async () => {
     const { result } = renderHook(() => useCurrentUser(), { wrapper });
 

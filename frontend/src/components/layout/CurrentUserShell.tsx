@@ -26,7 +26,14 @@ export function CurrentUserShell({ children }: { children: ReactNode }) {
   }, [signedOut, router]);
 
   if (isPending || signedOut) {
-    return <p className="p-6 text-sm text-muted-foreground">Yükleniyor…</p>;
+    return (
+      <>
+        <p className="p-6 text-sm text-muted-foreground">Yükleniyor…</p>
+        {/* Sayfa gizli cizilir: veri istekleri kullanici bilgisini beklemeden yola cikar (ilk acilis zinciri
+            kisalir). Rol bilinince sayfa kabugun icinde yeniden kurulur ve onbellekteki veriyi kullanir. */}
+        {isPending ? <div hidden>{children}</div> : null}
+      </>
+    );
   }
   // Arka plan yenilemesi basarisiz olsa da bilinen kullanici gosterilmeye devam eder;
   // hata yalniz hic veri yokken tam ekran gosterilir

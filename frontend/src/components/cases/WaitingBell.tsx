@@ -9,6 +9,7 @@ import { cn } from "cn";
 import { buttonVariants } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "@/components/ui/popover";
 import { useWaitingCases } from "@/hooks/useCases";
+import { useIdleStart } from "@/hooks/useIdleStart";
 import { actionNeeded, type WaitingCase } from "@/lib/caseActions";
 
 // Yanit bekleyen varsa acik turuncu, yoksa acik gri (Figma: WaitingBell, Durum=Bekleyen var / Yok).
@@ -46,7 +47,8 @@ function WaitingList({ waiting, onPick }: { waiting: WaitingCase[]; onPick: () =
 // Liste kurali lib/caseActions.ts actionNeeded (ek bilgi istenenler, 72 saat icinde puan bekleyenler).
 export function WaitingBell({ className }: { className?: string }) {
   const [open, setOpen] = useState(false);
-  const query = useWaitingCases();
+  // Her sayfada ust cubukta durur; 100 kayitlik tarama sayfanin kendi verisini geciktirmesin
+  const query = useWaitingCases(useIdleStart());
   const waiting = query.data ? actionNeeded(query.data) : [];
   const has = waiting.length > 0;
   return (
