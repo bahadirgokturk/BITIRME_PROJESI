@@ -1,9 +1,11 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
+import { useQuery } from "@tanstack/react-query";
+import { delay } from "msw";
 import { describe, expect, it, vi } from "vitest";
 
-import { apiUrl } from "@/lib/api/client";
+import { apiGet, apiUrl } from "@/lib/api/client";
 import { createQueryClient } from "@/lib/queryClient";
 import { server } from "@/mocks/node";
 
@@ -49,6 +51,42 @@ describe("CurrentUserShell", () => {
     );
     expect(screen.getByText("Ayşe Yılmaz")).toBeInTheDocument();
     expect(screen.getByText("içerik")).toBeInTheDocument();
+  });
+});
+
+function PageWithData() {
+  const query = useQuery({
+    queryKey: ["page-data"],
+    queryFn: () => apiGet<unknown>("/cases/mine?page=1&page_size=20"),
+  });
+  return <p>{query.isSuccess ? "sayfa verisi" : "sayfa yukleniyor"}</p>;
+}
+
+// Sayfa verisi kullanici bilgisini beklemeden istenir; ekranda yine yalniz "Yukleniyor..." gorunur
+describe("CurrentUserShell while the user is loading", () => {
+  it("starts the page's own requests without waiting for /auth/me", async () => {
+    let pageAsked = false;
+    server.use(
+      http.get(apiUrl("/auth/me"), async () => {
+        await delay("infinite");
+        return HttpResponse.json({});
+      }),
+    );
+    server.events.on("request:start", ({ request }) => {
+      if (new URL(request.url).pathname.endsWith("/cases/mine")) pageAsked = true;
+    });
+    render(
+      <QueryClientProvider client={createQueryClient()}>
+        <CurrentUserShell>
+          <PageWithData />
+        </CurrentUserShell>
+      </QueryClientProvider>,
+    );
+
+    await waitFor(() => expect(pageAsked).toBe(true));
+    expect(screen.getByText("Yükleniyor…")).toBeVisible();
+    expect(screen.queryByText(/sayfa/)).not.toBeVisible();
+    server.events.removeAllListeners();
   });
 });
 
