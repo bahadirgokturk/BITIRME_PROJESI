@@ -31,6 +31,20 @@ describe("LoginScreen", () => {
     expect(screen.getByLabelText("Parola")).toBeInTheDocument();
   });
 
+  // Masaustu orani altin oran: panel %38,2, form alani %61,8; giris kutusu 520 px (Figma: 08 Yeni Stil (A) > giris E)
+  it("splits the desktop screen by the golden ratio", () => {
+    renderScreen();
+
+    const panel = screen.getByText("Kampüsteki sorunları bildir, çözülene kadar takip et.").closest("section");
+    expect(panel?.className).toContain("lg:w-[38.2vw]");
+    expect(screen.getByText("Kampüsteki sorunları bildir, çözülene kadar takip et.").className).toContain(
+      "lg:text-[40px]",
+    );
+    expect(screen.getByRole("heading", { level: 1 }).closest("main")?.firstElementChild?.className).toContain(
+      "md:max-w-[520px]",
+    );
+  });
+
   it("lets the user switch to dark mode before signing in", () => {
     renderScreen();
 
