@@ -7,7 +7,15 @@ from pathlib import Path
 
 import pytest
 
-from scripts.eval_photos import Photo, collect, evaluate, markdown_report
+from app.agents.vision import TypeSuggestion
+from scripts.eval_photos import (
+    Photo,
+    collect,
+    evaluate,
+    evaluate_photo_check,
+    markdown_report,
+    photo_check_markdown,
+)
 
 
 def _touch(root: Path, relative: str) -> None:
@@ -91,3 +99,42 @@ def test_folder_may_carry_a_turkish_hint_after_the_code(tmp_path: Path) -> None:
     photos, _ = collect(tmp_path, known={"SOAP_EMPTY"})
 
     assert sorted(p.truth for p in photos) == ["SOAP_EMPTY", "_NONE"]
+
+
+def _s(code: str, confidence: float) -> TypeSuggestion:
+    return TypeSuggestion(case_type_code=code, confidence=confidence)
+
+
+def _photo_check_answers() -> list[tuple[Photo, list[TypeSuggestion]]]:
+    photos = _photos("SOAP_EMPTY", "SOAP_EMPTY", "TRASH_FULL", "_NONE")
+    return [
+        (photos[0], [_s("SOAP_EMPTY", 0.7)]),  # metin dogru: uyumlu; metin yanlis: celiski
+        (photos[1], []),  # fotograf anlasilmadi
+        (photos[2], [_s("SOAP_EMPTY", 0.4), _s("TRASH_FULL", 0.3)]),  # yanlis metne de uyar
+        (photos[3], [_s("TRASH_FULL", 0.65)]),  # sorun yokken guclu oneri
+    ]
+
+
+def test_photo_check_scenarios_pair_each_photo_with_right_and_wrong_text() -> None:
+    report = evaluate_photo_check(_photo_check_answers())
+
+    # Metin dogru tur: celiski cikmasi yanlis alarmdir
+    assert report["same"] == {"n": 3, "AGREES": 0.6667, "CONFLICTS": 0.0, "UNCLEAR": 0.3333}
+    # Metin baska bir tur (setteki diger sorunlu turler): celiski yakalanmali
+    assert report["other"] == {"n": 3, "AGREES": 0.3333, "CONFLICTS": 0.3333, "UNCLEAR": 0.3333}
+    # Sorun gostermeyen fotograf, her sorunlu turle
+    assert report["none"] == {"n": 2, "AGREES": 0.5, "CONFLICTS": 0.5, "UNCLEAR": 0.0}
+
+
+def test_photo_check_without_photos_has_empty_rows() -> None:
+    report = evaluate_photo_check([])
+
+    assert report["same"] == {"n": 0, "AGREES": None, "CONFLICTS": None, "UNCLEAR": None}
+
+
+def test_photo_check_table_for_the_thesis() -> None:
+    text = photo_check_markdown(evaluate_photo_check(_photo_check_answers()))
+
+    assert "| Metin dogru tur | 3 | %66,7 | %0,0 | %33,3 |" in text
+    assert "| Metin baska tur | 3 | %33,3 | %33,3 | %33,3 |" in text
+    assert "| Sorun gostermeyen fotograf | 2 | %50,0 | %50,0 | %0,0 |" in text

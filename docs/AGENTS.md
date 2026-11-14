@@ -371,7 +371,10 @@ dokunuşla açıklamayı doldurur. **Yalnız öneridir:** türü yine Classifica
 - **Kapsam dışı:** personelin kanıt fotoğrafı (`EVIDENCE`), video; bildirimin türü henüz yoksa kontrol atlanır;
   görüntü modeli yoksa hiç çalışmaz.
 - **Tez ölçüsü:** fotoğraflı bildirimlerde `AGREES / CONFLICTS / UNCLEAR` dağılımı, "fotoğraf metni ne kadar
-  destekliyor" sorusunun cevabıdır.
+  destekliyor" sorusunun cevabıdır. Çevrimdışı ölçüm `scripts/eval_photos.py` ile (ikinci tablo): her etiketli
+  fotoğraf doğru türlü metinle ("Metin doğru tür": çelişki = yanlış alarm), setteki diğer sorunlu türlerle
+  ("Metin başka tür": çelişki = yakalanan hata) ve `_NONE` fotoğrafları her sorunlu türle eşlenir; senaryo
+  başına uyumlu / çelişki / anlaşılamadı oranı verilir. Model fotoğraf başına bir kez çalışır.
 
 ## 5. Autonomy Policy
 

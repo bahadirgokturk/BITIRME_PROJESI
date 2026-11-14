@@ -9,6 +9,8 @@ Olculenler:
 - Ilk oneri dogrulugu: oneri verilenlerde ve tumunde; ilk 3 icinde dogru tur.
 - Yanlis alarm: sorun gostermeyen fotografa oneri verme orani.
 - Tur bazinda sonuc ve en sik karisan tur ciftleri.
+- Fotograf-metin kontrolu (4.12): her fotograf dogru turlu metinle ve setteki diger sorunlu
+  turlerle eslenir; uyumlu / celiski / anlasilamadi oranlari ayri ayri verilir.
 
 Fotograflar acik repoya konmaz (yuz, plaka olabilir): ai/data/raw/fotograflar altinda durur.
 Kullanim (repo kokunden; model backend imajinda):
@@ -28,7 +30,8 @@ from typing import Any
 import yaml
 
 from app.agents.base import AgentContext
-from app.agents.vision import NONE_LABEL, VisionAgent, VisionInput
+from app.agents.photo_check import PhotoCheckAgent, PhotoCheckDecision, PhotoCheckInput
+from app.agents.vision import NONE_LABEL, TypeSuggestion, VisionAgent, VisionInput
 from app.agents.vision_model import get_vision
 from app.core.config import get_settings
 
@@ -131,6 +134,57 @@ def markdown_report(report: dict[str, Any], skipped: int) -> str:
     return "\n".join(lines) + "\n"
 
 
+Answer = tuple[Photo, list[TypeSuggestion]]
+# Fotograf-metin senaryolari: tablo satir adi
+CHECK_ROWS = {
+    "same": "Metin dogru tur",
+    "other": "Metin baska tur",
+    "none": "Sorun gostermeyen fotograf",
+}
+
+
+def _decisions(pairs: Sequence[tuple[str, list[TypeSuggestion]]]) -> dict[str, Any]:
+    """(metin turu, fotograf onerileri) ciftlerini gercek Photo Check Agent'tan gecirir."""
+    agent = PhotoCheckAgent()
+    ctx = AgentContext(now=datetime.now(UTC))
+    counts = Counter(
+        agent.run(PhotoCheckInput(case_type_code=text, suggestions=found), ctx).decision
+        for text, found in pairs
+    )
+    row: dict[str, Any] = {"n": len(pairs)}
+    row |= {d.value: _ratio(counts[d.value], len(pairs)) for d in PhotoCheckDecision}
+    return row
+
+
+def evaluate_photo_check(answers: Sequence[Answer]) -> dict[str, Any]:
+    problems = [(p, found) for p, found in answers if p.truth != NONE_LABEL]
+    types = sorted({p.truth for p, _ in problems})
+    nones = [found for p, found in answers if p.truth == NONE_LABEL]
+    return {
+        "same": _decisions([(p.truth, found) for p, found in problems]),
+        "other": _decisions(
+            [(text, found) for p, found in problems for text in types if text != p.truth]
+        ),
+        "none": _decisions([(text, found) for found in nones for text in types]),
+    }
+
+
+def photo_check_markdown(report: dict[str, Any]) -> str:
+    """Tezdeki ikinci tablo: senaryo basina karar oranlari."""
+    lines = [
+        "# Fotograf-metin kontrolu",
+        "",
+        "| Senaryo | Cift | Uyumlu | Celiski | Anlasilamadi |",
+        "| --- | --- | --- | --- | --- |",
+    ]
+    lines += [
+        f"| {label} | {report[key]['n']} | {_pct(report[key]['AGREES'])} | "
+        f"{_pct(report[key]['CONFLICTS'])} | {_pct(report[key]['UNCLEAR'])} |"
+        for key, label in CHECK_ROWS.items()
+    ]
+    return "\n".join(lines) + "\n"
+
+
 def main() -> int:
     vision = get_vision(get_settings().vision_model_path)
     if vision is None:
@@ -143,12 +197,15 @@ def main() -> int:
     agent = VisionAgent(vision.bank)
     ctx = AgentContext(now=datetime.now(UTC))
 
-    def predict(photo: Photo) -> list[str]:
+    def suggest(photo: Photo) -> list[TypeSuggestion]:
         embedding = vision.encoder.encode(photo.path.read_bytes())
-        result = agent.run(VisionInput(image_embedding=embedding), ctx)
-        return [s.case_type_code for s in result.output.suggestions]
+        return agent.run(VisionInput(image_embedding=embedding), ctx).output.suggestions
 
-    print(markdown_report(evaluate(photos, predict), skipped=len(skipped)))
+    # Model her fotograf icin bir kez calisir; iki olcum ayni onerileri kullanir
+    found = {photo.path: suggest(photo) for photo in photos}
+    codes = {path: [s.case_type_code for s in found[path]] for path in found}
+    print(markdown_report(evaluate(photos, lambda p: codes[p.path]), skipped=len(skipped)))
+    print(photo_check_markdown(evaluate_photo_check([(p, found[p.path]) for p in photos])))
     return 0
 
 
