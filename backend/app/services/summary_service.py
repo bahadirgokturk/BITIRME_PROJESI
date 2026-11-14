@@ -5,7 +5,7 @@ veritabanina dokunmaz. Kurum geneli: birim/bina filtresi yoktur.
 """
 
 import math
-from datetime import timedelta
+from datetime import date, timedelta
 
 from app.agents.analytics_summary import (
     AnalyticsSummaryAgent,
@@ -76,7 +76,12 @@ class SummaryService:
         self._clock = clock
 
     def summarize(self, period: SummaryPeriod) -> SummaryRead:
-        inp = self.summary_input(period)
+        today = self._clock.now().astimezone(TURKEY).date()
+        return self.summarize_days(today - timedelta(days=PERIOD_DAYS[period] - 1), today)
+
+    def summarize_days(self, first: date, last: date) -> SummaryRead:
+        """Belirli gunler (haftalik rapor); ekrandaki ozet son 7/30 gunu kullanir."""
+        inp = self.range_input(first, last)
         result = self._agent.run(inp, AgentContext(now=self._clock.now()))
         return SummaryRead(
             kpis=inp,
@@ -87,7 +92,9 @@ class SummaryService:
 
     def summary_input(self, period: SummaryPeriod) -> SummaryInput:
         today = self._clock.now().astimezone(TURKEY).date()
-        first = today - timedelta(days=PERIOD_DAYS[period] - 1)
+        return self.range_input(today - timedelta(days=PERIOD_DAYS[period] - 1), today)
+
+    def range_input(self, first: date, today: date) -> SummaryInput:
         filters = AnalyticsFilter(first, today, None, None)
         kpis = self._analytics.kpis(filters)
         categories = self._analytics.categories(filters).items
