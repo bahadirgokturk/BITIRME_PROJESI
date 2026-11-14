@@ -4,6 +4,8 @@
 #   cd ai && uv run python -m training.vision_prompts
 # Fotograftan anlasilmayan turler (guvenlik olayi, kayip esya, diger, kapsam disi) listede yoktur.
 # Turnike/kart okuyucu da yok: tarifleri asansor dugme paneline karisiyordu (01.11.2026 denemesi).
+# 14.11.2026: ilk 15 kampus fotografi gelistirme seti olarak kullanildi (kapilar, kagit makineleri,
+# holde karton); bu fotograflarla olculen sonuc artik iyimserdir, asil olcum yeni fotograflarla yapilir.
 # _NONE: sorun gostermeyen fotograf (kisi, bina disi, ekran goruntusu); kazanirsa oneri verilmez.
 model: Xenova/clip-vit-base-patch32
 types:
@@ -15,6 +17,7 @@ types:
     - an empty toilet paper roll
     - a toilet paper holder with no paper
     - an empty paper towel dispenser
+    - a round jumbo toilet paper dispenser on a toilet stall wall
   TRASH_FULL:
     - an overflowing trash can
     - a full garbage bin with trash
@@ -23,6 +26,8 @@ types:
     - a dirty floor with stains
     - a messy dirty corridor
     - litter on the floor
+    - cardboard boxes and cables left lying on a hallway floor
+    - dusty floor tiles after construction work
   WATER_LEAK:
     - water leaking from the ceiling
     - a flooded floor with water
@@ -43,8 +48,9 @@ types:
     - exposed electrical wires
     - a fluorescent light fixture on a ceiling
   ELEVATOR_FAILURE:
+    # "closed elevator doors" siradan kapilari da asansor yapiyordu (kampus fotograflari, 14.11.2026)
     - an elevator with an out of order sign
-    - closed elevator doors
+    - an elevator button panel with floor numbers
   COMPUTER_FAILURE:
     - a computer with an error screen
     - a broken computer monitor
@@ -62,6 +68,10 @@ types:
     - a cafeteria food counter
     - trays of food in a cafeteria
   _NONE:
+    # Kapilar ve tabelalar: kampus fotograflarinda sorun olmayan en sik kare
+    - a closed wooden door in a corridor
+    - a restroom door with a sign on the wall
+    - a closed toilet stall door
     - a person
     - a building exterior
     - a screenshot of a phone

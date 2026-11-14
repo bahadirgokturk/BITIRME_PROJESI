@@ -353,7 +353,8 @@ dokunuşla açıklamayı doldurur. **Yalnız öneridir:** türü yine Classifica
 - **Ön deneme (01.11.2026):** Wikimedia Commons'tan 30 rastgele fotoğraf (10 tür × 3): öneri verilen 24'ün
   21'inde ilk öneri doğru, 6'sında "anlaşılamadı". Tarifler bu fotoğraflara bakılarak düzeltildiği için bu
   bir ölçüm değildir; ölçüm kampüste çekilen fotoğraflarla yapılır.
-- **Ölçüm (`scripts/eval_photos.py`):** fotoğraflar tür koduyla adlandırılmış klasörlere konur (`SOAP_EMPTY/`…), sorun göstermeyenler `_NONE/`'a; komut kapsam, ilk öneri doğruluğu, ilk 3'te doğru tür, yanlış alarm oranı, tür bazında sonuç ve karışan türleri tez tablosu olarak yazar. Fotoğraflar repoya girmez (`ai/data/raw/fotograflar`). HEIC atlanır.
+- **İlk kampüs fotoğrafları (14.11.2026, geliştirme seti, n = 15):** tarif bankası v1 ile yanlış alarm 5/5 idi (sıradan kapılar "kapalı asansör kapıları" tarifine düşüyordu), öneri verilen sorunlu fotoğraflarda doğru 3/7. Tarifler bu hatalara göre düzeltildi (asansör tuş paneli, kapılar `_NONE`'a, yuvarlak kağıt makinesi, holde karton/kablo): aynı sette yanlış alarm 1/5, doğru 8/9. **Bu sonuç iyimserdir** (tarifler bu fotoğraflara bakılarak değişti); internet setinde doğru oran %87,5'ten %78,3'e indi (sabunluk/kağıt havlu karışması). Tezdeki ölçüm, bu 15 fotoğrafın dışındaki yeni fotoğraflarla yapılır.
+- **Ölçüm (`scripts/eval_photos.py`):** fotoğraflar tür koduyla adlandırılmış klasörlere konur (`SOAP_EMPTY/`… ya da `SOAP_EMPTY (Sabun bitti)/`: kod ilk kelime), sorun göstermeyenler `_NONE/`'a; komut kapsam, ilk öneri doğruluğu, ilk 3'te doğru tür, yanlış alarm oranı, tür bazında sonuç ve karışan türleri tez tablosu olarak yazar. Fotoğraflar repoya girmez (`ai/data/raw/fotograflar`). HEIC atlanır.
 
 ## 5. Autonomy Policy
 
