@@ -51,13 +51,15 @@ def collect(root: Path, known: set[str]) -> tuple[list[Photo], list[Path]]:
     photos: list[Photo] = []
     skipped: list[Path] = []
     for folder in sorted(p for p in root.iterdir() if p.is_dir() and not p.name.startswith(".")):
-        if folder.name not in known | {NONE_LABEL}:
+        # "SOAP_EMPTY (Sabun bitti)": tur kodu ilk kelime, gerisi ekip icin aciklama
+        code = folder.name.split()[0]
+        if code not in known | {NONE_LABEL}:
             raise ValueError(f"Bilinmeyen tur klasoru: {folder.name} (tur kodu ya da _NONE olmali)")
         for path in sorted(p for p in folder.iterdir() if p.is_file()):
             if path.suffix.lower() not in IMAGE_SUFFIXES:
                 skipped.append(path)
                 continue
-            photos.append(Photo(path=path, truth=folder.name))
+            photos.append(Photo(path=path, truth=code))
     return photos, skipped
 
 

@@ -81,3 +81,13 @@ def test_markdown_table_for_the_thesis() -> None:
     assert "| SOAP_EMPTY | 1 | %100,0 | %100,0 |" in text
     assert "TRASH_FULL -> SOAP_EMPTY" in text
     assert "1 dosya" in text
+
+
+def test_folder_may_carry_a_turkish_hint_after_the_code(tmp_path: Path) -> None:
+    # Ekip klasoru "SOAP_EMPTY (Sabun bitti)" gibi acar; tur kodu ilk kelimedir
+    _touch(tmp_path, "SOAP_EMPTY (Sabun bitti)/a.jpg")
+    _touch(tmp_path, "_NONE (Sorun yok)/b.jpg")
+
+    photos, _ = collect(tmp_path, known={"SOAP_EMPTY"})
+
+    assert sorted(p.truth for p in photos) == ["SOAP_EMPTY", "_NONE"]
