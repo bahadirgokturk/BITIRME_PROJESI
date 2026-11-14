@@ -356,6 +356,23 @@ dokunuşla açıklamayı doldurur. **Yalnız öneridir:** türü yine Classifica
 - **İlk kampüs fotoğrafları (14.11.2026, geliştirme seti, n = 15):** tarif bankası v1 ile yanlış alarm 5/5 idi (sıradan kapılar "kapalı asansör kapıları" tarifine düşüyordu), öneri verilen sorunlu fotoğraflarda doğru 3/7. Tarifler bu hatalara göre düzeltildi (asansör tuş paneli, kapılar `_NONE`'a, yuvarlak kağıt makinesi, holde karton/kablo): aynı sette yanlış alarm 1/5, doğru 8/9. **Bu sonuç iyimserdir** (tarifler bu fotoğraflara bakılarak değişti); internet setinde doğru oran %87,5'ten %78,3'e indi (sabunluk/kağıt havlu karışması). Tezdeki ölçüm, bu 15 fotoğrafın dışındaki yeni fotoğraflarla yapılır.
 - **Ölçüm (`scripts/eval_photos.py`):** fotoğraflar tür koduyla adlandırılmış klasörlere konur (`SOAP_EMPTY/`… ya da `SOAP_EMPTY (Sabun bitti)/`: kod ilk kelime), sorun göstermeyenler `_NONE/`'a; komut kapsam, ilk öneri doğruluğu, ilk 3'te doğru tür, yanlış alarm oranı, tür bazında sonuç ve karışan türleri tez tablosu olarak yazar. Fotoğraflar repoya girmez (`ai/data/raw/fotograflar`). HEIC atlanır.
 
+### 4.12 Photo Check Agent (K1, fotoğraf-metin kontrolü)
+
+**Neden ayrı:** fotoğraf bildirimden sonra ayrı istekle yüklenir (`POST /cases/{id}/attachments`); agent hattı
+çalışırken fotoğraf çoğu zaman henüz yoktur. Kontrol bu yüzden **yükleme anında**, yanıttan sonra arka planda
+(BackgroundTasks, kendi oturumu) çalışır.
+
+- **Girdi:** bildirimin türü (Classification kararı) ve Vision Agent'in fotoğraf önerileri (en fazla 3).
+- **Karar:** metnin türü önerilerde varsa `AGREES`; yoksa ilk öneri ≥ 0,60 güvenle başka türü gösteriyorsa
+  `CONFLICTS`; aksi halde `UNCLEAR`. Çelişki eşiği öneri eşiğinden (0,35) yüksektir: yanlış alarm müdürü yorar.
+- **Etkisi:** karar `agent_decisions`'a yazılır, müdür panelinde "Fotoğraf kontrolü" olarak görünür. `CONFLICTS`
+  ve bildirim müdür kararını bekliyorsa (`CLASSIFIED`) `needs_human_review` açılır (inceleme kuyruğu). **Tür
+  hiç değişmez.**
+- **Kapsam dışı:** personelin kanıt fotoğrafı (`EVIDENCE`), video; bildirimin türü henüz yoksa kontrol atlanır;
+  görüntü modeli yoksa hiç çalışmaz.
+- **Tez ölçüsü:** fotoğraflı bildirimlerde `AGREES / CONFLICTS / UNCLEAR` dağılımı, "fotoğraf metni ne kadar
+  destekliyor" sorusunun cevabıdır.
+
 ## 5. Autonomy Policy
 
 | Seviye | Anlam | Örnek case type'lar |

@@ -260,7 +260,10 @@ export interface paths {
         /** List Attachments */
         get: operations["list_attachments_api_v1_cases__case_id__attachments_get"];
         put?: never;
-        /** Upload Attachment */
+        /**
+         * Upload Attachment
+         * @description Bildirim fotografi yuklenince fotograf-metin kontrolu arka planda calisir (Photo Check).
+         */
         post: operations["upload_attachment_api_v1_cases__case_id__attachments_post"];
         delete?: never;
         options?: never;
