@@ -243,6 +243,14 @@ w3 = 0,2 (son 30 günde aynı türde iş başına, en fazla 5 iş → tecrübe e
 5 ve üstü açık görevi olan personel aday değildir. Eşitlikte küçük kullanıcı id'si. Kararlar:
 `ASSIGN_STAFF | ROUTE_TO_POOL | NO_DEPARTMENT`; gerekçede en iyi 3 aday ve puanları.
 
+**Reddedilen görev (yeniden yönlendirme):** personel görevi reddedince bildirim `ESCALATED` olur; agent hattı
+açıksa Routing Agent aynı birimde, bildirimi daha önce reddedenler dışındaki personelden en uygununu seçer ve
+yeni görev açılır (`ROUTED` + `TASK_CREATED`, metadata `reroute: true`; karar `agent_decisions`'a yazılır).
+Otomatik yeniden atama **bir kez** yapılır: ikinci ret bildirimin kendisinde sorun olabileceğini gösterir
+(yanlış tür, parça gerekir), manager karar verir. Uygun personel yoksa (`ROUTE_TO_POOL`) havuza düşürülmez
+(havuz reddedene de görünür), bildirim manager'da kalır. Havuzdaki görevi reddeden kişi görevde kayıtlı kalır.
+Kod: `services/reroute_service.py`; Monitoring'in "başka personel öner" eylemi aynı aday seçimini kullanır.
+
 ### 4.7 Supervisor Agent (K1 — deterministik karar tablosu)
 Sırayla değerlendirilir, ilk eşleşen kural kazanır:
 

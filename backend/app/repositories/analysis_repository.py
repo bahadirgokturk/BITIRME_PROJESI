@@ -5,7 +5,7 @@ Agent'lar DB'ye dokunmaz; sayilari servis buradan okuyup girdi olarak verir.
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
@@ -14,6 +14,8 @@ from app.models import Case, CaseEvent, CaseType, Comment, Location, Task, User
 from app.models.enums import ActorType, CaseEventType, CaseStatus, TaskStatus, UserRole
 from app.services.workflow import ACTIVE_TASK_STATUSES, MERGE_PARENT_STATUSES
 
+# Son 30 gun: ayni yerde benzer bildirim ve personelin ayni turdeki tecrubesi (AGENTS.md 4.5, 4.6)
+LOOKBACK = timedelta(days=30)
 PATH_SEPARATOR = "/"
 # Materialized path: KMP/B/B-2/B-2-WCM -> ikinci parca bina kodu (Intake ile ayni kural)
 BUILDING_SEGMENT = 1
