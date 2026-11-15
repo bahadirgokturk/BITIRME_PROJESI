@@ -49,14 +49,13 @@ from app.models import Case, CaseType
 from app.models.enums import ActorType, AutonomyLevel, CaseEventType, CaseStatus
 from app.repositories import agent_policy_repository, analysis_repository, case_repository
 from app.repositories.agent_decision_repository import CONFIDENCE_DIGITS, DecisionRun, record
+from app.repositories.analysis_repository import LOOKBACK
 from app.services.merge import CaseMerger
 from app.services.task_service import Assignment, TaskOpener
 from app.services.workflow import Transition, WorkflowService
 
 SessionScope = Callable[[], AbstractContextManager[Session]]
 
-# Son 30 gun: ayni yerde benzer bildirim ve personelin ayni turdeki tecrubesi (AGENTS.md 4.5, 4.6)
-LOOKBACK = timedelta(days=30)
 # Tekrar adaylari: ayni sorunun bu sureden eski bildirimi ayri olay sayilir (AGENTS.md 4.3)
 DUPLICATE_WINDOW = timedelta(hours=24)
 # Bildirim yapana gosterilen soru (Supervisor kural 1)

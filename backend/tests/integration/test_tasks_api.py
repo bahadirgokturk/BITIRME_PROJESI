@@ -187,6 +187,17 @@ def test_declined_task_goes_back_to_the_manager(client: TestClient, world: World
     assert _assign(client, world, world["mudur"], user_id=world.user_ids["temizlik2"])[0] == 200
 
 
+def test_declined_pool_task_remembers_who_declined(client: TestClient, world: World) -> None:
+    _assign(client, world, world["mudur"])  # yalniz departman, kisi yok
+    [task] = _mine(client, world["temizlik2"])
+
+    assert _act(client, world["temizlik2"], task["id"], "decline", reason="Yetkim dışında.") == 200
+
+    # Yeniden yonlendirme reddedene vermesin diye ret kimin oldugu gorevde kalir
+    seen = client.get(f"/api/v1/tasks/{task['id']}", headers=world["mudur"]).json()
+    assert (seen["status"], seen["assigned_user_id"]) == ("DECLINED", world.user_ids["temizlik2"])
+
+
 def test_department_queue_task_is_claimed_by_the_first_to_accept(
     client: TestClient, world: World
 ) -> None:

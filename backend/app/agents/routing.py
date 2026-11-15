@@ -23,6 +23,7 @@ MAX_OPEN_TASKS = 5
 # Gerekcede gosterilen aday sayisi
 TOP_CANDIDATES = 3
 SCORE_DIGITS = 2
+ASSIGN_STAFF = "ASSIGN_STAFF"
 
 
 class StaffCandidate(BaseModel):
@@ -98,7 +99,7 @@ def _route(inp: RoutingInput) -> tuple[str, RoutingOutput, list[Reason]]:
         assigned_user_id=best.user_id if best else None,
         candidates=ranked[:TOP_CANDIDATES],
     )
-    return ("ASSIGN_STAFF" if best else "ROUTE_TO_POOL"), output, reasons
+    return (ASSIGN_STAFF if best else "ROUTE_TO_POOL"), output, reasons
 
 
 def _staff_reason(best: CandidateScore | None, ranked: list[CandidateScore]) -> Reason:
