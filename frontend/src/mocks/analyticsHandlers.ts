@@ -46,7 +46,21 @@ function isMonth(request: Request): boolean {
   return (new Date(to).getTime() - new Date(from).getTime()) / MS_PER_DAY >= WEEK_DAYS;
 }
 
+// Haftalik yonetici raporu: gercek PDF backend'de uretilir; sahte API gecerli, tek sayfalik bos bir PDF doner
+const EMPTY_PDF =
+  "%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj " +
+  "3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 595 842]>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF";
+
 export const analyticsHandlers = [
+  http.get(apiUrl("/analytics/weekly-report"), ({ request }) => {
+    const week = new URL(request.url).searchParams.get("week") ?? "son-hafta";
+    return new HttpResponse(EMPTY_PDF, {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="haftalik-rapor-${week}.pdf"`,
+      },
+    });
+  }),
   http.get(apiUrl("/analytics/kpis"), ({ request }) => HttpResponse.json(isMonth(request) ? KPIS_MONTH : KPIS_WEEK)),
 
   http.get(apiUrl("/analytics/trend"), ({ request }) =>

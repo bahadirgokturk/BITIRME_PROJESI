@@ -106,6 +106,17 @@ describe("managerEventLabel", () => {
     expect(managerEventLabel(event({ event_type: "DECISION_OVERRIDDEN" }))).toBe("Yapay zekâ kararı düzeltildi");
   });
 
+  // Routing Agent geri cevrilen gorevi bir kez baska personele verir (backend reroute_service, metadata.reroute)
+  it("tells an automatic reroute apart from the first routing", () => {
+    expect(managerEventLabel(event({ event_type: "ROUTED", metadata: { reroute: true } }))).toBe(
+      "Geri çevrilen görev yeniden yönlendirildi",
+    );
+    expect(managerEventLabel(event({ event_type: "TASK_CREATED", metadata: { reroute: true } }))).toBe(
+      "Görev başka personele verildi",
+    );
+    expect(managerEventLabel(event({ event_type: "ROUTED" }))).toBe("Birime yönlendirildi");
+  });
+
   it("adds the detail the event carries", () => {
     expect(managerEventLabel(event({ event_type: "FEEDBACK_SUBMITTED", metadata: { rating: 5 } }))).toBe(
       "Bildiren 5 puan verdi",

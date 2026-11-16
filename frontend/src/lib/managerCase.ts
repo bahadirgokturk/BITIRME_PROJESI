@@ -98,6 +98,9 @@ type Metadata = CaseEvent["metadata"];
 const DETAILED: Readonly<Record<string, ((metadata: Metadata) => string | null) | undefined>> = {
   FEEDBACK_SUBMITTED: ({ rating }) => (typeof rating === "number" ? `Bildiren ${rating} puan verdi` : null),
   COMMENT_ADDED: ({ is_internal: internal }) => (internal === true ? "İç not eklendi" : null),
+  // Geri cevrilen gorevi Routing Agent bir kez baska personele verir (backend reroute_service)
+  ROUTED: ({ reroute }) => (reroute === true ? "Geri çevrilen görev yeniden yönlendirildi" : null),
+  TASK_CREATED: ({ reroute }) => (reroute === true ? "Görev başka personele verildi" : null),
   CASE_MERGED: ({ merged_case_number: merged }) =>
     typeof merged === "string" ? `${merged} bu bildirimle birleştirildi` : null,
 };
