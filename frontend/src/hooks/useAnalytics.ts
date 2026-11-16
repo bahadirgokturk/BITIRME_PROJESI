@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
-import { apiGet, apiPost } from "@/lib/api/client";
+import { apiGet, apiGetBlob, apiPost } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
 import {
   granularityFor,
@@ -11,7 +11,9 @@ import {
   type TrendRead,
 } from "@/lib/analytics";
 import type { DelayRiskRead } from "@/lib/delayRisk";
+import { saveBlob } from "@/lib/exportFile";
 import { LIVE_QUERY } from "@/lib/queryClient";
+import { weeklyReportFileName, weeklyReportPath } from "@/lib/weeklyReport";
 import type {
   AgingRead,
   DepartmentsRead,
@@ -104,5 +106,13 @@ export function useDelayRisk(departmentId?: number, enabled = true) {
     queryFn: () => apiGet<DelayRiskRead>(`/analytics/delay-risk${unit}`),
     enabled,
     ...LIVE_QUERY,
+  });
+}
+
+// Haftalik yonetici raporu: secilen haftanin PDF'i indirilir (pazartesi tarihiyle)
+export function useDownloadWeeklyReport() {
+  return useMutation({
+    mutationFn: async (monday: string) =>
+      saveBlob(await apiGetBlob(weeklyReportPath(monday)), weeklyReportFileName(monday)),
   });
 }

@@ -354,6 +354,10 @@ rapor tabloları çerçeveli, başlık satırı gri (`StatTable`). Birim kartlar
   "hepsini göster" düğmeleri gizlenir; başlığın altına "Son 7 gün · BakırçayFlow · Yazdırıldı: <tarih saat>" yazılır.
   Kartlar sayfa arasında bölünmez, çubuk renkleri basılır (`print-color-adjust: exact`), koyu moddayken de açık temayla
   basılır (`usePrintLightTheme`). Figma: Button/Outline Yazdır, `/manager/analytics - yazdırma (A4)`.
+- **Haftalık rapor (PDF, yalnız Raporlar):** "Haftalık rapor (PDF)" düğmesi son 4 tamamlanmış haftayı listeler
+  ("9–15 Kas 2026"; hafta pazartesi–pazar, içinde bulunulan hafta yok). Seçilen hafta backend'in Türkçe A4 raporu
+  olarak iner (`GET /analytics/weekly-report?week=<pazartesi>`, dosya `haftalik-rapor-<pazartesi>.pdf`): yönetim
+  özeti, göstergeler, birimler, tekrar eden sorunlar, gecikme riski. Hazırlanırken "Hazırlanıyor…", hata pencerede.
 - **Birim Performansı (`/manager/departments`, menüde Raporlar'ın altında):** dönem düğmesi, tikli birim filtresi
   (`CheckboxFilter`: açılır pencerede birimler işaretlenir, seçim hemen uygulanır, "Seçimi temizle"; boş seçim
   "hepsi"), her birim bir kare kart: bildirim, zamanında (SLA), tipik çözüm, açık görev ve "N personel · kişi başı
@@ -386,7 +390,10 @@ rapor tabloları çerçeveli, başlık satırı gri (`StatTable`). Birim kartlar
   ağırlık +8") ve model adı her adımın altındaki kapalı **"Ayrıntılar"** bölümündedir. Sıfır ağırlık yazılmaz. **Zaman çizelgesi:** müdür bütün
   olayları görür; bildirenin ekranındaki gibi 5 ya da daha fazla adımda kapalı gelir (son 3 adım + "N önceki adımı
   göster", `CollapsibleTimeline`); personelin Birim Bildirimleri detayında da aynısı; her satırda ne olduğu, kimin yaptığı ("Yapay zekâ · Sınıflandırma", "Sistem", "Bildiren", "Personel",
-  "Müdür") ve zamanı. Olayda kişi adı gelmediği için kişi türü olayın türünden anlaşılır. **Fotoğraflar:** bildirenin
+  "Müdür") ve zamanı. Olayda kişi adı gelmediği için kişi türü olayın türünden anlaşılır.
+  Geri çevrilen görevi yapay zekâ başka personele verdiyse "Geri çevrilen görev yeniden yönlendirildi" ve
+  "Görev başka personele verildi" yazar (`metadata.reroute`); fotoğraf–metin kontrolü "Fotoğraf kontrolü" adıyla.
+  **Fotoğraflar:** bildirenin
   fotoğrafları ve personelin kanıtları; yoksa bölüm çıkmaz, video küçük resim olarak gösterilmez. Bildirim İnceleme
   Kuyruğu'ndaysa üstte **"Bu bildirim kararınızı bekliyor"** kutusu çıkar: neden burada, varsa benzer bildirim ve
   kuyruktaki kartla aynı düğmeler (onayla ve ata · birleştir · düzelt · reddet · kapat; kurallar `lib/review.ts`).
