@@ -4,8 +4,8 @@ from datetime import datetime
 from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
-from app.models import Case, Notification, User
-from app.models.enums import CaseStatus, UserRole
+from app.models import Case, CaseEvent, Notification, User
+from app.models.enums import CaseEventType, CaseStatus, UserRole
 from app.schemas.common import PageParams
 
 
@@ -89,3 +89,14 @@ def merged_into(session: Session, case_id: int) -> Sequence[Case]:
         select(Case.id).where(Case.parent_case_id == linked.c.id, Case.status == CaseStatus.MERGED)
     )
     return session.scalars(select(Case).where(Case.id.in_(select(linked.c.id)))).all()
+
+
+def info_requester(session: Session, case_id: int) -> int | None:
+    """Son ek bilgi talebini yapan kullanici; talebi agent yaptiysa aktor yoktur (None)."""
+    actor_id: int | None = session.scalars(
+        select(CaseEvent.actor_id)
+        .where(CaseEvent.case_id == case_id, CaseEvent.event_type == CaseEventType.INFO_REQUESTED)
+        .order_by(CaseEvent.occurred_at.desc(), CaseEvent.id.desc())
+        .limit(1)
+    ).first()
+    return actor_id
