@@ -1,7 +1,7 @@
 """Bildirim (case) sozlesmesi, FAZ 3 (docs/API.md "Cases", docs/DATABASE.md "cases")."""
 
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 from pydantic import AliasChoices, BaseModel, Field, field_validator
@@ -37,6 +37,13 @@ class CaseSearch(BaseModel):
     # Yalniz SLA'si asilanlar (liste rozetindeki sla_status == BREACHED)
     breached_only: bool = False
     text: str | None = None
+    department_id: int | None = None
+    categories: list[CaseCategory] = []
+    # Lokasyon ve alt agaci (bina secilirse kat ve odalari da)
+    location_id: int | None = None
+    # Acilis gunu araligi, iki uc dahil (Turkiye takvim gunu)
+    first_day: date | None = None
+    last_day: date | None = None
 
 
 class CaseCreate(BaseModel):

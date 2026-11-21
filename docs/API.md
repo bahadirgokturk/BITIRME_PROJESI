@@ -56,7 +56,10 @@ alır. Başka kurumun ya da pasif konum → `404`.
     şimdiki zamana göre). `AT_RISK`/`ON_TRACK` süzgeci yok → `422`.
   - `q` (en çok 100 karakter): bildirim numarası, başlık ya da konum adında geçen parça. Büyük/küçük harf ve
     Türkçe harf duyarsız (`kutuphane` = `Kütüphane`, `ışık` = `IŞIK`); `%` ve `_` düz metin sayılır.
-  - `category`, `location_id`, `department_id`, `from`, `to` henüz yok.
+  - `department_id`: o birime yönlendirilenler.
+  - `category` tekrarlanabilir (`category=IT&category=CLEANING`).
+  - `location_id`: lokasyon ve alt ağacı (bina seçilirse kat ve odaları da); başka kurumun lokasyonu → `404`.
+  - `from`, `to` (`YYYY-MM-DD`, iki uç dahil): açılış günü, Türkiye saatiyle. `from` > `to` → `422 INVALID_DATE_RANGE`.
 - Yeni bildirim `NEW` olarak kaydedilir ve aynı istekte `ANALYZING`'e geçer; zaman çizelgesinde `CASE_CREATED` +
   `ANALYSIS_STARTED`. Agent hattı (FAZ 5) gelene kadar `ANALYZING`'de bekler.
 - Numara `CASE-000124` (PostgreSQL sequence, id'den bağımsız). Başlık boşsa açıklamanın ilk 60 karakteri; kelime ortasından kesilmez, kısaltılınca sonuna `…` eklenir.
@@ -78,7 +81,7 @@ belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanı
 |---|---|---|---|
 | POST | `/cases/photo-suggest` | tümü | Fotoğraftan tür önerisi (Vision Agent, multipart `file`); fotoğraf saklanmaz. 200 `{available, suggestions:[{case_type_code, name, confidence}]}` (en fazla 3; anlaşılmazsa boş liste; model yoksa `available: false`). Fotoğraf kuralları yüklemeyle aynı: boyut 413, tür/bozuk dosya 415 |
 | POST | `/cases` | tümü | case oluştur (JSON; foto ayrı istekle) → 201 `ANALYZING`. İsteğe bağlı `Idempotency-Key` başlığı (1–100 karakter, ör. UUID): aynı kullanıcı aynı anahtarla tekrar gönderirse yeni kayıt açılmaz, ilk bildirim 201 ve `Idempotent-Replayed: true` ile döner, agent hattı ikinci kez çalışmaz; aynı anahtarla farklı açıklama/konum → 409 `IDEMPOTENCY_KEY_REUSED` |
-| GET | `/cases` | M/A (tümü), R (kendi), S (kapsam) | filtre: status, priority, sla_status (BREACHED), q ✅; category, location_id, department_id, from, to (planlı) |
+| GET | `/cases` | M/A (tümü), R (kendi), S (kapsam) | filtre: status, priority, sla_status (BREACHED), q, department_id, category, location_id, from, to ✅ |
 | GET | `/cases/mine` | tümü | kendi bildirimlerim; `/cases` ile aynı süzgeç ve `order` seçenekleri |
 | GET | `/cases/{id}` | kapsam | detay (+ SLA durumu hesaplanmış) |
 | GET | `/cases/{id}/events` | kapsam | zaman çizelgesi (reporter'a filtrelenmiş) |

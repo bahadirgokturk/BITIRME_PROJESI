@@ -5,6 +5,7 @@ MANAGER/ADMIN tum kurum. Yetkisiz kayit 404 doner (IDOR).
 """
 
 from dataclasses import dataclass
+from datetime import date
 from http import HTTPStatus
 from typing import Annotated, Literal
 
@@ -19,7 +20,8 @@ from app.core.clock import Clock, get_clock
 from app.core.config import Settings
 from app.core.constants import BYTES_PER_MB, CASE_SEARCH_MAX_LENGTH, IDEMPOTENCY_KEY_MAX_LENGTH
 from app.core.database import get_session
-from app.models.enums import CaseStatus, Priority, UserRole
+from app.core.errors import InvalidDateRangeError
+from app.models.enums import CaseCategory, CaseStatus, Priority, UserRole
 from app.schemas.case import AgentDecisionRead, CaseCreate, CaseEventRead, CaseRead, CaseSearch
 from app.schemas.common import ListOrder, Page, PageParams
 from app.schemas.photo_suggest import PhotoSuggestRead
@@ -123,7 +125,18 @@ def case_search(
         ),
     ] = None,
     order: ListOrder = ListOrder.NEWEST,
+    department_id: int | None = None,
+    category: Annotated[list[CaseCategory] | None, Query()] = None,
+    location_id: Annotated[
+        int | None, Query(description="Lokasyon; bina secilirse kat ve odalari da")
+    ] = None,
+    first_day: Annotated[
+        date | None, Query(alias="from", description="Acilis gunu, dahil (Turkiye saati)")
+    ] = None,
+    last_day: Annotated[date | None, Query(alias="to", description="Acilis gunu, dahil")] = None,
 ) -> CaseSearch:
+    if first_day is not None and last_day is not None and first_day > last_day:
+        raise InvalidDateRangeError()
     text = q.strip() if q else ""
     return CaseSearch(
         statuses=status or [],
@@ -131,6 +144,11 @@ def case_search(
         breached_only=sla_status is not None,
         text=text or None,
         order=order,
+        department_id=department_id,
+        categories=category or [],
+        location_id=location_id,
+        first_day=first_day,
+        last_day=last_day,
     )
 
 
