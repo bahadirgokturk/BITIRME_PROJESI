@@ -28,6 +28,7 @@ from app.schemas.user import (
 )
 from app.services.audit import PASSWORD_RESET, Auditor, snapshot
 from app.services.authorization import ensure_same_organization
+from app.services.task_release import TaskReleaser, left_duty, on_duty
 from app.services.user_import import ImportBatch, ImportRow, to_user
 
 
@@ -81,6 +82,7 @@ class UserService:
         user = self._get(user_id)
         before = snapshot(UserRead.model_validate(user, from_attributes=True))
         was_active = user.is_active
+        duty_before = on_duty(user)
         changes = data.model_dump(exclude_unset=True)
         for field, value in changes.items():
             if value is not None or field in _NULLABLE_FIELDS:
@@ -92,6 +94,8 @@ class UserService:
         self._ensure_not_self_lockout(user)
         if was_active and not user.is_active:
             refresh_token_repository.revoke_all_for_user(self._session, user.id, self._clock.now())
+        if left_duty(duty_before, on_duty(user)):
+            TaskReleaser(self._session, self._clock, self._actor).release_all(user)
         updated = UserRead.model_validate(user, from_attributes=True)
         self._auditor.updated(AuditEntity.USER, before, updated)
         self._session.commit()

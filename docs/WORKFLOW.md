@@ -65,7 +65,9 @@ ataması kalkar, manager yeniden atar). Agent hattı kapalıysa (`AGENTS_ENABLED
 atar (docs/AGENTS.md bölüm 3); hat kapalıysa (`AGENTS_ENABLED=false`) ya da manager el koyarsa, manager ataması
 `ANALYZING` bildirimi önce `CLASSIFIED` yapar (`ROUTED`, elle yönlendirme). Reddedilen görevde bildirim `ESCALATED`
 olur; agent hattı açıksa Routing Agent bir kez reddedenler dışındaki personele yeniden atar, ikinci retten
-sonra ya da uygun personel yoksa manager yeniden atar (docs/AGENTS.md 4.6).
+sonra ya da uygun personel yoksa manager yeniden atar (docs/AGENTS.md 4.6). Personel pasif yapılır, rolü ya da
+birimi değişirse açık görevleri `CANCELLED`, bildirimleri `ESCALATED` olur (`services/task_release.py`, gerekçe
+`ASSIGNEE_UNAVAILABLE`); manager yeniden atar.
 
 | Task olayı | Task status | Case status |
 |---|---|---|

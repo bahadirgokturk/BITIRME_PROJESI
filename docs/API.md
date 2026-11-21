@@ -181,7 +181,7 @@ Kişiye özel bildirimler (zil). Olay kaydı yazılırken (`WorkflowService.reco
 | `INFO_REQUESTED`, `WORK_STARTED`, `CASE_CLOSED`, `CASE_REJECTED` | bildirim yapan |
 | `CASE_MERGED` | yalnız bağlanan bildirimin sahibi (olay ana kayda da yazılır, ana kaydın sahibine bildirim gitmez) |
 | `CASE_CLOSED` (ana kayıt) | ana kayda bağlı (`MERGED`) bütün bildirimlerin sahipleri, zincir dahil; bildirim kişinin kendi kaydına bağlanır (ana kaydı göremez) |
-| `TASK_DECLINED`, `CASE_REOPENED`, `SLA_BREACHED`, `ESCALATED` (yalnız Supervisor, L3/güvenlik) | bildirimin birimindeki müdürler (yoksa kurumun müdürleri) |
+| `TASK_DECLINED`, `CASE_REOPENED`, `SLA_BREACHED`, `ESCALATED` (yalnız Supervisor L3/güvenlik ya da görevden ayrılan personel) | bildirimin birimindeki müdürler (yoksa kurumun müdürleri) |
 | `COMMENT_ADDED` | bildirim yapan (iç not değilse) ve atanan personel |
 | `TASK_REASSIGNED` | görevi elinden alınan personel (havuz göreviyse kimse) |
 | `INFO_PROVIDED` | ek bilgiyi isteyen müdür (Supervisor istediyse kimse; hat yeniden çalışır) |
@@ -251,6 +251,10 @@ Rol kontrolü girdi doğrulamasından önce çalışır. Başka kurumun kaydı `
   zorunlu ve aynı kurumdan (başka kurumun departmanı → `404`). Rol değişince eski `reporter_kind` otomatik silinir.
   `is_active: false` kullanıcının **tüm oturumlarını anında kapatır**; yeniden aktifleştirmek eski oturumu geri
   getirmez. Admin kendini pasifleştiremez veya ADMIN rolünü kaldıramaz → `409 SELF_LOCKOUT`.
+  **Görevden ayrılan personel:** aktif STAFF pasif yapılır, rolü değişir ya da başka birime geçerse üzerindeki açık
+  görevler (`PENDING`, `ACCEPTED`, `IN_PROGRESS`) `CANCELLED` olur, bildirim `ESCALATED` (müdür kuyruğu, olay
+  metadata'sında `reason: ASSIGNEE_UNAVAILABLE`, `previous_assignee_id`) ve birimin müdürü bildirim alır. Havuz
+  görevleri ve bitmiş işler etkilenmez.
   **Parola sıfırlama:** `POST /admin/users/{id}/password` (`new_password`, en az 8) unutulan parolaya geçici
   parola verir; kullanıcının açık oturumları kapanır, `must_change_password: true` olur (yeni oluşturulan
   kullanıcıda da). Kullanıcı `POST /auth/password` ile kendi parolasını belirleyince bayrak kalkar. Admin kendi
