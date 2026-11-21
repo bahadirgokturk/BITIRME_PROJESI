@@ -6,6 +6,7 @@ eylemleri uygular.
 - Kabul edilmeyen gorev: REASSIGN_RECOMMENDED (Routing ile baska personel onerisi, bir kez).
 - Takilan analiz: agent hatti yeniden calisir (hat kapaliysa manager bekler, izlenmez).
 - 48 saat yanitsiz ek bilgi talebi: REJECTED.
+- Veri temizligi: suresi dolmus oturum kayitlari, eski okunmus bildirimler (services/retention.py).
 
 Zamanlayici uygulama icinde calisir (Celery/Redis yok, ADR-8). Birden fazla sunucu ayaktaysa turu
 Postgres advisory lock alan tek sunucu yapar.
@@ -35,6 +36,7 @@ from app.repositories import monitoring_repository
 from app.repositories.agent_decision_repository import DecisionRun, record
 from app.services.analysis_service import AnalysisService
 from app.services.reroute_service import route_excluding
+from app.services.retention import purge
 from app.services.sla import case_sla_status
 from app.services.workflow import Transition, WorkflowService
 
@@ -72,6 +74,12 @@ class MonitoringService:
         applied = sum(
             self._check(case) for case in monitoring_repository.open_cases(self._session, statuses)
         )
+        purged = purge(self._session, self._clock.now())
+        if purged.tokens or purged.notifications:
+            logger.info(
+                "Veri temizligi",
+                extra={"tokens": purged.tokens, "notifications": purged.notifications},
+            )
         self._session.commit()
         return applied
 

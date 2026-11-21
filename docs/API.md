@@ -236,7 +236,9 @@ Rol kontrolü girdi doğrulamasından önce çalışır. Başka kurumun kaydı `
   **QR:** `GET /admin/locations/{id}/qr?format=svg|png` (varsayılan SVG) kapıya asılacak kodu döner; içinde
   yalnız `<uygulama adresi>/report?location=<id>` vardır (adres `PUBLIC_APP_URL`, yoksa ilk `CORS_ORIGINS`).
   Dosya adı `qr-<kod>.svg`. Okutan kişi giriş yapar; konum ve yetki sunucuda yeniden kontrol edilir.
-- ✅ **`/admin/users`** uygulandı. E-posta küçük harfe çevrilip saklanır ve tüm sistemde tekildir (tekrar →
+- ✅ **`/admin/users`** uygulandı. Liste `?q=&role=&department_id=&is_active=` ile süzülür (`q`: ad soyad ya da
+  e-postada, Türkçe harf ve büyük/küçük harf duyarsız; süzgeçler birlikte uygulanır, `total` süzülmüş sayıdır).
+  E-posta küçük harfe çevrilip saklanır ve tüm sistemde tekildir (tekrar →
   `409 CONFLICT`); parola en az 8 karakter, yanıtta asla dönmez. Rol kuralları (ihlal → `422 INVALID_USER_ROLE`):
   `REPORTER` → `reporter_kind` zorunlu; diğer rollerde `reporter_kind` boş; `STAFF`/`MANAGER` → `department_id`
   zorunlu ve aynı kurumdan (başka kurumun departmanı → `404`). Rol değişince eski `reporter_kind` otomatik silinir.

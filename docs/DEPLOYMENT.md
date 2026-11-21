@@ -101,6 +101,17 @@ Anahtar ya da adres tanımlı değilse o ortam atlanır; `INTERNAL_TOKEN` verilm
 docker compose run --rm -it -e ENVIRONMENT=production -e DATABASE_URL="<prod Neon adresi>" -e JWT_SECRET="<32+ karakter rastgele>" backend sh -c "alembic upgrade head && python -m seeds.run && python -m scripts.create_admin --email <e-posta> --name '<Ad Soyad>'"
 ```
 
+### Veri saklama
+
+İzleme turu (5 dakikada bir) yalnız artık işe yaramayan satırları siler (`services/retention.py`):
+- `refresh_tokens`: süresi dolduktan 7 gün sonra (dolmuş token kullanılamaz; 7 gün, yeni dolmuş bir token tekrar
+  gelirse çalınma tespitinin kaydı bulabilmesi için).
+- `notifications`: okunmuş ve 90 günden eski olanlar. Okunmamış bildirim silinmez.
+
+Bildirimler (`cases`), olaylar (`case_events`), agent kararları ve denetim izi (`audit_logs`) silinmez: tez
+analizleri ve hesap verebilirlik için gerekir. Neon ücretsiz katman 0,5 GB; bu tablolar yıllarca bu sınırın
+altında kalır.
+
 ## 2. Ortam Değişkenleri
 
 `.env.example` repoda, gerçek `.env` dosyaları `.gitignore`'da. Staging/prod değerleri GitHub
