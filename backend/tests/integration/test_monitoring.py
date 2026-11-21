@@ -14,7 +14,7 @@ from sqlalchemy import select, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
-from app.models import AgentDecision, Case, CaseEvent, Organization, User
+from app.models import AgentDecision, Case, CaseEvent, Notification, Organization, User
 from app.models.enums import CaseStatus
 from app.repositories import location_repository
 from app.services.monitoring_service import MONITORING_LOCK_KEY, MonitoringService, run_locked
@@ -144,6 +144,12 @@ def test_breached_case_is_escalated_once_without_changing_its_status(
     assert len(_events(db_session, case_id, "ESCALATED")) == 1
     # Asim varken gec uyari uretilmez
     assert _events(db_session, case_id, "SLA_WARNING") == []
+    # Mudure tek bildirim: ayni anda yazilan ESCALATED olayi ikinci bildirim uretmez
+    events = db_session.scalars(
+        select(Notification.event_type).where(Notification.case_id == case_id)
+    ).all()
+    assert events.count("SLA_BREACHED") >= 1
+    assert "ESCALATED" not in events
 
 
 def test_cases_already_resolved_are_not_monitored(

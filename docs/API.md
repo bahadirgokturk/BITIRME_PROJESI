@@ -166,6 +166,29 @@ Yalnız MANAGER (rol kontrolü doğrulamadan önce, diğerleri `403`). Departman
 seçilen kişi o departmanın aktif STAFF'ı değilse `422 INVALID_ASSIGNEE`. Aktif görev varsa `CANCELLED` olur
 (`TASK_REASSIGNED`), yenisi açılır. Bildirim `ANALYZING` ise önce `CLASSIFIED` olur (`ROUTED`, elle yönlendirme).
 
+## Notifications (her rol) — ✅ uygulandı
+
+Kişiye özel bildirimler (zil). Olay kaydı yazılırken (`WorkflowService.record`) kurallara göre üretilir
+(`services/notifications.py`); olayı yapan kişi kendine bildirim almaz. E-posta/anlık bildirim yok.
+
+| Olay | Alıcı |
+|---|---|
+| `TASK_CREATED` | atanan personel; görev havuzdaysa birimin bütün aktif personeli |
+| `EVIDENCE_REQUESTED` | atanan personel |
+| `INFO_REQUESTED`, `WORK_STARTED`, `CASE_CLOSED`, `CASE_REJECTED`, `CASE_MERGED` | bildirim yapan |
+| `TASK_DECLINED`, `CASE_REOPENED`, `SLA_BREACHED`, `ESCALATED` (yalnız Supervisor, L3/güvenlik) | bildirimin birimindeki müdürler (yoksa kurumun müdürleri) |
+| `COMMENT_ADDED` | bildirim yapan (iç not değilse) ve atanan personel |
+
+| Method | Path | Not |
+|---|---|---|
+| GET | `/notifications?unread_only=&page=&page_size=` | kendi bildirimleri, yeniden eskiye (`Page`) |
+| GET | `/notifications/unread-count` | `{count}`; zil rozeti için |
+| POST | `/notifications/{id}/read` | `204`; başkasının bildirimi `404` |
+| POST | `/notifications/read-all` | `204` |
+
+Satır: `id, case_id, event_type, case_title, message, created_at, read_at`. Metin üretim anında yazılır.
+Demo geçmişi (`seeds --history`) bildirimleri okunmuş olarak yüklenir.
+
 ## Analytics (Manager/Admin)
 Ortak parametreler: `from`, `to`, `department_id?`, `building_id?`
 

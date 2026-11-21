@@ -196,6 +196,11 @@ revoked_at NULL, replaced_by_id FK refresh_tokens NULL (rotasyonla iptal edildiy
 kullanılırsa o oturumun (`family_id`) açık kayıtları iptal edilir, diğer cihazlar etkilenmez (bkz. API.md "Auth"). Süresi dolan kayıtların
 temizliği ileride Monitoring tick'ine eklenebilir.
 
+### notifications
+id, user_id FK users, case_id FK cases (indeksli), event_type varchar(50), case_title varchar(200) (üretim anındaki
+başlık), message varchar(300), read_at NULL, created_at. İndeksler: `(user_id, created_at DESC)` liste, kısmi
+`(user_id) WHERE read_at IS NULL` okunmamış sayısı. Kurallar: docs/API.md "Notifications".
+
 ### comments
 id, case_id, author_id, body, is_internal (staff/manager notu, reporter görmez), created_at
 

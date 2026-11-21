@@ -11,7 +11,16 @@ import pytest
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models import AgentDecision, Case, CaseEvent, CaseType, Department, Location, Task
+from app.models import (
+    AgentDecision,
+    Case,
+    CaseEvent,
+    CaseType,
+    Department,
+    Location,
+    Notification,
+    Task,
+)
 from app.models.enums import CaseStatus
 from seeds.campus import seed_campus, seed_demo_users
 from seeds.history import HistoryPlan, HistoryResult, seed_history
@@ -123,6 +132,18 @@ def test_reporters_rated_some_closed_cases(db_session: Session, history: History
 
     assert rated
     assert all(1 <= (c.satisfaction_rating or 0) <= 5 for c in rated)
+
+
+def test_history_notifications_exist_but_are_already_read(
+    db_session: Session, history: HistoryResult
+) -> None:
+    total = db_session.scalar(select(func.count()).select_from(Notification))
+    unread = db_session.scalar(
+        select(func.count()).select_from(Notification).where(Notification.read_at.is_(None))
+    )
+
+    assert total
+    assert unread == 0
 
 
 def test_seeding_twice_adds_nothing(db_session: Session, history: HistoryResult) -> None:

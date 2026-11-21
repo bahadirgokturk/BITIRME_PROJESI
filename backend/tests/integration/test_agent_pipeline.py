@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import AgentDecision, Case, Organization, User
+from app.models import AgentDecision, Case, Notification, Organization, User
 from app.repositories import location_repository
 from seeds.campus import seed_campus, seed_demo_users
 from tests.integration.factories import bearer
@@ -118,6 +118,29 @@ def test_sparks_are_escalated_to_the_manager(agent_client: TestClient, campus: C
     assert case["case_type"]["code"] == "ELECTRICAL_FAILURE"
     assert case["priority"] == "CRITICAL"
     assert case["needs_human_review"] is True
+
+
+def test_escalation_and_automatic_assignment_notify_the_right_people(
+    agent_client: TestClient, db_session: Session, campus: Campus
+) -> None:
+    sparks = _report(
+        agent_client, campus, "Prizden kıvılcım çıkıyor, yanık kokusu var", campus.amfi_id
+    )
+    soap = _report(agent_client, campus, "Tuvalette sabun bitmiş, sabunluklar bomboş", campus.wc_id)
+
+    def notified(case_id: int) -> list[tuple[str, str]]:
+        rows = db_session.execute(
+            select(User.email, Notification.event_type)
+            .join(User, User.id == Notification.user_id)
+            .where(Notification.case_id == case_id)
+            .order_by(User.email)
+        )
+        return [(email, event) for email, event in rows]
+
+    # L3: elektrik Bakim Onarim'in isi; yalniz o birimin muduru, bir kez
+    assert notified(sparks["id"]) == [("mudur.bakim@kampus.example.com", "ESCALATED")]
+    # Otomatik atama: gorevi alan personel
+    assert notified(soap["id"]) == [("temizlik@kampus.example.com", "TASK_CREATED")]
 
 
 def test_administrative_requests_are_rejected_as_out_of_scope(
