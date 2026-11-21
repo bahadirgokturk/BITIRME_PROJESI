@@ -239,7 +239,7 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   indirir, paket kullanılmaz (`lib/xlsx.ts` sıkıştırmasız zip + Office Open XML). Dosya adı tarihlidir
   (`kullanicilar-2026-11-02.xlsx`); ilk satır kalın başlık ve kaydırmada sabit, sayılar (önem, eşik, kullanıcı sayısı)
   sayı olarak yazılır, sütunlar ekrandaki sözcüklerle (`lib/exportSheets.ts`). Seçili filtreye uyan **bütün** kayıtlar
-  aktarılır: yönetim listeleri zaten tamdır; sayfalı listelerde (bildirimler, işlem kayıtları) sayfalar 200'erli
+  aktarılır: yönetim listeleri zaten tamdır; sayfalı listelerde (bildirimler, kullanıcılar, işlem kayıtları) sayfalar 200'erli
   sırayla çekilir (`fetchAllPages`, `lib/pagination.ts`). Konumlarda arama yoksa ağacın tamamı (kapalı dallar dahil)
   ve her konumun yeri yazılır. Hazırlanırken düğme "Hazırlanıyor…" der; hata düğmenin altında gösterilir. Liste
   yüklenmeden ya da boşken düğme kapalıdır. Yönetimde süzgeçlerin sağında, bildirim listelerinde Liste/Kart
@@ -455,9 +455,20 @@ rapor tabloları çerçeveli, başlık satırı gri (`StatTable`). Birim kartlar
   (`?entity_type=…&entity_id=…`); üstte "… kaydının geçmişi" şeridi ve "Tüm kayıtları göster" bağlantısı çıkar.
 - **Sekmeler ve panel:** telefonda sekme şeridi yana kayar, seçili sekme açılışta görünür yere gelir. Ekle/düzenle
   paneli telefonda tam genişlik, masaüstünde 440 px (`SHEET_CLASS`, `components/admin/AdminParts.tsx`).
-- **Kullanıcılar** (`/admin/users`): ad ya da e-posta araması, rol ve durum filtresi. Masaüstünde tablo; telefonda
+- **Kullanıcılar** (`/admin/users`): ad ya da e-posta araması, rol, birim ve durum filtresi. Arama ve filtreler
+  **sunucuda** (`GET /admin/users?q=&role=&department_id=&is_active=`, `lib/admin.ts` içinde `userListPath`); arama
+  yazmayı bırakınca 300 ms sonra gider, filtre değişince ilk sayfaya dönülür. Liste 50'şerli sayfalanır (altta
+  "1–50 / 120 kullanıcı" + Önceki/Sonraki, işlem kayıtlarıyla ortak `Pager`). Birimler ekranındaki kişi sayıları ve
+  işlem kayıtlarındaki adlar ayrı, tam listeden gelir (`useAdminUsers`). Masaüstünde tablo; telefonda
   aynı tablo kart olarak görünür (ad ve durum üstte, diğer değerler başlıklarıyla alt alta), yana kaydırma olmaz.
-  Filtrelere uyan kullanıcı yoksa "Filtreleri temizle" düğmesi çıkar. Bölümler arası geçiş üstteki sekmelerle
+  Filtrelere uyan kullanıcı yoksa "Filtreleri temizle" düğmesi çıkar.
+- **Toplu yükle (CSV)** (`POST /admin/users/import`, `UserImportDialog`): başlıkta "Kullanıcı ekle"nin solunda.
+  Pencerede "Örnek dosyayı indir" (`public/templates/kullanici-yukleme-ornek.csv`, `docs/templates`'teki dosyanın
+  kopyası; bir test ikisinin aynı kaldığını denetler), CSV dosyası ve ortak geçici parola (en az 8; 1 MB üstü dosya
+  gönderilmez). Önce **Dosyayı kontrol et** (`dry_run=true`, hiçbir şey yazılmaz): hata yoksa "Dosyada hata yok:
+  N kullanıcı eklenecek." ve **N kullanıcıyı ekle**; hata varsa "Hiçbir kullanıcı eklenmedi" ve **Hatalı satırlar**
+  tablosu (Excel satır numarası + sorun). Dosya ya da parola değişince kontrol yeniden yapılır. Eklenen kullanıcılar
+  ilk girişte kendi parolasını belirler. Bölümler arası geçiş üstteki sekmelerle
   (`ADMIN_SECTIONS`, `lib/navigation.ts`); menüdeki "Yönetim" ilk sekmeye açılır.
 - **Parola** (`POST /auth/password`, `POST /admin/users/{id}/password`; kurallar `lib/password.ts`, en az 8 karakter):
   hesap kutusunda ve telefon menüsünde **Parolayı değiştir** penceresi (mevcut, yeni, yeni tekrar); başarıda "Parolan

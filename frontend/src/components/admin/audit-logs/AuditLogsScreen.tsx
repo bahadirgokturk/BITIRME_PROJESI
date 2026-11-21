@@ -5,7 +5,6 @@ import { useState } from "react";
 
 import { ExportButton } from "@/components/export/ExportButton";
 import { ErrorState } from "@/components/states/ErrorState";
-import { Button } from "@/components/ui/button";
 import {
   AUDIT_PAGE_SIZE,
   fetchAllAuditLogs,
@@ -14,10 +13,11 @@ import {
   type AuditQuery,
 } from "@/hooks/useAuditLogs";
 import { auditLogsSheet } from "@/lib/exportSheets";
-import { ENTITY_LABELS, pageSummary, type AuditEntity, type AuditTarget, type NameLookup } from "@/lib/auditLogs";
+import { ENTITY_LABELS, type AuditEntity, type AuditTarget, type NameLookup } from "@/lib/auditLogs";
 
 import { ActionNote, ListSkeleton, NoMatch, ScreenHeader, Toolbar } from "../AdminParts";
 import { AdminSections } from "../AdminSections";
+import { Pager } from "../Pager";
 import { FilterSelect } from "../SearchFilters";
 import { AuditLogTable } from "./AuditLogTable";
 
@@ -34,37 +34,6 @@ function EmptyNote({ title, note }: { title: string; note: string }) {
     <div className="flex flex-col items-center gap-2 py-12 text-center">
       <p className="font-semibold">{title}</p>
       <p className="text-sm text-muted-foreground">{note}</p>
-    </div>
-  );
-}
-
-interface PagerProps {
-  page: number;
-  total: number;
-  onPage: (page: number) => void;
-}
-
-// "1-50 / 312 kayit" + onceki/sonraki; tek sayfaya sigiyorsa dugmeler cizilmez
-function Pager({ page, total, onPage }: PagerProps) {
-  const lastPage = Math.max(1, Math.ceil(total / AUDIT_PAGE_SIZE));
-  return (
-    <div className="flex items-center gap-2">
-      <p className="mr-auto text-sm text-muted-foreground md:mr-2">{pageSummary({ page, pageSize: AUDIT_PAGE_SIZE, total })}</p>
-      {lastPage > 1 ? (
-        <>
-          <Button variant="outline" className="h-11 px-4 md:h-9" disabled={page <= 1} onClick={() => onPage(page - 1)}>
-            Önceki
-          </Button>
-          <Button
-            variant="outline"
-            className="h-11 px-4 md:h-9"
-            disabled={page >= lastPage}
-            onClick={() => onPage(page + 1)}
-          >
-            Sonraki
-          </Button>
-        </>
-      ) : null}
     </div>
   );
 }
@@ -104,7 +73,7 @@ function AuditLogsBody({ query, lookup, page, filtered, onPage, onClear }: BodyP
     <AuditLogTable
       logs={query.data.items}
       lookup={lookup}
-      footer={<Pager page={page} total={query.data.total} onPage={onPage} />}
+      footer={<Pager page={page} pageSize={AUDIT_PAGE_SIZE} total={query.data.total} onPage={onPage} />}
     />
   );
 }

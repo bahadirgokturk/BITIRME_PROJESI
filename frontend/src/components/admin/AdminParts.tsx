@@ -25,17 +25,25 @@ interface ScreenHeaderProps {
   // Ekleme olmayan ekranlarda (ornek: yapay zeka politikalari) verilmez
   addLabel?: string;
   onAdd?: () => void;
+  // Ekle dugmesinin solunda ikincil islem (ornek: kullanicilarda "Toplu yukle (CSV)")
+  extra?: ReactNode;
 }
 
 // Yeni stil sayfa basi: baslik + aciklama solda, ekle dugmesi sagda (Figma: 08 Yeni Stil (A) > Yonetim)
-export function ScreenHeader({ title, description, addLabel, onAdd }: ScreenHeaderProps) {
-  const action = addLabel ? (
+export function ScreenHeader({ title, description, addLabel, onAdd, extra }: ScreenHeaderProps) {
+  const add = addLabel ? (
     <Button className="h-11 gap-1.5 px-4 md:h-10" onClick={onAdd}>
       <PlusIcon aria-hidden className="size-4" />
       {addLabel}
     </Button>
   ) : null;
-  return <PageHeader title={title} description={description} actions={action} />;
+  const actions = extra || add ? (
+    <>
+      {extra}
+      {add}
+    </>
+  ) : null;
+  return <PageHeader title={title} description={description} actions={actions} />;
 }
 
 export type TagTone = "plain" | "muted" | "success" | "info" | "warning";
