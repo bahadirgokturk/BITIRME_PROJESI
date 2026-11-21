@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import AgentDecision, Case, Notification, Organization, User
+from app.models import AgentDecision, Case, Department, Notification, Organization, User
 from app.repositories import location_repository
 from seeds.campus import seed_campus, seed_demo_users
 from tests.integration.factories import bearer
@@ -238,3 +238,27 @@ def test_agents_can_be_switched_off(client: TestClient, db_session: Session) -> 
 
     case = client.get(f"/api/v1/cases/{created['id']}", headers=reporter).json()
     assert case["status"] == "ANALYZING"
+
+
+def test_report_is_not_routed_to_a_deactivated_department(
+    agent_client: TestClient, db_session: Session, campus: Campus
+) -> None:
+    # Birim pasif yapildiysa is ona gitmez; mudur karar verir
+    support = db_session.scalars(
+        select(Department).where(
+            Department.organization_id == campus.organization.id,
+            Department.code == "SUPPORT_SERVICES",
+        )
+    ).one()
+    support.is_active = False
+    db_session.flush()
+
+    case = _report(agent_client, campus, "Tuvalette sabun bitmiş, sabunluklar bomboş", campus.wc_id)
+
+    # Birim bulunamadi (NO_DEPARTMENT): atanmaz, mudurun inceleme kuyruguna duser
+    assert case["status"] == "CLASSIFIED"
+    assert case["needs_human_review"] is True
+    assert case["department"] is None
+    assert _assignee(db_session, case["id"]) is None
+    queue = agent_client.get("/api/v1/manager/review-queue", headers=campus.manager).json()
+    assert case["id"] in [row["case"]["id"] for row in queue["items"]]
