@@ -18,6 +18,7 @@ import { attachmentHandlers } from "./attachmentHandlers";
 import { caseHandlers } from "./caseHandlers";
 import { interactionHandlers } from "./interactionHandlers";
 import { managerHandlers } from "./managerHandlers";
+import { notificationHandlers } from "./notificationHandlers";
 import { taskHandlers } from "./taskHandlers";
 import { MOCK_PASSWORD, USERS } from "./fixtures";
 import { currentUser, signInAs } from "./session";
@@ -44,7 +45,7 @@ export const handlers = [
   // yonetim kullanicilari adminHandlers.ts'te, birimler adminDepartmentHandlers.ts'te,
   // konumlar adminLocationHandlers.ts'te, bildirim turleri adminCaseTypeHandlers.ts'te,
   // sure hedefleri adminSlaRuleHandlers.ts'te, yapay zeka politikalari adminAgentPolicyHandlers.ts'te,
-  // islem kayitlari adminAuditLogHandlers.ts'te.
+  // islem kayitlari adminAuditLogHandlers.ts'te, zil bildirimleri notificationHandlers.ts'te.
   http.post<never, Schemas["LoginRequest"]>(
     apiUrl("/auth/login"),
     async ({ request }) => {
@@ -82,6 +83,7 @@ export const handlers = [
   ...interactionHandlers,
   ...taskHandlers,
   ...managerHandlers,
+  ...notificationHandlers,
   ...analyticsHandlers,
   ...adminHandlers,
   ...adminDepartmentHandlers,

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { cn } from "cn";
 
 import { LogoWordmark } from "@/components/brand/Logo";
-import { WaitingBell } from "@/components/cases/WaitingBell";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { buttonVariants } from "@/components/ui/button";
 import type { NavItem } from "@/lib/navigation";
@@ -41,7 +41,7 @@ export function MobileAppBar({ bar, items, activeHref, user }: MobileAppBarProps
       )}
       {/* Sag kosede bildirim zili ve tema dugmesi, her iki cubukta da (Figma: MobileAppBar > Actions) */}
       <div className="-mr-2.5 ml-auto flex items-center gap-1">
-        <WaitingBell />
+        <NotificationBell />
         <ThemeToggle />
       </div>
     </header>
