@@ -18,11 +18,11 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
 from app.core.security import hash_password
-from app.models import Case, Organization, Task, User
+from app.models import Case, Notification, Organization, Task, User
 from app.models.enums import CaseStatus, OverrideField, ReporterKind, UserRole
 from app.repositories import (
     case_repository,
@@ -209,7 +209,19 @@ def seed_history(
     start = plan.end - timedelta(days=plan.days)
     simulation = _Simulation(session, organization, data, SimClock(start))
     simulation.run(_plan_reports(data, plan, simulation.reporter_count), plan.end)
+    _mark_history_notifications_read(session, organization.id)
     return simulation.result()
+
+
+def _mark_history_notifications_read(session: Session, organization_id: int) -> None:
+    """Gecmis simulasyonu da bildirim uretir; demo kullanicisi binlerce okunmamisla acilmasin."""
+    seeded = select(Case.id).where(Case.organization_id == organization_id, Case.is_seed)
+    session.execute(
+        update(Notification)
+        .where(Notification.case_id.in_(seeded), Notification.read_at.is_(None))
+        .values(read_at=Notification.created_at)
+    )
+    session.commit()
 
 
 # --- Bildirim plani --------------------------------------------------------------------------
