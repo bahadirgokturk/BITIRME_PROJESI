@@ -3,6 +3,7 @@
 import { MenuIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 
+import { ChangePasswordButton } from "@/components/auth/ChangePasswordButton";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { LogoWordmark } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
@@ -49,7 +50,8 @@ export function MobileMenu({ items, activeHref, user }: MobileMenuProps) {
         <div className="flex-1 pr-2">
           <NavLinks items={items} activeHref={activeHref} size="mobile" onNavigate={() => setOpen(false)} />
         </div>
-        <div className="border-t pt-5">
+        <div className="space-y-1 border-t pt-5">
+          <ChangePasswordButton size="mobile" />
           <LogoutButton size="mobile" />
         </div>
       </SheetContent>

@@ -63,6 +63,18 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 });
   }),
   http.get(apiUrl("/auth/me"), () => HttpResponse.json(currentUser())),
+  // Sahte parola degismez (herkes ortak parolayla girer); yalniz kurallar ve "ilk giriste degistir" bayragi
+  http.post<never, Schemas["PasswordChange"]>(apiUrl("/auth/password"), async ({ request }) => {
+    const body = await request.json();
+    if (body.current_password !== MOCK_PASSWORD) {
+      return error(422, "WRONG_PASSWORD", "Mevcut parola hatalı.");
+    }
+    if (body.new_password === body.current_password) {
+      return error(422, "SAME_PASSWORD", "Yeni parola mevcut parolayla aynı olamaz.");
+    }
+    signInAs({ ...currentUser(), must_change_password: false });
+    return HttpResponse.json(token);
+  }),
 
 
   ...caseHandlers,

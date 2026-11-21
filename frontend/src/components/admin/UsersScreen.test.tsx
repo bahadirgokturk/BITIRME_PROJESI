@@ -2,13 +2,15 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
 import { saveXlsx } from "@/lib/exportFile";
 import { createQueryClient } from "@/lib/queryClient";
 import { resetAdminUsers } from "@/mocks/adminHandlers";
+import { USERS } from "@/mocks/fixtures";
 import { server } from "@/mocks/node";
+import { signInAs } from "@/mocks/session";
 
 import { UsersScreen } from "./UsersScreen";
 
@@ -201,5 +203,48 @@ describe("UsersScreen export", () => {
       "Birim müdürü",
       "Destek Hizmetleri Şube Müdürlüğü",
     ]);
+  });
+});
+
+// Unutulan parola: yonetici gecici parola verir; kullanici ilk giriste kendi parolasini belirler (docs/API.md)
+describe("UsersScreen password reset", () => {
+  beforeEach(() => {
+    resetAdminUsers();
+    signInAs(USERS.ADMIN);
+  });
+  afterEach(() => signInAs(null));
+
+  async function openEdit(user: ReturnType<typeof userEvent.setup>, name: string) {
+    await user.click(await screen.findByRole("button", { name: `${name} kullanıcısını düzenle` }));
+    return screen.findByRole("dialog");
+  }
+
+  it("gives a user a temporary password", async () => {
+    const user = renderScreen();
+    const sheet = await openEdit(user, "Mehmet Demir");
+
+    await user.type(within(sheet).getByLabelText("Geçici parola"), "gecici-parola-1");
+    await user.click(within(sheet).getByRole("button", { name: "Parolayı sıfırla" }));
+
+    expect(await within(sheet).findByText(/Mehmet Demir için geçici parola verildi/)).toBeInTheDocument();
+  });
+
+  it("checks the temporary password before sending", async () => {
+    const user = renderScreen();
+    const sheet = await openEdit(user, "Mehmet Demir");
+
+    await user.type(within(sheet).getByLabelText("Geçici parola"), "kisa");
+    await user.click(within(sheet).getByRole("button", { name: "Parolayı sıfırla" }));
+
+    expect(within(sheet).getByText("Geçici parola en az 8 karakter olmalı.")).toBeInTheDocument();
+  });
+
+  // Backend kendi hesabini sifirlamaya izin vermez (409 SELF_LOCKOUT): form hic gosterilmez
+  it("sends the admin to the account menu for their own password", async () => {
+    const user = renderScreen();
+    const sheet = await openEdit(user, "Sistem Yöneticisi");
+
+    expect(within(sheet).queryByLabelText("Geçici parola")).not.toBeInTheDocument();
+    expect(within(sheet).getByText(/Kendi parolanı .*Parolayı değiştir/)).toBeInTheDocument();
   });
 });

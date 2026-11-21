@@ -107,7 +107,8 @@ Figma değişkenleri (Variables) **koddaki CSS değişkenleriyle aynı adla** ta
 - **Uygulama kabuğu (yeni stil, Figma: 08 Yeni Stil (A)):** Masaüstünde gri (`sidebar`) zeminde sol kenar çubuğu:
   logo, başlıklı menü grupları (iş ekranları "Yönetim" / personelde "İş", kendi bildirim ekranları "Kişisel";
   bildirim yapanda tek grup, `lib/navigation.ts` `navGroupsFor`), her öğede Lucide simgesi; altta "Hesap" kutusu
-  (ad-soyad baş harfleri, ad, rol, Çıkış yap). Sayfalar yanında yuvarlatılmış, kenarlıklı beyaz panelde durur; panelin
+  (ad-soyad baş harfleri, ad, rol, Parolayı değiştir, Çıkış yap). Sayfalar yanında yuvarlatılmış, kenarlıklı beyaz
+  panelde durur; panelin
   üst çubuğunda menü düğmesi (kenar çubuğunu gizler/gösterir, seçim cihazda hatırlanır: `useSidebarOpen`), bölüm adı
   (`sectionTitle`), bildirim zili ve tema düğmesi. Durum filtreleri (Tümü, Açık, Kapanan…) gri zeminde geçişli sekme
   grubudur, seçili sekme beyaz (`FilterChips`; telefonda sığmazsa yana kayar). Telefonda üstte sabit çubuk:
@@ -456,6 +457,13 @@ rapor tabloları çerçeveli, başlık satırı gri (`StatTable`). Birim kartlar
   aynı tablo kart olarak görünür (ad ve durum üstte, diğer değerler başlıklarıyla alt alta), yana kaydırma olmaz.
   Filtrelere uyan kullanıcı yoksa "Filtreleri temizle" düğmesi çıkar. Bölümler arası geçiş üstteki sekmelerle
   (`ADMIN_SECTIONS`, `lib/navigation.ts`); menüdeki "Yönetim" ilk sekmeye açılır.
+- **Parola** (`POST /auth/password`, `POST /admin/users/{id}/password`; kurallar `lib/password.ts`, en az 8 karakter):
+  hesap kutusunda ve telefon menüsünde **Parolayı değiştir** penceresi (mevcut, yeni, yeni tekrar); başarıda "Parolan
+  değiştirildi. Diğer cihazlardaki oturumların kapatıldı." ve bu cihazda oturum yeni token'la sürer. Yanlış mevcut
+  parola backend mesajıyla formda gösterilir, oturum kapanmaz. `must_change_password` olan kullanıcı (yeni hesap,
+  toplu yükleme, sıfırlanan parola) menüsüz **"Yeni parolanızı belirleyin"** ekranını görür (`FirstPasswordScreen`;
+  geçici parola + yeni parola); belirleyince uygulama açılır. Kullanıcı düzenleme panelinde **Parolayı sıfırla**
+  kutusu geçici parola verir; yönetici kendi hesabında form yerine "Parolayı değiştir"e yönlendirilir.
 
 ## 6. Metin ve Dil
 

@@ -91,6 +91,21 @@ export const adminHandlers = [
     return HttpResponse.json(created, { status: 201 });
   }),
 
+  // Gecici parola: kullanici ilk giriste kendi parolasini belirler; yonetici kendininkini buradan sifirlayamaz
+  http.post<{ id: string }, Schemas["PasswordReset"]>(apiUrl("/admin/users/:id/password"), ({ params }) => {
+    const id = Number(params.id);
+    const current = users.find((user) => user.id === id);
+    if (!current) {
+      return error(404, "NOT_FOUND", "Kayıt bulunamadı.");
+    }
+    if (id === USERS.ADMIN.id) {
+      return error(409, "SELF_LOCKOUT", "Kendi parolanızı buradan sıfırlayamazsınız; profilinizden değiştirin.");
+    }
+    const updated: UserRead = { ...current, must_change_password: true };
+    users = users.map((user) => (user.id === id ? updated : user));
+    return HttpResponse.json(updated);
+  }),
+
   http.patch<{ id: string }, Schemas["UserUpdate"]>(apiUrl("/admin/users/:id"), async ({ request, params }) => {
     const body = await request.json();
     const id = Number(params.id);
