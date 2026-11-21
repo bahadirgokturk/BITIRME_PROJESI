@@ -6,6 +6,8 @@ from app.models.enums import ReporterKind, UserRole
 
 # NIST SP 800-63B: kullanici parolasi en az 8 karakter
 PASSWORD_MIN_LENGTH = 8
+# Arama kutusu: ad soyad (200) ya da e-posta parcasi icin yeter
+USER_SEARCH_MAX_LENGTH = 100
 
 
 class UserRead(BaseModel):
@@ -62,3 +64,13 @@ class UserImportResult(BaseModel):
     created: int
     errors: list[ImportRowError]
     dry_run: bool
+
+
+class UserListFilter(BaseModel):
+    """GET /admin/users suzgecleri; hepsi birlikte uygulanir (VE)."""
+
+    # Ad soyad ya da e-postada, Turkce harf ve buyuk/kucuk harf duyarsiz
+    q: str | None = Field(default=None, max_length=USER_SEARCH_MAX_LENGTH)
+    role: UserRole | None = None
+    department_id: int | None = None
+    is_active: bool | None = None

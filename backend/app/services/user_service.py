@@ -22,6 +22,7 @@ from app.schemas.user import (
     PasswordReset,
     UserCreate,
     UserImportResult,
+    UserListFilter,
     UserRead,
     UserUpdate,
 )
@@ -53,8 +54,10 @@ class UserService:
         self._clock = clock
         self._auditor = auditor
 
-    def list(self, paging: PageParams) -> Page[UserRead]:
-        items, total = user_repository.list_page(self._session, self._actor.organization_id, paging)
+    def list(self, filters: UserListFilter, paging: PageParams) -> Page[UserRead]:
+        items, total = user_repository.list_page(
+            self._session, self._actor.organization_id, filters, paging
+        )
         return Page(
             items=[UserRead.model_validate(u, from_attributes=True) for u in items],
             total=total,

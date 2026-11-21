@@ -1047,7 +1047,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Users */
+        /**
+         * List Users
+         * @description Ad soyad / e-posta aramasi ve rol, birim, aktiflik suzgeci; e-postaya gore sirali.
+         */
         get: operations["list_users_api_v1_admin_users_get"];
         put?: never;
         /** Create User */
@@ -2830,6 +2833,19 @@ export interface components {
             errors: components["schemas"]["ImportRowError"][];
             /** Dry Run */
             dry_run: boolean;
+        };
+        /**
+         * UserListFilter
+         * @description GET /admin/users suzgecleri; hepsi birlikte uygulanir (VE).
+         */
+        UserListFilter: {
+            /** Q */
+            q?: string | null;
+            role?: components["schemas"]["UserRole"] | null;
+            /** Department Id */
+            department_id?: number | null;
+            /** Is Active */
+            is_active?: boolean | null;
         };
         /** UserRead */
         UserRead: {
@@ -6902,7 +6918,8 @@ export interface operations {
     };
     list_users_api_v1_admin_users_get: {
         parameters: {
-            query?: {
+            query: {
+                filters: components["schemas"]["UserListFilter"];
                 page?: number;
                 page_size?: number;
             };

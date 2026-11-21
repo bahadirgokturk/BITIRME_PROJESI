@@ -27,6 +27,7 @@ from app.schemas.user import (
     PasswordReset,
     UserCreate,
     UserImportResult,
+    UserListFilter,
     UserRead,
     UserUpdate,
 )
@@ -80,8 +81,11 @@ AuditLogs = Annotated[AuditLogService, Depends(get_audit_log_service)]
 
 
 @router.get("/users")
-def list_users(paging: Paging, service: Users) -> Page[UserRead]:
-    return service.list(paging)
+def list_users(
+    paging: Paging, service: Users, filters: Annotated[UserListFilter, Query()]
+) -> Page[UserRead]:
+    """Ad soyad / e-posta aramasi ve rol, birim, aktiflik suzgeci; e-postaya gore sirali."""
+    return service.list(filters, paging)
 
 
 @router.post("/users", status_code=HTTPStatus.CREATED)
