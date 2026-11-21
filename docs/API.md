@@ -183,6 +183,8 @@ Kişiye özel bildirimler (zil). Olay kaydı yazılırken (`WorkflowService.reco
 | `CASE_CLOSED` (ana kayıt) | ana kayda bağlı (`MERGED`) bütün bildirimlerin sahipleri, zincir dahil; bildirim kişinin kendi kaydına bağlanır (ana kaydı göremez) |
 | `TASK_DECLINED`, `CASE_REOPENED`, `SLA_BREACHED`, `ESCALATED` (yalnız Supervisor, L3/güvenlik) | bildirimin birimindeki müdürler (yoksa kurumun müdürleri) |
 | `COMMENT_ADDED` | bildirim yapan (iç not değilse) ve atanan personel |
+| `TASK_REASSIGNED` | görevi elinden alınan personel (havuz göreviyse kimse) |
+| `INFO_PROVIDED` | ek bilgiyi isteyen müdür (Supervisor istediyse kimse; hat yeniden çalışır) |
 
 | Method | Path | Not |
 |---|---|---|

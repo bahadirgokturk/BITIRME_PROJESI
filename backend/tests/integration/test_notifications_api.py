@@ -11,8 +11,9 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.models import Case
-from app.models.enums import CaseStatus, UserRole
+from app.models import Case, CaseEvent
+from app.models.enums import ActorType, CaseEventType, CaseStatus, UserRole
+from tests.integration.conftest import FrozenClock
 from tests.integration.factories import (
     bearer,
     make_department,
@@ -257,3 +258,67 @@ def test_reporters_of_merged_reports_hear_when_the_main_report_is_closed(
         assert "çözüldü" in closed[0]["message"]
         detail = client.get(f"/api/v1/cases/{own_case}", headers=world[reporter])
         assert detail.status_code == 200
+
+
+def test_previous_assignee_hears_the_task_was_given_to_someone_else(
+    client: TestClient, world: World
+) -> None:
+    _assign(client, world, "temizlik")
+
+    _assign(client, world, "temizlik2")
+
+    reassigned = [n for n in _mine(client, world["temizlik"]) if n["event_type"] != "TASK_CREATED"]
+    assert [n["event_type"] for n in reassigned] == ["TASK_REASSIGNED"]
+    assert "başka" in reassigned[0]["message"]
+    assert [n["event_type"] for n in _mine(client, world["temizlik2"])] == ["TASK_CREATED"]
+
+
+def test_manager_who_asked_hears_the_reporters_answer(client: TestClient, world: World) -> None:
+    asked = client.post(
+        f"/api/v1/cases/{world.case_id}/request-info",
+        json={"question": "Hangi kattaki tuvalet?"},
+        headers=world["mudur"],
+    )
+    assert asked.status_code == 200, asked.text
+
+    answered = client.post(
+        f"/api/v1/cases/{world.case_id}/info",
+        json={"body": "İkinci kattaki erkekler tuvaleti."},
+        headers=world["ogrenci"],
+    )
+
+    assert answered.status_code == 200, answered.text
+    [item] = _mine(client, world["mudur"])
+    assert item["event_type"] == "INFO_PROVIDED"
+    # Soruyu soran mudur; diger birimin muduru duymaz
+    assert _mine(client, world["bakim_muduru"]) == []
+
+
+def test_answer_to_an_agent_question_notifies_no_one(
+    client: TestClient, world: World, db_session: Session, clock: FrozenClock
+) -> None:
+    # Supervisor ek bilgi istediyse yanit hatti yeniden calistirir; mudure bildirim gitmez
+    case = db_session.get(Case, world.case_id)
+    assert case is not None
+    case.status = CaseStatus.NEEDS_INFO
+    db_session.add(
+        CaseEvent(
+            case_id=case.id,
+            event_type=CaseEventType.INFO_REQUESTED,
+            actor_type=ActorType.AGENT,
+            agent_name="supervisor",
+            to_status=CaseStatus.NEEDS_INFO,
+            occurred_at=clock.now(),
+            metadata_json={},
+        )
+    )
+    db_session.flush()
+
+    answered = client.post(
+        f"/api/v1/cases/{world.case_id}/info",
+        json={"body": "İkinci kattaki erkekler tuvaleti."},
+        headers=world["ogrenci"],
+    )
+
+    assert answered.status_code == 200, answered.text
+    assert _mine(client, world["mudur"]) == []

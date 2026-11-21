@@ -224,7 +224,11 @@ class TaskService:
         if active is None:
             return
         self._set_status(active, TaskStatus.CANCELLED)
-        reassigned = self._by_user(CaseEventType.TASK_REASSIGNED, {"task_id": active.id})
+        # Eski personel bildirim alir (services/notifications.py); havuz goreviyse kimse yok
+        reassigned = self._by_user(
+            CaseEventType.TASK_REASSIGNED,
+            {"task_id": active.id, "previous_assignee_id": active.assigned_user_id},
+        )
         self._workflow.record(case, reassigned, self._clock.now())
 
     def _move(self, case: Case, target: CaseStatus, transition: Transition) -> None:

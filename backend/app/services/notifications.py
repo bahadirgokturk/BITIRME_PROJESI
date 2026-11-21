@@ -30,6 +30,10 @@ class Audience(StrEnum):
     MANAGERS = "MANAGERS"
     # Yorum: bildirim yapan (ic not degilse) ve atanan personel
     PARTICIPANTS = "PARTICIPANTS"
+    # Gorevi elinden alinan personel (olay metadata'si)
+    PREVIOUS_ASSIGNEE = "PREVIOUS_ASSIGNEE"
+    # Ek bilgiyi isteyen kisi; agent istediyse kimse (hat yanitla yeniden calisir)
+    INFO_REQUESTER = "INFO_REQUESTER"
 
 
 def _always(_: "Transition") -> bool:
@@ -79,6 +83,12 @@ RULES: dict[CaseEventType, Rule] = {
         Audience.MANAGERS, "Bildirim müdür kararını bekliyor.", when=_by_supervisor
     ),
     CaseEventType.COMMENT_ADDED: Rule(Audience.PARTICIPANTS, "Bildirime yeni yorum yazıldı."),
+    CaseEventType.TASK_REASSIGNED: Rule(
+        Audience.PREVIOUS_ASSIGNEE, "Görev başka bir personele verildi; sizden çıkarıldı."
+    ),
+    CaseEventType.INFO_PROVIDED: Rule(
+        Audience.INFO_REQUESTER, "İstediğiniz ek bilgi bildirim yapan tarafından yanıtlandı."
+    ),
 }
 
 # Ana kayit kapaninca ona bagli (MERGED) bildirimlerin sahiplerine; bildirim kisinin kendi kaydina
@@ -119,19 +129,22 @@ class Notifier:
     def _recipients(
         self, case: Case, audience: Audience, transition: "Transition"
     ) -> set[int | None]:
-        if audience is Audience.REPORTER:
-            return {case.reporter_id}
-        if audience is Audience.ASSIGNEE:
-            return {case.assigned_staff_id}
-        if audience is Audience.MANAGERS:
-            managers = notification_repository.managers_of(
-                self._session, case.organization_id, case.department_id
-            )
-            return set(managers)
-        if audience is Audience.PARTICIPANTS:
-            internal = bool(transition.metadata.get("is_internal"))
-            return {case.assigned_staff_id} | (set() if internal else {case.reporter_id})
-        return self._assignee_or_pool(case)
+        finders: dict[Audience, Callable[[], set[int | None]]] = {
+            Audience.REPORTER: lambda: {case.reporter_id},
+            Audience.ASSIGNEE: lambda: {case.assigned_staff_id},
+            Audience.MANAGERS: lambda: set(
+                notification_repository.managers_of(
+                    self._session, case.organization_id, case.department_id
+                )
+            ),
+            Audience.PARTICIPANTS: lambda: _participants(case, transition),
+            Audience.PREVIOUS_ASSIGNEE: lambda: {transition.metadata.get("previous_assignee_id")},
+            Audience.INFO_REQUESTER: lambda: {
+                notification_repository.info_requester(self._session, case.id)
+            },
+            Audience.ASSIGNEE_OR_POOL: lambda: self._assignee_or_pool(case),
+        }
+        return finders[audience]()
 
     def _assignee_or_pool(self, case: Case) -> set[int | None]:
         if case.assigned_staff_id is not None or case.department_id is None:
@@ -151,3 +164,8 @@ def _notification(
         message=message,
         created_at=now,
     )
+
+
+def _participants(case: Case, transition: "Transition") -> set[int | None]:
+    internal = bool(transition.metadata.get("is_internal"))
+    return {case.assigned_staff_id} | (set() if internal else {case.reporter_id})
