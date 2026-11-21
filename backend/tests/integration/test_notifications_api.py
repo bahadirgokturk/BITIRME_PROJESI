@@ -11,7 +11,8 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.models.enums import UserRole
+from app.models import Case
+from app.models.enums import CaseStatus, UserRole
 from tests.integration.factories import (
     bearer,
     make_department,
@@ -27,6 +28,7 @@ URL = "/api/v1/notifications"
 @dataclass
 class World:
     case_id: int
+    location_id: int
     department_id: int
     headers: dict[str, Headers]
     ids: dict[str, int]
@@ -42,6 +44,8 @@ def world(client: TestClient, db_session: Session) -> World:
     other = make_department(db_session, organization, "MAINTENANCE")
     people = {
         "ogrenci": (UserRole.REPORTER, None),
+        "ogrenci2": (UserRole.REPORTER, None),
+        "ogrenci3": (UserRole.REPORTER, None),
         "temizlik": (UserRole.STAFF, support.id),
         "temizlik2": (UserRole.STAFF, support.id),
         "teknisyen": (UserRole.STAFF, other.id),
@@ -59,12 +63,10 @@ def world(client: TestClient, db_session: Session) -> World:
         for name, (role, department_id) in people.items()
     }
     headers = {name: bearer(client, f"{name}@kampus.edu.tr") for name in people}
-    body = {
-        "description": "Tuvalette sabunluk tamamen boş.",
-        "location_id": make_location(db_session, organization).id,
-    }
+    location_id = make_location(db_session, organization).id
+    body = {"description": "Tuvalette sabunluk tamamen boş.", "location_id": location_id}
     created = client.post("/api/v1/cases", json=body, headers=headers["ogrenci"]).json()
-    return World(created["id"], support.id, headers, ids)
+    return World(created["id"], location_id, support.id, headers, ids)
 
 
 def _assign(client: TestClient, world: World, user: str | None) -> None:
@@ -116,20 +118,45 @@ def test_pool_task_notifies_every_staff_of_the_department(client: TestClient, wo
     assert _unread(client, world["teknisyen"]) == 0
 
 
-def test_reporter_hears_when_the_case_is_closed(client: TestClient, world: World) -> None:
+def _close(client: TestClient, world: World) -> None:
     _assign(client, world, "temizlik")
+    _finish(client, world)
+
+
+def _finish(client: TestClient, world: World) -> None:
     task_id = _task_id(client, world["temizlik"])
     for action in ("accept", "start", "complete"):
         url = f"/api/v1/tasks/{task_id}/{action}"
         assert client.post(url, json={}, headers=world["temizlik"]).status_code == 200
-
     closed = client.post(
         f"/api/v1/cases/{world.case_id}/close",
         json={"reason": "Kontrol edildi."},
         headers=world["mudur"],
     )
-
     assert closed.status_code == 200
+
+
+def _report(client: TestClient, world: World, reporter: str) -> int:
+    body = {
+        "description": "Tuvaletteki sabunluk yine boş kalmış.",
+        "location_id": world.location_id,
+    }
+    case_id: int = client.post("/api/v1/cases", json=body, headers=world[reporter]).json()["id"]
+    return case_id
+
+
+def _merge(client: TestClient, world: World, case_id: int, into: int) -> None:
+    merged = client.post(
+        f"/api/v1/cases/{case_id}/merge",
+        json={"parent_case_id": into, "reason": "Aynı sabunluk."},
+        headers=world["mudur"],
+    )
+    assert merged.status_code == 200, merged.text
+
+
+def test_reporter_hears_when_the_case_is_closed(client: TestClient, world: World) -> None:
+    _close(client, world)
+
     events = [n["event_type"] for n in _mine(client, world["ogrenci"])]
     assert "CASE_CLOSED" in events
 
@@ -193,3 +220,40 @@ def test_unread_only_filter_and_login_required(client: TestClient, world: World)
     assert unread["items"] == []
     assert unread["total"] == 0
     assert client.get(URL).status_code == 401
+
+
+def test_only_the_merged_report_hears_about_the_merge(client: TestClient, world: World) -> None:
+    _assign(client, world, "temizlik")
+    _merge(client, world, _report(client, world, "ogrenci2"), into=world.case_id)
+
+    assert [n["event_type"] for n in _mine(client, world["ogrenci2"])] == ["CASE_MERGED"]
+    # Ana bildirimin sahibinin kaydi birlesmedi; ona "birlestirildi" denmez
+    assert "CASE_MERGED" not in [n["event_type"] for n in _mine(client, world["ogrenci"])]
+
+
+def test_reporters_of_merged_reports_hear_when_the_main_report_is_closed(
+    client: TestClient, world: World, db_session: Session
+) -> None:
+    _assign(client, world, "temizlik")
+    # Zincir: ilk kayit ara kayda, ara kayit da sonra ana kayda baglanir
+    middle = _report(client, world, "ogrenci2")
+    middle_case = db_session.get(Case, middle)
+    assert middle_case is not None
+    # Agent hatti testte kapali; ara kayit siniflandirilmis olmali ki ona baglanilabilsin
+    middle_case.status = CaseStatus.CLASSIFIED
+    db_session.flush()
+    first = _report(client, world, "ogrenci3")
+    _merge(client, world, first, into=middle)
+    middle_case.status = CaseStatus.ANALYZING
+    db_session.flush()
+    _merge(client, world, middle, into=world.case_id)
+
+    _finish(client, world)
+
+    for reporter, own_case in (("ogrenci2", middle), ("ogrenci3", first)):
+        closed = [n for n in _mine(client, world[reporter]) if n["event_type"] == "CASE_CLOSED"]
+        # Bildirim kisinin kendi kaydina baglanir; ana kaydi goremez (404)
+        assert [n["case_id"] for n in closed] == [own_case], reporter
+        assert "çözüldü" in closed[0]["message"]
+        detail = client.get(f"/api/v1/cases/{own_case}", headers=world[reporter])
+        assert detail.status_code == 200

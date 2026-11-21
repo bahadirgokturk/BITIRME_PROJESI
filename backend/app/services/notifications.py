@@ -36,6 +36,12 @@ def _always(_: "Transition") -> bool:
     return True
 
 
+def _merged_here(transition: "Transition") -> bool:
+    # Birlestirme olayi iki kayda da yazilir; yalniz baglanan kaydin sahibine bildirilir (ana kaydin
+    # olayinda parent_case_id yok, merged_case_id var)
+    return "parent_case_id" in transition.metadata
+
+
 def _by_supervisor(transition: "Transition") -> bool:
     # Agent'in dogrudan mudure biraktigi bildirim (L3, guvenlik). SLA asimi ve yeniden acilma kendi
     # olaylariyla bildirilir; ayni anda yazilan ESCALATED olayi ikinci bildirim uretmez.
@@ -62,7 +68,9 @@ RULES: dict[CaseEventType, Rule] = {
     CaseEventType.CASE_CLOSED: Rule(Audience.REPORTER, "Bildiriminiz çözüldü ve kapatıldı."),
     CaseEventType.CASE_REJECTED: Rule(Audience.REPORTER, "Bildiriminiz reddedildi."),
     CaseEventType.CASE_MERGED: Rule(
-        Audience.REPORTER, "Bildiriminiz aynı sorunu bildiren başka bir kayıtla birleştirildi."
+        Audience.REPORTER,
+        "Bildiriminiz aynı sorunu bildiren başka bir kayıtla birleştirildi.",
+        when=_merged_here,
     ),
     CaseEventType.TASK_DECLINED: Rule(Audience.MANAGERS, "Personel görevi reddetti."),
     CaseEventType.CASE_REOPENED: Rule(Audience.MANAGERS, "Bildirim yeniden açıldı."),
@@ -73,27 +81,38 @@ RULES: dict[CaseEventType, Rule] = {
     CaseEventType.COMMENT_ADDED: Rule(Audience.PARTICIPANTS, "Bildirime yeni yorum yazıldı."),
 }
 
+# Ana kayit kapaninca ona bagli (MERGED) bildirimlerin sahiplerine; bildirim kisinin kendi kaydina
+# baglanir, cunku ana kaydi goremez (kapsam disi, 404)
+MERGED_FOLLOW_UPS: dict[CaseEventType, str] = {
+    CaseEventType.CASE_CLOSED: "Bildiriminizin bağlandığı kayıt çözüldü ve kapatıldı.",
+}
+
 
 class Notifier:
     def __init__(self, session: Session) -> None:
         self._session = session
 
     def on_event(self, case: Case, transition: "Transition", now: datetime) -> None:
+        self._follow_merged(case, transition, now)
         rule = RULES.get(transition.event_type)
         if rule is None or not rule.when(transition):
             return
         recipients = self._recipients(case, rule.audience, transition)
         recipients.discard(transition.actor_id)
         notifications = [
-            Notification(
-                user_id=user_id,
-                case_id=case.id,
-                event_type=transition.event_type,
-                case_title=case.title,
-                message=rule.message,
-                created_at=now,
-            )
+            _notification(user_id, case, (transition, now), rule.message)
             for user_id in sorted(r for r in recipients if r is not None)
+        ]
+        notification_repository.add_all(self._session, notifications)
+
+    def _follow_merged(self, case: Case, transition: "Transition", now: datetime) -> None:
+        message = MERGED_FOLLOW_UPS.get(transition.event_type)
+        if message is None:
+            return
+        notifications = [
+            _notification(linked.reporter_id, linked, (transition, now), message)
+            for linked in notification_repository.merged_into(self._session, case.id)
+            if linked.reporter_id != transition.actor_id
         ]
         notification_repository.add_all(self._session, notifications)
 
@@ -118,3 +137,17 @@ class Notifier:
         if case.assigned_staff_id is not None or case.department_id is None:
             return {case.assigned_staff_id}
         return set(notification_repository.staff_of(self._session, case.department_id))
+
+
+def _notification(
+    user_id: int, case: Case, event: tuple["Transition", datetime], message: str
+) -> Notification:
+    transition, now = event
+    return Notification(
+        user_id=user_id,
+        case_id=case.id,
+        event_type=transition.event_type,
+        case_title=case.title,
+        message=message,
+        created_at=now,
+    )
