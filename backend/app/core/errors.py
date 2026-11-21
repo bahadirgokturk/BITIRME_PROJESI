@@ -145,6 +145,19 @@ class SelfLockoutError(DomainError):
     default_message = messages.SELF_LOCKOUT
 
 
+class WrongPasswordError(DomainError):
+    # 401 degil: istemci 401'de oturumu kapatir; burada yalniz form hatasi gosterilir
+    code = "WRONG_PASSWORD"
+    status = HTTPStatus.UNPROCESSABLE_ENTITY
+    default_message = messages.WRONG_PASSWORD
+
+
+class SamePasswordError(DomainError):
+    code = "SAME_PASSWORD"
+    status = HTTPStatus.UNPROCESSABLE_ENTITY
+    default_message = messages.SAME_PASSWORD
+
+
 class ForbiddenError(DomainError):
     # Rol bu endpoint'e hic erisemez (orn. reporter -> /admin). Kaynak bazli yetkisizlik 404 doner.
     code = "FORBIDDEN"

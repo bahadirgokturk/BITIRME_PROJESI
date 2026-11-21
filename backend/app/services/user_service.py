@@ -17,8 +17,8 @@ from app.models import User
 from app.models.enums import AuditEntity, UserRole
 from app.repositories import department_repository, refresh_token_repository, user_repository
 from app.schemas.common import Page, PageParams
-from app.schemas.user import UserCreate, UserRead, UserUpdate
-from app.services.audit import Auditor, snapshot
+from app.schemas.user import PasswordReset, UserCreate, UserRead, UserUpdate
+from app.services.audit import PASSWORD_RESET, Auditor, snapshot
 from app.services.authorization import ensure_same_organization
 
 
@@ -62,6 +62,8 @@ class UserService:
             **data.model_dump(exclude={"email", "password"}),
             email=email,
             password_hash=hash_password(data.password),
+            # Parolayi admin belirledi: kullanici ilk giriste kendi parolasini secer
+            must_change_password=True,
         )
         self._validate(user)
         user_repository.add(self._session, user)
@@ -87,6 +89,20 @@ class UserService:
             refresh_token_repository.revoke_all_for_user(self._session, user.id, self._clock.now())
         updated = UserRead.model_validate(user, from_attributes=True)
         self._auditor.updated(AuditEntity.USER, before, updated)
+        self._session.commit()
+        return updated
+
+    def reset_password(self, user_id: int, data: PasswordReset) -> UserRead:
+        """Unutulan parola: admin gecici parola verir, kullanicinin acik oturumlari kapanir."""
+        user = self._get(user_id)
+        if user.id == self._actor.id:
+            # Kendi parolasi profilden, mevcut parolayla degisir
+            raise SelfLockoutError()
+        user.password_hash = hash_password(data.new_password)
+        user.must_change_password = True
+        refresh_token_repository.revoke_all_for_user(self._session, user.id, self._clock.now())
+        updated = UserRead.model_validate(user, from_attributes=True)
+        self._auditor.event(AuditEntity.USER, PASSWORD_RESET, updated)
         self._session.commit()
         return updated
 

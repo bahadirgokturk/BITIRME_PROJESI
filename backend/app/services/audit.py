@@ -18,6 +18,9 @@ from app.schemas.common import Page, PageParams
 
 CREATED = "CREATED"
 UPDATED = "UPDATED"
+# Parola olaylari: hash loga girmez, yalniz olayin kendisi ve bayrak
+PASSWORD_CHANGED = "PASSWORD_CHANGED"  # noqa: S105 - denetim olayi adi
+PASSWORD_RESET = "PASSWORD_RESET"  # noqa: S105 - denetim olayi adi
 
 
 def snapshot(record: BaseModel) -> dict[str, Any]:
@@ -46,6 +49,11 @@ class Auditor:
         old, new = diff(before, snapshot(record))
         if new:
             self._write(entity, UPDATED, before["id"], (old, new))
+
+    def event(self, entity: AuditEntity, verb: str, record: BaseModel) -> None:
+        """Alan degisikligi olmayan olay (parola): kaydin son hali yazilir."""
+        after = snapshot(record)
+        self._write(entity, verb, after["id"], (None, after))
 
     def _write(
         self,

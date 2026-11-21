@@ -13,6 +13,8 @@ DUPLICATE_CODE = "Bu kod zaten kullanılıyor."
 DUPLICATE_SLA_RULE = "Bu bildirim türü ve öncelik için zaten bir SLA kuralı var."
 INVALID_SLA_TARGETS = "Çözüm süresi, kabul süresinden kısa olamaz."
 DUPLICATE_EMAIL = "Bu e-posta adresi zaten kayıtlı."
+WRONG_PASSWORD = "Mevcut parola hatalı."  # noqa: S105 - kullanici mesaji, parola degil
+SAME_PASSWORD = "Yeni parola mevcut parolayla aynı olamaz."  # noqa: S105 - kullanici mesaji
 INVALID_USER_ROLE = (
     "Rol bilgileri tutarsız: bildirim yapanlarda kullanıcı türü, "
     "personel ve müdürlerde birim zorunludur."
