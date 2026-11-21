@@ -51,6 +51,18 @@ def active_for_case(session: Session, case_id: int, statuses: Sequence[TaskStatu
     ).one_or_none()
 
 
+def active_for_user(
+    session: Session, user_id: int, statuses: Sequence[TaskStatus]
+) -> Sequence[Task]:
+    """Personelin uzerindeki gorevler, bildirimiyle birlikte (gorev birakma)."""
+    return session.scalars(
+        select(Task)
+        .where(Task.assigned_user_id == user_id, Task.status.in_(statuses))
+        .options(selectinload(Task.case))
+        .order_by(Task.id)
+    ).all()
+
+
 def declined_by(session: Session, case_id: int) -> list[int]:
     """Bildirimin gorevini reddeden personel; yeniden yonlendirmede aday olmaz."""
     users = session.scalars(

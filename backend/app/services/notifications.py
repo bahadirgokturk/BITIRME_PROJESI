@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Session
 
+from app.core.constants import ASSIGNEE_UNAVAILABLE
 from app.models import Case, Notification
 from app.models.enums import CaseEventType
 from app.repositories import notification_repository
@@ -46,10 +47,14 @@ def _merged_here(transition: "Transition") -> bool:
     return "parent_case_id" in transition.metadata
 
 
-def _by_supervisor(transition: "Transition") -> bool:
-    # Agent'in dogrudan mudure biraktigi bildirim (L3, guvenlik). SLA asimi ve yeniden acilma kendi
-    # olaylariyla bildirilir; ayni anda yazilan ESCALATED olayi ikinci bildirim uretmez.
-    return transition.agent_name == "supervisor"
+def _needs_manager(transition: "Transition") -> bool:
+    # Agent'in dogrudan mudure biraktigi bildirim (L3, guvenlik) ya da personeli ayrilan is
+    # (services/task_release.py). SLA asimi, red ve yeniden acilma kendi olaylariyla bildirilir;
+    # ayni anda yazilan ESCALATED olayi ikinci bildirim uretmez.
+    return (
+        transition.agent_name == "supervisor"
+        or transition.metadata.get("reason") == ASSIGNEE_UNAVAILABLE
+    )
 
 
 @dataclass(frozen=True)
@@ -80,7 +85,7 @@ RULES: dict[CaseEventType, Rule] = {
     CaseEventType.CASE_REOPENED: Rule(Audience.MANAGERS, "Bildirim yeniden açıldı."),
     CaseEventType.SLA_BREACHED: Rule(Audience.MANAGERS, "Çözüm süresi (SLA) aşıldı."),
     CaseEventType.ESCALATED: Rule(
-        Audience.MANAGERS, "Bildirim müdür kararını bekliyor.", when=_by_supervisor
+        Audience.MANAGERS, "Bildirim müdür kararını bekliyor.", when=_needs_manager
     ),
     CaseEventType.COMMENT_ADDED: Rule(Audience.PARTICIPANTS, "Bildirime yeni yorum yazıldı."),
     CaseEventType.TASK_REASSIGNED: Rule(
