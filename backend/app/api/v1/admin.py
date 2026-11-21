@@ -6,28 +6,40 @@ Silme yok: is_active=false ile pasiflestirilir (soft delete).
 from http import HTTPStatus
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, Response
+from fastapi import APIRouter, Depends, Form, Query, Response, UploadFile
 from sqlalchemy.orm import Session
 
 from app.api.deps import Audit, CurrentUser, get_app_settings, require_roles
 from app.api.v1.pagination import page_params
 from app.api.v1.responses import AUTHENTICATED_RESPONSES
+from app.core import messages
 from app.core.clock import Clock, get_clock
 from app.core.config import Settings
 from app.core.database import get_session
+from app.core.errors import FileTooLargeError
 from app.models.enums import UserRole
 from app.schemas.audit import AuditLogFilter, AuditLogRead
 from app.schemas.common import Page, PageParams
 from app.schemas.department import DepartmentCreate, DepartmentRead, DepartmentUpdate
 from app.schemas.location import LocationCreate, LocationRead, LocationUpdate, QrFormat
-from app.schemas.user import PasswordReset, UserCreate, UserRead, UserUpdate
+from app.schemas.user import (
+    PASSWORD_MIN_LENGTH,
+    PasswordReset,
+    UserCreate,
+    UserImportResult,
+    UserRead,
+    UserUpdate,
+)
 from app.services import location_qr as location_qr_service
 from app.services.audit import AuditLogService
 from app.services.department_service import DepartmentService
 from app.services.location_service import LocationService
+from app.services.user_import import IMPORT_MAX_BYTES, ImportBatch, decode, parse
 from app.services.user_service import UserService
 
 # Sistem tanimlari yalniz ADMIN'e acik; MANAGER operasyon yapar, tanim degistirmez (gorev ayriligi)
+BYTES_PER_KB = 1024
+
 router = APIRouter(
     prefix="/admin",
     tags=["admin"],
@@ -75,6 +87,23 @@ def list_users(paging: Paging, service: Users) -> Page[UserRead]:
 @router.post("/users", status_code=HTTPStatus.CREATED)
 def create_user(payload: UserCreate, service: Users) -> UserRead:
     return service.create(payload)
+
+
+@router.post("/users/import")
+def import_users(
+    file: UploadFile,
+    password: Annotated[str, Form(min_length=PASSWORD_MIN_LENGTH)],
+    service: Users,
+    dry_run: bool = False,
+) -> UserImportResult:
+    """CSV ile toplu kullanici: once dry_run=true ile hatalar gorulur, sonra asil yukleme."""
+    # Siniri bir bayt asacak kadar okunur: buyuk dosya bellege tumuyle alinmaz
+    data = file.file.read(IMPORT_MAX_BYTES + 1)
+    if len(data) > IMPORT_MAX_BYTES:
+        limit_kb = IMPORT_MAX_BYTES // BYTES_PER_KB
+        raise FileTooLargeError(messages.IMPORT_FILE_TOO_LARGE.format(limit_kb=limit_kb))
+    rows = parse(decode(data))
+    return service.import_users(ImportBatch(rows=rows, password=password, dry_run=dry_run))
 
 
 @router.patch("/users/{user_id}")

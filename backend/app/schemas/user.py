@@ -48,3 +48,17 @@ class PasswordReset(BaseModel):
     """Admin'in verdigi gecici parola; kullanici ilk giriste degistirir."""
 
     new_password: str = Field(min_length=PASSWORD_MIN_LENGTH)
+
+
+class ImportRowError(BaseModel):
+    # Dosyadaki satir numarasi (baslik 1. satir)
+    row: int
+    message: str
+
+
+class UserImportResult(BaseModel):
+    """Hepsi ya da hicbiri: hata varsa created 0'dir; dry_run'da yazilacak sayi doner."""
+
+    created: int
+    errors: list[ImportRowError]
+    dry_run: bool

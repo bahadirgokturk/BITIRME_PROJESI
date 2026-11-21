@@ -17,9 +17,17 @@ from app.models import User
 from app.models.enums import AuditEntity, UserRole
 from app.repositories import department_repository, refresh_token_repository, user_repository
 from app.schemas.common import Page, PageParams
-from app.schemas.user import PasswordReset, UserCreate, UserRead, UserUpdate
+from app.schemas.user import (
+    ImportRowError,
+    PasswordReset,
+    UserCreate,
+    UserImportResult,
+    UserRead,
+    UserUpdate,
+)
 from app.services.audit import PASSWORD_RESET, Auditor, snapshot
 from app.services.authorization import ensure_same_organization
+from app.services.user_import import ImportBatch, ImportRow, to_user
 
 
 class RoleRule(NamedTuple):
@@ -57,14 +65,8 @@ class UserService:
         email = data.email.lower()
         if user_repository.get_by_email(self._session, email):
             raise ConflictError(messages.DUPLICATE_EMAIL)
-        user = User(
-            organization_id=self._actor.organization_id,
-            **data.model_dump(exclude={"email", "password"}),
-            email=email,
-            password_hash=hash_password(data.password),
-            # Parolayi admin belirledi: kullanici ilk giriste kendi parolasini secer
-            must_change_password=True,
-        )
+        user = self._new_user(data, email)
+        user.password_hash = hash_password(data.password)
         self._validate(user)
         user_repository.add(self._session, user)
         created = UserRead.model_validate(user, from_attributes=True)
@@ -92,6 +94,56 @@ class UserService:
         self._session.commit()
         return updated
 
+    def import_users(self, batch: ImportBatch) -> UserImportResult:
+        """Hepsi ya da hicbiri: bir satir hataliysa kimse eklenmez, butun hatalar listelenir."""
+        departments = {
+            d.code: d.id
+            for d in department_repository.list_all(self._session, self._actor.organization_id)
+        }
+        # Gecici parola herkese ayni: argon2 bir kez hesaplanir (2.000 satir dakikalar surmesin)
+        password_hash = hash_password(batch.password)
+        users: list[User] = []
+        errors: list[ImportRowError] = []
+        seen: set[str] = set()
+        for row in batch.rows:
+            outcome = self._import_row(row, departments, batch.password, seen)
+            if isinstance(outcome, str):
+                errors.append(ImportRowError(row=row.row, message=outcome))
+                continue
+            outcome.password_hash = password_hash
+            users.append(outcome)
+        if errors or batch.dry_run:
+            created = 0 if errors else len(users)
+            return UserImportResult(created=created, errors=errors, dry_run=batch.dry_run)
+        for user in users:
+            user_repository.add(self._session, user)
+            created_user = UserRead.model_validate(user, from_attributes=True)
+            self._auditor.created(AuditEntity.USER, created_user)
+        self._session.commit()
+        return UserImportResult(created=len(users), errors=[], dry_run=False)
+
+    def _import_row(
+        self, row: ImportRow, departments: dict[str, int], password: str, seen: set[str]
+    ) -> User | str:
+        code = row.fields.get("department_code", "")
+        if code and code not in departments:
+            return messages.IMPORT_UNKNOWN_DEPARTMENT.format(code=code)
+        data = to_user(row, departments.get(code), password)
+        if isinstance(data, str):
+            return data
+        email = data.email.lower()
+        if email in seen:
+            return messages.IMPORT_DUPLICATE_IN_FILE
+        seen.add(email)
+        if user_repository.get_by_email(self._session, email):
+            return messages.DUPLICATE_EMAIL
+        user = self._new_user(data, email)
+        try:
+            self._validate(user)
+        except InvalidUserRoleError:
+            return messages.INVALID_USER_ROLE
+        return user
+
     def reset_password(self, user_id: int, data: PasswordReset) -> UserRead:
         """Unutulan parola: admin gecici parola verir, kullanicinin acik oturumlari kapanir."""
         user = self._get(user_id)
@@ -105,6 +157,15 @@ class UserService:
         self._auditor.event(AuditEntity.USER, PASSWORD_RESET, updated)
         self._session.commit()
         return updated
+
+    def _new_user(self, data: UserCreate, email: str) -> User:
+        return User(
+            organization_id=self._actor.organization_id,
+            **data.model_dump(exclude={"email", "password"}),
+            email=email,
+            # Parolayi admin belirledi: kullanici ilk giriste kendi parolasini secer
+            must_change_password=True,
+        )
 
     def _validate(self, user: User) -> None:
         rule = ROLE_RULES[user.role]

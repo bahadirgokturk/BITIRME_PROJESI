@@ -224,6 +224,15 @@ Rol kontrolü girdi doğrulamasından önce çalışır. Başka kurumun kaydı `
   kullanıcıda da). Kullanıcı `POST /auth/password` ile kendi parolasını belirleyince bayrak kalkar. Admin kendi
   parolasını buradan sıfırlayamaz (`409 SELF_LOCKOUT`, profilden değiştirir). Denetim izinde
   `USER_PASSWORD_RESET` / `USER_PASSWORD_CHANGED` (parola ya da hash loga girmez).
+  **Toplu yükleme:** `POST /admin/users/import?dry_run=true|false` (multipart: `file` CSV, `password` ortak geçici
+  parola, en az 8). Sütunlar: `email, full_name, role` zorunlu; `reporter_kind` (REPORTER için STUDENT / ACADEMIC /
+  PERSONNEL), `department_code` (STAFF/MANAGER için, ör. `SUPPORT_SERVICES`). Excel'in "CSV UTF-8" (virgül) ve
+  Türkçe "CSV" (Windows-1254, noktalı virgül) kayıtları okunur; sütun adlarında büyük/küçük harf önemsizdir.
+  **Hepsi ya da hiçbiri:** bir satır bile hatalıysa kimse eklenmez; yanıt `{created, errors: [{row, message}],
+  dry_run}` her hatalı satırı Excel satır numarasıyla verir (geçersiz e-posta/rol/tür, bilinmeyen birim kodu,
+  dosyada ya da sistemde kayıtlı e-posta, rol kuralı). Önce `dry_run=true` ile denenir. Yüklenenler
+  `must_change_password: true` ile gelir. Sınır 1 MB / 2.000 satır (`413`, `422 INVALID_IMPORT_FILE`).
+  Örnek dosya: [templates/kullanici-yukleme-ornek.csv](templates/kullanici-yukleme-ornek.csv).
 - ✅ **`/admin/case-types`**: listele, ekle, güncelle. Kod (`SOAP_EMPTY` biçimi) sonradan değişmez; tekrar → `409`.
   `default_department_id` görevi alan, `secondary_department_id` yalnız bilgilendirilen birim; ikisi de aynı
   kurumdan (yoksa `404`) ve `null` ile kaldırılabilir. Diğer alanlara `null` gönderilirse değişmez.

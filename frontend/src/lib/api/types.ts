@@ -984,6 +984,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/users/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Users
+         * @description CSV ile toplu kullanici: once dry_run=true ile hatalar gorulur, sonra asil yukleme.
+         */
+        post: operations["import_users_api_v1_admin_users_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/users/{user_id}": {
         parameters: {
             query?: never;
@@ -1464,6 +1484,13 @@ export interface components {
          * @enum {string}
          */
         AutonomyLevel: "L1_AUTONOMOUS" | "L2_NOTIFY" | "L3_ESCALATE";
+        /** Body_import_users_api_v1_admin_users_import_post */
+        Body_import_users_api_v1_admin_users_import_post: {
+            /** File */
+            file: string;
+            /** Password */
+            password: string;
+        };
         /** Body_suggest_from_photo_api_v1_cases_photo_suggest_post */
         Body_suggest_from_photo_api_v1_cases_photo_suggest_post: {
             /** File */
@@ -1922,6 +1949,13 @@ export interface components {
              * @enum {string}
              */
             database: "ok" | "unavailable";
+        };
+        /** ImportRowError */
+        ImportRowError: {
+            /** Row */
+            row: number;
+            /** Message */
+            message: string;
         };
         /**
          * InfoReplyCreate
@@ -2676,6 +2710,18 @@ export interface components {
             department_id?: number | null;
             /** Password */
             password: string;
+        };
+        /**
+         * UserImportResult
+         * @description Hepsi ya da hicbiri: hata varsa created 0'dir; dry_run'da yazilacak sayi doner.
+         */
+        UserImportResult: {
+            /** Created */
+            created: number;
+            /** Errors */
+            errors: components["schemas"]["ImportRowError"][];
+            /** Dry Run */
+            dry_run: boolean;
         };
         /** UserRead */
         UserRead: {
@@ -6572,6 +6618,77 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    import_users_api_v1_admin_users_import_post: {
+        parameters: {
+            query?: {
+                dry_run?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_users_api_v1_admin_users_import_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserImportResult"];
                 };
             };
             /** @description Unauthorized */
