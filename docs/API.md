@@ -33,7 +33,8 @@ Yanıt: `TokenRead {access_token, token_type: "bearer", expires_in}` (access tok
 | POST | `/auth/login` | public | email+parola → access token + refresh cookie |
 | POST | `/auth/refresh` | cookie | yeni access token |
 | POST | `/auth/logout` | auth | |
-| GET | `/auth/me` | auth | profil + rol |
+| GET | `/auth/me` | auth | profil + rol; `must_change_password: true` ise istemci önce yeni parola ister |
+| POST | `/auth/password` | auth | kendi parolasını değiştirir (`current_password`, `new_password`); diğer cihazlar çıkar, bu cihaz yeni token + cookie alır. Yanlış mevcut parola → `422 WRONG_PASSWORD` (401 değil: oturum kapanmaz), aynı parola → `422 SAME_PASSWORD`; tahmin girişteki sınırla `429` |
 
 ## Lokasyon seçici — ✅ uygulandı
 `GET /locations`: tüm roller; yalnız kendi kurumunun **aktif** lokasyonları, ağaç sırasında (`path`).
@@ -218,6 +219,11 @@ Rol kontrolü girdi doğrulamasından önce çalışır. Başka kurumun kaydı `
   zorunlu ve aynı kurumdan (başka kurumun departmanı → `404`). Rol değişince eski `reporter_kind` otomatik silinir.
   `is_active: false` kullanıcının **tüm oturumlarını anında kapatır**; yeniden aktifleştirmek eski oturumu geri
   getirmez. Admin kendini pasifleştiremez veya ADMIN rolünü kaldıramaz → `409 SELF_LOCKOUT`.
+  **Parola sıfırlama:** `POST /admin/users/{id}/password` (`new_password`, en az 8) unutulan parolaya geçici
+  parola verir; kullanıcının açık oturumları kapanır, `must_change_password: true` olur (yeni oluşturulan
+  kullanıcıda da). Kullanıcı `POST /auth/password` ile kendi parolasını belirleyince bayrak kalkar. Admin kendi
+  parolasını buradan sıfırlayamaz (`409 SELF_LOCKOUT`, profilden değiştirir). Denetim izinde
+  `USER_PASSWORD_RESET` / `USER_PASSWORD_CHANGED` (parola ya da hash loga girmez).
 - ✅ **`/admin/case-types`**: listele, ekle, güncelle. Kod (`SOAP_EMPTY` biçimi) sonradan değişmez; tekrar → `409`.
   `default_department_id` görevi alan, `secondary_department_id` yalnız bilgilendirilen birim; ikisi de aynı
   kurumdan (yoksa `404`) ve `null` ile kaldırılabilir. Diğer alanlara `null` gönderilirse değişmez.

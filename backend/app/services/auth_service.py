@@ -21,7 +21,7 @@ from app.core import messages
 from app.core.clock import Clock
 from app.core.config import Settings
 from app.core.constants import REFRESH_REUSE_GRACE_SECONDS
-from app.core.errors import UnauthorizedError
+from app.core.errors import SamePasswordError, UnauthorizedError, WrongPasswordError
 from app.core.security import (
     AccessTokenClaims,
     InvalidTokenError,
@@ -33,14 +33,19 @@ from app.core.security import (
     verify_password,
 )
 from app.models import RefreshToken, User
+from app.models.enums import AuditEntity
 from app.repositories import refresh_token_repository, user_repository
 from app.repositories.refresh_token_repository import NewToken
+from app.schemas.user import PasswordChange, UserRead
+from app.services.audit import PASSWORD_CHANGED, Auditor
 from app.services.login_rate_limiter import LoginRateLimiter
 
 logger = logging.getLogger(__name__)
 
 # Bilinmeyen e-postada da ayni maliyette argon2 dogrulamasi yapmak icin (zamanlama saldirisi)
 _TIMING_DUMMY_HASH = hash_password("timing-dummy-password-never-valid")
+# Parola degistirme denemeleri IP'den bagimsiz, e-posta anahtariyla sayilir
+CHANGE_ATTEMPT_KEY = "password-change"
 
 
 @dataclass(frozen=True)
@@ -74,6 +79,28 @@ class AuthService:
         user.last_login_at = now
         # Her giris yeni bir oturum zinciri baslatir
         tokens, _ = self._issue(user, uuid.uuid4())
+        self._session.commit()
+        return tokens
+
+    def change_password(self, user: User, data: PasswordChange, auditor: Auditor) -> IssuedTokens:
+        """Kendi parolasini degistirir. Diger cihazlardaki oturumlar kapanir; bu cihaz yeni bir
+        oturumla devam eder. Mevcut parola denemesi giristeki kaba kuvvet sinirina tabidir (e-posta
+        anahtari: calinmis bir access token'la parola tahmin edilemesin)."""
+        now = self._clock.now()
+        self._limiter.check(email=user.email, ip=CHANGE_ATTEMPT_KEY, now=now)
+        if not verify_password(user.password_hash, data.current_password):
+            self._limiter.record_failure(email=user.email, ip=CHANGE_ATTEMPT_KEY, now=now)
+            raise WrongPasswordError()
+        self._limiter.record_success(email=user.email)
+        if data.new_password == data.current_password:
+            raise SamePasswordError()
+        user.password_hash = hash_password(data.new_password)
+        user.must_change_password = False
+        refresh_token_repository.revoke_all_for_user(self._session, user.id, now)
+        tokens, _ = self._issue(user, uuid.uuid4())
+        auditor.event(
+            AuditEntity.USER, PASSWORD_CHANGED, UserRead.model_validate(user, from_attributes=True)
+        )
         self._session.commit()
         return tokens
 

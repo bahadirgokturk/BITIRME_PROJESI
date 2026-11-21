@@ -19,6 +19,7 @@ const INACTIVE_STAFF: UserRead = {
   reporter_kind: null,
   department_id: 3,
   is_active: false,
+  must_change_password: false,
   last_login_at: null,
   created_at: "2026-09-01T08:00:00Z",
 };
@@ -76,6 +77,7 @@ export const adminHandlers = [
       reporter_kind: body.reporter_kind ?? null,
       department_id: body.department_id ?? null,
       is_active: true,
+      must_change_password: false,
       last_login_at: null,
       created_at: new Date().toISOString(),
     };

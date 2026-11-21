@@ -5,18 +5,19 @@ cookie'dedir: JavaScript okuyamaz (XSS), SameSite=Strict baska siteden gonderile
 path kisitli oldugu icin yalniz /auth istekleriyle gider.
 """
 
+from dataclasses import dataclass
 from datetime import timedelta
 from http import HTTPStatus
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Cookie, Depends, Request, Response
 
-from app.api.deps import CurrentUser, get_app_settings, get_auth_service
+from app.api.deps import Audit, CurrentUser, get_app_settings, get_auth_service
 from app.api.v1.responses import ERROR_RESPONSES
 from app.core.config import Environment, Settings
 from app.schemas.auth import LoginRequest, TokenRead
 from app.schemas.error import ErrorRead
-from app.schemas.user import UserRead
+from app.schemas.user import PasswordChange, UserRead
 from app.services.auth_service import AuthService, IssuedTokens
 
 REFRESH_COOKIE_NAME = "cf_refresh"
@@ -32,6 +33,13 @@ router = APIRouter(prefix="/auth", tags=["auth"], responses=_AUTH_RESPONSES)
 Auth = Annotated[AuthService, Depends(get_auth_service)]
 AppSettings = Annotated[Settings, Depends(get_app_settings)]
 RefreshCookie = Annotated[str | None, Cookie(alias=REFRESH_COOKIE_NAME)]
+
+
+@dataclass
+class PasswordChangeDeps:
+    service: Auth
+    auditor: Audit
+    settings: AppSettings
 
 
 def _set_refresh_cookie(response: Response, token: str, settings: Settings) -> None:
@@ -79,6 +87,18 @@ def refresh(
 def logout(response: Response, service: Auth, refresh_token: RefreshCookie = None) -> None:
     service.logout(refresh_token)
     response.delete_cookie(REFRESH_COOKIE_NAME, path=REFRESH_COOKIE_PATH)
+
+
+@router.post("/password")
+def change_password(
+    payload: PasswordChange,
+    user: CurrentUser,
+    response: Response,
+    deps: Annotated[PasswordChangeDeps, Depends()],
+) -> TokenRead:
+    """Diger cihazlar cikar; bu cihaz yeni token ve cookie ile devam eder."""
+    tokens = deps.service.change_password(user, payload, deps.auditor)
+    return _token_response(response, tokens, deps.settings)
 
 
 @router.get("/me")

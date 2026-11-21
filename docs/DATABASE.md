@@ -83,7 +83,8 @@ Kampüs şablonunda şube müdürlüğü düzeyindedir: [DEPARTMENTS.md](DEPARTM
 
 ### users
 id, organization_id, email (uniq), password_hash, full_name, role `user_role`, reporter_kind NULL,
-department_id NULL (STAFF/MANAGER için), is_active, last_login_at, created_at
+department_id NULL (STAFF/MANAGER için), is_active, must_change_password (admin'in verdiği parolayla girende
+true; kullanıcı kendi parolasını belirleyince false), last_login_at, created_at
 
 ### case_types
 | Kolon | Tip | Not |

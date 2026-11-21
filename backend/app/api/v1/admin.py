@@ -20,7 +20,7 @@ from app.schemas.audit import AuditLogFilter, AuditLogRead
 from app.schemas.common import Page, PageParams
 from app.schemas.department import DepartmentCreate, DepartmentRead, DepartmentUpdate
 from app.schemas.location import LocationCreate, LocationRead, LocationUpdate, QrFormat
-from app.schemas.user import UserCreate, UserRead, UserUpdate
+from app.schemas.user import PasswordReset, UserCreate, UserRead, UserUpdate
 from app.services import location_qr as location_qr_service
 from app.services.audit import AuditLogService
 from app.services.department_service import DepartmentService
@@ -80,6 +80,11 @@ def create_user(payload: UserCreate, service: Users) -> UserRead:
 @router.patch("/users/{user_id}")
 def update_user(user_id: int, payload: UserUpdate, service: Users) -> UserRead:
     return service.update(user_id, payload)
+
+
+@router.post("/users/{user_id}/password")
+def reset_password(user_id: int, payload: PasswordReset, service: Users) -> UserRead:
+    return service.reset_password(user_id, payload)
 
 
 @router.get("/departments")
