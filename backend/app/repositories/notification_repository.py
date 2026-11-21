@@ -4,8 +4,8 @@ from datetime import datetime
 from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
-from app.models import Notification, User
-from app.models.enums import UserRole
+from app.models import Case, Notification, User
+from app.models.enums import CaseStatus, UserRole
 from app.schemas.common import PageParams
 
 
@@ -75,3 +75,17 @@ def mark_all_read(session: Session, user_id: int, now: datetime) -> None:
         .where(Notification.user_id == user_id, Notification.read_at.is_(None))
         .values(read_at=now)
     )
+
+
+def merged_into(session: Session, case_id: int) -> Sequence[Case]:
+    """Bu bildirime bagli (MERGED) kayitlar, zincir dahil: once ara kayda baglanip sonra ara kaydi
+    ana kayda baglanan bildirimler de gelir."""
+    linked = (
+        select(Case.id)
+        .where(Case.parent_case_id == case_id, Case.status == CaseStatus.MERGED)
+        .cte("linked", recursive=True)
+    )
+    linked = linked.union_all(
+        select(Case.id).where(Case.parent_case_id == linked.c.id, Case.status == CaseStatus.MERGED)
+    )
+    return session.scalars(select(Case).where(Case.id.in_(select(linked.c.id)))).all()
