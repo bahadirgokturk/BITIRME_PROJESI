@@ -6,6 +6,7 @@ import { useId, type ReactNode } from "react";
 
 import { cn } from "cn";
 
+import { ChangePasswordButton } from "@/components/auth/ChangePasswordButton";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { LogoWordmark } from "@/components/brand/Logo";
 import { WaitingBell } from "@/components/cases/WaitingBell";
@@ -33,7 +34,7 @@ interface AppShellProps {
   children: ReactNode;
 }
 
-// Kenar cubugunun alti: giris yapan kisi ve cikis (Figma: 08 Yeni Stil (A) > kenar cubugu)
+// Kenar cubugunun alti: giris yapan kisi, parola degistirme ve cikis (Figma: 08 Yeni Stil (A) > kenar cubugu)
 function AccountBox({ name, detail }: { name: string; detail: string }) {
   return (
     <section aria-label="Hesap" className="space-y-1 border-t pt-3">
@@ -46,6 +47,7 @@ function AccountBox({ name, detail }: { name: string; detail: string }) {
           <p className="truncate text-xs text-muted-foreground">{detail}</p>
         </div>
       </div>
+      <ChangePasswordButton size="desktop" />
       <LogoutButton size="desktop" />
     </section>
   );

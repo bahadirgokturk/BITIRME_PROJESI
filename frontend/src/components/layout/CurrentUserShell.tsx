@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 
+import { FirstPasswordScreen } from "@/components/auth/FirstPasswordScreen";
 import { PendingSync } from "@/components/report/PendingReports";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ApiError } from "@/lib/api/client";
@@ -43,6 +44,10 @@ export function CurrentUserShell({ children }: { children: ReactNode }) {
         Kullanıcı bilgisi alınamadı: {error?.message}
       </p>
     );
+  }
+  // Gecici parolayla giris: once kendi parolasi (docs/API.md "Auth", must_change_password)
+  if (user.must_change_password) {
+    return <FirstPasswordScreen />;
   }
   return (
     <AppShell role={user.role} userName={user.full_name} userDetail={userDetail(user)}>
