@@ -13,32 +13,47 @@ const STATUS_LABELS: Record<StatusFilter, string> = {
 
 interface UserFiltersProps {
   value: Filters;
+  departments: readonly { id: number; name: string }[];
   onChange: (filters: Filters) => void;
 }
 
-// Arama + rol + durum (Figma: 06 Admin > Filters); suzme tarayicida yapilir (lib/admin.ts filterUsers)
-export function UserFilters({ value, onChange }: UserFiltersProps) {
+const idOrNull = (value: string) => (value ? Number(value) : null);
+
+function Options({ entries }: { entries: readonly (readonly [string, string])[] }) {
+  return entries.map(([value, label]) => (
+    <option key={value} value={value}>
+      {label}
+    </option>
+  ));
+}
+
+// Arama + rol + birim + durum (Figma: 06 Admin > Filters); suzme sunucuda yapilir (lib/admin.ts userListPath)
+export function UserFilters({ value, departments, onChange }: UserFiltersProps) {
+  const departmentOptions = departments.map((department) => [String(department.id), department.name] as const);
   return (
-    <div className="flex flex-col gap-3 md:flex-row">
+    <div className="flex flex-col gap-3 md:flex-row md:flex-wrap">
       <SearchInput
         aria-label="Kullanıcı ara"
         placeholder="Ad ya da e-posta ara"
         value={value.search}
         onChange={(event) => onChange({ ...value, search: event.target.value })}
-        className="w-full md:w-80"
+        className="w-full md:w-72"
       />
       <FilterSelect
         aria-label="Rol"
         value={value.role ?? ALL}
         onChange={(event) => onChange({ ...value, role: (event.target.value || null) as Role | null })}
-        className="w-full md:w-52"
+        className="w-full md:w-44"
       >
-        <option value={ALL}>Tüm roller</option>
-        {Object.entries(ROLE_LABELS).map(([role, label]) => (
-          <option key={role} value={role}>
-            {label}
-          </option>
-        ))}
+        <Options entries={[[ALL, "Tüm roller"], ...Object.entries(ROLE_LABELS)]} />
+      </FilterSelect>
+      <FilterSelect
+        aria-label="Birim"
+        value={value.departmentId === null ? ALL : String(value.departmentId)}
+        onChange={(event) => onChange({ ...value, departmentId: idOrNull(event.target.value) })}
+        className="w-full md:w-56"
+      >
+        <Options entries={[[ALL, "Tüm birimler"], ...departmentOptions]} />
       </FilterSelect>
       <FilterSelect
         aria-label="Durum"
@@ -46,11 +61,7 @@ export function UserFilters({ value, onChange }: UserFiltersProps) {
         onChange={(event) => onChange({ ...value, status: event.target.value as StatusFilter })}
         className="w-full md:w-44"
       >
-        {Object.entries(STATUS_LABELS).map(([status, label]) => (
-          <option key={status} value={status}>
-            {label}
-          </option>
-        ))}
+        <Options entries={Object.entries(STATUS_LABELS)} />
       </FilterSelect>
     </div>
   );
