@@ -243,6 +243,8 @@ w1 = 1 (açık görev başına), w2 = 0,5 (başka binada; aktif görevi yoksa bi
 w3 = 0,2 (son 30 günde aynı türde iş başına, en fazla 5 iş → tecrübe en fazla 1 görevlik yükü dengeler).
 5 ve üstü açık görevi olan personel aday değildir. Eşitlikte küçük kullanıcı id'si. Kararlar:
 `ASSIGN_STAFF | ROUTE_TO_POOL | NO_DEPARTMENT`; gerekçede en iyi 3 aday ve puanları.
+Pasif birim yok sayılır: türün birimi pasifse karar `NO_DEPARTMENT` olur, bildirim atanmadan müdürün inceleme
+kuyruğuna düşer (`CLASSIFIED` + `needs_human_review`).
 
 **Reddedilen görev (yeniden yönlendirme):** personel görevi reddedince bildirim `ESCALATED` olur; agent hattı
 açıksa Routing Agent aynı birimde, bildirimi daha önce reddedenler dışındaki personelden en uygununu seçer ve
