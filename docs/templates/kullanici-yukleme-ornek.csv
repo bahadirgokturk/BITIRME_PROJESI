@@ -1,0 +1,5 @@
+email,full_name,role,reporter_kind,department_code
+ogrenci1@ogr.bakircay.edu.tr,Ali Veli,REPORTER,STUDENT,
+akademisyen1@bakircay.edu.tr,Dr. Ayşe Kaya,REPORTER,ACADEMIC,
+temizlik1@bakircay.edu.tr,Mehmet Demir,STAFF,,SUPPORT_SERVICES
+bakim.mudur@bakircay.edu.tr,Fatma Şahin,MANAGER,,MAINTENANCE

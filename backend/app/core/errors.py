@@ -84,6 +84,12 @@ class FileTooLargeError(DomainError):
     status = HTTPStatus.REQUEST_ENTITY_TOO_LARGE
 
 
+class InvalidImportFileError(DomainError):
+    # Dosya yapisi bozuk (sutun eksik, satir yok, cok satir): satirlara hic bakilmaz
+    code = "INVALID_IMPORT_FILE"
+    status = HTTPStatus.UNPROCESSABLE_ENTITY
+
+
 class ReopenWindowClosedError(DomainError):
     code = "REOPEN_WINDOW_CLOSED"
     status = HTTPStatus.CONFLICT
