@@ -3487,6 +3487,14 @@ export interface operations {
                 /** @description Numara, baslik ya da konum adinda arama (Turkce harflere duyarsiz) */
                 q?: string | null;
                 order?: components["schemas"]["ListOrder"];
+                department_id?: number | null;
+                category?: components["schemas"]["CaseCategory"][] | null;
+                /** @description Lokasyon; bina secilirse kat ve odalari da */
+                location_id?: number | null;
+                /** @description Acilis gunu, dahil (Turkiye saati) */
+                from?: string | null;
+                /** @description Acilis gunu, dahil */
+                to?: string | null;
             };
             header?: never;
             path?: never;
@@ -3634,6 +3642,14 @@ export interface operations {
                 /** @description Numara, baslik ya da konum adinda arama (Turkce harflere duyarsiz) */
                 q?: string | null;
                 order?: components["schemas"]["ListOrder"];
+                department_id?: number | null;
+                category?: components["schemas"]["CaseCategory"][] | null;
+                /** @description Lokasyon; bina secilirse kat ve odalari da */
+                location_id?: number | null;
+                /** @description Acilis gunu, dahil (Turkiye saati) */
+                from?: string | null;
+                /** @description Acilis gunu, dahil */
+                to?: string | null;
             };
             header?: never;
             path?: never;

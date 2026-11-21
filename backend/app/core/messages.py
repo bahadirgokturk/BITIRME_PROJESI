@@ -38,6 +38,7 @@ REOPEN_WINDOW_CLOSED = "Bildirim kapandıktan sonraki {hours} saat içinde yenid
 CASE_NOT_CLOSED = "Yalnız kapanmış bildirim puanlanabilir."
 RATING_WINDOW_CLOSED = "Bildirim kapandıktan sonraki {hours} saat içinde puanlanabilir."
 ALREADY_RATED = "Bu bildirim zaten puanlandı."
+INVALID_DATE_RANGE = "Tarih aralığı geçerli değil: başlangıç bitişten sonra olamaz."
 INVALID_PERIOD = (
     "Tarih aralığı geçerli değil: başlangıç bitişten önce olmalı "
     "ve en fazla {max_days} gün sürmeli."

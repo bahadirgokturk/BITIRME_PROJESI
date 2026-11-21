@@ -137,6 +137,13 @@ class InvalidPeriodError(DomainError):
         )
 
 
+class InvalidDateRangeError(DomainError):
+    # Liste suzgeci: baslangic gunu bitis gununden sonra
+    code = "INVALID_DATE_RANGE"
+    status = HTTPStatus.UNPROCESSABLE_ENTITY
+    default_message = messages.INVALID_DATE_RANGE
+
+
 class IdempotencyKeyReusedError(DomainError):
     # Ayni anahtarla farkli icerik: istemci hatasi, ilk bildirim dondurulemez
     code = "IDEMPOTENCY_KEY_REUSED"
