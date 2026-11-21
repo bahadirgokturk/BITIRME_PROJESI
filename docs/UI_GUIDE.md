@@ -211,14 +211,16 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
 - Liste kartı: üstte numara · zaman, başlık, konum (simgeli), **4 adımlı ilerleme** (bölüm 4.1). Sayfa başında
   açıklama ("Yaptığın bildirimler ve her birinin şu anki durumu."); masaüstünde durum sekmeleri ve liste araçları aynı
   satırda. Detayda bilgiler ve zaman çizelgesi başlıklı kartlarda; bilgiler satır satır (yeni stil).
-- **Bildirim zili (Sizden yanıt bekleniyor):** Telefonda üst çubukta tema düğmesinin solunda (her sayfada),
-  masaüstünde Bildirimlerim'de "Bildirim yap"ın solunda. Bildirenin bir şey yapması gereken bildirim varsa zil açık
-  turuncu (`bg-warning/15`, simge turuncu), yoksa açık gri. Tıklayınca telefon bildirimi gibi pencere açılır: ek bilgi
-  istenenler ("Sizden ek bilgi istendi") önce, sonra kapandıktan sonraki 72 saat içinde puan verilmemişler ("Çözüldü ·
-  değerlendirmenizi bekliyor"); uzunsa pencere kaydırılır. Bildirime tıklayınca detayı açılır ve pencere kapanır.
-  Bekleyen yoksa "Şu an sizden yanıt bekleyen bildirim yok." Ekran okuyucuya "Bildirimler: N yanıt bekliyor" denir.
-  Kendi bildirimlerinin ilk 100'ü taranır (`GET /cases/mine?page_size=100`), her rolde çalışır. Kural: `actionNeeded`
-  (`lib/caseActions.ts`); Figma: WaitingBell, NotificationPanel, MobileAppBar > Actions.
+- **Bildirim zili (kişisel bildirimler, her rol):** üst çubukta tema düğmesinin solunda (telefonda her sayfada,
+  masaüstünde içerik panelinin üst çubuğunda). Okunmamış varsa zil açık turuncu ve köşede sayı rozeti ("3", "9+"),
+  yoksa açık gri; ekran okuyucuya "Bildirimler: 3 okunmamış". Rozet sayfa açılışı bittikten sonra sorulur ve iki
+  dakikada bir yenilenir (`GET /notifications/unread-count`). Tıklayınca pencerede son 20 bildirim (yeniden eskiye;
+  `GET /notifications`): backend'in yazdığı metin, altında kaydın başlığı ve zamanı; okunmamışlar kalın ve noktalı.
+  Bildirime tıklayınca okundu sayılır (`POST /notifications/{id}/read`) ve kayıt rolün kendi ekranında açılır
+  (bildiren `/cases/{id}`, personel `/staff/cases/{id}`, müdür ve yönetici `/manager/cases/{id}`;
+  `lib/notifications.ts`). Okunmamış varsa başlıkta "Tümünü okundu say" (`POST /notifications/read-all`). Boşsa
+  "Henüz bildirim yok.", hata olursa "Bildirimler yüklenemedi." ve "Tekrar dene".
+  Figma: WaitingBell, NotificationPanel, MobileAppBar > Actions.
 - Listenin üstünde filtre: **Tümü / Açık / Çözülen**. "Çözülen" ilerlemedeki Çözüldü adımıdır; "Açık" henüz
   çözülmemiş olanlar (ek bilgi bekleyen dahil); reddedilen ve birleştirilen yalnız "Tümü"nde. Filtreye uyan bildirim
   yoksa "Açık bildiriminiz yok." ve "Tümünü göster". Hiç bildirimi olmayana filtre gösterilmez. Filtre ve araçlar

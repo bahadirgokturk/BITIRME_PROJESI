@@ -9,7 +9,7 @@ import { cn } from "cn";
 import { ChangePasswordButton } from "@/components/auth/ChangePasswordButton";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { LogoWordmark } from "@/components/brand/Logo";
-import { WaitingBell } from "@/components/cases/WaitingBell";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { OfflineBanner } from "@/components/states/OfflineBanner";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { usePrintLightTheme } from "@/hooks/usePrintLightTheme";
@@ -83,7 +83,7 @@ function DesktopTopBar({ title, sidebar }: { title: string | null; sidebar: Side
       <span aria-hidden className="mx-1 h-4 w-px bg-border" />
       <p className="text-[15px] font-medium">{title}</p>
       <div className="-mr-2 ml-auto flex items-center gap-1">
-        <WaitingBell />
+        <NotificationBell />
         <ThemeToggle />
       </div>
     </header>
