@@ -194,7 +194,7 @@ rotasyonla doğan kayıtlar = bir oturum; indeksli), created_at, expires_at,
 revoked_at NULL, replaced_by_id FK refresh_tokens NULL (rotasyonla iptal edildiyse yerine gelen kayıt;
 çıkış/toplu iptalde NULL — eşzamanlı istek toleransı bunu kullanır). Rotasyonda eski kayıt `revoked_at` alır, yenisi eklenir; iptal edilmiş kayıt tekrar
 kullanılırsa o oturumun (`family_id`) açık kayıtları iptal edilir, diğer cihazlar etkilenmez (bkz. API.md "Auth"). Süresi dolan kayıtların
-temizliği ileride Monitoring tick'ine eklenebilir.
+temizliği Monitoring turunda yapılır: süresi dolduktan 7 gün sonra silinir (docs/DEPLOYMENT.md "Veri saklama").
 
 ### notifications
 id, user_id FK users, case_id FK cases (indeksli), event_type varchar(50), case_title varchar(200) (üretim anındaki
