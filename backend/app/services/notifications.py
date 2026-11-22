@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Session
 
-from app.core.constants import ASSIGNEE_UNAVAILABLE, LOW_RATING_MAX
+from app.core.constants import ASSIGNEE_UNAVAILABLE, DEPARTMENT_INACTIVE, LOW_RATING_MAX
 from app.models import Case, Notification
 from app.models.enums import CaseEventType
 from app.repositories import notification_repository
@@ -47,6 +47,10 @@ def _merged_here(transition: "Transition") -> bool:
     return "parent_case_id" in transition.metadata
 
 
+# Personel ayrildi ya da birim kapandi: is mudure doner (services/task_release.py)
+RELEASE_REASONS = frozenset({ASSIGNEE_UNAVAILABLE, DEPARTMENT_INACTIVE})
+
+
 def _low_rating(transition: "Transition") -> bool:
     rating = transition.metadata.get("rating")
     return isinstance(rating, int) and rating <= LOW_RATING_MAX
@@ -58,7 +62,7 @@ def _needs_manager(transition: "Transition") -> bool:
     # ayni anda yazilan ESCALATED olayi ikinci bildirim uretmez.
     return (
         transition.agent_name == "supervisor"
-        or transition.metadata.get("reason") == ASSIGNEE_UNAVAILABLE
+        or transition.metadata.get("reason") in RELEASE_REASONS
     )
 
 

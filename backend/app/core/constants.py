@@ -118,3 +118,5 @@ ASSIGNEE_UNAVAILABLE = "ASSIGNEE_UNAVAILABLE"
 
 # Bu puan ve alti mudure bildirilir (1-5 olcegi): "kotu" ve "cok kotu"; 3 notr sayilir
 LOW_RATING_MAX = 2
+# Birim pasif yapildigi icin mudure donen isin olay gerekcesi (services/task_release.py)
+DEPARTMENT_INACTIVE = "DEPARTMENT_INACTIVE"

@@ -238,6 +238,8 @@ yüzde (0–100); veri yoksa `null` (ekran "–" gösterir). KPI kartları `{val
 **Erişim:** tüm `/admin/*` yalnız **ADMIN** (MANAGER dahil diğer roller `403 FORBIDDEN`, giriş yoksa `401`).
 Rol kontrolü girdi doğrulamasından önce çalışır. Başka kurumun kaydı `404` döner (IDOR, `services/authorization.py`).
 
+- **Birim pasif yapılınca** açık görevleri (havuz dahil) `CANCELLED` olur, bildirimler birimsiz `ESCALATED` (gerekçe
+  `DEPARTMENT_INACTIVE`) müdür kuyruğuna döner ve kurumun müdürleri bildirim alır.
 - ✅ **`/admin/departments`** ve **`/admin/locations`** uygulandı: listele (`Page`), ekle (`201`), güncelle
   (`PATCH`, yalnız gönderilen alanlar). Aynı kurumda tekrar eden kod → `409 CONFLICT`. Başka kurumun kaydı → `404`.
   Lokasyon `path`'i sunucuda hesaplanır (`KMP/B/B-2`); liste ağaç sırasında (`path`'e göre) döner. Lokasyon

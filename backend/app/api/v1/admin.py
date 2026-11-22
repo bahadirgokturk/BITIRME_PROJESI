@@ -52,9 +52,12 @@ DbSession = Annotated[Session, Depends(get_session)]
 
 
 def get_department_service(
-    session: DbSession, actor: CurrentUser, auditor: Audit
+    session: DbSession,
+    actor: CurrentUser,
+    auditor: Audit,
+    clock: Annotated[Clock, Depends(get_clock)],
 ) -> DepartmentService:
-    return DepartmentService(session, actor, auditor)
+    return DepartmentService(session, actor, auditor, clock)
 
 
 def get_location_service(session: DbSession, actor: CurrentUser, auditor: Audit) -> LocationService:

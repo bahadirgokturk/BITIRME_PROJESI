@@ -67,7 +67,8 @@ atar (docs/AGENTS.md bölüm 3); hat kapalıysa (`AGENTS_ENABLED=false`) ya da m
 olur; agent hattı açıksa Routing Agent bir kez reddedenler dışındaki personele yeniden atar, ikinci retten
 sonra ya da uygun personel yoksa manager yeniden atar (docs/AGENTS.md 4.6). Personel pasif yapılır, rolü ya da
 birimi değişirse açık görevleri `CANCELLED`, bildirimleri `ESCALATED` olur (`services/task_release.py`, gerekçe
-`ASSIGNEE_UNAVAILABLE`); manager yeniden atar.
+`ASSIGNEE_UNAVAILABLE`); manager yeniden atar. Birim pasif yapılırsa birimin açık görevleri de aynı şekilde döner
+(birim boşaltılır, gerekçe `DEPARTMENT_INACTIVE`).
 
 | Task olayı | Task status | Case status |
 |---|---|---|

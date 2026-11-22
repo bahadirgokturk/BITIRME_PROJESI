@@ -63,6 +63,18 @@ def active_for_user(
     ).all()
 
 
+def active_for_department(
+    session: Session, department_id: int, statuses: Sequence[TaskStatus]
+) -> Sequence[Task]:
+    """Birimin acik gorevleri (atanmis ve havuzdaki), bildirimiyle birlikte (birim kapanisi)."""
+    return session.scalars(
+        select(Task)
+        .where(Task.department_id == department_id, Task.status.in_(statuses))
+        .options(selectinload(Task.case))
+        .order_by(Task.id)
+    ).all()
+
+
 def declined_by(session: Session, case_id: int) -> list[int]:
     """Bildirimin gorevini reddeden personel; yeniden yonlendirmede aday olmaz."""
     users = session.scalars(
