@@ -82,6 +82,20 @@ def _events(session: Session, case_id: int, event_type: str) -> list[CaseEvent]:
     )
 
 
+def _notified(session: Session, case_id: int, event_type: str) -> list[int]:
+    return list(
+        session.scalars(
+            select(Notification.user_id).where(
+                Notification.case_id == case_id, Notification.event_type == event_type
+            )
+        )
+    )
+
+
+def _staff_id(session: Session) -> int:
+    return session.scalars(select(User.id).where(User.email == "temizlik@kampus.example.com")).one()
+
+
 def _case(session: Session, case_id: int) -> Case:
     case = session.get(Case, case_id)
     assert case is not None
@@ -126,6 +140,8 @@ def test_at_risk_case_is_warned_once(
         )
     ).one()
     assert decision.decision == "SLA_WARNING"
+    # Atanan personel sure dolmadan bir kez uyarilir; mudur uyariyla rahatsiz edilmez
+    assert _notified(db_session, case_id, "SLA_WARNING") == [_staff_id(db_session)]
 
 
 def test_breached_case_is_escalated_once_without_changing_its_status(
@@ -150,6 +166,8 @@ def test_breached_case_is_escalated_once_without_changing_its_status(
     ).all()
     assert events.count("SLA_BREACHED") >= 1
     assert "ESCALATED" not in events
+    # Asimi isi yapan personel de duyar
+    assert _staff_id(db_session) in _notified(db_session, case_id, "SLA_BREACHED")
 
 
 def test_cases_already_resolved_are_not_monitored(

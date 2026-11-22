@@ -181,7 +181,9 @@ Kişiye özel bildirimler (zil). Olay kaydı yazılırken (`WorkflowService.reco
 | `INFO_REQUESTED`, `WORK_STARTED`, `CASE_CLOSED`, `CASE_REJECTED` | bildirim yapan |
 | `CASE_MERGED` | yalnız bağlanan bildirimin sahibi (olay ana kayda da yazılır, ana kaydın sahibine bildirim gitmez) |
 | `CASE_CLOSED` (ana kayıt) | ana kayda bağlı (`MERGED`) bütün bildirimlerin sahipleri, zincir dahil; bildirim kişinin kendi kaydına bağlanır (ana kaydı göremez) |
-| `TASK_DECLINED`, `CASE_REOPENED`, `SLA_BREACHED`, `ESCALATED` (yalnız Supervisor L3/güvenlik ya da görevden ayrılan personel) | bildirimin birimindeki müdürler (yoksa kurumun müdürleri) |
+| `SLA_WARNING` (süre dolmak üzere, bir kez) | atanan personel; havuzdaysa birimin personeli |
+| `SLA_BREACHED` | birimin müdürleri ve atanan personel (havuzdaysa birimin personeli) |
+| `TASK_DECLINED`, `CASE_REOPENED`, `ESCALATED` (yalnız Supervisor L3/güvenlik ya da görevden ayrılan personel) | bildirimin birimindeki müdürler (yoksa kurumun müdürleri) |
 | `COMMENT_ADDED` | bildirim yapan (iç not değilse) ve atanan personel |
 | `TASK_REASSIGNED` | görevi elinden alınan personel (havuz göreviyse kimse) |
 | `INFO_PROVIDED` | ek bilgiyi isteyen müdür (Supervisor istediyse kimse; hat yeniden çalışır) |
