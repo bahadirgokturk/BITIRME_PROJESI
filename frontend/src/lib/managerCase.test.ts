@@ -127,6 +127,15 @@ describe("managerEventLabel", () => {
     expect(managerEventLabel(event({ event_type: "CASE_MERGED" }))).toBe("Başka bir bildirimle birleştirildi");
   });
 
+  it("says why the work came back to the manager when staff leave or a unit closes", () => {
+    const escalated = (reason: string) =>
+      managerEventLabel(event({ event_type: "ESCALATED", actor_type: "USER", metadata: { reason } }));
+
+    expect(escalated("ASSIGNEE_UNAVAILABLE")).toBe("Personel ayrıldı, iş müdüre döndü");
+    expect(escalated("DEPARTMENT_INACTIVE")).toBe("Birim kapatıldı, iş müdüre döndü");
+    expect(eventActor(event({ event_type: "ESCALATED", actor_type: "USER" }))).toBe("Sistem yöneticisi");
+  });
+
   it("tells a comment from an internal note", () => {
     expect(managerEventLabel(event({ event_type: "COMMENT_ADDED", metadata: { is_internal: false } }))).toBe("Yorum yazıldı");
     expect(managerEventLabel(event({ event_type: "COMMENT_ADDED", metadata: { is_internal: true } }))).toBe("İç not eklendi");
