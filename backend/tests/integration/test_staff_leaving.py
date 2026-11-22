@@ -144,3 +144,34 @@ def test_timeline_explains_why_the_task_was_taken_back(client: TestClient, team:
     escalated = [e for e in events if e["event_type"] == "ESCALATED"]
     assert escalated[-1]["metadata"]["reason"] == "ASSIGNEE_UNAVAILABLE"
     assert escalated[-1]["metadata"]["previous_assignee_id"] == team.ids["temizlik"]
+
+
+def test_closing_a_department_sends_its_open_work_back_to_the_managers(
+    client: TestClient, team: Team
+) -> None:
+    in_progress = _working_case(client, team, "temizlik")
+    pool = _working_case(client, team, None)
+    url = f"/api/v1/admin/departments/{team.department_id}"
+
+    closed = client.patch(url, json={"is_active": False}, headers=team.headers["admin"])
+
+    assert closed.status_code == 200, closed.text
+    for case_id in (in_progress, pool):
+        case = _case(team, case_id)
+        assert case.status is CaseStatus.ESCALATED
+        # Pasif birim yeniden atamada secilemez; mudur yeni birimi secer
+        assert (case.department_id, case.assigned_staff_id) == (None, None)
+        assert _tasks(team, case_id) == [TaskStatus.CANCELLED]
+    alerts = client.get("/api/v1/notifications", headers=team.headers["mudur"]).json()["items"]
+    escalated = {n["case_id"] for n in alerts if n["event_type"] == "ESCALATED"}
+    assert escalated == {in_progress, pool}
+
+
+def test_renaming_a_department_keeps_its_work(client: TestClient, team: Team) -> None:
+    case_id = _working_case(client, team, "temizlik")
+    url = f"/api/v1/admin/departments/{team.department_id}"
+
+    renamed = client.patch(url, json={"name": "Destek"}, headers=team.headers["admin"])
+
+    assert renamed.status_code == 200, renamed.text
+    assert _case(team, case_id).status is CaseStatus.IN_PROGRESS

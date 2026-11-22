@@ -1,5 +1,5 @@
-"""Gorevden ayrilan personel (E4): pasif yapilan, rolu degisen ya da baska birime gecen personelin
-acik gorevleri sahipsiz kalmaz.
+"""Gorevden ayrilan personel ve kapanan birim (E4): pasif yapilan, rolu degisen ya da baska birime
+gecen personelin ve pasif yapilan birimin acik gorevleri sahipsiz kalmaz.
 
 Gorev iptal edilir, bildirim mudur kararina (ESCALATED) duser ve mudur bildirim alir; kime
 verilecegine mudur karar verir (inceleme kuyrugu). Bitmis isler (RESOLVED, VERIFICATION) etkilenmez.
@@ -8,7 +8,7 @@ verilecegine mudur karar verir (inceleme kuyrugu). Bitmis isler (RESOLVED, VERIF
 from sqlalchemy.orm import Session
 
 from app.core.clock import Clock
-from app.core.constants import ASSIGNEE_UNAVAILABLE
+from app.core.constants import ASSIGNEE_UNAVAILABLE, DEPARTMENT_INACTIVE
 from app.models import Task, User
 from app.models.enums import ActorType, CaseEventType, CaseStatus, TaskStatus, UserRole
 from app.repositories import task_repository
@@ -39,9 +39,16 @@ class TaskReleaser:
     def release_all(self, staff: User) -> None:
         tasks = task_repository.active_for_user(self._session, staff.id, list(ACTIVE_TASK_STATUSES))
         for task in tasks:
-            self._release(task, staff.id)
+            self._release(task, ASSIGNEE_UNAVAILABLE)
 
-    def _release(self, task: Task, staff_id: int) -> None:
+    def release_department(self, department_id: int) -> None:
+        """Pasif birimin isleri: birim de bosaltilir, mudur yeni birim ve kisi secer."""
+        statuses = list(ACTIVE_TASK_STATUSES)
+        for task in task_repository.active_for_department(self._session, department_id, statuses):
+            task.case.department_id = None
+            self._release(task, DEPARTMENT_INACTIVE)
+
+    def _release(self, task: Task, reason: str) -> None:
         ensure_task_transition_allowed(task.status, TaskStatus.CANCELLED)
         task.status = TaskStatus.CANCELLED
         case = task.case
@@ -51,9 +58,9 @@ class TaskReleaser:
             actor_type=ActorType.USER,
             actor_id=self._actor.id,
             metadata={
-                "reason": ASSIGNEE_UNAVAILABLE,
+                "reason": reason,
                 "task_id": task.id,
-                "previous_assignee_id": staff_id,
+                "previous_assignee_id": task.assigned_user_id,
             },
         )
         self._workflow.transition(case, CaseStatus.ESCALATED, released)

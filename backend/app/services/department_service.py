@@ -3,6 +3,7 @@
 from sqlalchemy.orm import Session
 
 from app.core import messages
+from app.core.clock import Clock
 from app.core.errors import ConflictError, NotFoundError
 from app.models import Department, User
 from app.models.enums import AuditEntity
@@ -11,13 +12,15 @@ from app.schemas.common import Page, PageParams
 from app.schemas.department import DepartmentCreate, DepartmentRead, DepartmentUpdate
 from app.services.audit import Auditor, snapshot
 from app.services.authorization import ensure_same_organization
+from app.services.task_release import TaskReleaser
 
 
 class DepartmentService:
-    def __init__(self, session: Session, actor: User, auditor: Auditor) -> None:
+    def __init__(self, session: Session, actor: User, auditor: Auditor, clock: Clock) -> None:
         self._session = session
         self._actor = actor
         self._auditor = auditor
+        self._clock = clock
 
     def list(self, paging: PageParams) -> Page[DepartmentRead]:
         items, total = department_repository.list_page(
@@ -48,6 +51,9 @@ class DepartmentService:
         # Yalniz gonderilen ve bos olmayan alanlar degisir (PATCH)
         for field, value in data.model_dump(exclude_unset=True, exclude_none=True).items():
             setattr(department, field, value)
+        # Pasif birime gorev acilamaz; tekrar pasif yapmak bos islemdir
+        if not department.is_active:
+            TaskReleaser(self._session, self._clock, self._actor).release_department(department.id)
         updated = DepartmentRead.model_validate(department, from_attributes=True)
         self._auditor.updated(AuditEntity.DEPARTMENT, before, updated)
         self._session.commit()
