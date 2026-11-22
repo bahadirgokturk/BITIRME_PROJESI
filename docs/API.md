@@ -186,6 +186,7 @@ Kişiye özel bildirimler (zil). Olay kaydı yazılırken (`WorkflowService.reco
 | `TASK_DECLINED`, `CASE_REOPENED`, `ESCALATED` (yalnız Supervisor L3/güvenlik ya da görevden ayrılan personel) | bildirimin birimindeki müdürler (yoksa kurumun müdürleri) |
 | `COMMENT_ADDED` | bildirim yapan (iç not değilse) ve atanan personel |
 | `TASK_REASSIGNED` | görevi elinden alınan personel (havuz göreviyse kimse) |
+| `FEEDBACK_SUBMITTED` (yalnız 1–2 puan, `LOW_RATING_MAX`) | birimin müdürleri; mesajda puan yazar |
 | `INFO_PROVIDED` | ek bilgiyi isteyen müdür (Supervisor istediyse kimse; hat yeniden çalışır) |
 
 | Method | Path | Not |

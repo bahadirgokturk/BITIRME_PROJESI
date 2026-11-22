@@ -322,3 +322,24 @@ def test_answer_to_an_agent_question_notifies_no_one(
 
     assert answered.status_code == 200, answered.text
     assert _mine(client, world["mudur"]) == []
+
+
+@pytest.mark.parametrize(("rating", "alerted"), [(1, True), (2, True), (3, False), (5, False)])
+def test_manager_hears_about_a_low_rating(
+    client: TestClient, world: World, rating: int, alerted: bool
+) -> None:
+    _close(client, world)
+    before = len(_mine(client, world["mudur"]))
+
+    rated = client.post(
+        f"/api/v1/cases/{world.case_id}/feedback",
+        json={"rating": rating, "comment": "Sabunluk yine boş."},
+        headers=world["ogrenci"],
+    )
+
+    assert rated.status_code == 200, rated.text
+    low = [n for n in _mine(client, world["mudur"]) if n["event_type"] == "FEEDBACK_SUBMITTED"]
+    assert len(low) == int(alerted)
+    assert len(_mine(client, world["mudur"])) == before + int(alerted)
+    if alerted:
+        assert str(rating) in low[0]["message"]

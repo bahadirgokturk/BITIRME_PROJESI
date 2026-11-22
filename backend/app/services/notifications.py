@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Session
 
-from app.core.constants import ASSIGNEE_UNAVAILABLE
+from app.core.constants import ASSIGNEE_UNAVAILABLE, LOW_RATING_MAX
 from app.models import Case, Notification
 from app.models.enums import CaseEventType
 from app.repositories import notification_repository
@@ -47,6 +47,11 @@ def _merged_here(transition: "Transition") -> bool:
     return "parent_case_id" in transition.metadata
 
 
+def _low_rating(transition: "Transition") -> bool:
+    rating = transition.metadata.get("rating")
+    return isinstance(rating, int) and rating <= LOW_RATING_MAX
+
+
 def _needs_manager(transition: "Transition") -> bool:
     # Agent'in dogrudan mudure biraktigi bildirim (L3, guvenlik) ya da personeli ayrilan is
     # (services/task_release.py). SLA asimi, red ve yeniden acilma kendi olaylariyla bildirilir;
@@ -60,6 +65,7 @@ def _needs_manager(transition: "Transition") -> bool:
 @dataclass(frozen=True)
 class Rule:
     audience: Audience
+    # {anahtar} yerlerine olay metadata'si yazilir (ornek: {rating})
     message: str
     # Olay her zaman degil, yalniz bu kosulda bildirilir
     when: Callable[["Transition"], bool] = _always
@@ -95,6 +101,9 @@ RULES: dict[CaseEventType, Rule] = {
         Audience.MANAGERS, "Bildirim müdür kararını bekliyor.", when=_needs_manager
     ),
     CaseEventType.COMMENT_ADDED: Rule(Audience.PARTICIPANTS, "Bildirime yeni yorum yazıldı."),
+    CaseEventType.FEEDBACK_SUBMITTED: Rule(
+        Audience.MANAGERS, "Çözülen işe düşük puan verildi: {rating}/5.", when=_low_rating
+    ),
     CaseEventType.TASK_REASSIGNED: Rule(
         Audience.PREVIOUS_ASSIGNEE, "Görev başka bir personele verildi; sizden çıkarıldı."
     ),
@@ -124,7 +133,9 @@ class Notifier:
             recipients |= self._recipients(case, rule.also, transition)
         recipients.discard(transition.actor_id)
         notifications = [
-            _notification(user_id, case, (transition, now), rule.message)
+            _notification(
+                user_id, case, (transition, now), rule.message.format_map(transition.metadata)
+            )
             for user_id in sorted(r for r in recipients if r is not None)
         ]
         notification_repository.add_all(self._session, notifications)
