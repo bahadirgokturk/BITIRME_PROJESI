@@ -18,6 +18,7 @@ import { attachmentHandlers } from "./attachmentHandlers";
 import { caseHandlers } from "./caseHandlers";
 import { interactionHandlers } from "./interactionHandlers";
 import { managerHandlers } from "./managerHandlers";
+import { notificationHandlers } from "./notificationHandlers";
 import { taskHandlers } from "./taskHandlers";
 import { MOCK_PASSWORD, USERS } from "./fixtures";
 import { currentUser, signInAs } from "./session";
@@ -44,7 +45,7 @@ export const handlers = [
   // yonetim kullanicilari adminHandlers.ts'te, birimler adminDepartmentHandlers.ts'te,
   // konumlar adminLocationHandlers.ts'te, bildirim turleri adminCaseTypeHandlers.ts'te,
   // sure hedefleri adminSlaRuleHandlers.ts'te, yapay zeka politikalari adminAgentPolicyHandlers.ts'te,
-  // islem kayitlari adminAuditLogHandlers.ts'te.
+  // islem kayitlari adminAuditLogHandlers.ts'te, zil bildirimleri notificationHandlers.ts'te.
   http.post<never, Schemas["LoginRequest"]>(
     apiUrl("/auth/login"),
     async ({ request }) => {
@@ -63,6 +64,18 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 });
   }),
   http.get(apiUrl("/auth/me"), () => HttpResponse.json(currentUser())),
+  // Sahte parola degismez (herkes ortak parolayla girer); yalniz kurallar ve "ilk giriste degistir" bayragi
+  http.post<never, Schemas["PasswordChange"]>(apiUrl("/auth/password"), async ({ request }) => {
+    const body = await request.json();
+    if (body.current_password !== MOCK_PASSWORD) {
+      return error(422, "WRONG_PASSWORD", "Mevcut parola hatalı.");
+    }
+    if (body.new_password === body.current_password) {
+      return error(422, "SAME_PASSWORD", "Yeni parola mevcut parolayla aynı olamaz.");
+    }
+    signInAs({ ...currentUser(), must_change_password: false });
+    return HttpResponse.json(token);
+  }),
 
 
   ...caseHandlers,
@@ -70,6 +83,7 @@ export const handlers = [
   ...interactionHandlers,
   ...taskHandlers,
   ...managerHandlers,
+  ...notificationHandlers,
   ...analyticsHandlers,
   ...adminHandlers,
   ...adminDepartmentHandlers,

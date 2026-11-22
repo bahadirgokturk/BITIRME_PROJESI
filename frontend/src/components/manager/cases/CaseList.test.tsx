@@ -202,6 +202,41 @@ describe("CaseList", () => {
     expect(screen.getByRole("button", { name: "Öncelik: 2 seçili" })).toBeInTheDocument();
   });
 
+  it("narrows by unit, category and opening days", async () => {
+    const asked: URLSearchParams[] = [];
+    listenTo("/cases", asked);
+    const user = renderList();
+    await screen.findByRole("list", { name: "Bildirimler" });
+
+    await user.selectOptions(await screen.findByRole("combobox", { name: "Birim" }), "Destek Hizmetleri Şube Müdürlüğü");
+    await user.selectOptions(await screen.findByRole("combobox", { name: "Bina" }), "B Blok");
+    await user.click(screen.getByRole("button", { name: "Kategori: Tümü" }));
+    await user.click(await screen.findByRole("checkbox", { name: "Temizlik" }));
+    await user.keyboard("{Escape}");
+    await user.type(screen.getByLabelText("Başlangıç tarihi"), "2026-11-01");
+    await user.type(screen.getByLabelText("Bitiş tarihi"), "2026-11-21");
+
+    await waitFor(() => expect(asked.at(-1)?.get("to")).toBe("2026-11-21"));
+    const last = asked.at(-1)!;
+    expect(last.get("department_id")).toBe("1");
+    expect(last.get("location_id")).toBe("2");
+    expect(last.getAll("category")).toEqual(["CLEANING"]);
+    expect(last.get("from")).toBe("2026-11-01");
+  });
+
+  it("does not offer the unit choice to staff, whose list is already their unit", async () => {
+    signInAs(USERS.STAFF);
+    render(
+      <QueryClientProvider client={createQueryClient()}>
+        <CaseList view="unit" />
+      </QueryClientProvider>,
+    );
+    await screen.findByRole("list", { name: "Bildirimler" });
+
+    expect(screen.queryByRole("combobox", { name: "Birim" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Kategori: Tümü" })).toBeInTheDocument();
+  });
+
   it("shows the cases as square cards on request", async () => {
     const user = renderList();
     await screen.findByRole("list", { name: "Bildirimler" });

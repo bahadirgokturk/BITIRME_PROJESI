@@ -17,6 +17,7 @@ from app.models.enums import ActorType, CaseEventType
 from app.models.enums import CaseStatus as S
 from app.models.enums import TaskStatus as T
 from app.repositories import case_repository
+from app.services.notifications import Notifier
 
 ALLOWED_TRANSITIONS: dict[S, frozenset[S]] = {
     S.NEW: frozenset({S.ANALYZING}),
@@ -121,6 +122,8 @@ class WorkflowService:
                 metadata_json=transition.metadata,
             ),
         )
+        # Bildirimler olayla ayni transaction'da: olay geri alinirsa bildirim de kalmaz
+        Notifier(self._session).on_event(case, transition, now)
 
 
 def _stamp(case: Case, target: S, now: datetime) -> None:

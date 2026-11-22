@@ -6,6 +6,7 @@ eylemleri uygular.
 - Kabul edilmeyen gorev: REASSIGN_RECOMMENDED (Routing ile baska personel onerisi, bir kez).
 - Takilan analiz: agent hatti yeniden calisir (hat kapaliysa manager bekler, izlenmez).
 - 48 saat yanitsiz ek bilgi talebi: REJECTED.
+- Veri temizligi: suresi dolmus oturum kayitlari, eski okunmus bildirimler (services/retention.py).
 
 Zamanlayici uygulama icinde calisir (Celery/Redis yok, ADR-8). Birden fazla sunucu ayaktaysa turu
 Postgres advisory lock alan tek sunucu yapar.
@@ -28,13 +29,14 @@ from app.agents.monitoring import (
     MonitoringAgent,
     PlannedAction,
 )
-from app.agents.routing import RoutingAgent, RoutingInput, StaffCandidate
 from app.core.clock import Clock
 from app.models import Case
 from app.models.enums import ActorType, CaseEventType, CaseStatus
-from app.repositories import analysis_repository, monitoring_repository
+from app.repositories import monitoring_repository
 from app.repositories.agent_decision_repository import DecisionRun, record
-from app.services.analysis_service import LOOKBACK, AnalysisService
+from app.services.analysis_service import AnalysisService
+from app.services.reroute_service import route_excluding
+from app.services.retention import purge
 from app.services.sla import case_sla_status
 from app.services.workflow import Transition, WorkflowService
 
@@ -72,6 +74,12 @@ class MonitoringService:
         applied = sum(
             self._check(case) for case in monitoring_repository.open_cases(self._session, statuses)
         )
+        purged = purge(self._session, self._clock.now())
+        if purged.tokens or purged.notifications:
+            logger.info(
+                "Veri temizligi",
+                extra={"tokens": purged.tokens, "notifications": purged.notifications},
+            )
         self._session.commit()
         return applied
 
@@ -136,25 +144,10 @@ class MonitoringService:
 
     def _other_staff(self, case: Case) -> int | None:
         """Routing Agent ile ayni birimden, su anki personel disinda en uygun kisi."""
-        case_type = case.case_type
-        if case.department_id is None or case_type is None:
-            return None
-        since = self._clock.now() - LOOKBACK
-        facts = analysis_repository.staff_facts(
-            self._session, case.department_id, case_type.id, since
-        )
-        staff = [StaffCandidate(**vars(f)) for f in facts if f.user_id != case.assigned_staff_id]
-        routing = RoutingAgent().run(
-            RoutingInput(
-                case_type_code=case_type.code,
-                department_id=case.department_id,
-                secondary_department_id=None,
-                building_code=analysis_repository.building_code(case.location.path),
-                staff=staff,
-            ),
-            AgentContext(now=self._clock.now()),
-        )
-        return routing.output.assigned_user_id
+        staff_id = case.assigned_staff_id
+        current = frozenset() if staff_id is None else frozenset({staff_id})
+        routed = route_excluding(self._session, case, current, self._clock.now())
+        return routed.result.output.assigned_user_id if routed else None
 
     def _record(self, case: Case, event: CaseEventType, metadata: dict[str, object]) -> None:
         self._workflow.record(case, _agent(event, metadata), self._clock.now())

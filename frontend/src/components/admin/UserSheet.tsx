@@ -9,6 +9,7 @@ import { useCreateUser, useUpdateUser, type AdminUser } from "@/hooks/useAdminUs
 import { EMPTY_USER_FORM, formFromUser, toUserBody, userFormProblems, type UserForm } from "@/lib/admin";
 
 import { ActiveToggle, HistoryLink, SHEET_CLASS } from "./AdminParts";
+import { PasswordResetSection } from "./PasswordResetSection";
 import { UserFormFields } from "./UserFormFields";
 
 const ACTIVE_NOTE =
@@ -86,6 +87,7 @@ export function UserSheet({ target, departments, onClose, onDone }: UserSheetPro
         <form noValidate onSubmit={submit} className="flex flex-1 flex-col gap-4">
           <UserFormFields form={form} problems={problems} mode={target.mode} departments={departments} onChange={setForm} />
           <FormAlert error={saving.error} />
+          {target.mode === "edit" ? <PasswordResetSection user={target.user} /> : null}
           {target.mode === "edit" ? <StatusSection user={target.user} onDone={onDone} /> : null}
           <div className="mt-auto flex justify-end gap-2 pt-2">
             {target.mode === "edit" ? <HistoryLink entity="USER" id={target.user.id} /> : null}

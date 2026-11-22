@@ -9,6 +9,7 @@ import { USERS } from "./fixtures";
 
 type Schemas = components["schemas"];
 type UserRead = Schemas["UserRead"];
+type Role = Schemas["UserRole"];
 
 // Pasif bir personel: tabloda "Pasif" durumunu gostermek icin
 const INACTIVE_STAFF: UserRead = {
@@ -19,6 +20,7 @@ const INACTIVE_STAFF: UserRead = {
   reporter_kind: null,
   department_id: 3,
   is_active: false,
+  must_change_password: false,
   last_login_at: null,
   created_at: "2026-09-01T08:00:00Z",
 };
@@ -63,8 +65,91 @@ function locksOutSelf(id: number, body: Schemas["UserUpdate"]): boolean {
   return id === USERS.ADMIN.id && (body.is_active === false || (body.role != null && body.role !== "ADMIN"));
 }
 
+const LOCALE = "tr-TR";
+// backend/app/schemas/user.py parola alt siniri
+const PASSWORD_MIN = 8;
+
+// q ad soyad ya da e-postada Turkce harf ve buyuk/kucuk harf duyarsiz aranir
+function matchesQuery(user: UserRead, params: URLSearchParams): boolean {
+  const q = (params.get("q") ?? "").toLocaleLowerCase(LOCALE);
+  const role = params.get("role");
+  const department = params.get("department_id");
+  const active = params.get("is_active");
+  return (
+    `${user.full_name} ${user.email}`.toLocaleLowerCase(LOCALE).includes(q) &&
+    (role === null || user.role === role) &&
+    (department === null || user.department_id === Number(department)) &&
+    (active === null || String(user.is_active) === active)
+  );
+}
+
+interface ImportRow {
+  email: string;
+  full_name: string;
+  role: Role;
+  reporter_kind: Schemas["ReporterKind"] | null;
+}
+
+// Yalniz virgullu basit dosya; satir numarasi Excel'deki gibi (baslik 1. satir)
+function parseImport(text: string): { rows: ImportRow[]; errors: Schemas["ImportRowError"][] } {
+  const lines = text.split(/\r?\n/).filter((line) => line.trim() !== "");
+  const rows: ImportRow[] = [];
+  const errors: Schemas["ImportRowError"][] = [];
+  lines.slice(1).forEach((line, index) => {
+    const [email = "", full_name = "", role = "", kind = ""] = line.split(",").map((cell) => cell.trim());
+    if (!email.includes("@")) {
+      errors.push({ row: index + 2, message: "Geçersiz e-posta adresi." });
+      return;
+    }
+    if (emailTaken(email)) {
+      errors.push({ row: index + 2, message: "Bu e-posta adresi zaten kayıtlı." });
+      return;
+    }
+    rows.push({ email, full_name, role: role as Role, reporter_kind: (kind || null) as ImportRow["reporter_kind"] });
+  });
+  return { rows, errors };
+}
+
+function importedUser(row: ImportRow, index: number): UserRead {
+  return {
+    id: Math.max(...users.map((user) => user.id)) + 1 + index,
+    ...row,
+    email: row.email.toLowerCase(),
+    department_id: null,
+    is_active: true,
+    must_change_password: true,
+    last_login_at: null,
+    created_at: new Date().toISOString(),
+  };
+}
+
 export const adminHandlers = [
-  http.get(apiUrl("/admin/users"), () => HttpResponse.json({ items: users, total: users.length, page: 1 })),
+  // Backend gibi: suzgecler birlikte, sonra sayfa; total suzulmus sayidir
+  http.get(apiUrl("/admin/users"), ({ request }) => {
+    const params = new URL(request.url).searchParams;
+    const page = Number(params.get("page") ?? "1");
+    const size = Number(params.get("page_size") ?? "50");
+    const matching = users.filter((user) => matchesQuery(user, params));
+    const items = matching.slice((page - 1) * size, page * size);
+    return HttpResponse.json({ items, total: matching.length, page });
+  }),
+
+  // Toplu yukleme: hepsi ya da hicbiri; dry_run hicbir sey yazmaz (docs/API.md "Toplu yukleme")
+  http.post(apiUrl("/admin/users/import"), async ({ request }) => {
+    const dryRun = new URL(request.url).searchParams.get("dry_run") === "true";
+    const form = await request.formData();
+    const file = form.get("file");
+    // FormData degeri metin ya da dosyadir; test ortaminda File sinifi farkli olabilir, instanceof kullanilmaz
+    if (file === null || typeof file === "string" || String(form.get("password") ?? "").length < PASSWORD_MIN) {
+      return error(422, "VALIDATION_ERROR", "Dosya ve en az 8 karakterlik geçici parola gerekli.");
+    }
+    const { rows, errors } = parseImport(await file.text());
+    const result: Schemas["UserImportResult"] = { created: errors.length ? 0 : rows.length, errors, dry_run: dryRun };
+    if (!dryRun && errors.length === 0) {
+      users.push(...rows.map((row, index) => importedUser(row, index)));
+    }
+    return HttpResponse.json(result);
+  }),
 
   http.post<never, Schemas["UserCreate"]>(apiUrl("/admin/users"), async ({ request }) => {
     const body = await request.json();
@@ -76,6 +161,7 @@ export const adminHandlers = [
       reporter_kind: body.reporter_kind ?? null,
       department_id: body.department_id ?? null,
       is_active: true,
+      must_change_password: false,
       last_login_at: null,
       created_at: new Date().toISOString(),
     };
@@ -87,6 +173,21 @@ export const adminHandlers = [
     }
     users.push(created);
     return HttpResponse.json(created, { status: 201 });
+  }),
+
+  // Gecici parola: kullanici ilk giriste kendi parolasini belirler; yonetici kendininkini buradan sifirlayamaz
+  http.post<{ id: string }, Schemas["PasswordReset"]>(apiUrl("/admin/users/:id/password"), ({ params }) => {
+    const id = Number(params.id);
+    const current = users.find((user) => user.id === id);
+    if (!current) {
+      return error(404, "NOT_FOUND", "Kayıt bulunamadı.");
+    }
+    if (id === USERS.ADMIN.id) {
+      return error(409, "SELF_LOCKOUT", "Kendi parolanızı buradan sıfırlayamazsınız; profilinizden değiştirin.");
+    }
+    const updated: UserRead = { ...current, must_change_password: true };
+    users = users.map((user) => (user.id === id ? updated : user));
+    return HttpResponse.json(updated);
   }),
 
   http.patch<{ id: string }, Schemas["UserUpdate"]>(apiUrl("/admin/users/:id"), async ({ request, params }) => {

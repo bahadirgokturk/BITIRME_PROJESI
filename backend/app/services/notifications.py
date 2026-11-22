@@ -1,0 +1,196 @@
+"""Kisiye ozel bildirim kurallari (docs/API.md "Notifications").
+
+Bildirimler olay kaydi yazilirken uretilir (WorkflowService.record): her durum degisikligi ve olay
+oradan gectigi icin karar tek yerde verilir, servislerin her biri ayrica hatirlamak zorunda kalmaz.
+Olayi yapan kisi kendine bildirim almaz. E-posta ya da anlik bildirim yok; zil bu tabloyu okur.
+"""
+
+from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import datetime
+from enum import StrEnum
+from typing import TYPE_CHECKING
+
+from sqlalchemy.orm import Session
+
+from app.core.constants import ASSIGNEE_UNAVAILABLE, LOW_RATING_MAX
+from app.models import Case, Notification
+from app.models.enums import CaseEventType
+from app.repositories import notification_repository
+
+if TYPE_CHECKING:
+    from app.services.workflow import Transition
+
+
+class Audience(StrEnum):
+    # Atanan personel; gorev birim havuzundaysa birimin butun personeli
+    ASSIGNEE_OR_POOL = "ASSIGNEE_OR_POOL"
+    ASSIGNEE = "ASSIGNEE"
+    REPORTER = "REPORTER"
+    # Bildirimin birimindeki mudurler (yoksa kurumun mudurleri)
+    MANAGERS = "MANAGERS"
+    # Yorum: bildirim yapan (ic not degilse) ve atanan personel
+    PARTICIPANTS = "PARTICIPANTS"
+    # Gorevi elinden alinan personel (olay metadata'si)
+    PREVIOUS_ASSIGNEE = "PREVIOUS_ASSIGNEE"
+    # Ek bilgiyi isteyen kisi; agent istediyse kimse (hat yanitla yeniden calisir)
+    INFO_REQUESTER = "INFO_REQUESTER"
+
+
+def _always(_: "Transition") -> bool:
+    return True
+
+
+def _merged_here(transition: "Transition") -> bool:
+    # Birlestirme olayi iki kayda da yazilir; yalniz baglanan kaydin sahibine bildirilir (ana kaydin
+    # olayinda parent_case_id yok, merged_case_id var)
+    return "parent_case_id" in transition.metadata
+
+
+def _low_rating(transition: "Transition") -> bool:
+    rating = transition.metadata.get("rating")
+    return isinstance(rating, int) and rating <= LOW_RATING_MAX
+
+
+def _needs_manager(transition: "Transition") -> bool:
+    # Agent'in dogrudan mudure biraktigi bildirim (L3, guvenlik) ya da personeli ayrilan is
+    # (services/task_release.py). SLA asimi, red ve yeniden acilma kendi olaylariyla bildirilir;
+    # ayni anda yazilan ESCALATED olayi ikinci bildirim uretmez.
+    return (
+        transition.agent_name == "supervisor"
+        or transition.metadata.get("reason") == ASSIGNEE_UNAVAILABLE
+    )
+
+
+@dataclass(frozen=True)
+class Rule:
+    audience: Audience
+    # {anahtar} yerlerine olay metadata'si yazilir (ornek: {rating})
+    message: str
+    # Olay her zaman degil, yalniz bu kosulda bildirilir
+    when: Callable[["Transition"], bool] = _always
+    # Ayni mesaji alan ikinci kitle (SLA asimi: mudur ve isi yapan personel)
+    also: Audience | None = None
+
+
+RULES: dict[CaseEventType, Rule] = {
+    CaseEventType.TASK_CREATED: Rule(Audience.ASSIGNEE_OR_POOL, "Size yeni bir görev atandı."),
+    CaseEventType.EVIDENCE_REQUESTED: Rule(
+        Audience.ASSIGNEE, "Tamamladığınız iş için kanıt (fotoğraf ya da not) istendi."
+    ),
+    CaseEventType.INFO_REQUESTED: Rule(Audience.REPORTER, "Bildiriminiz için ek bilgi istendi."),
+    CaseEventType.WORK_STARTED: Rule(
+        Audience.REPORTER, "Bildiriminiz üzerinde çalışılmaya başlandı."
+    ),
+    CaseEventType.CASE_CLOSED: Rule(Audience.REPORTER, "Bildiriminiz çözüldü ve kapatıldı."),
+    CaseEventType.CASE_REJECTED: Rule(Audience.REPORTER, "Bildiriminiz reddedildi."),
+    CaseEventType.CASE_MERGED: Rule(
+        Audience.REPORTER,
+        "Bildiriminiz aynı sorunu bildiren başka bir kayıtla birleştirildi.",
+        when=_merged_here,
+    ),
+    CaseEventType.TASK_DECLINED: Rule(Audience.MANAGERS, "Personel görevi reddetti."),
+    CaseEventType.CASE_REOPENED: Rule(Audience.MANAGERS, "Bildirim yeniden açıldı."),
+    CaseEventType.SLA_BREACHED: Rule(
+        Audience.MANAGERS, "Çözüm süresi (SLA) aşıldı.", also=Audience.ASSIGNEE_OR_POOL
+    ),
+    CaseEventType.SLA_WARNING: Rule(
+        Audience.ASSIGNEE_OR_POOL, "İşin çözüm süresi dolmak üzere; öncelik verin."
+    ),
+    CaseEventType.ESCALATED: Rule(
+        Audience.MANAGERS, "Bildirim müdür kararını bekliyor.", when=_needs_manager
+    ),
+    CaseEventType.COMMENT_ADDED: Rule(Audience.PARTICIPANTS, "Bildirime yeni yorum yazıldı."),
+    CaseEventType.FEEDBACK_SUBMITTED: Rule(
+        Audience.MANAGERS, "Çözülen işe düşük puan verildi: {rating}/5.", when=_low_rating
+    ),
+    CaseEventType.TASK_REASSIGNED: Rule(
+        Audience.PREVIOUS_ASSIGNEE, "Görev başka bir personele verildi; sizden çıkarıldı."
+    ),
+    CaseEventType.INFO_PROVIDED: Rule(
+        Audience.INFO_REQUESTER, "İstediğiniz ek bilgi bildirim yapan tarafından yanıtlandı."
+    ),
+}
+
+# Ana kayit kapaninca ona bagli (MERGED) bildirimlerin sahiplerine; bildirim kisinin kendi kaydina
+# baglanir, cunku ana kaydi goremez (kapsam disi, 404)
+MERGED_FOLLOW_UPS: dict[CaseEventType, str] = {
+    CaseEventType.CASE_CLOSED: "Bildiriminizin bağlandığı kayıt çözüldü ve kapatıldı.",
+}
+
+
+class Notifier:
+    def __init__(self, session: Session) -> None:
+        self._session = session
+
+    def on_event(self, case: Case, transition: "Transition", now: datetime) -> None:
+        self._follow_merged(case, transition, now)
+        rule = RULES.get(transition.event_type)
+        if rule is None or not rule.when(transition):
+            return
+        recipients = self._recipients(case, rule.audience, transition)
+        if rule.also is not None:
+            recipients |= self._recipients(case, rule.also, transition)
+        recipients.discard(transition.actor_id)
+        notifications = [
+            _notification(
+                user_id, case, (transition, now), rule.message.format_map(transition.metadata)
+            )
+            for user_id in sorted(r for r in recipients if r is not None)
+        ]
+        notification_repository.add_all(self._session, notifications)
+
+    def _follow_merged(self, case: Case, transition: "Transition", now: datetime) -> None:
+        message = MERGED_FOLLOW_UPS.get(transition.event_type)
+        if message is None:
+            return
+        notifications = [
+            _notification(linked.reporter_id, linked, (transition, now), message)
+            for linked in notification_repository.merged_into(self._session, case.id)
+            if linked.reporter_id != transition.actor_id
+        ]
+        notification_repository.add_all(self._session, notifications)
+
+    def _recipients(
+        self, case: Case, audience: Audience, transition: "Transition"
+    ) -> set[int | None]:
+        finders: dict[Audience, Callable[[], set[int | None]]] = {
+            Audience.REPORTER: lambda: {case.reporter_id},
+            Audience.ASSIGNEE: lambda: {case.assigned_staff_id},
+            Audience.MANAGERS: lambda: set(
+                notification_repository.managers_of(
+                    self._session, case.organization_id, case.department_id
+                )
+            ),
+            Audience.PARTICIPANTS: lambda: _participants(case, transition),
+            Audience.PREVIOUS_ASSIGNEE: lambda: {transition.metadata.get("previous_assignee_id")},
+            Audience.INFO_REQUESTER: lambda: {
+                notification_repository.info_requester(self._session, case.id)
+            },
+            Audience.ASSIGNEE_OR_POOL: lambda: self._assignee_or_pool(case),
+        }
+        return finders[audience]()
+
+    def _assignee_or_pool(self, case: Case) -> set[int | None]:
+        if case.assigned_staff_id is not None or case.department_id is None:
+            return {case.assigned_staff_id}
+        return set(notification_repository.staff_of(self._session, case.department_id))
+
+
+def _notification(
+    user_id: int, case: Case, event: tuple["Transition", datetime], message: str
+) -> Notification:
+    transition, now = event
+    return Notification(
+        user_id=user_id,
+        case_id=case.id,
+        event_type=transition.event_type,
+        case_title=case.title,
+        message=message,
+        created_at=now,
+    )
+
+
+def _participants(case: Case, transition: "Transition") -> set[int | None]:
+    internal = bool(transition.metadata.get("is_internal"))
+    return {case.assigned_staff_id} | (set() if internal else {case.reporter_id})

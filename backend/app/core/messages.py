@@ -13,6 +13,18 @@ DUPLICATE_CODE = "Bu kod zaten kullanılıyor."
 DUPLICATE_SLA_RULE = "Bu bildirim türü ve öncelik için zaten bir SLA kuralı var."
 INVALID_SLA_TARGETS = "Çözüm süresi, kabul süresinden kısa olamaz."
 DUPLICATE_EMAIL = "Bu e-posta adresi zaten kayıtlı."
+IMPORT_MISSING_COLUMNS = "Dosyada zorunlu sütun eksik: {columns}."
+IMPORT_EMPTY = "Dosyada kullanıcı satırı yok."
+IMPORT_TOO_MANY_ROWS = "Bir dosyada en fazla {limit} kullanıcı yüklenebilir."
+IMPORT_FILE_TOO_LARGE = "Dosya çok büyük. En fazla {limit_kb} KB yüklenebilir."
+IMPORT_DUPLICATE_IN_FILE = "Bu e-posta dosyada birden fazla kez geçiyor."
+IMPORT_UNKNOWN_DEPARTMENT = "Birim kodu bulunamadı: {code}."
+IMPORT_INVALID_EMAIL = "Geçersiz e-posta adresi."
+IMPORT_INVALID_NAME = "Ad soyad boş olamaz (en fazla 200 karakter)."
+IMPORT_INVALID_ROLE = "Rol geçersiz: REPORTER, STAFF, MANAGER ya da ADMIN olmalı."
+IMPORT_INVALID_REPORTER_KIND = "Kullanıcı türü geçersiz: STUDENT, ACADEMIC ya da PERSONNEL olmalı."
+WRONG_PASSWORD = "Mevcut parola hatalı."  # noqa: S105 - kullanici mesaji, parola degil
+SAME_PASSWORD = "Yeni parola mevcut parolayla aynı olamaz."  # noqa: S105 - kullanici mesaji
 INVALID_USER_ROLE = (
     "Rol bilgileri tutarsız: bildirim yapanlarda kullanıcı türü, "
     "personel ve müdürlerde birim zorunludur."
@@ -26,6 +38,7 @@ REOPEN_WINDOW_CLOSED = "Bildirim kapandıktan sonraki {hours} saat içinde yenid
 CASE_NOT_CLOSED = "Yalnız kapanmış bildirim puanlanabilir."
 RATING_WINDOW_CLOSED = "Bildirim kapandıktan sonraki {hours} saat içinde puanlanabilir."
 ALREADY_RATED = "Bu bildirim zaten puanlandı."
+INVALID_DATE_RANGE = "Tarih aralığı geçerli değil: başlangıç bitişten sonra olamaz."
 INVALID_PERIOD = (
     "Tarih aralığı geçerli değil: başlangıç bitişten önce olmalı "
     "ve en fazla {max_days} gün sürmeli."

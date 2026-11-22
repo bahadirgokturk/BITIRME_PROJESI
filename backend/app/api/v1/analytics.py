@@ -8,9 +8,9 @@ Ortak filtre: from, to (Europe/Istanbul gunleri, ikisi dahil), department_id, bu
 """
 
 from datetime import date, timedelta
-from typing import Annotated
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.orm import Session
 
 from app.agents.analytics_summary import AnalyticsSummaryAgent
@@ -47,6 +47,11 @@ from app.services.analytics_service import AnalyticsService
 from app.services.delay_risk_service import DelayRiskService
 from app.services.operations_analytics_service import OperationsAnalyticsService
 from app.services.summary_service import SummaryService
+from app.services.weekly_report_service import (
+    ReportSources,
+    WeeklyReportService,
+    week_of,
+)
 
 # Varsayilan donem: son 7 gun; en uzun donem bir yil (sorgu suresi ve grafik okunurlugu)
 DEFAULT_PERIOD_DAYS = 7
@@ -130,6 +135,45 @@ def get_agent_metrics_service(
     session: Annotated[Session, Depends(get_session)], user: CurrentUser
 ) -> AgentMetricsService:
     return AgentMetricsService(session, user)
+
+
+def get_report_sources(
+    analytics: Analytics,
+    operations: Operations,
+    delay_risk: DelayRisk,
+    summary: Annotated[SummaryService, Depends(get_summary_service)],
+) -> ReportSources:
+    return ReportSources(analytics, operations, delay_risk, summary)
+
+
+def get_weekly_report_service(
+    session: Annotated[Session, Depends(get_session)],
+    user: CurrentUser,
+    sources: Annotated[ReportSources, Depends(get_report_sources)],
+    clock: Annotated[Clock, Depends(get_clock)],
+) -> WeeklyReportService:
+    return WeeklyReportService(session, user, sources, clock)
+
+
+PDF_RESPONSE: dict[int | str, dict[str, Any]] = {
+    200: {"content": {"application/pdf": {}}, "description": "Haftalik rapor (PDF)"}
+}
+
+
+@router.get("/weekly-report", response_class=Response, responses=PDF_RESPONSE)
+def weekly_report(
+    service: Annotated[WeeklyReportService, Depends(get_weekly_report_service)],
+    week: Annotated[
+        date | None, Query(description="Haftanin herhangi bir gunu; bos: son tamamlanan hafta")
+    ] = None,
+) -> Response:
+    """Haftalik yonetici raporu: pazartesi-pazar, indirilebilir PDF (Turkce)."""
+    first, last = week_of(week) if week else service.default_week()
+    return Response(
+        content=service.pdf(first, last),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="haftalik-rapor-{first}.pdf"'},
+    )
 
 
 @router.get("/kpis")

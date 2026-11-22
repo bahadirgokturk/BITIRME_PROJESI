@@ -72,6 +72,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Change Password
+         * @description Diger cihazlar cikar; bu cihaz yeni token ve cookie ile devam eder.
+         */
+        post: operations["change_password_api_v1_auth_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/me": {
         parameters: {
             query?: never;
@@ -260,7 +280,10 @@ export interface paths {
         /** List Attachments */
         get: operations["list_attachments_api_v1_cases__case_id__attachments_get"];
         put?: never;
-        /** Upload Attachment */
+        /**
+         * Upload Attachment
+         * @description Bildirim fotografi yuklenince fotograf-metin kontrolu arka planda calisir (Photo Check).
+         */
         post: operations["upload_attachment_api_v1_cases__case_id__attachments_post"];
         delete?: never;
         options?: never;
@@ -583,6 +606,80 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Notifications
+         * @description Yeniden eskiye.
+         */
+        get: operations["list_notifications_api_v1_notifications_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/unread-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Unread Count
+         * @description Zil rozeti icin; istemci birkac dakikada bir sorar.
+         */
+        get: operations["unread_count_api_v1_notifications_unread_count_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark All Read */
+        post: operations["mark_all_read_api_v1_notifications_read_all_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/{notification_id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark Read */
+        post: operations["mark_read_api_v1_notifications__notification_id__read_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/manager/review-queue": {
         parameters: {
             query?: never;
@@ -635,6 +732,26 @@ export interface paths {
          * @description Aktif birimler (override: department kodu, atama: department_id).
          */
         get: operations["list_departments_api_v1_departments_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/weekly-report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Weekly Report
+         * @description Haftalik yonetici raporu: pazartesi-pazar, indirilebilir PDF (Turkce).
+         */
+        get: operations["weekly_report_api_v1_analytics_weekly_report_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -930,11 +1047,34 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Users */
+        /**
+         * List Users
+         * @description Ad soyad / e-posta aramasi ve rol, birim, aktiflik suzgeci; e-postaya gore sirali.
+         */
         get: operations["list_users_api_v1_admin_users_get"];
         put?: never;
         /** Create User */
         post: operations["create_user_api_v1_admin_users_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Users
+         * @description CSV ile toplu kullanici: once dry_run=true ile hatalar gorulur, sonra asil yukleme.
+         */
+        post: operations["import_users_api_v1_admin_users_import_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -956,6 +1096,23 @@ export interface paths {
         head?: never;
         /** Update User */
         patch: operations["update_user_api_v1_admin_users__user_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/admin/users/{user_id}/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reset Password */
+        post: operations["reset_password_api_v1_admin_users__user_id__password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/admin/departments": {
@@ -1404,6 +1561,13 @@ export interface components {
          * @enum {string}
          */
         AutonomyLevel: "L1_AUTONOMOUS" | "L2_NOTIFY" | "L3_ESCALATE";
+        /** Body_import_users_api_v1_admin_users_import_post */
+        Body_import_users_api_v1_admin_users_import_post: {
+            /** File */
+            file: string;
+            /** Password */
+            password: string;
+        };
         /** Body_suggest_from_photo_api_v1_cases_photo_suggest_post */
         Body_suggest_from_photo_api_v1_cases_photo_suggest_post: {
             /** File */
@@ -1863,6 +2027,13 @@ export interface components {
              */
             database: "ok" | "unavailable";
         };
+        /** ImportRowError */
+        ImportRowError: {
+            /** Row */
+            row: number;
+            /** Message */
+            message: string;
+        };
         /**
          * InfoReplyCreate
          * @description Bildirim yapanin yaniti; herkese acik yorum olarak da kaydedilir.
@@ -2057,6 +2228,26 @@ export interface components {
             /** Ran */
             ran: boolean;
         };
+        /** NotificationRead */
+        NotificationRead: {
+            /** Id */
+            id: number;
+            /** Case Id */
+            case_id: number;
+            /** Event Type */
+            event_type: string;
+            /** Case Title */
+            case_title: string;
+            /** Message */
+            message: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Read At */
+            read_at: string | null;
+        };
         /**
          * OverrideField
          * @description Manager'in duzeltebildigi agent ciktilari (POST /cases/{id}/override).
@@ -2137,6 +2328,15 @@ export interface components {
             /** Page */
             page: number;
         };
+        /** Page[NotificationRead] */
+        Page_NotificationRead_: {
+            /** Items */
+            items: components["schemas"]["NotificationRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+        };
         /** Page[ReviewItemRead] */
         Page_ReviewItemRead_: {
             /** Items */
@@ -2172,6 +2372,21 @@ export interface components {
             total: number;
             /** Page */
             page: number;
+        };
+        /** PasswordChange */
+        PasswordChange: {
+            /** Current Password */
+            current_password: string;
+            /** New Password */
+            new_password: string;
+        };
+        /**
+         * PasswordReset
+         * @description Admin'in verdigi gecici parola; kullanici ilk giriste degistirir.
+         */
+        PasswordReset: {
+            /** New Password */
+            new_password: string;
         };
         /** Period */
         Period: {
@@ -2586,6 +2801,11 @@ export interface components {
             /** Points */
             points: components["schemas"]["TrendPoint"][];
         };
+        /** UnreadCount */
+        UnreadCount: {
+            /** Count */
+            count: number;
+        };
         /** UserCreate */
         UserCreate: {
             /**
@@ -2601,6 +2821,31 @@ export interface components {
             department_id?: number | null;
             /** Password */
             password: string;
+        };
+        /**
+         * UserImportResult
+         * @description Hepsi ya da hicbiri: hata varsa created 0'dir; dry_run'da yazilacak sayi doner.
+         */
+        UserImportResult: {
+            /** Created */
+            created: number;
+            /** Errors */
+            errors: components["schemas"]["ImportRowError"][];
+            /** Dry Run */
+            dry_run: boolean;
+        };
+        /**
+         * UserListFilter
+         * @description GET /admin/users suzgecleri; hepsi birlikte uygulanir (VE).
+         */
+        UserListFilter: {
+            /** Q */
+            q?: string | null;
+            role?: components["schemas"]["UserRole"] | null;
+            /** Department Id */
+            department_id?: number | null;
+            /** Is Active */
+            is_active?: boolean | null;
         };
         /** UserRead */
         UserRead: {
@@ -2619,6 +2864,8 @@ export interface components {
             department_id: number | null;
             /** Is Active */
             is_active: boolean;
+            /** Must Change Password */
+            must_change_password: boolean;
             /** Last Login At */
             last_login_at: string | null;
             /**
@@ -2868,6 +3115,66 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    change_password_api_v1_auth_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordChange"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenRead"];
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -3180,6 +3487,14 @@ export interface operations {
                 /** @description Numara, baslik ya da konum adinda arama (Turkce harflere duyarsiz) */
                 q?: string | null;
                 order?: components["schemas"]["ListOrder"];
+                department_id?: number | null;
+                category?: components["schemas"]["CaseCategory"][] | null;
+                /** @description Lokasyon; bina secilirse kat ve odalari da */
+                location_id?: number | null;
+                /** @description Acilis gunu, dahil (Turkiye saati) */
+                from?: string | null;
+                /** @description Acilis gunu, dahil */
+                to?: string | null;
             };
             header?: never;
             path?: never;
@@ -3327,6 +3642,14 @@ export interface operations {
                 /** @description Numara, baslik ya da konum adinda arama (Turkce harflere duyarsiz) */
                 q?: string | null;
                 order?: components["schemas"]["ListOrder"];
+                department_id?: number | null;
+                category?: components["schemas"]["CaseCategory"][] | null;
+                /** @description Lokasyon; bina secilirse kat ve odalari da */
+                location_id?: number | null;
+                /** @description Acilis gunu, dahil (Turkiye saati) */
+                from?: string | null;
+                /** @description Acilis gunu, dahil */
+                to?: string | null;
             };
             header?: never;
             path?: never;
@@ -5087,6 +5410,268 @@ export interface operations {
             };
         };
     };
+    list_notifications_api_v1_notifications_get: {
+        parameters: {
+            query?: {
+                unread_only?: boolean;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_NotificationRead_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    unread_count_api_v1_notifications_unread_count_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnreadCount"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    mark_all_read_api_v1_notifications_read_all_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    mark_read_api_v1_notifications__notification_id__read_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                notification_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
     review_queue_api_v1_manager_review_queue_get: {
         parameters: {
             query?: {
@@ -5236,6 +5821,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DepartmentOption"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    weekly_report_api_v1_analytics_weekly_report_get: {
+        parameters: {
+            query?: {
+                /** @description Haftanin herhangi bir gunu; bos: son tamamlanan hafta */
+                week?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Haftalik rapor (PDF) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": unknown;
                 };
             };
             /** @description Unauthorized */
@@ -6281,7 +6934,8 @@ export interface operations {
     };
     list_users_api_v1_admin_users_get: {
         parameters: {
-            query?: {
+            query: {
+                filters: components["schemas"]["UserListFilter"];
                 page?: number;
                 page_size?: number;
             };
@@ -6416,6 +7070,77 @@ export interface operations {
             };
         };
     };
+    import_users_api_v1_admin_users_import_post: {
+        parameters: {
+            query?: {
+                dry_run?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_users_api_v1_admin_users_import_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserImportResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
     update_user_api_v1_admin_users__user_id__patch: {
         parameters: {
             query?: never;
@@ -6428,6 +7153,77 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["UserUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    reset_password_api_v1_admin_users__user_id__password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordReset"];
             };
         };
         responses: {

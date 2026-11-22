@@ -100,7 +100,10 @@ def test_password_never_reaches_the_log(client: TestClient, admin: Headers) -> N
 
     assert entry["action"] == "USER_CREATED"
     assert secret not in str(entry)
-    assert "password" not in str(entry)
+    # Yalniz bayrak (must_change_password) yazilir; parola ya da hash alani yok
+    fields = set(entry["after"] or {}) | set(entry["before"] or {})
+    assert {f for f in fields if "password" in f} <= {"must_change_password"}
+    assert "hash" not in str(entry)
 
 
 def test_every_definition_change_is_logged(client: TestClient, admin: Headers) -> None:

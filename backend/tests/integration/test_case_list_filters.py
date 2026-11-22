@@ -5,16 +5,22 @@ Turkce harfli yazilisini da bulur.
 """
 
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import UTC, date, datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.models import Case, Location, Organization
-from app.models.enums import CaseStatus, Priority, UserRole
+from app.models.enums import CaseCategory, CaseStatus, Priority, UserRole
 from tests.integration.conftest import FrozenClock
-from tests.integration.factories import bearer, make_location, make_organization, make_user
+from tests.integration.factories import (
+    bearer,
+    make_department,
+    make_location,
+    make_organization,
+    make_user,
+)
 
 URL = "/api/v1/cases"
 DESCRIPTION = "Koridordaki tavan lambasi yanip sonuyor, bakim gerekiyor."
@@ -137,3 +143,84 @@ def test_unknown_sla_filter_is_rejected(client: TestClient, campus: Campus) -> N
     response = client.get(URL, params={"sla_status": "AT_RISK"}, headers=campus.manager)
 
     assert response.status_code == 422
+
+
+def _place(campus: Campus, code: str, parent: Location | None = None) -> Location:
+    location = make_location(campus.session, campus.organization, code)
+    if parent is not None:
+        location.parent_id = parent.id
+        location.path = f"{parent.path}/{code}"
+    campus.session.flush()
+    return location
+
+
+def test_location_filter_includes_the_whole_building(client: TestClient, campus: Campus) -> None:
+    building = _place(campus, "B")
+    room = _place(campus, "B2", parent=_place(campus, "K2", parent=building))
+    # Yol oneki ayni ama baska bina ("B" ile "BX")
+    other_building = _place(campus, "BX")
+    in_building = _create(client, campus, building)
+    in_room = _create(client, campus, room)
+    _create(client, campus, other_building)
+
+    assert set(_ids(client, campus, location_id=building.id)) == {in_building.id, in_room.id}
+    assert _ids(client, campus, location_id=room.id) == [in_room.id]
+
+
+def test_location_of_another_organization_is_not_found(client: TestClient, campus: Campus) -> None:
+    foreign = make_location(campus.session, make_organization(campus.session), "YABANCI")
+
+    response = client.get(URL, params={"location_id": foreign.id}, headers=campus.manager)
+
+    assert response.status_code == 404
+
+
+def test_list_filters_by_department_and_category(client: TestClient, campus: Campus) -> None:
+    support = make_department(campus.session, campus.organization, "SUPPORT_SERVICES")
+    it = make_department(campus.session, campus.organization, "IT")
+    soap = _create(client, campus)
+    soap.department_id, soap.category = support.id, CaseCategory.CONSUMABLE
+    wifi = _create(client, campus)
+    wifi.department_id, wifi.category = it.id, CaseCategory.IT
+    dirty = _create(client, campus)
+    dirty.department_id, dirty.category = support.id, CaseCategory.CLEANING
+    campus.session.flush()
+
+    assert set(_ids(client, campus, department_id=support.id)) == {soap.id, dirty.id}
+    assert set(_ids(client, campus, category=["IT", "CLEANING"])) == {wifi.id, dirty.id}
+    assert _ids(client, campus, department_id=support.id, category="CLEANING") == [dirty.id]
+
+
+def test_date_range_uses_turkish_calendar_days(
+    client: TestClient, campus: Campus, clock: FrozenClock
+) -> None:
+    # Istanbul UTC+3: 20 Kasim 22:30 UTC yerelde 21 Kasim 01:30'dur
+    day = date(2026, 11, 21)
+    early = _create(client, campus)
+    early.created_at = datetime(2026, 11, 20, 20, 30, tzinfo=UTC)
+    late_night = _create(client, campus)
+    late_night.created_at = datetime(2026, 11, 20, 22, 30, tzinfo=UTC)
+    # Tam gece yarisi (yerel 00:00) o gune aittir
+    midnight = _create(client, campus)
+    midnight.created_at = datetime(2026, 11, 20, 21, 0, tzinfo=UTC)
+    next_day = _create(client, campus)
+    next_day.created_at = datetime(2026, 11, 21, 21, 0, tzinfo=UTC)
+    campus.session.flush()
+
+    in_day = _ids(client, campus, **{"from": day.isoformat(), "to": day.isoformat()})
+    assert in_day == [late_night.id, midnight.id]
+    assert _ids(client, campus, **{"from": day.isoformat()}) == [
+        next_day.id,
+        late_night.id,
+        midnight.id,
+    ]
+    assert _ids(client, campus, to=(day - timedelta(days=1)).isoformat()) == [early.id]
+
+
+def test_reversed_date_range_is_rejected(client: TestClient, campus: Campus) -> None:
+    params = {"from": "2026-11-21", "to": "2026-11-20"}
+
+    response = client.get(URL, params=params, headers=campus.manager)
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "INVALID_DATE_RANGE"

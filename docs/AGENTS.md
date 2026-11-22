@@ -100,7 +100,8 @@ Orchestrator sıralı ve basittir (Python fonksiyonları). LangChain/LangGraph k
 - Bildirim bu arada `ANALYZING` dışına çıktıysa (manager el koydu) hat hiçbir şey yapmaz.
 - Fotoğraf bildirimden sonra ayrı istekle yüklendiği için analiz anında `has_photo=false` (Verification'ın
   fotoğraf sinyali ileride yeniden analizle kullanılacak). L2 "manager'a bildirim" henüz yalnız kararda
-  (Supervisor çıktısı `notify_manager`, seviyeden hesaplanır; politikada ayrı bir ayar yok); bildirim tablosu FAZ 6.
+  (Supervisor çıktısı `notify_manager`, seviyeden hesaplanır; politikada ayrı bir ayar yok). Kişiye özel
+  bildirimler (zil) olay kayıtlarından üretilir: L3/güvenlik yükseltmesi birimin müdürüne gider (docs/API.md "Notifications").
 - **Acil durum anahtarı:** `AGENTS_ENABLED=false` → hat çalışmaz, bildirim manager'ı bekler (FAZ 4 davranışı).
 - Kararlar: `GET /cases/{id}/decisions` (MANAGER, ADMIN).
 
@@ -242,6 +243,16 @@ w1 = 1 (açık görev başına), w2 = 0,5 (başka binada; aktif görevi yoksa bi
 w3 = 0,2 (son 30 günde aynı türde iş başına, en fazla 5 iş → tecrübe en fazla 1 görevlik yükü dengeler).
 5 ve üstü açık görevi olan personel aday değildir. Eşitlikte küçük kullanıcı id'si. Kararlar:
 `ASSIGN_STAFF | ROUTE_TO_POOL | NO_DEPARTMENT`; gerekçede en iyi 3 aday ve puanları.
+Pasif birim yok sayılır: türün birimi pasifse karar `NO_DEPARTMENT` olur, bildirim atanmadan müdürün inceleme
+kuyruğuna düşer (`CLASSIFIED` + `needs_human_review`).
+
+**Reddedilen görev (yeniden yönlendirme):** personel görevi reddedince bildirim `ESCALATED` olur; agent hattı
+açıksa Routing Agent aynı birimde, bildirimi daha önce reddedenler dışındaki personelden en uygununu seçer ve
+yeni görev açılır (`ROUTED` + `TASK_CREATED`, metadata `reroute: true`; karar `agent_decisions`'a yazılır).
+Otomatik yeniden atama **bir kez** yapılır: ikinci ret bildirimin kendisinde sorun olabileceğini gösterir
+(yanlış tür, parça gerekir), manager karar verir. Uygun personel yoksa (`ROUTE_TO_POOL`) havuza düşürülmez
+(havuz reddedene de görünür), bildirim manager'da kalır. Havuzdaki görevi reddeden kişi görevde kayıtlı kalır.
+Kod: `services/reroute_service.py`; Monitoring'in "başka personel öner" eylemi aynı aday seçimini kullanır.
 
 ### 4.7 Supervisor Agent (K1 — deterministik karar tablosu)
 Sırayla değerlendirilir, ilk eşleşen kural kazanır:
@@ -353,6 +364,28 @@ dokunuşla açıklamayı doldurur. **Yalnız öneridir:** türü yine Classifica
 - **Ön deneme (01.11.2026):** Wikimedia Commons'tan 30 rastgele fotoğraf (10 tür × 3): öneri verilen 24'ün
   21'inde ilk öneri doğru, 6'sında "anlaşılamadı". Tarifler bu fotoğraflara bakılarak düzeltildiği için bu
   bir ölçüm değildir; ölçüm kampüste çekilen fotoğraflarla yapılır.
+- **İlk kampüs fotoğrafları (14.11.2026, geliştirme seti, n = 15):** tarif bankası v1 ile yanlış alarm 5/5 idi (sıradan kapılar "kapalı asansör kapıları" tarifine düşüyordu), öneri verilen sorunlu fotoğraflarda doğru 3/7. Tarifler bu hatalara göre düzeltildi (asansör tuş paneli, kapılar `_NONE`'a, yuvarlak kağıt makinesi, holde karton/kablo): aynı sette yanlış alarm 1/5, doğru 8/9. **Bu sonuç iyimserdir** (tarifler bu fotoğraflara bakılarak değişti); internet setinde doğru oran %87,5'ten %78,3'e indi (sabunluk/kağıt havlu karışması). Tezdeki ölçüm, bu 15 fotoğrafın dışındaki yeni fotoğraflarla yapılır.
+- **Ölçüm (`scripts/eval_photos.py`):** fotoğraflar tür koduyla adlandırılmış klasörlere konur (`SOAP_EMPTY/`… ya da `SOAP_EMPTY (Sabun bitti)/`: kod ilk kelime), sorun göstermeyenler `_NONE/`'a; komut kapsam, ilk öneri doğruluğu, ilk 3'te doğru tür, yanlış alarm oranı, tür bazında sonuç ve karışan türleri tez tablosu olarak yazar. Fotoğraflar repoya girmez (`ai/data/raw/fotograflar`). HEIC atlanır.
+
+### 4.12 Photo Check Agent (K1, fotoğraf-metin kontrolü)
+
+**Neden ayrı:** fotoğraf bildirimden sonra ayrı istekle yüklenir (`POST /cases/{id}/attachments`); agent hattı
+çalışırken fotoğraf çoğu zaman henüz yoktur. Kontrol bu yüzden **yükleme anında**, yanıttan sonra arka planda
+(BackgroundTasks, kendi oturumu) çalışır.
+
+- **Girdi:** bildirimin türü (Classification kararı) ve Vision Agent'in fotoğraf önerileri (en fazla 3).
+- **Karar:** metnin türü önerilerde varsa `AGREES`; yoksa ilk öneri ≥ 0,60 güvenle başka türü gösteriyorsa
+  `CONFLICTS`; aksi halde `UNCLEAR`. Çelişki eşiği öneri eşiğinden (0,35) yüksektir: yanlış alarm müdürü yorar.
+- **Etkisi:** karar `agent_decisions`'a yazılır, müdür panelinde "Fotoğraf kontrolü" olarak görünür. `CONFLICTS`
+  ve bildirim müdür kararını bekliyorsa (`CLASSIFIED`) `needs_human_review` açılır (inceleme kuyruğu). **Tür
+  hiç değişmez.**
+- **Kapsam dışı:** personelin kanıt fotoğrafı (`EVIDENCE`), video; bildirimin türü henüz yoksa kontrol atlanır;
+  görüntü modeli yoksa hiç çalışmaz.
+- **Tez ölçüsü:** fotoğraflı bildirimlerde `AGREES / CONFLICTS / UNCLEAR` dağılımı, "fotoğraf metni ne kadar
+  destekliyor" sorusunun cevabıdır. Çevrimdışı ölçüm `scripts/eval_photos.py` ile (ikinci tablo): her etiketli
+  fotoğraf doğru türlü metinle ("Metin doğru tür": çelişki = yanlış alarm), setteki diğer sorunlu türlerle
+  ("Metin başka tür": çelişki = yakalanan hata) ve `_NONE` fotoğrafları her sorunlu türle eşlenir; senaryo
+  başına uyumlu / çelişki / anlaşılamadı oranı verilir. Model fotoğraf başına bir kez çalışır.
 
 ## 5. Autonomy Policy
 

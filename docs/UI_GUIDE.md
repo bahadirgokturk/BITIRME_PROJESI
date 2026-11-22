@@ -30,7 +30,7 @@ Tasarım sırası: **REPORTER ve STAFF önce mobil** (375 px), sonra masaüstü;
 
 | Route | Rol | Faz (kod) | Not |
 |---|---|---|---|
-| `/login` | herkes | FAZ 2 | Masaüstünde solda dar turkuaz tanıtım paneli (yazının bittiği yere kadar); sağda geniş alanda kart içinde form, logo kartın sol kenarına hizalı. Telefonda ortalanmış logo + kart |
+| `/login` | herkes | FAZ 2 | Masaüstü altın oran: panel %38,2 (tablette %45), 520 px kart. Telefonda logo + kart |
 | `/` | herkes | FAZ 2 | Role göre yönlendirme (reporter → `/report`, staff → `/staff/tasks`, manager → `/manager/dashboard`) |
 | `/admin/*` | ADMIN | FAZ 2 | users, departments, locations (ağaç), case-types, sla-rules, agent-policies, audit-logs |
 | `/report` | herkes | FAZ 3 | **En kritik ekran** — bkz. bölüm 5.1 |
@@ -107,7 +107,8 @@ Figma değişkenleri (Variables) **koddaki CSS değişkenleriyle aynı adla** ta
 - **Uygulama kabuğu (yeni stil, Figma: 08 Yeni Stil (A)):** Masaüstünde gri (`sidebar`) zeminde sol kenar çubuğu:
   logo, başlıklı menü grupları (iş ekranları "Yönetim" / personelde "İş", kendi bildirim ekranları "Kişisel";
   bildirim yapanda tek grup, `lib/navigation.ts` `navGroupsFor`), her öğede Lucide simgesi; altta "Hesap" kutusu
-  (ad-soyad baş harfleri, ad, rol, Çıkış yap). Sayfalar yanında yuvarlatılmış, kenarlıklı beyaz panelde durur; panelin
+  (ad-soyad baş harfleri, ad, rol, Parolayı değiştir, Çıkış yap). Sayfalar yanında yuvarlatılmış, kenarlıklı beyaz
+  panelde durur; panelin
   üst çubuğunda menü düğmesi (kenar çubuğunu gizler/gösterir, seçim cihazda hatırlanır: `useSidebarOpen`), bölüm adı
   (`sectionTitle`), bildirim zili ve tema düğmesi. Durum filtreleri (Tümü, Açık, Kapanan…) gri zeminde geçişli sekme
   grubudur, seçili sekme beyaz (`FilterChips`; telefonda sığmazsa yana kayar). Telefonda üstte sabit çubuk:
@@ -210,14 +211,16 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
 - Liste kartı: üstte numara · zaman, başlık, konum (simgeli), **4 adımlı ilerleme** (bölüm 4.1). Sayfa başında
   açıklama ("Yaptığın bildirimler ve her birinin şu anki durumu."); masaüstünde durum sekmeleri ve liste araçları aynı
   satırda. Detayda bilgiler ve zaman çizelgesi başlıklı kartlarda; bilgiler satır satır (yeni stil).
-- **Bildirim zili (Sizden yanıt bekleniyor):** Telefonda üst çubukta tema düğmesinin solunda (her sayfada),
-  masaüstünde Bildirimlerim'de "Bildirim yap"ın solunda. Bildirenin bir şey yapması gereken bildirim varsa zil açık
-  turuncu (`bg-warning/15`, simge turuncu), yoksa açık gri. Tıklayınca telefon bildirimi gibi pencere açılır: ek bilgi
-  istenenler ("Sizden ek bilgi istendi") önce, sonra kapandıktan sonraki 72 saat içinde puan verilmemişler ("Çözüldü ·
-  değerlendirmenizi bekliyor"); uzunsa pencere kaydırılır. Bildirime tıklayınca detayı açılır ve pencere kapanır.
-  Bekleyen yoksa "Şu an sizden yanıt bekleyen bildirim yok." Ekran okuyucuya "Bildirimler: N yanıt bekliyor" denir.
-  Kendi bildirimlerinin ilk 100'ü taranır (`GET /cases/mine?page_size=100`), her rolde çalışır. Kural: `actionNeeded`
-  (`lib/caseActions.ts`); Figma: WaitingBell, NotificationPanel, MobileAppBar > Actions.
+- **Bildirim zili (kişisel bildirimler, her rol):** üst çubukta tema düğmesinin solunda (telefonda her sayfada,
+  masaüstünde içerik panelinin üst çubuğunda). Okunmamış varsa zil açık turuncu ve köşede sayı rozeti ("3", "9+"),
+  yoksa açık gri; ekran okuyucuya "Bildirimler: 3 okunmamış". Rozet sayfa açılışı bittikten sonra sorulur ve iki
+  dakikada bir yenilenir (`GET /notifications/unread-count`). Tıklayınca pencerede son 20 bildirim (yeniden eskiye;
+  `GET /notifications`): backend'in yazdığı metin, altında kaydın başlığı ve zamanı; okunmamışlar kalın ve noktalı.
+  Bildirime tıklayınca okundu sayılır (`POST /notifications/{id}/read`) ve kayıt rolün kendi ekranında açılır
+  (bildiren `/cases/{id}`, personel `/staff/cases/{id}`, müdür ve yönetici `/manager/cases/{id}`;
+  `lib/notifications.ts`). Okunmamış varsa başlıkta "Tümünü okundu say" (`POST /notifications/read-all`). Boşsa
+  "Henüz bildirim yok.", hata olursa "Bildirimler yüklenemedi." ve "Tekrar dene".
+  Figma: WaitingBell, NotificationPanel, MobileAppBar > Actions.
 - Listenin üstünde filtre: **Tümü / Açık / Çözülen**. "Çözülen" ilerlemedeki Çözüldü adımıdır; "Açık" henüz
   çözülmemiş olanlar (ek bilgi bekleyen dahil); reddedilen ve birleştirilen yalnız "Tümü"nde. Filtreye uyan bildirim
   yoksa "Açık bildiriminiz yok." ve "Tümünü göster". Hiç bildirimi olmayana filtre gösterilmez. Filtre ve araçlar
@@ -236,7 +239,7 @@ MERGED sabit metinle anlatılır ("Aynı sorun zaten bildirilmiş, oraya eklendi
   indirir, paket kullanılmaz (`lib/xlsx.ts` sıkıştırmasız zip + Office Open XML). Dosya adı tarihlidir
   (`kullanicilar-2026-11-02.xlsx`); ilk satır kalın başlık ve kaydırmada sabit, sayılar (önem, eşik, kullanıcı sayısı)
   sayı olarak yazılır, sütunlar ekrandaki sözcüklerle (`lib/exportSheets.ts`). Seçili filtreye uyan **bütün** kayıtlar
-  aktarılır: yönetim listeleri zaten tamdır; sayfalı listelerde (bildirimler, işlem kayıtları) sayfalar 200'erli
+  aktarılır: yönetim listeleri zaten tamdır; sayfalı listelerde (bildirimler, kullanıcılar, işlem kayıtları) sayfalar 200'erli
   sırayla çekilir (`fetchAllPages`, `lib/pagination.ts`). Konumlarda arama yoksa ağacın tamamı (kapalı dallar dahil)
   ve her konumun yeri yazılır. Hazırlanırken düğme "Hazırlanıyor…" der; hata düğmenin altında gösterilir. Liste
   yüklenmeden ya da boşken düğme kapalıdır. Yönetimde süzgeçlerin sağında, bildirim listelerinde Liste/Kart
@@ -354,6 +357,10 @@ rapor tabloları çerçeveli, başlık satırı gri (`StatTable`). Birim kartlar
   "hepsini göster" düğmeleri gizlenir; başlığın altına "Son 7 gün · BakırçayFlow · Yazdırıldı: <tarih saat>" yazılır.
   Kartlar sayfa arasında bölünmez, çubuk renkleri basılır (`print-color-adjust: exact`), koyu moddayken de açık temayla
   basılır (`usePrintLightTheme`). Figma: Button/Outline Yazdır, `/manager/analytics - yazdırma (A4)`.
+- **Haftalık rapor (PDF, yalnız Raporlar):** "Haftalık rapor (PDF)" düğmesi son 4 tamamlanmış haftayı listeler
+  ("9–15 Kas 2026"; hafta pazartesi–pazar, içinde bulunulan hafta yok). Seçilen hafta backend'in Türkçe A4 raporu
+  olarak iner (`GET /analytics/weekly-report?week=<pazartesi>`, dosya `haftalik-rapor-<pazartesi>.pdf`): yönetim
+  özeti, göstergeler, birimler, tekrar eden sorunlar, gecikme riski. Hazırlanırken "Hazırlanıyor…", hata pencerede.
 - **Birim Performansı (`/manager/departments`, menüde Raporlar'ın altında):** dönem düğmesi, tikli birim filtresi
   (`CheckboxFilter`: açılır pencerede birimler işaretlenir, seçim hemen uygulanır, "Seçimi temizle"; boş seçim
   "hepsi"), her birim bir kare kart: bildirim, zamanında (SLA), tipik çözüm, açık görev ve "N personel · kişi başı
@@ -386,7 +393,10 @@ rapor tabloları çerçeveli, başlık satırı gri (`StatTable`). Birim kartlar
   ağırlık +8") ve model adı her adımın altındaki kapalı **"Ayrıntılar"** bölümündedir. Sıfır ağırlık yazılmaz. **Zaman çizelgesi:** müdür bütün
   olayları görür; bildirenin ekranındaki gibi 5 ya da daha fazla adımda kapalı gelir (son 3 adım + "N önceki adımı
   göster", `CollapsibleTimeline`); personelin Birim Bildirimleri detayında da aynısı; her satırda ne olduğu, kimin yaptığı ("Yapay zekâ · Sınıflandırma", "Sistem", "Bildiren", "Personel",
-  "Müdür") ve zamanı. Olayda kişi adı gelmediği için kişi türü olayın türünden anlaşılır. **Fotoğraflar:** bildirenin
+  "Müdür") ve zamanı. Olayda kişi adı gelmediği için kişi türü olayın türünden anlaşılır.
+  Geri çevrilen görevi yapay zekâ başka personele verdiyse "Geri çevrilen görev yeniden yönlendirildi" ve
+  "Görev başka personele verildi" yazar (`metadata.reroute`); fotoğraf–metin kontrolü "Fotoğraf kontrolü" adıyla.
+  **Fotoğraflar:** bildirenin
   fotoğrafları ve personelin kanıtları; yoksa bölüm çıkmaz, video küçük resim olarak gösterilmez. Bildirim İnceleme
   Kuyruğu'ndaysa üstte **"Bu bildirim kararınızı bekliyor"** kutusu çıkar: neden burada, varsa benzer bildirim ve
   kuyruktaki kartla aynı düğmeler (onayla ve ata · birleştir · düzelt · reddet · kapat; kurallar `lib/review.ts`).
@@ -445,10 +455,28 @@ rapor tabloları çerçeveli, başlık satırı gri (`StatTable`). Birim kartlar
   (`?entity_type=…&entity_id=…`); üstte "… kaydının geçmişi" şeridi ve "Tüm kayıtları göster" bağlantısı çıkar.
 - **Sekmeler ve panel:** telefonda sekme şeridi yana kayar, seçili sekme açılışta görünür yere gelir. Ekle/düzenle
   paneli telefonda tam genişlik, masaüstünde 440 px (`SHEET_CLASS`, `components/admin/AdminParts.tsx`).
-- **Kullanıcılar** (`/admin/users`): ad ya da e-posta araması, rol ve durum filtresi. Masaüstünde tablo; telefonda
+- **Kullanıcılar** (`/admin/users`): ad ya da e-posta araması, rol, birim ve durum filtresi. Arama ve filtreler
+  **sunucuda** (`GET /admin/users?q=&role=&department_id=&is_active=`, `lib/admin.ts` içinde `userListPath`); arama
+  yazmayı bırakınca 300 ms sonra gider, filtre değişince ilk sayfaya dönülür. Liste 50'şerli sayfalanır (altta
+  "1–50 / 120 kullanıcı" + Önceki/Sonraki, işlem kayıtlarıyla ortak `Pager`). Birimler ekranındaki kişi sayıları ve
+  işlem kayıtlarındaki adlar ayrı, tam listeden gelir (`useAdminUsers`). Masaüstünde tablo; telefonda
   aynı tablo kart olarak görünür (ad ve durum üstte, diğer değerler başlıklarıyla alt alta), yana kaydırma olmaz.
-  Filtrelere uyan kullanıcı yoksa "Filtreleri temizle" düğmesi çıkar. Bölümler arası geçiş üstteki sekmelerle
+  Filtrelere uyan kullanıcı yoksa "Filtreleri temizle" düğmesi çıkar.
+- **Toplu yükle (CSV)** (`POST /admin/users/import`, `UserImportDialog`): başlıkta "Kullanıcı ekle"nin solunda.
+  Pencerede "Örnek dosyayı indir" (`public/templates/kullanici-yukleme-ornek.csv`, `docs/templates`'teki dosyanın
+  kopyası; bir test ikisinin aynı kaldığını denetler), CSV dosyası ve ortak geçici parola (en az 8; 1 MB üstü dosya
+  gönderilmez). Önce **Dosyayı kontrol et** (`dry_run=true`, hiçbir şey yazılmaz): hata yoksa "Dosyada hata yok:
+  N kullanıcı eklenecek." ve **N kullanıcıyı ekle**; hata varsa "Hiçbir kullanıcı eklenmedi" ve **Hatalı satırlar**
+  tablosu (Excel satır numarası + sorun). Dosya ya da parola değişince kontrol yeniden yapılır. Eklenen kullanıcılar
+  ilk girişte kendi parolasını belirler. Bölümler arası geçiş üstteki sekmelerle
   (`ADMIN_SECTIONS`, `lib/navigation.ts`); menüdeki "Yönetim" ilk sekmeye açılır.
+- **Parola** (`POST /auth/password`, `POST /admin/users/{id}/password`; kurallar `lib/password.ts`, en az 8 karakter):
+  hesap kutusunda ve telefon menüsünde **Parolayı değiştir** penceresi (mevcut, yeni, yeni tekrar); başarıda "Parolan
+  değiştirildi. Diğer cihazlardaki oturumların kapatıldı." ve bu cihazda oturum yeni token'la sürer. Yanlış mevcut
+  parola backend mesajıyla formda gösterilir, oturum kapanmaz. `must_change_password` olan kullanıcı (yeni hesap,
+  toplu yükleme, sıfırlanan parola) menüsüz **"Yeni parolanızı belirleyin"** ekranını görür (`FirstPasswordScreen`;
+  geçici parola + yeni parola); belirleyince uygulama açılır. Kullanıcı düzenleme panelinde **Parolayı sıfırla**
+  kutusu geçici parola verir; yönetici kendi hesabında form yerine "Parolayı değiştir"e yönlendirilir.
 
 ## 6. Metin ve Dil
 

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 
+import { FirstPasswordScreen } from "@/components/auth/FirstPasswordScreen";
 import { PendingSync } from "@/components/report/PendingReports";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ApiError } from "@/lib/api/client";
@@ -26,7 +27,14 @@ export function CurrentUserShell({ children }: { children: ReactNode }) {
   }, [signedOut, router]);
 
   if (isPending || signedOut) {
-    return <p className="p-6 text-sm text-muted-foreground">Yükleniyor…</p>;
+    return (
+      <>
+        <p className="p-6 text-sm text-muted-foreground">Yükleniyor…</p>
+        {/* Sayfa gizli cizilir: veri istekleri kullanici bilgisini beklemeden yola cikar (ilk acilis zinciri
+            kisalir). Rol bilinince sayfa kabugun icinde yeniden kurulur ve onbellekteki veriyi kullanir. */}
+        {isPending ? <div hidden>{children}</div> : null}
+      </>
+    );
   }
   // Arka plan yenilemesi basarisiz olsa da bilinen kullanici gosterilmeye devam eder;
   // hata yalniz hic veri yokken tam ekran gosterilir
@@ -36,6 +44,10 @@ export function CurrentUserShell({ children }: { children: ReactNode }) {
         Kullanıcı bilgisi alınamadı: {error?.message}
       </p>
     );
+  }
+  // Gecici parolayla giris: once kendi parolasi (docs/API.md "Auth", must_change_password)
+  if (user.must_change_password) {
+    return <FirstPasswordScreen />;
   }
   return (
     <AppShell role={user.role} userName={user.full_name} userDetail={userDetail(user)}>

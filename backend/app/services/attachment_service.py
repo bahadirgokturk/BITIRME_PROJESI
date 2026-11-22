@@ -73,7 +73,8 @@ class AttachmentService:
 
     def upload(self, case_id: int, file: UploadedFile) -> AttachmentRead:
         case = self._visible_case(case_id)
-        if self._actor.role is UserRole.ADMIN:
+        # Admin operasyona karismaz (WORKFLOW.md bolum 4); kendi actigi bildirimde ise bildirendir
+        if self._actor.role is UserRole.ADMIN and case.reporter_id != self._actor.id:
             raise ForbiddenError()
         kind = _KIND_BY_ROLE.get(self._actor.role, AttachmentKind.REPORT)
         if (

@@ -111,3 +111,10 @@ DELAY_RISK_MEDIUM = 0.35
 # Risk listesinde gosterilen en riskli acik bildirim sayisi
 DELAY_RISK_LIST_LIMIT = 20
 MINUTES_PER_HOUR = 60
+
+# Personel ayrildigi icin (pasif, rol ya da birim degisti) mudure donen isin olay gerekcesi
+# (services/task_release.py); bildirim kurali da bunu okur
+ASSIGNEE_UNAVAILABLE = "ASSIGNEE_UNAVAILABLE"
+
+# Bu puan ve alti mudure bildirilir (1-5 olcegi): "kotu" ve "cok kotu"; 3 notr sayilir
+LOW_RATING_MAX = 2

@@ -20,6 +20,7 @@ dependencies = [
     "segno>=1.6",
     "boto3>=1.35",
     "onnxruntime>=1.20",
+    "fpdf2>=2.8",
 ]
 
 [dependency-groups]
@@ -30,6 +31,7 @@ dev = [
     "ruff>=0.8",
     "mypy>=1.13",
     "types-pyyaml>=6.0.12.20260906",
+    "pypdf>=5.0",
 ]
 
 [tool.uv]

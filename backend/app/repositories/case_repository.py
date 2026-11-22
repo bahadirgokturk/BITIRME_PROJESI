@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.models import Case, CaseEvent, Location
 from app.models.case import CASE_NUMBER_SEQUENCE
-from app.models.enums import SLA_SETTLED_STATUSES, CaseStatus, Priority
+from app.models.enums import SLA_SETTLED_STATUSES, CaseCategory, CaseStatus, Priority
 from app.repositories.text_search import fold, folded
 from app.schemas.common import ListOrder, PageParams
 
@@ -44,6 +44,13 @@ class CaseFilter:
     breached_only: bool = False
     text: str | None = None
     order: ListOrder = ListOrder.NEWEST
+    department_id: int | None = None
+    categories: Sequence[CaseCategory] = ()
+    # Lokasyon yolu (Location.path); kendisi ve alt agaci
+    location_path: str | None = None
+    # created_at >= created_from ve created_at < created_before
+    created_from: datetime | None = None
+    created_before: datetime | None = None
 
 
 # Yanittaki ozetler (CaseRead) tek sorguda; inceleme kuyrugu da kullanir
@@ -125,16 +132,27 @@ def _scoped(scope: CaseScope) -> Select[Case]:
 
 
 def _conditions(filters: CaseFilter) -> list[ColumnElement[bool]]:
-    conditions: list[ColumnElement[bool]] = []
-    if filters.statuses:
-        conditions.append(Case.status.in_(filters.statuses))
-    if filters.priorities:
-        conditions.append(Case.priority.in_(filters.priorities))
-    if filters.breached_only:
-        conditions.append(_breached(filters.now))
-    if filters.text:
-        conditions.append(_matches(filters.text))
-    return conditions
+    # (suzgec dolu mu, kosulu kuran fonksiyon); bos suzgec kosul eklemez
+    builders: tuple[tuple[object, Callable[[], ColumnElement[bool]]], ...] = (
+        (filters.statuses, lambda: Case.status.in_(filters.statuses)),
+        (filters.priorities, lambda: Case.priority.in_(filters.priorities)),
+        (filters.breached_only, lambda: _breached(filters.now)),
+        (filters.text, lambda: _matches(filters.text or "")),
+        (filters.department_id is not None, lambda: Case.department_id == filters.department_id),
+        (filters.categories, lambda: Case.category.in_(filters.categories)),
+        (filters.location_path, lambda: _within(filters.location_path or "")),
+        (filters.created_from, lambda: Case.created_at >= filters.created_from),
+        (filters.created_before, lambda: Case.created_at < filters.created_before),
+    )
+    return [build() for active, build in builders if active]
+
+
+def _within(path: str) -> ColumnElement[bool]:
+    """Lokasyonun kendisi ve alt agaci; "B" secilince "BX" binasi gelmez."""
+    subtree = select(Location.id).where(
+        or_(Location.path == path, Location.path.startswith(f"{path}/", autoescape=True))
+    )
+    return Case.location_id.in_(subtree)
 
 
 def _breached(now: datetime) -> ColumnElement[bool]:

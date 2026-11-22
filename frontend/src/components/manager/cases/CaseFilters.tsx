@@ -5,6 +5,8 @@ import { ListToolbar } from "@/components/lists/ListToolbar";
 import { STATUS_GROUPS, type CaseFilters as Filters } from "@/lib/caseList";
 import { CASE_ORDERS, type ListView } from "@/lib/listTools";
 
+import { CaseExtraFilters } from "./CaseExtraFilters";
+
 const SEARCH_CLASS =
   "h-11 w-full rounded-lg border bg-background px-3 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50 md:h-10";
 
@@ -15,11 +17,13 @@ interface CaseFiltersProps {
   onView: (view: ListView) => void;
   // Arac satirinda gorunum dugmelerinin solu (Excel'e aktar)
   extra?: ReactNode;
+  // Personelin birim listesi: birim secimi gosterilmez
+  unit?: boolean;
 }
 
 // Arama, durum grubu ve liste araclari: tikli oncelik, siralama, liste/kart (Figma: 05 Manager > /manager/cases -
 // liste araclari)
-export function CaseFilters({ value, view, onChange, onView, extra }: CaseFiltersProps) {
+export function CaseFilters({ value, view, onChange, onView, extra, unit = false }: CaseFiltersProps) {
   return (
     <div className="space-y-3">
       <input
@@ -37,6 +41,7 @@ export function CaseFilters({ value, view, onChange, onView, extra }: CaseFilter
         value={value.group}
         onChange={(group) => onChange({ ...value, group })}
       />
+      <CaseExtraFilters value={value} onChange={onChange} unit={unit} />
       <ListToolbar
         tools={value}
         orders={CASE_ORDERS}

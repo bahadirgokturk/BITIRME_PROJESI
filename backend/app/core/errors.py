@@ -84,6 +84,12 @@ class FileTooLargeError(DomainError):
     status = HTTPStatus.REQUEST_ENTITY_TOO_LARGE
 
 
+class InvalidImportFileError(DomainError):
+    # Dosya yapisi bozuk (sutun eksik, satir yok, cok satir): satirlara hic bakilmaz
+    code = "INVALID_IMPORT_FILE"
+    status = HTTPStatus.UNPROCESSABLE_ENTITY
+
+
 class ReopenWindowClosedError(DomainError):
     code = "REOPEN_WINDOW_CLOSED"
     status = HTTPStatus.CONFLICT
@@ -131,6 +137,13 @@ class InvalidPeriodError(DomainError):
         )
 
 
+class InvalidDateRangeError(DomainError):
+    # Liste suzgeci: baslangic gunu bitis gununden sonra
+    code = "INVALID_DATE_RANGE"
+    status = HTTPStatus.UNPROCESSABLE_ENTITY
+    default_message = messages.INVALID_DATE_RANGE
+
+
 class IdempotencyKeyReusedError(DomainError):
     # Ayni anahtarla farkli icerik: istemci hatasi, ilk bildirim dondurulemez
     code = "IDEMPOTENCY_KEY_REUSED"
@@ -143,6 +156,19 @@ class SelfLockoutError(DomainError):
     code = "SELF_LOCKOUT"
     status = HTTPStatus.CONFLICT
     default_message = messages.SELF_LOCKOUT
+
+
+class WrongPasswordError(DomainError):
+    # 401 degil: istemci 401'de oturumu kapatir; burada yalniz form hatasi gosterilir
+    code = "WRONG_PASSWORD"
+    status = HTTPStatus.UNPROCESSABLE_ENTITY
+    default_message = messages.WRONG_PASSWORD
+
+
+class SamePasswordError(DomainError):
+    code = "SAME_PASSWORD"
+    status = HTTPStatus.UNPROCESSABLE_ENTITY
+    default_message = messages.SAME_PASSWORD
 
 
 class ForbiddenError(DomainError):

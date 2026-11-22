@@ -8,6 +8,7 @@ from sqlalchemy import (
     Enum,
     ForeignKey,
     String,
+    false,
     true,
 )
 from sqlalchemy.orm import Mapped, mapped_column
@@ -40,4 +41,6 @@ class User(IdMixin, CreatedAtMixin, Base):
         BigInteger, ForeignKey("departments.id"), index=True
     )
     is_active: Mapped[bool] = mapped_column(Boolean, server_default=true())
+    # Admin'in verdigi (olusturma, sifirlama) parolayla giren kullanici kendi parolasini belirler
+    must_change_password: Mapped[bool] = mapped_column(Boolean, server_default=false())
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

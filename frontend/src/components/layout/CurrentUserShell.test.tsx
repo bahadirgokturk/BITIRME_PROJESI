@@ -1,10 +1,14 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
+import { useQuery } from "@tanstack/react-query";
+import { delay } from "msw";
 import { describe, expect, it, vi } from "vitest";
 
-import { apiUrl } from "@/lib/api/client";
+import { apiGet, apiUrl } from "@/lib/api/client";
 import { createQueryClient } from "@/lib/queryClient";
+import { MOCK_PASSWORD, USERS } from "@/mocks/fixtures";
 import { server } from "@/mocks/node";
 
 import { CurrentUserShell } from "./CurrentUserShell";
@@ -49,6 +53,75 @@ describe("CurrentUserShell", () => {
     );
     expect(screen.getByText("Ayşe Yılmaz")).toBeInTheDocument();
     expect(screen.getByText("içerik")).toBeInTheDocument();
+  });
+});
+
+function PageWithData() {
+  const query = useQuery({
+    queryKey: ["page-data"],
+    queryFn: () => apiGet<unknown>("/cases/mine?page=1&page_size=20"),
+  });
+  return <p>{query.isSuccess ? "sayfa verisi" : "sayfa yukleniyor"}</p>;
+}
+
+// Sayfa verisi kullanici bilgisini beklemeden istenir; ekranda yine yalniz "Yukleniyor..." gorunur
+describe("CurrentUserShell while the user is loading", () => {
+  it("starts the page's own requests without waiting for /auth/me", async () => {
+    let pageAsked = false;
+    server.use(
+      http.get(apiUrl("/auth/me"), async () => {
+        await delay("infinite");
+        return HttpResponse.json({});
+      }),
+    );
+    server.events.on("request:start", ({ request }) => {
+      if (new URL(request.url).pathname.endsWith("/cases/mine")) pageAsked = true;
+    });
+    render(
+      <QueryClientProvider client={createQueryClient()}>
+        <CurrentUserShell>
+          <PageWithData />
+        </CurrentUserShell>
+      </QueryClientProvider>,
+    );
+
+    await waitFor(() => expect(pageAsked).toBe(true));
+    expect(screen.getByText("Yükleniyor…")).toBeVisible();
+    expect(screen.queryByText(/sayfa/)).not.toBeVisible();
+    server.events.removeAllListeners();
+  });
+});
+
+// Yonetici parolayi sifirladiysa ya da hesap yeni acildiysa kullanici once kendi parolasini belirler
+describe("CurrentUserShell with a temporary password", () => {
+  it("asks for a new password before showing any page", async () => {
+    let mustChange = true;
+    server.use(
+      http.get(apiUrl("/auth/me"), () => HttpResponse.json({ ...USERS.STAFF, must_change_password: mustChange })),
+      http.post(apiUrl("/auth/password"), () => {
+        mustChange = false;
+        return HttpResponse.json({ access_token: "yeni", token_type: "bearer", expires_in: 900 });
+      }),
+    );
+    const user = userEvent.setup();
+    render(
+      <QueryClientProvider client={createQueryClient()}>
+        <CurrentUserShell>
+          <p>içerik</p>
+        </CurrentUserShell>
+      </QueryClientProvider>,
+    );
+
+    expect(await screen.findByRole("heading", { name: "Yeni parolanızı belirleyin" })).toBeInTheDocument();
+    expect(screen.queryByText("içerik")).not.toBeInTheDocument();
+    expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
+
+    await user.type(screen.getByLabelText("Geçici parola"), MOCK_PASSWORD);
+    await user.type(screen.getByLabelText("Yeni parola"), "yeni-parola-1");
+    await user.type(screen.getByLabelText("Yeni parola (tekrar)"), "yeni-parola-1");
+    await user.click(screen.getByRole("button", { name: "Parolayı kaydet" }));
+
+    expect(await screen.findByText("içerik")).toBeInTheDocument();
   });
 });
 

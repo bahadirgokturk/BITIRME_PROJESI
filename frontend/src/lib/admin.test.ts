@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { components } from "@/lib/api/types";
 
-import { filterUsers, toUserBody, userAssignment, userFormProblems, type UserForm } from "./admin";
+import { toUserBody, userAssignment, userFormProblems, userListPath, type UserForm } from "./admin";
 
 type UserRead = components["schemas"]["UserRead"];
 
@@ -15,6 +15,7 @@ function user(fields: Partial<UserRead>): UserRead {
     reporter_kind: "STUDENT",
     department_id: null,
     is_active: true,
+    must_change_password: false,
     last_login_at: null,
     created_at: "2026-09-01T08:00:00Z",
     ...fields,
@@ -27,18 +28,18 @@ const USERS = [
   user({ id: 3, full_name: "Zeynep Kaya", email: "zeynep@example.edu.tr", role: "MANAGER", reporter_kind: null, department_id: 2, is_active: false }),
 ];
 
-const names = (list: UserRead[]) => list.map((item) => item.full_name);
+describe("userListPath", () => {
+  const NONE = { search: "", role: null, departmentId: null, status: "all" } as const;
 
-describe("filterUsers", () => {
-  it("finds users by name or e-mail, ignoring case with Turkish letters", () => {
-    expect(names(filterUsers(USERS, { search: "ismail", role: null, status: "all" }))).toEqual(["İsmail Öz"]);
-    expect(names(filterUsers(USERS, { search: "ZEYNEP@", role: null, status: "all" }))).toEqual(["Zeynep Kaya"]);
+  it("asks only for the page when no filter is set", () => {
+    expect(userListPath(NONE, 1, 50)).toBe("/admin/users?page=1&page_size=50");
   });
 
-  it("filters by role and by active status", () => {
-    expect(names(filterUsers(USERS, { search: "", role: "STAFF", status: "all" }))).toEqual(["İsmail Öz"]);
-    expect(names(filterUsers(USERS, { search: "", role: null, status: "inactive" }))).toEqual(["Zeynep Kaya"]);
-    expect(filterUsers(USERS, { search: "", role: null, status: "active" })).toHaveLength(2);
+  // Arama ve suzgecler sunucuda: q bosluklari kirpilir, durum is_active olur
+  it("sends search, role, department and status to the server", () => {
+    const path = userListPath({ search: "  zeynep ", role: "MANAGER", departmentId: 2, status: "inactive" }, 3, 50);
+    expect(path).toBe("/admin/users?page=3&page_size=50&q=zeynep&role=MANAGER&department_id=2&is_active=false");
+    expect(userListPath({ ...NONE, status: "active" }, 1, 50)).toContain("is_active=true");
   });
 });
 

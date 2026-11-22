@@ -13,6 +13,7 @@ from app.api.v1 import (
     locations,
     lookups,
     manager,
+    notifications,
     tasks,
 )
 
@@ -24,6 +25,7 @@ api_router.include_router(cases.router)
 api_router.include_router(attachments.router)
 api_router.include_router(case_interactions.router)
 api_router.include_router(tasks.router)
+api_router.include_router(notifications.router)
 api_router.include_router(manager.router)
 api_router.include_router(lookups.router)
 api_router.include_router(analytics.router)

@@ -6,6 +6,7 @@ case_types tablosundan gelir.
 from app.agents.analytics_summary import SummarySource
 from app.agents.duplicate import DuplicateDecision
 from app.agents.monitoring import NO_ACTION, MonitoringAction
+from app.agents.photo_check import PhotoCheckDecision
 from app.agents.resolution import ResolutionDecision
 from app.agents.supervisor import SupervisorDecision
 from app.agents.verification import VerificationLevel
@@ -24,6 +25,7 @@ AGENT_LABELS: dict[str, str] = {
     "resolution": "İş kontrolü",
     "monitoring": "İzleme",
     "analytics_summary": "Yönetim özeti",
+    "photo_check": "Fotoğraf kontrolü",
 }
 
 # Ayni kod farkli agent'ta farkli anlama gelir (LOW: dusuk guven / dusuk oncelik)
@@ -72,6 +74,11 @@ _DECISION_LABELS: dict[str, dict[str, str]] = {
         MonitoringAction.RERUN_ANALYSIS: "Analiz yeniden çalıştırıldı",
         MonitoringAction.CLOSE_UNANSWERED: "Yanıt gelmedi, kapatıldı",
         NO_ACTION: "İşlem gerekmedi",
+    },
+    "photo_check": {
+        PhotoCheckDecision.AGREES: "Fotoğraf metinle uyumlu",
+        PhotoCheckDecision.CONFLICTS: "Fotoğraf başka sorun gösteriyor",
+        PhotoCheckDecision.UNCLEAR: "Fotoğraftan anlaşılamadı",
     },
     "analytics_summary": {
         SummarySource.TEMPLATE: "Şablon metin",

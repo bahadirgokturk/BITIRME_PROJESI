@@ -33,7 +33,8 @@ Yanıt: `TokenRead {access_token, token_type: "bearer", expires_in}` (access tok
 | POST | `/auth/login` | public | email+parola → access token + refresh cookie |
 | POST | `/auth/refresh` | cookie | yeni access token |
 | POST | `/auth/logout` | auth | |
-| GET | `/auth/me` | auth | profil + rol |
+| GET | `/auth/me` | auth | profil + rol; `must_change_password: true` ise istemci önce yeni parola ister |
+| POST | `/auth/password` | auth | kendi parolasını değiştirir (`current_password`, `new_password`); diğer cihazlar çıkar, bu cihaz yeni token + cookie alır. Yanlış mevcut parola → `422 WRONG_PASSWORD` (401 değil: oturum kapanmaz), aynı parola → `422 SAME_PASSWORD`; tahmin girişteki sınırla `429` |
 
 ## Lokasyon seçici — ✅ uygulandı
 `GET /locations`: tüm roller; yalnız kendi kurumunun **aktif** lokasyonları, ağaç sırasında (`path`).
@@ -55,7 +56,10 @@ alır. Başka kurumun ya da pasif konum → `404`.
     şimdiki zamana göre). `AT_RISK`/`ON_TRACK` süzgeci yok → `422`.
   - `q` (en çok 100 karakter): bildirim numarası, başlık ya da konum adında geçen parça. Büyük/küçük harf ve
     Türkçe harf duyarsız (`kutuphane` = `Kütüphane`, `ışık` = `IŞIK`); `%` ve `_` düz metin sayılır.
-  - `category`, `location_id`, `department_id`, `from`, `to` henüz yok.
+  - `department_id`: o birime yönlendirilenler.
+  - `category` tekrarlanabilir (`category=IT&category=CLEANING`).
+  - `location_id`: lokasyon ve alt ağacı (bina seçilirse kat ve odaları da); başka kurumun lokasyonu → `404`.
+  - `from`, `to` (`YYYY-MM-DD`, iki uç dahil): açılış günü, Türkiye saatiyle. `from` > `to` → `422 INVALID_DATE_RANGE`.
 - Yeni bildirim `NEW` olarak kaydedilir ve aynı istekte `ANALYZING`'e geçer; zaman çizelgesinde `CASE_CREATED` +
   `ANALYSIS_STARTED`. Agent hattı (FAZ 5) gelene kadar `ANALYZING`'de bekler.
 - Numara `CASE-000124` (PostgreSQL sequence, id'den bağımsız). Başlık boşsa açıklamanın ilk 60 karakteri; kelime ortasından kesilmez, kısaltılınca sonuna `…` eklenir.
@@ -77,7 +81,7 @@ belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanı
 |---|---|---|---|
 | POST | `/cases/photo-suggest` | tümü | Fotoğraftan tür önerisi (Vision Agent, multipart `file`); fotoğraf saklanmaz. 200 `{available, suggestions:[{case_type_code, name, confidence}]}` (en fazla 3; anlaşılmazsa boş liste; model yoksa `available: false`). Fotoğraf kuralları yüklemeyle aynı: boyut 413, tür/bozuk dosya 415 |
 | POST | `/cases` | tümü | case oluştur (JSON; foto ayrı istekle) → 201 `ANALYZING`. İsteğe bağlı `Idempotency-Key` başlığı (1–100 karakter, ör. UUID): aynı kullanıcı aynı anahtarla tekrar gönderirse yeni kayıt açılmaz, ilk bildirim 201 ve `Idempotent-Replayed: true` ile döner, agent hattı ikinci kez çalışmaz; aynı anahtarla farklı açıklama/konum → 409 `IDEMPOTENCY_KEY_REUSED` |
-| GET | `/cases` | M/A (tümü), R (kendi), S (kapsam) | filtre: status, priority, sla_status (BREACHED), q ✅; category, location_id, department_id, from, to (planlı) |
+| GET | `/cases` | M/A (tümü), R (kendi), S (kapsam) | filtre: status, priority, sla_status (BREACHED), q, department_id, category, location_id, from, to ✅ |
 | GET | `/cases/mine` | tümü | kendi bildirimlerim; `/cases` ile aynı süzgeç ve `order` seçenekleri |
 | GET | `/cases/{id}` | kapsam | detay (+ SLA durumu hesaplanmış) |
 | GET | `/cases/{id}/events` | kapsam | zaman çizelgesi (reporter'a filtrelenmiş) |
@@ -85,7 +89,7 @@ belirler). Fotoğraf ayrı istekle: `POST /cases/{id}/attachments` (E3-3). Yanı
 | POST | `/cases/{id}/info` | R (sahip) | NEEDS_INFO iken `{body}` → `ANALYZING`, yanıt herkese açık yorum olarak da eklenir ✅ |
 | POST | `/cases/{id}/comments` | kapsam (ADMIN hariç) | `{body, is_internal}` ✅ |
 | GET | `/cases/{id}/comments` | kapsam | yorumlar (reporter iç notları görmez) ✅ |
-| POST | `/cases/{id}/attachments` | kapsam (ADMIN hariç) | fotoğraf yükleme (multipart, alan adı `file`) ✅ |
+| POST | `/cases/{id}/attachments` | kapsam (ADMIN yalnız kendi açtığı bildirime) | fotoğraf yükleme (multipart, alan adı `file`) ✅. Bildirim fotoğrafıysa yanıttan sonra fotoğraf-metin kontrolü çalışır (Photo Check Agent, AGENTS.md 4.12) |
 | GET | `/cases/{id}/attachments` | kapsam | bildirimin fotoğrafları ✅ |
 | GET | `/attachments/{id}` | kapsam | fotoğrafı indirme (yetki kontrollü) ✅ |
 | POST | `/cases/{id}/feedback` | R (sahip) | `{rating 1–5, comment?}` → `CaseRead` ✅ |
@@ -165,6 +169,36 @@ Yalnız MANAGER (rol kontrolü doğrulamadan önce, diğerleri `403`). Departman
 seçilen kişi o departmanın aktif STAFF'ı değilse `422 INVALID_ASSIGNEE`. Aktif görev varsa `CANCELLED` olur
 (`TASK_REASSIGNED`), yenisi açılır. Bildirim `ANALYZING` ise önce `CLASSIFIED` olur (`ROUTED`, elle yönlendirme).
 
+## Notifications (her rol) — ✅ uygulandı
+
+Kişiye özel bildirimler (zil). Olay kaydı yazılırken (`WorkflowService.record`) kurallara göre üretilir
+(`services/notifications.py`); olayı yapan kişi kendine bildirim almaz. E-posta/anlık bildirim yok.
+
+| Olay | Alıcı |
+|---|---|
+| `TASK_CREATED` | atanan personel; görev havuzdaysa birimin bütün aktif personeli |
+| `EVIDENCE_REQUESTED` | atanan personel |
+| `INFO_REQUESTED`, `WORK_STARTED`, `CASE_CLOSED`, `CASE_REJECTED` | bildirim yapan |
+| `CASE_MERGED` | yalnız bağlanan bildirimin sahibi (olay ana kayda da yazılır, ana kaydın sahibine bildirim gitmez) |
+| `CASE_CLOSED` (ana kayıt) | ana kayda bağlı (`MERGED`) bütün bildirimlerin sahipleri, zincir dahil; bildirim kişinin kendi kaydına bağlanır (ana kaydı göremez) |
+| `SLA_WARNING` (süre dolmak üzere, bir kez) | atanan personel; havuzdaysa birimin personeli |
+| `SLA_BREACHED` | birimin müdürleri ve atanan personel (havuzdaysa birimin personeli) |
+| `TASK_DECLINED`, `CASE_REOPENED`, `ESCALATED` (yalnız Supervisor L3/güvenlik ya da görevden ayrılan personel) | bildirimin birimindeki müdürler (yoksa kurumun müdürleri) |
+| `COMMENT_ADDED` | bildirim yapan (iç not değilse) ve atanan personel |
+| `TASK_REASSIGNED` | görevi elinden alınan personel (havuz göreviyse kimse) |
+| `FEEDBACK_SUBMITTED` (yalnız 1–2 puan, `LOW_RATING_MAX`) | birimin müdürleri; mesajda puan yazar |
+| `INFO_PROVIDED` | ek bilgiyi isteyen müdür (Supervisor istediyse kimse; hat yeniden çalışır) |
+
+| Method | Path | Not |
+|---|---|---|
+| GET | `/notifications?unread_only=&page=&page_size=` | kendi bildirimleri, yeniden eskiye (`Page`) |
+| GET | `/notifications/unread-count` | `{count}`; zil rozeti için |
+| POST | `/notifications/{id}/read` | `204`; başkasının bildirimi `404` |
+| POST | `/notifications/read-all` | `204` |
+
+Satır: `id, case_id, event_type, case_title, message, created_at, read_at`. Metin üretim anında yazılır.
+Demo geçmişi (`seeds --history`) bildirimleri okunmuş olarak yüklenir.
+
 ## Analytics (Manager/Admin)
 Ortak parametreler: `from`, `to`, `department_id?`, `building_id?`
 
@@ -189,6 +223,7 @@ yüzde (0–100); veri yoksa `null` (ekran "–" gösterir). KPI kartları `{val
 | GET | `/analytics/recurring` | ✅ tekrarlayan problemler |
 | GET | `/analytics/process` | ✅ event log'dan ortalama adım süreleri (darboğaz) |
 | GET | `/analytics/delay-risk` | ✅ SLA gecikme riski: açık bildirimler riske göre (`risk_pct`, `level` LOW/MEDIUM/HIGH, Türkçe `factors`), `already_late` (süresi zaten aşılmış), modelin ölçümü (`model.auc`, zaman sıralı test); yeterli geçmiş yoksa `model: null` + `message`. Birim/bina filtresi listeye uygulanır, dönem filtresi kullanılmaz |
+| GET | `/analytics/weekly-report` | ✅ Haftalık yönetici raporu, **PDF** (`application/pdf`, Türkçe, A4). `week`: haftanın herhangi bir günü (pazartesi-pazar haftası); boşsa son tamamlanan hafta. İçerik: yönetim özeti, temel göstergeler ve önceki hafta, birim performansı, tekrar eden sorunlar (ilk 5), şu an yüksek gecikme riskli bildirimler (ilk 5). Dosya adı `haftalik-rapor-<pazartesi>.pdf`. PDF kütüphanesi yalnız istenince yüklenir (~50 MB) |
 | GET | `/analytics/process-map` | ✅ süreç madenciliği: adımlar (`activities`), doğrudan-takip okları (`edges`: sayı + ortanca bekleme dk) ve en sık 10 yol (`variants`: pay %, ortanca toplam süre); Türkçe adlar `label`/`labels` |
 | POST | `/analytics/summary` | ✅ `{period: "7d"\|"30d"}` → KPI JSON + doğal dil özeti. Kurum geneli (filtre yok); girdi dashboard uçlarıyla aynı servislerden; `LLM_PROVIDER=none` iken yalnız şablon metin |
 
@@ -211,12 +246,32 @@ Rol kontrolü girdi doğrulamasından önce çalışır. Başka kurumun kaydı `
   **QR:** `GET /admin/locations/{id}/qr?format=svg|png` (varsayılan SVG) kapıya asılacak kodu döner; içinde
   yalnız `<uygulama adresi>/report?location=<id>` vardır (adres `PUBLIC_APP_URL`, yoksa ilk `CORS_ORIGINS`).
   Dosya adı `qr-<kod>.svg`. Okutan kişi giriş yapar; konum ve yetki sunucuda yeniden kontrol edilir.
-- ✅ **`/admin/users`** uygulandı. E-posta küçük harfe çevrilip saklanır ve tüm sistemde tekildir (tekrar →
+- ✅ **`/admin/users`** uygulandı. Liste `?q=&role=&department_id=&is_active=` ile süzülür (`q`: ad soyad ya da
+  e-postada, Türkçe harf ve büyük/küçük harf duyarsız; süzgeçler birlikte uygulanır, `total` süzülmüş sayıdır).
+  E-posta küçük harfe çevrilip saklanır ve tüm sistemde tekildir (tekrar →
   `409 CONFLICT`); parola en az 8 karakter, yanıtta asla dönmez. Rol kuralları (ihlal → `422 INVALID_USER_ROLE`):
   `REPORTER` → `reporter_kind` zorunlu; diğer rollerde `reporter_kind` boş; `STAFF`/`MANAGER` → `department_id`
   zorunlu ve aynı kurumdan (başka kurumun departmanı → `404`). Rol değişince eski `reporter_kind` otomatik silinir.
   `is_active: false` kullanıcının **tüm oturumlarını anında kapatır**; yeniden aktifleştirmek eski oturumu geri
   getirmez. Admin kendini pasifleştiremez veya ADMIN rolünü kaldıramaz → `409 SELF_LOCKOUT`.
+  **Görevden ayrılan personel:** aktif STAFF pasif yapılır, rolü değişir ya da başka birime geçerse üzerindeki açık
+  görevler (`PENDING`, `ACCEPTED`, `IN_PROGRESS`) `CANCELLED` olur, bildirim `ESCALATED` (müdür kuyruğu, olay
+  metadata'sında `reason: ASSIGNEE_UNAVAILABLE`, `previous_assignee_id`) ve birimin müdürü bildirim alır. Havuz
+  görevleri ve bitmiş işler etkilenmez.
+  **Parola sıfırlama:** `POST /admin/users/{id}/password` (`new_password`, en az 8) unutulan parolaya geçici
+  parola verir; kullanıcının açık oturumları kapanır, `must_change_password: true` olur (yeni oluşturulan
+  kullanıcıda da). Kullanıcı `POST /auth/password` ile kendi parolasını belirleyince bayrak kalkar. Admin kendi
+  parolasını buradan sıfırlayamaz (`409 SELF_LOCKOUT`, profilden değiştirir). Denetim izinde
+  `USER_PASSWORD_RESET` / `USER_PASSWORD_CHANGED` (parola ya da hash loga girmez).
+  **Toplu yükleme:** `POST /admin/users/import?dry_run=true|false` (multipart: `file` CSV, `password` ortak geçici
+  parola, en az 8). Sütunlar: `email, full_name, role` zorunlu; `reporter_kind` (REPORTER için STUDENT / ACADEMIC /
+  PERSONNEL), `department_code` (STAFF/MANAGER için, ör. `SUPPORT_SERVICES`). Excel'in "CSV UTF-8" (virgül) ve
+  Türkçe "CSV" (Windows-1254, noktalı virgül) kayıtları okunur; sütun adlarında büyük/küçük harf önemsizdir.
+  **Hepsi ya da hiçbiri:** bir satır bile hatalıysa kimse eklenmez; yanıt `{created, errors: [{row, message}],
+  dry_run}` her hatalı satırı Excel satır numarasıyla verir (geçersiz e-posta/rol/tür, bilinmeyen birim kodu,
+  dosyada ya da sistemde kayıtlı e-posta, rol kuralı). Önce `dry_run=true` ile denenir. Yüklenenler
+  `must_change_password: true` ile gelir. Sınır 1 MB / 2.000 satır (`413`, `422 INVALID_IMPORT_FILE`).
+  Örnek dosya: [templates/kullanici-yukleme-ornek.csv](templates/kullanici-yukleme-ornek.csv).
 - ✅ **`/admin/case-types`**: listele, ekle, güncelle. Kod (`SOAP_EMPTY` biçimi) sonradan değişmez; tekrar → `409`.
   `default_department_id` görevi alan, `secondary_department_id` yalnız bilgilendirilen birim; ikisi de aynı
   kurumdan (yoksa `404`) ve `null` ile kaldırılabilir. Diğer alanlara `null` gönderilirse değişmez.

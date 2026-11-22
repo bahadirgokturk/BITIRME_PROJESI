@@ -8,13 +8,12 @@ type UserRead = Schemas["UserRead"];
 export type Role = Schemas["UserRole"];
 export type ReporterKind = Schemas["ReporterKind"];
 
-const LOCALE = "tr-TR";
-
 export type StatusFilter = "all" | "active" | "inactive";
 
 export interface UserFilters {
   search: string;
   role: Role | null;
+  departmentId: number | null;
   status: StatusFilter;
 }
 
@@ -23,15 +22,24 @@ export function matchesStatus(status: StatusFilter, isActive: boolean): boolean 
   return status === "all" || (status === "active") === isActive;
 }
 
-// Liste API'de aranmiyor (yalniz sayfalama); kampus olceginde tum kullanicilar tek istekte gelir
-export function filterUsers(users: readonly UserRead[], filters: UserFilters): UserRead[] {
-  const query = filters.search.trim().toLocaleLowerCase(LOCALE);
-  return users.filter(
-    (user) =>
-      (filters.role === null || user.role === filters.role) &&
-      matchesStatus(filters.status, user.is_active) &&
-      `${user.full_name} ${user.email}`.toLocaleLowerCase(LOCALE).includes(query),
-  );
+// Arama ve suzgecler sunucuda (docs/API.md "/admin/users"): q ad soyad ya da e-postada, Turkce harf ve
+// buyuk/kucuk harf duyarsiz aranir; total suzulmus sayidir. Bos suzgec gonderilmez.
+export function userListPath(filters: UserFilters, page: number, pageSize: number): string {
+  const params = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
+  const search = filters.search.trim();
+  if (search) {
+    params.set("q", search);
+  }
+  if (filters.role) {
+    params.set("role", filters.role);
+  }
+  if (filters.departmentId !== null) {
+    params.set("department_id", String(filters.departmentId));
+  }
+  if (filters.status !== "all") {
+    params.set("is_active", String(filters.status === "active"));
+  }
+  return `/admin/users?${params.toString()}`;
 }
 
 // Tabloda "Birim / tur": bildirim yapanin turu, personelin ve mudurun birimi

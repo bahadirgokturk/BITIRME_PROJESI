@@ -11,6 +11,7 @@ from app.models.comment import Comment
 from app.models.decision_feedback import DecisionFeedback
 from app.models.department import Department
 from app.models.location import Location
+from app.models.notification import Notification
 from app.models.organization import Organization
 from app.models.refresh_token import RefreshToken
 from app.models.sla_rule import SlaRule
@@ -30,6 +31,7 @@ __all__ = [
     "DecisionFeedback",
     "Department",
     "Location",
+    "Notification",
     "Organization",
     "RefreshToken",
     "SlaRule",

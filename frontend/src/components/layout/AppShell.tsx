@@ -6,9 +6,10 @@ import { useId, type ReactNode } from "react";
 
 import { cn } from "cn";
 
+import { ChangePasswordButton } from "@/components/auth/ChangePasswordButton";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { LogoWordmark } from "@/components/brand/Logo";
-import { WaitingBell } from "@/components/cases/WaitingBell";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { OfflineBanner } from "@/components/states/OfflineBanner";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { usePrintLightTheme } from "@/hooks/usePrintLightTheme";
@@ -33,7 +34,7 @@ interface AppShellProps {
   children: ReactNode;
 }
 
-// Kenar cubugunun alti: giris yapan kisi ve cikis (Figma: 08 Yeni Stil (A) > kenar cubugu)
+// Kenar cubugunun alti: giris yapan kisi, parola degistirme ve cikis (Figma: 08 Yeni Stil (A) > kenar cubugu)
 function AccountBox({ name, detail }: { name: string; detail: string }) {
   return (
     <section aria-label="Hesap" className="space-y-1 border-t pt-3">
@@ -46,6 +47,7 @@ function AccountBox({ name, detail }: { name: string; detail: string }) {
           <p className="truncate text-xs text-muted-foreground">{detail}</p>
         </div>
       </div>
+      <ChangePasswordButton size="desktop" />
       <LogoutButton size="desktop" />
     </section>
   );
@@ -81,7 +83,7 @@ function DesktopTopBar({ title, sidebar }: { title: string | null; sidebar: Side
       <span aria-hidden className="mx-1 h-4 w-px bg-border" />
       <p className="text-[15px] font-medium">{title}</p>
       <div className="-mr-2 ml-auto flex items-center gap-1">
-        <WaitingBell />
+        <NotificationBell />
         <ThemeToggle />
       </div>
     </header>

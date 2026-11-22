@@ -163,7 +163,8 @@ jobs:
           uv sync --frozen
           uv run alembic upgrade head
           uv run python -m seeds.run --demo
-          nohup uv run uvicorn app.main:create_app --factory --port 8000 > "$RUNNER_TEMP/backend.log" 2>&1 &
+          # uv run degil: acik kalan uv sureci onbellek kilidini tutar, setup-uv'nin temizligi 300 sn bekleyip duser
+          nohup .venv/bin/uvicorn app.main:create_app --factory --port 8000 > "$RUNNER_TEMP/backend.log" 2>&1 &
           for attempt in $(seq 1 30); do
             curl -sf http://localhost:8000/api/v1/health && exit 0
             sleep 2

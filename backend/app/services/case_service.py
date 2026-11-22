@@ -5,10 +5,12 @@ devam eder. Tur, birim ve oncelik kullanicidan alinmaz.
 """
 
 from dataclasses import dataclass
+from datetime import date, datetime, time, timedelta
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.analytics.scope import TURKEY
 from app.core.clock import Clock
 from app.core.constants import (
     CASE_NUMBER_DIGITS,
@@ -168,7 +170,22 @@ class CaseService:
             breached_only=search.breached_only,
             text=search.text,
             order=search.order,
+            department_id=search.department_id,
+            categories=search.categories,
+            location_path=self._location_path(search.location_id),
+            created_from=_day_start(search.first_day),
+            created_before=_day_start(search.last_day, next_day=True),
         )
+
+    def _location_path(self, location_id: int | None) -> str | None:
+        """Suzgecteki lokasyonun yolu; baska kurumun lokasyonu 404 (IDOR)."""
+        if location_id is None:
+            return None
+        location = location_repository.get(self._session, location_id)
+        if location is None:
+            raise NotFoundError()
+        ensure_same_organization(self._actor, resource_organization_id=location.organization_id)
+        return location.path
 
     def get(self, case_id: int) -> CaseRead:
         return case_read(self._get(case_id), self._clock.now())
@@ -222,3 +239,10 @@ def _public(event: CaseEvent) -> CaseEventRead:
     # Bildirim yapan olay ayrintisini (karar kimlikleri, skorlar) gormez
     read = CaseEventRead.model_validate(event, from_attributes=True)
     return read.model_copy(update={"metadata": {}})
+
+
+def _day_start(day: date | None, *, next_day: bool = False) -> datetime | None:
+    """Turkiye saatiyle gunun basi; bitis gunu dahil olsun diye ertesi gunun basi kullanilir."""
+    if day is None:
+        return None
+    return datetime.combine(day + timedelta(days=int(next_day)), time.min, TURKEY)

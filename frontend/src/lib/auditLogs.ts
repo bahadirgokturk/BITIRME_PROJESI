@@ -224,13 +224,15 @@ interface PageInfo {
   page: number;
   pageSize: number;
   total: number;
+  // Sayilan sey: islem kayitlarinda "kayit", kullanicilarda "kullanici"
+  unit?: string;
 }
 
 // "1-50 / 312 kayit"; tek sayfaya sigiyorsa yalniz sayi
-export function pageSummary({ page, pageSize, total }: PageInfo): string {
+export function pageSummary({ page, pageSize, total, unit = "kayıt" }: PageInfo): string {
   if (total <= pageSize) {
-    return `${total} kayıt`;
+    return `${total} ${unit}`;
   }
   const first = (page - 1) * pageSize + 1;
-  return `${first}–${Math.min(page * pageSize, total)} / ${total} kayıt`;
+  return `${first}–${Math.min(page * pageSize, total)} / ${total} ${unit}`;
 }

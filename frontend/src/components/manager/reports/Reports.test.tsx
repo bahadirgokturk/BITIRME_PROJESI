@@ -1,15 +1,21 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { apiUrl } from "@/lib/api/client";
+import { saveBlob } from "@/lib/exportFile";
 import { createQueryClient } from "@/lib/queryClient";
 import { RECURRING } from "@/mocks/reportFixtures";
 import { server } from "@/mocks/node";
 
 import { Reports } from "./Reports";
+
+vi.mock("@/lib/exportFile", async (original) => ({
+  ...(await original<typeof import("@/lib/exportFile")>()),
+  saveBlob: vi.fn(),
+}));
 
 function renderReports() {
   render(
@@ -228,5 +234,46 @@ describe("Reports", () => {
     await user.click(within(alert).getByRole("button", { name: "Tekrar dene" }));
 
     expect(await heading("En yoğun bina: B Blok (21 bildirim)")).toBeInTheDocument();
+  });
+});
+
+// Backend'in haftalik yonetici raporu (GET /analytics/weekly-report, PDF): son tamamlanan haftalardan biri secilir
+describe("Reports weekly PDF", () => {
+  it("downloads the chosen week's report as a PDF", async () => {
+    const asked: string[] = [];
+    server.events.on("request:start", ({ request }) => {
+      const url = new URL(request.url);
+      if (url.pathname.endsWith("/analytics/weekly-report")) asked.push(url.searchParams.get("week") ?? "");
+    });
+    const user = renderReports();
+
+    await user.click(screen.getByRole("button", { name: "Haftalık rapor (PDF)" }));
+    const weeks = within(await screen.findByRole("list", { name: "Haftalar" })).getAllByRole("button");
+    expect(weeks).toHaveLength(4);
+    await user.click(weeks[0]!);
+
+    await waitFor(() => expect(saveBlob).toHaveBeenCalled());
+    const [blob, fileName] = vi.mocked(saveBlob).mock.calls[0] ?? [];
+    expect(blob?.type).toBe("application/pdf");
+    expect(fileName).toBe(`haftalik-rapor-${asked[0]}.pdf`);
+    server.events.removeAllListeners();
+  });
+
+  it("explains a failed download", async () => {
+    server.use(
+      http.get(apiUrl("/analytics/weekly-report"), () =>
+        HttpResponse.json(
+          { error: { code: "INTERNAL_ERROR", message: "Rapor şu an hazırlanamadı.", details: {} } },
+          { status: 500 },
+        ),
+      ),
+    );
+    const user = renderReports();
+
+    await user.click(screen.getByRole("button", { name: "Haftalık rapor (PDF)" }));
+    const weeks = within(await screen.findByRole("list", { name: "Haftalar" })).getAllByRole("button");
+    await user.click(weeks[0]!);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Rapor şu an hazırlanamadı.");
   });
 });

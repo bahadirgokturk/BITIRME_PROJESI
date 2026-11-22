@@ -22,6 +22,7 @@ import { PeriodActions } from "../PeriodActions";
 import { AgingCard, LocationsCard, ProcessCard, SlaCard } from "./BarCards";
 import { ProcessMapCard } from "./ProcessMapCard";
 import { RecurringCard } from "./RecurringCard";
+import { WeeklyReportButton } from "./WeeklyReportButton";
 import { DepartmentsCard, ResolutionCard } from "./TableCards";
 
 // Genis kart solda (2/3), dar kart sagda (1/3); telefonda alt alta
@@ -119,7 +120,12 @@ export function Reports() {
         title="Raporlar"
         description="Seçilen dönemde kampüsteki bildirimler: nerede, ne kadar sürede, hangi birimde."
         meta={<PrintMeta period={period} />}
-        actions={<PeriodActions value={period} onChange={setPeriod} />}
+        actions={
+          <>
+            <WeeklyReportButton />
+            <PeriodActions value={period} onChange={setPeriod} />
+          </>
+        }
       />
       <ReportsBody period={period} />
     </div>

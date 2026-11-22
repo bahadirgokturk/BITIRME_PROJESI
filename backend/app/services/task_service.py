@@ -6,7 +6,8 @@
 | kabul       | ACCEPTED       | ACCEPTED                                    |
 | baslat      | IN_PROGRESS    | IN_PROGRESS                                 |
 | tamamla     | COMPLETED      | RESOLVED -> VERIFICATION -> Resolution      |
-| reddet      | DECLINED       | ESCALATED (manager karar kuyrugu)           |
+| reddet      | DECLINED       | ESCALATED; agent hatti aciksa bir kez baska |
+|             |                | personele ASSIGNED (services/reroute_service.py) |
 | yeniden ata | onceki CANCELLED | ASSIGNED                                  |
 
 Tamamlanan isi Resolution Agent dogrular (E5-11, services/resolution_service.py); agent hatti
@@ -19,6 +20,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from app.agents.routing import ASSIGN_STAFF
 from app.core.clock import Clock
 from app.core.errors import ForbiddenError, InvalidAssigneeError, NotFoundError
 from app.models import Case, Task, User
@@ -46,6 +48,7 @@ from app.services.authorization import (
     ensure_same_organization,
 )
 from app.services.case_view import case_read
+from app.services.reroute_service import Rerouter, rerouted
 from app.services.resolution_service import ResolutionService
 from app.services.sla import apply_targets, case_sla_status, index_rules
 from app.services.workflow import (
@@ -191,6 +194,8 @@ class TaskService:
 
     def decline(self, task_id: int, data: DeclineRequest) -> TaskRead:
         task = self._own_task(task_id)
+        # Havuzdaki gorevi reddeden de kayda gecer: yeniden yonlendirmede ona verilmez
+        task.assigned_user_id = task.assigned_user_id or self._actor.id
         self._set_status(task, TaskStatus.DECLINED)
         task.declined_reason = data.reason
         task.case.assigned_staff_id = None
@@ -198,16 +203,32 @@ class TaskService:
             CaseEventType.TASK_DECLINED, {"task_id": task.id, "reason": data.reason}
         )
         self._move(task.case, CaseStatus.ESCALATED, declined)
+        if self._agents_enabled:
+            self._reroute(task.case)
         return self._commit(task)
 
     # --- Yardimcilar ---------------------------------------------------------------------
+
+    def _reroute(self, case: Case) -> None:
+        user_id = Rerouter(self._session, self._clock).next_assignee(case)
+        if user_id is None or case.department_id is None:
+            return
+        routed = rerouted(CaseEventType.ROUTED, {"decision": ASSIGN_STAFF})
+        self._workflow.record(case, routed, self._clock.now())
+        assignment = Assignment(department_id=case.department_id, user_id=user_id)
+        opener = TaskOpener(self._session, self._workflow, self._clock)
+        opener.open(case, assignment, rerouted(CaseEventType.TASK_CREATED, {}))
 
     def _cancel_active_task(self, case: Case) -> None:
         active = task_repository.active_for_case(self._session, case.id, list(ACTIVE_TASK_STATUSES))
         if active is None:
             return
         self._set_status(active, TaskStatus.CANCELLED)
-        reassigned = self._by_user(CaseEventType.TASK_REASSIGNED, {"task_id": active.id})
+        # Eski personel bildirim alir (services/notifications.py); havuz goreviyse kimse yok
+        reassigned = self._by_user(
+            CaseEventType.TASK_REASSIGNED,
+            {"task_id": active.id, "previous_assignee_id": active.assigned_user_id},
+        )
         self._workflow.record(case, reassigned, self._clock.now())
 
     def _move(self, case: Case, target: CaseStatus, transition: Transition) -> None:

@@ -47,16 +47,20 @@ from app.core.clock import Clock
 from app.core.constants import MIN_CONFIDENCE_AUTO_DEFAULT
 from app.models import Case, CaseType
 from app.models.enums import ActorType, AutonomyLevel, CaseEventType, CaseStatus
-from app.repositories import agent_policy_repository, analysis_repository, case_repository
+from app.repositories import (
+    agent_policy_repository,
+    analysis_repository,
+    case_repository,
+    department_repository,
+)
 from app.repositories.agent_decision_repository import CONFIDENCE_DIGITS, DecisionRun, record
+from app.repositories.analysis_repository import LOOKBACK
 from app.services.merge import CaseMerger
 from app.services.task_service import Assignment, TaskOpener
 from app.services.workflow import Transition, WorkflowService
 
 SessionScope = Callable[[], AbstractContextManager[Session]]
 
-# Son 30 gun: ayni yerde benzer bildirim ve personelin ayni turdeki tecrubesi (AGENTS.md 4.5, 4.6)
-LOOKBACK = timedelta(days=30)
 # Tekrar adaylari: ayni sorunun bu sureden eski bildirimi ayri olay sayilir (AGENTS.md 4.3)
 DUPLICATE_WINDOW = timedelta(hours=24)
 # Bildirim yapana gosterilen soru (Supervisor kural 1)
@@ -192,7 +196,8 @@ class AnalysisService:
         )
 
     def _routing_input(self, case: Case, case_type: CaseType) -> RoutingInput:
-        department_id = case_type.default_department_id
+        # Pasif birime is gitmez: birim yok sayilir, Routing NO_DEPARTMENT der ve mudur karar verir
+        department_id = self._active(case_type.default_department_id)
         staff = []
         if department_id is not None:
             since = self._clock.now() - LOOKBACK
@@ -203,10 +208,16 @@ class AnalysisService:
         return RoutingInput(
             case_type_code=case_type.code,
             department_id=department_id,
-            secondary_department_id=case_type.secondary_department_id,
+            secondary_department_id=self._active(case_type.secondary_department_id),
             building_code=analysis_repository.building_code(case.location.path),
             staff=staff,
         )
+
+    def _active(self, department_id: int | None) -> int | None:
+        if department_id is None:
+            return None
+        department = department_repository.get(self._session, department_id)
+        return department_id if department is not None and department.is_active else None
 
     def _supervisor_input(
         self, case_type: CaseType, signals: "_Signals", routing_decision: str

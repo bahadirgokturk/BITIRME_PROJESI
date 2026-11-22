@@ -83,7 +83,8 @@ Kampüs şablonunda şube müdürlüğü düzeyindedir: [DEPARTMENTS.md](DEPARTM
 
 ### users
 id, organization_id, email (uniq), password_hash, full_name, role `user_role`, reporter_kind NULL,
-department_id NULL (STAFF/MANAGER için), is_active, last_login_at, created_at
+department_id NULL (STAFF/MANAGER için), is_active, must_change_password (admin'in verdiği parolayla girende
+true; kullanıcı kendi parolasını belirleyince false), last_login_at, created_at
 
 ### case_types
 | Kolon | Tip | Not |
@@ -193,7 +194,12 @@ rotasyonla doğan kayıtlar = bir oturum; indeksli), created_at, expires_at,
 revoked_at NULL, replaced_by_id FK refresh_tokens NULL (rotasyonla iptal edildiyse yerine gelen kayıt;
 çıkış/toplu iptalde NULL — eşzamanlı istek toleransı bunu kullanır). Rotasyonda eski kayıt `revoked_at` alır, yenisi eklenir; iptal edilmiş kayıt tekrar
 kullanılırsa o oturumun (`family_id`) açık kayıtları iptal edilir, diğer cihazlar etkilenmez (bkz. API.md "Auth"). Süresi dolan kayıtların
-temizliği ileride Monitoring tick'ine eklenebilir.
+temizliği Monitoring turunda yapılır: süresi dolduktan 7 gün sonra silinir (docs/DEPLOYMENT.md "Veri saklama").
+
+### notifications
+id, user_id FK users, case_id FK cases (indeksli), event_type varchar(50), case_title varchar(200) (üretim anındaki
+başlık), message varchar(300), read_at NULL, created_at. İndeksler: `(user_id, created_at DESC)` liste, kısmi
+`(user_id) WHERE read_at IS NULL` okunmamış sayısı. Kurallar: docs/API.md "Notifications".
 
 ### comments
 id, case_id, author_id, body, is_internal (staff/manager notu, reporter görmez), created_at

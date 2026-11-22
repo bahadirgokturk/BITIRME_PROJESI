@@ -28,19 +28,6 @@ export function useMyCases(query: MyCasesQuery = ALL_MY_CASES) {
   });
 }
 
-// "Sizden yanit bekleniyor" kutusu icin kendi bildirimlerinin ilk 100'u tek istekte (backend siniri 200).
-// Yanit bekleyenler yeni bildirimlerdir; 100'den eskisinde ek bilgi ya da 72 saatlik puan suresi pek kalmaz.
-const WAITING_SCAN_SIZE = 100;
-
-export function useWaitingCases() {
-  return useQuery({
-    queryKey: ["cases", "mine", "waiting"],
-    queryFn: () => apiGet<CasePage>(`/cases/mine?page=1&page_size=${WAITING_SCAN_SIZE}`),
-    select: (page) => page.items,
-    ...LIVE_QUERY,
-  });
-}
-
 // Kapsam disi ya da olmayan kayit backend'den 404 doner (IDOR); ekran ikisini ayirt etmez
 export function useCase(caseId: string) {
   return useQuery({
@@ -77,5 +64,18 @@ export function useCaseList(filters: CaseFilters) {
       total: data.pages[0]?.total ?? 0,
     }),
     ...LIVE_QUERY,
+  });
+}
+
+type LocationOption = components["schemas"]["LocationOption"];
+
+// Liste suzgecindeki binalar: aktif konumlar agac sirasinda gelir, yalniz binalar secilir (docs/API.md
+// "Lokasyon secici"); sik degismez, oturum boyunca bir kez okunur
+export function useBuildings() {
+  return useQuery({
+    queryKey: ["lookups", "buildings"],
+    queryFn: () => fetchAllPages<LocationOption>((page) => `/locations?page=${page}&page_size=${EXPORT_PAGE_SIZE}`),
+    select: (locations) => locations.filter((location) => location.kind === "BUILDING"),
+    staleTime: Infinity,
   });
 }
