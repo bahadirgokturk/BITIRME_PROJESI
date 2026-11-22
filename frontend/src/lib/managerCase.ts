@@ -94,6 +94,11 @@ const UNKNOWN_EVENT_LABEL = "Bildirim güncellendi";
 
 type Metadata = CaseEvent["metadata"];
 
+const RELEASE_LABELS: Readonly<Record<string, string | undefined>> = {
+  ASSIGNEE_UNAVAILABLE: "Personel ayrıldı, iş müdüre döndü",
+  DEPARTMENT_INACTIVE: "Birim kapatıldı, iş müdüre döndü",
+};
+
 // Olayin tasidigi ayrinti varsa metne katilir; yoksa genel metin kalir
 const DETAILED: Readonly<Record<string, ((metadata: Metadata) => string | null) | undefined>> = {
   FEEDBACK_SUBMITTED: ({ rating }) => (typeof rating === "number" ? `Bildiren ${rating} puan verdi` : null),
@@ -101,6 +106,8 @@ const DETAILED: Readonly<Record<string, ((metadata: Metadata) => string | null) 
   // Geri cevrilen gorevi Routing Agent bir kez baska personele verir (backend reroute_service)
   ROUTED: ({ reroute }) => (reroute === true ? "Geri çevrilen görev yeniden yönlendirildi" : null),
   TASK_CREATED: ({ reroute }) => (reroute === true ? "Görev başka personele verildi" : null),
+  // Personel pasif yapildi / birimi degisti ya da birim kapandi (backend services/task_release.py)
+  ESCALATED: ({ reason }) => RELEASE_LABELS[String(reason)] ?? null,
   CASE_MERGED: ({ merged_case_number: merged }) =>
     typeof merged === "string" ? `${merged} bu bildirimle birleştirildi` : null,
 };
@@ -130,6 +137,8 @@ const PERSON_BY_EVENT: Readonly<Record<string, string | undefined>> = {
   TASK_CREATED: "Müdür",
   TASK_REASSIGNED: "Müdür",
   DECISION_OVERRIDDEN: "Müdür",
+  // Kullanici kaynakli yukseltme yalniz yonetim ekranindan gelir (personel ya da birim pasif yapildi)
+  ESCALATED: "Sistem yöneticisi",
 };
 
 const ACTORS: Record<Schemas["ActorType"], (event: CaseEvent) => string> = {
