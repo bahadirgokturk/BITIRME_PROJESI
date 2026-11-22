@@ -9,6 +9,7 @@ import {
   DEFAULT_FILTERS,
   STATUS_GROUPS,
   caseListQuery,
+  categoryFilterSummary,
   groupFromParam,
   caseSla,
   caseSubtitle,
@@ -46,13 +47,35 @@ describe("caseListQuery", () => {
 
   it("sends the statuses of the chosen group, every chosen priority, the order and the trimmed search text", () => {
     const query = caseListQuery(
-      { group: "dismissed", priorities: ["CRITICAL", "HIGH"], order: "oldest", search: "  amfi projeksiyon " },
+      { ...DEFAULT_FILTERS, group: "dismissed", priorities: ["CRITICAL", "HIGH"], order: "oldest", search: "  amfi projeksiyon " },
       2,
     );
 
     expect(query).toBe(
       "page=2&page_size=20&status=REJECTED&status=MERGED&priority=CRITICAL&priority=HIGH&order=oldest&q=amfi+projeksiyon",
     );
+  });
+
+  it("sends the department, every chosen category and the opening day range", () => {
+    const filters = { departmentId: "7", categories: ["IT", "CLEANING"] as const, from: "2026-11-01", to: "2026-11-21" };
+    const query = new URLSearchParams(caseListQuery({ ...DEFAULT_FILTERS, ...filters, categories: [...filters.categories] }, 1));
+
+    expect(query.get("department_id")).toBe("7");
+    expect(query.getAll("category")).toEqual(["IT", "CLEANING"]);
+    expect(query.get("from")).toBe("2026-11-01");
+    expect(query.get("to")).toBe("2026-11-21");
+  });
+
+  it("sends the chosen building as location_id (the backend includes its floors and rooms)", () => {
+    const query = new URLSearchParams(caseListQuery({ ...DEFAULT_FILTERS, locationId: "2" }, 1));
+
+    expect(query.get("location_id")).toBe("2");
+  });
+
+  it("leaves out empty extra filters", () => {
+    const query = new URLSearchParams(caseListQuery(DEFAULT_FILTERS, 1));
+
+    expect(["department_id", "location_id", "category", "from", "to"].filter((key) => query.has(key))).toEqual([]);
   });
 
   it("asks for open cases past their target time when late ones are wanted", () => {
@@ -71,6 +94,11 @@ describe("isFiltered", () => {
     expect(isFiltered({ ...DEFAULT_FILTERS, search: "wc" })).toBe(true);
     expect(isFiltered({ ...DEFAULT_FILTERS, priorities: ["LOW"] })).toBe(true);
     expect(isFiltered({ ...DEFAULT_FILTERS, group: "open" })).toBe(true);
+    expect(isFiltered({ ...DEFAULT_FILTERS, departmentId: "3" })).toBe(true);
+    expect(isFiltered({ ...DEFAULT_FILTERS, locationId: "2" })).toBe(true);
+    expect(isFiltered({ ...DEFAULT_FILTERS, categories: ["IT"] })).toBe(true);
+    expect(isFiltered({ ...DEFAULT_FILTERS, from: "2026-11-01" })).toBe(true);
+    expect(isFiltered({ ...DEFAULT_FILTERS, to: "2026-11-01" })).toBe(true);
     // Siralama listeyi daraltmaz: bos listede "filtreleri temizle" onerilmez
     expect(isFiltered({ ...DEFAULT_FILTERS, order: "oldest" })).toBe(false);
   });
@@ -146,5 +174,13 @@ describe("groupFromParam", () => {
     expect(groupFromParam(undefined)).toBe("all");
     expect(groupFromParam("hepsi")).toBe("all");
     expect(groupFromParam(["open", "late"])).toBe("all");
+  });
+});
+
+describe("categoryFilterSummary", () => {
+  it("names one category and counts several", () => {
+    expect(categoryFilterSummary([])).toBe("Kategori: Tümü");
+    expect(categoryFilterSummary(["CLEANING"])).toBe("Kategori: Temizlik");
+    expect(categoryFilterSummary(["CLEANING", "IT"])).toBe("Kategori: 2 seçili");
   });
 });

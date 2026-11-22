@@ -192,7 +192,7 @@ export function CaseList({ view = "all", initialGroup = "all" }: CaseListProps) 
   return (
     <div className="mx-auto w-full max-w-[1152px] space-y-4 md:space-y-6">
       <PageHeader title={title} description={description} />
-      <CaseFilters value={filters} view={layout} onChange={setFilters} onView={setLayout} extra={exportButton} />
+      <CaseFilters value={filters} view={layout} onChange={setFilters} onView={setLayout} extra={exportButton} unit={view === "unit"} />
       <CaseListBody
         query={query}
         filtered={isFiltered(applied)}

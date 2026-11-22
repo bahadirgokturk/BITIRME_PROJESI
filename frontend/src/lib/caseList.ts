@@ -1,12 +1,15 @@
 // Mudurun "Tum Bildirimler" listesinin kurallari (/manager/cases; docs/UI_GUIDE.md bolum 5.4):
 // durum adlari ve renkleri, filtre gruplari, istek sorgusu ve satir metinleri.
 import type { components } from "@/lib/api/types";
+import type { FilterOption } from "@/lib/filters";
 import { listParams, type ListTools } from "@/lib/listTools";
+import { CATEGORY_LABELS } from "@/lib/reports";
 import { duration, type SlaView } from "@/lib/tasks";
 
 type Schemas = components["schemas"];
 export type CaseRead = Schemas["CaseRead"];
 export type CaseStatus = Schemas["CaseStatus"];
+export type CaseCategory = Schemas["CaseCategory"];
 
 // Backend varsayilani ile ayni (backend/app/core/constants.py PAGE_SIZE_DEFAULT)
 export const CASE_LIST_PAGE_SIZE = 20;
@@ -133,16 +136,48 @@ export function groupFromParam(value: string | string[] | undefined): StatusGrou
 export interface CaseFilters extends ListTools {
   group: StatusGroup;
   search: string;
+  // Birim id'si (secim kutusunun degeri); bos: tum birimler. Yalniz mudur ve yonetici gorur
+  departmentId: string;
+  // Bina (konum) id'si; backend binanin kat ve odalarini da getirir. Bos: tum konumlar
+  locationId: string;
+  categories: CaseCategory[];
+  // Acilis gunu araligi, YYYY-MM-DD, iki uc dahil (Turkiye saati); bos: sinir yok
+  from: string;
+  to: string;
 }
 
-export const DEFAULT_FILTERS: CaseFilters = { group: "all", priorities: [], order: "newest", search: "" };
+export const DEFAULT_FILTERS: CaseFilters = {
+  group: "all",
+  priorities: [],
+  order: "newest",
+  search: "",
+  departmentId: "",
+  locationId: "",
+  categories: [],
+  from: "",
+  to: "",
+};
 
 // Siralama listeyi daraltmaz; bos sonucta yalniz gercek filtreler "temizle" onerir
 export function isFiltered(filters: CaseFilters): boolean {
-  return filters.group !== "all" || filters.priorities.length > 0 || filters.search.trim() !== "";
+  const chosen = [filters.departmentId, filters.locationId, filters.from, filters.to, filters.search.trim()].some((v) => v !== "");
+  return chosen || filters.group !== "all" || filters.priorities.length > 0 || filters.categories.length > 0;
 }
 
-// Ortak filtreler (docs/API.md "Cases"): status (tekrarlanir), priority (tekrarlanir), sla_status, order, q
+// Birim, kategori ve tarih (docs/API.md "Cases"); bos alan gonderilmez
+function extraParams(filters: CaseFilters, params: URLSearchParams): void {
+  const single: [string, string][] = [
+    ["department_id", filters.departmentId],
+    ["location_id", filters.locationId],
+    ["from", filters.from],
+    ["to", filters.to],
+  ];
+  single.filter(([, value]) => value !== "").forEach(([key, value]) => params.set(key, value));
+  filters.categories.forEach((category) => params.append("category", category));
+}
+
+// Ortak filtreler (docs/API.md "Cases"): status, priority, category (tekrarlanir), sla_status, order, q,
+// department_id, from, to
 export function caseListQuery(filters: CaseFilters, page: number, pageSize: number = CASE_LIST_PAGE_SIZE): string {
   const params = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
   const group = STATUS_GROUPS.find((item) => item.value === filters.group);
@@ -151,6 +186,7 @@ export function caseListQuery(filters: CaseFilters, page: number, pageSize: numb
     params.set("sla_status", "BREACHED");
   }
   listParams(filters, params);
+  extraParams(filters, params);
   const search = filters.search.trim();
   if (search) {
     params.set("q", search);
@@ -176,4 +212,17 @@ export function caseSla(item: CaseRead, now: Date = new Date()): SlaView | null 
 
 export function shownSummary(loaded: number, total: number): string {
   return loaded < total ? `${total} bildirimin ilk ${loaded} tanesi gösteriliyor` : `${total} bildirim`;
+}
+
+export const CATEGORY_FILTER_OPTIONS: readonly FilterOption[] = (
+  Object.entries(CATEGORY_LABELS) as [CaseCategory, string][]
+).map(([value, label]) => ({ value, label }));
+
+// Kategori dugmesinin yazisi: secim yok, tek kategori ya da kac kategori secili
+export function categoryFilterSummary(selected: readonly CaseCategory[]): string {
+  const [only] = selected;
+  if (only === undefined) {
+    return "Kategori: Tümü";
+  }
+  return selected.length === 1 ? `Kategori: ${CATEGORY_LABELS[only]}` : `Kategori: ${selected.length} seçili`;
 }
