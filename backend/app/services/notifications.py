@@ -63,6 +63,8 @@ class Rule:
     message: str
     # Olay her zaman degil, yalniz bu kosulda bildirilir
     when: Callable[["Transition"], bool] = _always
+    # Ayni mesaji alan ikinci kitle (SLA asimi: mudur ve isi yapan personel)
+    also: Audience | None = None
 
 
 RULES: dict[CaseEventType, Rule] = {
@@ -83,7 +85,12 @@ RULES: dict[CaseEventType, Rule] = {
     ),
     CaseEventType.TASK_DECLINED: Rule(Audience.MANAGERS, "Personel görevi reddetti."),
     CaseEventType.CASE_REOPENED: Rule(Audience.MANAGERS, "Bildirim yeniden açıldı."),
-    CaseEventType.SLA_BREACHED: Rule(Audience.MANAGERS, "Çözüm süresi (SLA) aşıldı."),
+    CaseEventType.SLA_BREACHED: Rule(
+        Audience.MANAGERS, "Çözüm süresi (SLA) aşıldı.", also=Audience.ASSIGNEE_OR_POOL
+    ),
+    CaseEventType.SLA_WARNING: Rule(
+        Audience.ASSIGNEE_OR_POOL, "İşin çözüm süresi dolmak üzere; öncelik verin."
+    ),
     CaseEventType.ESCALATED: Rule(
         Audience.MANAGERS, "Bildirim müdür kararını bekliyor.", when=_needs_manager
     ),
@@ -113,6 +120,8 @@ class Notifier:
         if rule is None or not rule.when(transition):
             return
         recipients = self._recipients(case, rule.audience, transition)
+        if rule.also is not None:
+            recipients |= self._recipients(case, rule.also, transition)
         recipients.discard(transition.actor_id)
         notifications = [
             _notification(user_id, case, (transition, now), rule.message)
