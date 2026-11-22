@@ -66,10 +66,16 @@ describe("caseListQuery", () => {
     expect(query.get("to")).toBe("2026-11-21");
   });
 
+  it("sends the chosen building as location_id (the backend includes its floors and rooms)", () => {
+    const query = new URLSearchParams(caseListQuery({ ...DEFAULT_FILTERS, locationId: "2" }, 1));
+
+    expect(query.get("location_id")).toBe("2");
+  });
+
   it("leaves out empty extra filters", () => {
     const query = new URLSearchParams(caseListQuery(DEFAULT_FILTERS, 1));
 
-    expect(["department_id", "category", "from", "to"].filter((key) => query.has(key))).toEqual([]);
+    expect(["department_id", "location_id", "category", "from", "to"].filter((key) => query.has(key))).toEqual([]);
   });
 
   it("asks for open cases past their target time when late ones are wanted", () => {
@@ -89,6 +95,7 @@ describe("isFiltered", () => {
     expect(isFiltered({ ...DEFAULT_FILTERS, priorities: ["LOW"] })).toBe(true);
     expect(isFiltered({ ...DEFAULT_FILTERS, group: "open" })).toBe(true);
     expect(isFiltered({ ...DEFAULT_FILTERS, departmentId: "3" })).toBe(true);
+    expect(isFiltered({ ...DEFAULT_FILTERS, locationId: "2" })).toBe(true);
     expect(isFiltered({ ...DEFAULT_FILTERS, categories: ["IT"] })).toBe(true);
     expect(isFiltered({ ...DEFAULT_FILTERS, from: "2026-11-01" })).toBe(true);
     expect(isFiltered({ ...DEFAULT_FILTERS, to: "2026-11-01" })).toBe(true);

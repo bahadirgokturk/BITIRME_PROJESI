@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckboxFilter } from "@/components/filters/CheckboxFilter";
+import { useBuildings } from "@/hooks/useCases";
 import { useDepartments } from "@/hooks/useReview";
 import {
   CATEGORY_FILTER_OPTIONS,
@@ -38,6 +39,26 @@ function DepartmentSelect({ value, onChange }: FilterProps) {
   );
 }
 
+// Bina: secilen binanin kat ve odalarindaki bildirimler de gelir (backend konum alt agaci)
+function BuildingSelect({ value, onChange }: FilterProps) {
+  const buildings = useBuildings();
+  return (
+    <select
+      aria-label="Bina"
+      value={value.locationId}
+      onChange={(event) => onChange({ ...value, locationId: event.target.value })}
+      className={FIELD_CLASS}
+    >
+      <option value="">Tüm binalar</option>
+      {buildings.data?.map((building) => (
+        <option key={building.id} value={String(building.id)}>
+          {building.name}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 // Acilis gunu araligi, iki uc dahil; baslangic bitisten sonra secilemez (backend de 422 doner)
 function DateRange({ value, onChange }: FilterProps) {
   return (
@@ -68,11 +89,12 @@ function DateRange({ value, onChange }: FilterProps) {
   );
 }
 
-// Birim, kategori ve tarih suzgecleri (docs/API.md "Cases"); unit: personelin birim listesi, birim secimi yok
+// Birim, bina, kategori ve tarih suzgecleri (docs/API.md "Cases"); unit: personelin birim listesi, birim secimi yok
 export function CaseExtraFilters({ value, onChange, unit }: FilterProps & { unit: boolean }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2 md:flex md:flex-wrap md:items-center">
       {unit ? null : <DepartmentSelect value={value} onChange={onChange} />}
+      <BuildingSelect value={value} onChange={onChange} />
       <CheckboxFilter
         label="Kategoriler"
         summary={categoryFilterSummary(value.categories)}

@@ -209,6 +209,7 @@ describe("CaseList", () => {
     await screen.findByRole("list", { name: "Bildirimler" });
 
     await user.selectOptions(await screen.findByRole("combobox", { name: "Birim" }), "Destek Hizmetleri Şube Müdürlüğü");
+    await user.selectOptions(await screen.findByRole("combobox", { name: "Bina" }), "B Blok");
     await user.click(screen.getByRole("button", { name: "Kategori: Tümü" }));
     await user.click(await screen.findByRole("checkbox", { name: "Temizlik" }));
     await user.keyboard("{Escape}");
@@ -218,6 +219,7 @@ describe("CaseList", () => {
     await waitFor(() => expect(asked.at(-1)?.get("to")).toBe("2026-11-21"));
     const last = asked.at(-1)!;
     expect(last.get("department_id")).toBe("1");
+    expect(last.get("location_id")).toBe("2");
     expect(last.getAll("category")).toEqual(["CLEANING"]);
     expect(last.get("from")).toBe("2026-11-01");
   });

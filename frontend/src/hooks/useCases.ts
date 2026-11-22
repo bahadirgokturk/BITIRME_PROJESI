@@ -66,3 +66,16 @@ export function useCaseList(filters: CaseFilters) {
     ...LIVE_QUERY,
   });
 }
+
+type LocationOption = components["schemas"]["LocationOption"];
+
+// Liste suzgecindeki binalar: aktif konumlar agac sirasinda gelir, yalniz binalar secilir (docs/API.md
+// "Lokasyon secici"); sik degismez, oturum boyunca bir kez okunur
+export function useBuildings() {
+  return useQuery({
+    queryKey: ["lookups", "buildings"],
+    queryFn: () => fetchAllPages<LocationOption>((page) => `/locations?page=${page}&page_size=${EXPORT_PAGE_SIZE}`),
+    select: (locations) => locations.filter((location) => location.kind === "BUILDING"),
+    staleTime: Infinity,
+  });
+}

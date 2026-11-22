@@ -138,6 +138,8 @@ export interface CaseFilters extends ListTools {
   search: string;
   // Birim id'si (secim kutusunun degeri); bos: tum birimler. Yalniz mudur ve yonetici gorur
   departmentId: string;
+  // Bina (konum) id'si; backend binanin kat ve odalarini da getirir. Bos: tum konumlar
+  locationId: string;
   categories: CaseCategory[];
   // Acilis gunu araligi, YYYY-MM-DD, iki uc dahil (Turkiye saati); bos: sinir yok
   from: string;
@@ -150,6 +152,7 @@ export const DEFAULT_FILTERS: CaseFilters = {
   order: "newest",
   search: "",
   departmentId: "",
+  locationId: "",
   categories: [],
   from: "",
   to: "",
@@ -157,7 +160,7 @@ export const DEFAULT_FILTERS: CaseFilters = {
 
 // Siralama listeyi daraltmaz; bos sonucta yalniz gercek filtreler "temizle" onerir
 export function isFiltered(filters: CaseFilters): boolean {
-  const chosen = [filters.departmentId, filters.from, filters.to, filters.search.trim()].some((v) => v !== "");
+  const chosen = [filters.departmentId, filters.locationId, filters.from, filters.to, filters.search.trim()].some((v) => v !== "");
   return chosen || filters.group !== "all" || filters.priorities.length > 0 || filters.categories.length > 0;
 }
 
@@ -165,6 +168,7 @@ export function isFiltered(filters: CaseFilters): boolean {
 function extraParams(filters: CaseFilters, params: URLSearchParams): void {
   const single: [string, string][] = [
     ["department_id", filters.departmentId],
+    ["location_id", filters.locationId],
     ["from", filters.from],
     ["to", filters.to],
   ];
