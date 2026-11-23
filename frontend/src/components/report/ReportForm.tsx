@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useOnline } from "@/hooks/useOnline";
 import type { useSubmitReport } from "@/hooks/usePendingReports";
 import { useQrLocation } from "@/hooks/useReport";
+import { useSimilarCases, type useSupportCase } from "@/hooks/useSimilarCases";
 import { clearReportDraft, readReportDraft, useSaveReportDraft } from "@/hooks/useReportDraft";
 import { ApiError } from "@/lib/api/client";
 import { addFiles, DESCRIPTION_MAX_LENGTH, descriptionProblem, qrLocationId } from "@/lib/report";
@@ -19,6 +20,7 @@ import { draftForForm } from "@/lib/reportDraft";
 import { AttachmentField } from "./AttachmentField";
 import { DraftNotice } from "./DraftNotice";
 import { LocationField } from "./LocationField";
+import { SimilarNotice } from "./SimilarNotice";
 
 const DESCRIPTION_ID = "report-description";
 const DESCRIPTION_HINT_ID = "report-description-hint";
@@ -159,18 +161,32 @@ function SubmitBar({ pending, savesDraft }: { pending: boolean; savesDraft: bool
   );
 }
 
+// Ayni yerde benzer acik bildirim varsa "destekle" secenegi (POST /cases/similar, /cases/support)
+function SimilarCheck({ description, locationId, support }: { description: string; locationId: string; support: ReturnType<typeof useSupportCase> }) {
+  const similar = useSimilarCases(description, locationId);
+  return (
+    <SimilarNotice
+      items={similar.data ?? []}
+      pending={support.isPending}
+      error={support.error}
+      onSupport={(caseId) => support.mutate({ description, locationId: Number(locationId), caseId })}
+    />
+  );
+}
+
 // Masaustunde kartin alt bilgisi gibi: ince cizginin altinda, kartin kenarina uzanir
 const SUBMIT_BAR_CLASS =
   "flex flex-col gap-3 md:-mx-8 md:-mb-8 md:flex-row md:items-center md:justify-between md:border-t md:px-8 md:py-5";
 
 interface ReportFormProps {
   mutation: ReturnType<typeof useSubmitReport>;
+  support: ReturnType<typeof useSupportCase>;
   draftKey: string | null;
   qrLocation?: string;
 }
 
 // Kategori/oncelik alani yok: onlari agent'lar belirler (docs/UI_GUIDE.md bolum 1 ve 5.1)
-export function ReportForm({ mutation, draftKey, qrLocation }: ReportFormProps) {
+export function ReportForm({ mutation, support, draftKey, qrLocation }: ReportFormProps) {
   const fileList = useFileList();
   const fields = useReportFields(draftKey, fileList, qrLocation);
   const { description, locationId } = fields;
@@ -204,6 +220,7 @@ export function ReportForm({ mutation, draftKey, qrLocation }: ReportFormProps) 
           hint={fields.qr.location ? QR_HINT : null}
           notice={fields.qr.notFound ? QR_NOT_FOUND : null}
         />
+        <SimilarCheck description={description} locationId={locationId} support={support} />
         <AttachmentField files={fileList.files} problem={fileList.problem} onPick={fileList.pick} onRemove={fileList.remove} />
         <FormAlert error={mutation.error} />
         <SubmitBar pending={mutation.isPending} savesDraft={draftKey !== null} />

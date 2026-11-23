@@ -2,8 +2,9 @@
 
 import { useSubmitReport } from "@/hooks/usePendingReports";
 import { clearReportDraft, useReportDraftKey } from "@/hooks/useReportDraft";
+import { useSupportCase } from "@/hooks/useSimilarCases";
 
-import { QueuedConfirmation, ReportConfirmation } from "./ReportConfirmation";
+import { QueuedConfirmation, ReportConfirmation, SupportConfirmation } from "./ReportConfirmation";
 import { ReportForm } from "./ReportForm";
 
 // Gonderim basariliysa onay ekrani; internet yoksa "kaydedildi" ekrani (bildirim bu cihazda sirada).
@@ -12,11 +13,15 @@ import { ReportForm } from "./ReportForm";
 export function ReportScreen({ qrLocation }: { qrLocation?: string }) {
   const draftKey = useReportDraftKey();
   const mutation = useSubmitReport(() => clearReportDraft(draftKey));
+  const support = useSupportCase(() => clearReportDraft(draftKey));
+  if (support.data) {
+    return <SupportConfirmation caseNumber={support.data.case_number} onNewReport={() => support.reset()} />;
+  }
   if (mutation.data?.kind === "queued") {
     return <QueuedConfirmation onNewReport={() => mutation.reset()} />;
   }
   if (mutation.data?.kind === "sent") {
     return <ReportConfirmation result={mutation.data.result} onNewReport={() => mutation.reset()} />;
   }
-  return <ReportForm mutation={mutation} draftKey={draftKey} qrLocation={qrLocation} />;
+  return <ReportForm mutation={mutation} support={support} draftKey={draftKey} qrLocation={qrLocation} />;
 }

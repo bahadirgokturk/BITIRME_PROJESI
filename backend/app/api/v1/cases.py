@@ -22,12 +22,21 @@ from app.core.constants import BYTES_PER_MB, CASE_SEARCH_MAX_LENGTH, IDEMPOTENCY
 from app.core.database import get_session
 from app.core.errors import InvalidDateRangeError
 from app.models.enums import CaseCategory, CaseStatus, Priority, UserRole
-from app.schemas.case import AgentDecisionRead, CaseCreate, CaseEventRead, CaseRead, CaseSearch
+from app.schemas.case import (
+    AgentDecisionRead,
+    CaseCreate,
+    CaseEventRead,
+    CaseRead,
+    CaseSearch,
+    SimilarRead,
+    SupportCreate,
+)
 from app.schemas.common import ListOrder, Page, PageParams
 from app.schemas.photo_suggest import PhotoSuggestRead
 from app.services.analysis_service import AnalysisLauncher
 from app.services.case_service import CaseService
 from app.services.photo_suggest_service import PhotoSuggestService
+from app.services.similar_service import SimilarCases
 
 router = APIRouter(prefix="/cases", tags=["cases"], responses=AUTHENTICATED_RESPONSES)
 Paging = Annotated[PageParams, Depends(page_params)]
@@ -150,6 +159,29 @@ def case_search(
         first_day=first_day,
         last_day=last_day,
     )
+
+
+def get_similar_cases(
+    session: Annotated[Session, Depends(get_session)],
+    user: CurrentUser,
+    clock: Annotated[Clock, Depends(get_clock)],
+) -> SimilarCases:
+    return SimilarCases(session, user, clock)
+
+
+Similar = Annotated[SimilarCases, Depends(get_similar_cases)]
+
+
+@router.post("/similar")
+def similar_cases(payload: CaseCreate, service: Similar) -> SimilarRead:
+    """Bildirmeden once: ayni binadaki benzer acik bildirimler (en fazla 3, en benzer once)."""
+    return service.find(payload)
+
+
+@router.post("/support", status_code=HTTPStatus.CREATED)
+def support_case(payload: SupportCreate, service: Similar) -> CaseRead:
+    """Ayni sorunu destekle: kisinin kaydi acilir ve gosterilen bildirime baglanir (MERGED)."""
+    return service.support(payload)
 
 
 @router.get("")

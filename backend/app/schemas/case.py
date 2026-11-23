@@ -57,6 +57,28 @@ class CaseCreate(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=CASE_TITLE_MAX_LENGTH)
 
 
+class SupportCreate(CaseCreate):
+    """Ben de ayni sorunu yasiyorum: kisinin kendi kaydi acilir ve bu bildirime baglanir.
+    case_id yalniz tekrar kontrolunun (POST /cases/similar) gosterdigi bildirimlerden olabilir."""
+
+    case_id: int
+
+
+class SimilarOpenCase(BaseModel):
+    """Form yazilirken gosterilen acik bildirim. Baskasinin metni, numarasi ve kimligi donmez."""
+
+    case_id: int
+    case_type_name: str
+    location_name: str
+    created_at: datetime
+    # Sorunu bildiren kisi sayisi: ilk bildiren + ona baglananlar
+    supporters: int
+
+
+class SimilarRead(BaseModel):
+    items: list[SimilarOpenCase]
+
+
 class CaseTypeSummary(BaseModel):
     id: int
     code: str

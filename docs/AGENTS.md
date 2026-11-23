@@ -185,6 +185,10 @@ Orchestrator sıralı ve basittir (Python fonksiyonları). LangChain/LangGraph k
 - İleride: ana bildirimin önceliği yeni bildirimlerle yeniden hesaplanmıyor (öncelik ilk analizde sabit);
   bağlanan bildirim sahiplerine ana bildirim kapanınca haber verilmesi bildirim tablosuyla (FAZ 6) gelir.
 
+**Form anında (bildirmeden önce):** aynı kurallar ve aday sorgusu `POST /cases/similar` ile form yazılırken de
+çalışır (`services/similar_service.py`); kişi "destekle" derse kendi kaydı ana kayda bağlanır. Böylece aynı sorun
+için açılan gereksiz kayıt, hat çalışmadan önlenir.
+
 ### 4.4 Verification Agent (K1)
 Ağırlıklı skor (0..1), her sinyal gerekçeye yazılır:
 

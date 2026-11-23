@@ -39,17 +39,32 @@ def duplicate_candidates(session: Session, case: Case, since: datetime) -> Seque
     ayni kurum, ayni bina, `since` ile bildirimin kendisi arasinda acilmis, siniflandirilmis ve
     sorunu hala acik. Ust sinir: gecmis veri yuklenirken (seeds --history) saat geriye gider;
     sonradan acilmis bildirim eski bildirimin kopyasi olamaz."""
-    building = PATH_SEPARATOR.join(case.location.path.split(PATH_SEPARATOR)[: BUILDING_SEGMENT + 1])
+    window = CandidateWindow(case.organization_id, case.location.path, since, case.created_at)
+    return [c for c in open_in_building(session, window) if c.id != case.id]
+
+
+@dataclass(frozen=True)
+class CandidateWindow:
+    organization_id: int
+    # Bildirilen yerin yolu; ayni binadaki adaylar aranir
+    location_path: str
+    since: datetime
+    until: datetime
+
+
+def open_in_building(session: Session, window: CandidateWindow) -> Sequence[Case]:
+    """Binadaki acik, siniflandirilmis bildirimler (tekrar adaylari); form aninda da kullanilir."""
+    parts = window.location_path.split(PATH_SEPARATOR)
+    building = PATH_SEPARATOR.join(parts[: BUILDING_SEGMENT + 1])
     return session.scalars(
         select(Case)
         .join(Location, Case.location_id == Location.id)
         .where(
-            Case.organization_id == case.organization_id,
-            Case.id != case.id,
+            Case.organization_id == window.organization_id,
             Case.status.in_(MERGE_PARENT_STATUSES),
             Case.case_type_id.is_not(None),
-            Case.created_at >= since,
-            Case.created_at <= case.created_at,
+            Case.created_at >= window.since,
+            Case.created_at <= window.until,
             or_(
                 Location.path == building,
                 Location.path.startswith(building + PATH_SEPARATOR, autoescape=True),

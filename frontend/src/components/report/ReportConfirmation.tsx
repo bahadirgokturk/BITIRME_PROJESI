@@ -74,3 +74,23 @@ export function ReportConfirmation({ result, onNewReport }: ReportConfirmationPr
     </div>
   );
 }
+
+interface SupportConfirmationProps {
+  caseNumber: string;
+  onNewReport: () => void;
+}
+
+// "Ben de yasiyorum" sonrasi: kaydi acik bildirime baglandi, cozulunce bildirim gelir
+export function SupportConfirmation({ caseNumber, onNewReport }: SupportConfirmationProps) {
+  return (
+    <div className={SCREEN_CLASS}>
+      <CircleCheckIcon aria-hidden className="size-14 text-primary" />
+      <h1 className="text-xl font-semibold">Desteğiniz eklendi</h1>
+      <p className="text-sm text-muted-foreground">
+        Kaydın ({caseNumber}) aynı sorunu bildiren kayda bağlandı. Sorun çözülünce haber vereceğiz; ayrıca bir
+        şey yapmana gerek yok.
+      </p>
+      <NextSteps onNewReport={onNewReport} />
+    </div>
+  );
+}

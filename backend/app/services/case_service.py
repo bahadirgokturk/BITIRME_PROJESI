@@ -33,7 +33,11 @@ from app.schemas.common import Page, PageParams
 from app.services.authorization import ensure_can_view_case, ensure_same_organization
 from app.services.case_view import case_read
 from app.services.decision_labels import AGENT_LABELS, decision_label
+from app.services.merge import CaseMerger
 from app.services.workflow import Transition, WorkflowService
+
+# Zaman cizelgesinde baglama gerekcesi: kisi formda "ayni sorun" dedi
+SUPPORT_REASON = "Bildiren aynı sorunu destekledi"
 
 # Bildirim yapanin zaman cizelgesinde gordugu olaylar; agent kararlari, ic yorumlar ve SLA
 # uyarilari yalniz yetkililere gorunur (docs/API.md "/cases/{id}/events")
@@ -128,6 +132,27 @@ class CaseService:
         return Creation(self.get(case.id), replayed=True)
 
     def create(self, data: CaseCreate, idempotency_key: str | None = None) -> CaseRead:
+        case = self._open(data, idempotency_key)
+        self._session.commit()
+        return self.get(case.id)
+
+    def support(self, data: CaseCreate, parent: Case) -> CaseRead:
+        """Kisinin kendi kaydi acilir ve ayni sorunu bildiren acik kayda baglanir (agent hatti
+        calismaz: tur, birim ve oncelik ana kayittadir). Ana kayit kapaninca bildirim alir."""
+        case = self._open(data, None)
+        case.case_type_id, case.category = parent.case_type_id, parent.category
+        case.department_id = parent.department_id
+        supported = Transition(
+            event_type=CaseEventType.CASE_MERGED,
+            actor_type=ActorType.USER,
+            actor_id=self._actor.id,
+            metadata={"reason": SUPPORT_REASON, "supported": True},
+        )
+        CaseMerger(self._workflow, self._clock).merge(case, parent, supported)
+        self._session.commit()
+        return self.get(case.id)
+
+    def _open(self, data: CaseCreate, idempotency_key: str | None) -> Case:
         self._ensure_active_location(data.location_id)
         number = case_repository.next_case_number(self._session)
         case = case_repository.add(
@@ -151,8 +176,7 @@ class CaseService:
         )
         self._workflow.record(case, created, self._clock.now())
         self._workflow.transition(case, CaseStatus.ANALYZING, _ANALYSIS_STARTED)
-        self._session.commit()
-        return self.get(case.id)
+        return case
 
     def search(self, search: CaseSearch, paging: PageParams) -> Page[CaseRead]:
         return self._page(scope_for(self._actor), self._filters(search), paging)
