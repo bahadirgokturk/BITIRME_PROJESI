@@ -6,6 +6,11 @@
 # Turnike/kart okuyucu da yok: tarifleri asansor dugme paneline karisiyordu (01.11.2026 denemesi).
 # 14.11.2026: ilk 15 kampus fotografi gelistirme seti olarak kullanildi (kapilar, kagit makineleri,
 # holde karton); bu fotograflarla olculen sonuc artik iyimserdir, asil olcum yeni fotograflarla yapilir.
+# 23.11.2026: yeni_test'in 12 fotografi once bu degisiklikten ONCE olculdu (asil sonuc); kapi kilidi
+# ve seritle kapatilmis dolap tarifleri o hatalara bakilarak eklendi, sonraki sonuc o set icin iyimserdir.
+# Odunlesim: "eksik mandal" tarifi saglam kabin kapisini da yakalar (sorunsuz 5 fotograftan 1'i fazladan oneri
+# aldi); kilit fotograflari ise onsuz hic taninmiyor. Oneri kullanici onayindan gectigi icin tarif tutuldu.
+# Daha genel kilit tarifleri (yakin cekim, kirik kilitli kabin kapisi) yanlis alarmi azaltmadigi icin cikarildi.
 # _NONE: sorun gostermeyen fotograf (kisi, bina disi, ekran goruntusu); kazanirsa oneri verilmez.
 model: Xenova/clip-vit-base-patch32
 types:
@@ -38,6 +43,8 @@ types:
     - a broken desk
     - a damaged door
     - a broken window
+    - a missing latch on a bathroom stall door
+    - lockers closed off with red and white barrier tape
   PROJECTOR_FAILURE:
     - a classroom projector
     - a projector screen in a lecture hall
