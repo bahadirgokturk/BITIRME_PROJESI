@@ -3,6 +3,22 @@
 Sunumda gösterilecek akış: yaklaşık **8–10 dakika**, dört rol, iki bildirim. Amaç, jüriye sistemin özgün tarafını
 göstermek: **yapay zekâ kararını kendisi verir, nedenini açıklar ve emin olamadığında insana bırakır.**
 
+Yeni (23.11.2026): fotoğraftan tür önerisi, **bildirmeden önce tekrar kontrolü** ("Ben de yaşıyorum, destekle") ve
+**kanıt fotoğrafı kontrolü** (Evidence Check Agent). Bunlar aşağıda 1, 3 ve 8. adımlarda.
+
+```mermaid
+flowchart LR
+  F[Form: metin + konum + foto] -->|yazarken| S[Tekrar kontrolü<br/>Classification + Duplicate]
+  F -->|foto| V[Vision Agent<br/>CLIP, tür önerisi]
+  F -->|Gönder| I[Intake] --> C[Classification<br/>TF-IDF + LR] --> D[Duplicate] --> VE[Verification]
+  VE --> P[Priority] --> R[Routing] --> SU{Supervisor<br/>karar tablosu}
+  SU -->|L1-L2| T[Görev: personel]
+  SU -->|L3 / emin değil| M[Müdür kuyruğu]
+  T -->|kanıt foto| E[Evidence Check<br/>aynı yer mi?] --> RE[Resolution<br/>not + süre + foto]
+  RE -->|tamam| K[Kapandı + bildirim]
+  RE -->|eksik| T
+```
+
 Bu akış 16 Ekim 2026'da yerelde gerçek backend ve agent'larla baştan sona yürütüldü; her adım beklendiği gibi çalıştı.
 Aynı adımlar otomatik testlerde de var (`frontend/e2e-real/`, [TESTING.md](TESTING.md)).
 
@@ -37,8 +53,10 @@ Aynı adımlar otomatik testlerde de var (`frontend/e2e-real/`, [TESTING.md](TES
 
 ### 1. Bildiren sorunu bildirir (telefon, ~1 dk)
 
-- **Bildirim Yap** → "Erkek tuvaletinde sabun bitmiş, sabunluklar boş." → konum **B Blok Zemin Kat WC** →
-  isteğe bağlı fotoğraf → **Gönder**.
+- **Bildirim Yap** → önce **fotoğraf ekle** (sabunluk fotoğrafı) → altında "Fotoğrafta görünen: Sabun bitti (%…)"
+  önerisi çıkar → dokun, açıklama kendiliğinden yazılır → konum **B Blok Zemin Kat WC** → **Gönder**.
+- **Söylenecek (foto):** "Görüntü modeli (CLIP) fotoğraftan sorunu tanıdı; öğrenci yazmak zorunda bile kalmadı.
+  Model yeniden eğitilmeden, Türkçe/İngilizce tariflerle çalışıyor (sıfır örnekli öğrenme)."
 - "Bildiriminiz alındı" ekranından **Bildirimlerim** → bildirimi aç. Birkaç saniye içinde zaman çizelgesinde
   "İlgili birime yönlendirildi" görünür.
 - **Söylenecek:** "Öğrenci yalnız ne olduğunu ve nerede olduğunu yazdı; türü, önceliği ve birimi kendisi seçmedi."
@@ -54,8 +72,12 @@ Aynı adımlar otomatik testlerde de var (`frontend/e2e-real/`, [TESTING.md](TES
 ### 3. Personel işi yapar (telefon, ~1,5 dk)
 
 - Personel hesabıyla gir → **Görevlerim**'de görev en üstte, kalan süre rozetiyle.
-- **Kabul et** → **Başlat** → **Tamamla**: not + kanıt fotoğrafı.
-- **Söylenecek:** "İş kontrolü adımı kanıta bakıp bildirimi kendisi kapatır; kanıt yetersizse görevi geri gönderir."
+- **Kabul et** → **Başlat** → **Tamamla**: not + kanıt fotoğrafı (aynı sabunluğun yeni fotoğrafı).
+- Müdür detayında **Kanıt kontrolü: "Kanıt fotoğrafı aynı yerden"** ve **İş kontrolü** kararları görünür.
+- (Etkileyici varyant) Kanıt olarak alakasız bir yerin fotoğrafını yükle → görev personele geri döner, mesaj:
+  "Kanıt fotoğrafı bildirimdeki yere benzemiyor; işin yapıldığı yerden fotoğraf ekleyin."
+- **Söylenecek:** "Yapay zekâ işin yapıldığını da denetliyor: personelin fotoğrafını öğrencinin fotoğrafıyla
+  karşılaştırıp aynı yer mi diye bakıyor. Kanıt yetersizse görevi geri gönderiyor, ikinci seferde müdüre bırakıyor."
 
 ### 4. Bildiren puanlar ve yorum yazar (telefon, ~1 dk)
 
@@ -84,13 +106,44 @@ Aynı adımlar otomatik testlerde de var (`frontend/e2e-real/`, [TESTING.md](TES
 - **İşlem Kayıtları:** az önceki değişiklik kim, ne zaman, neyi değiştirdi diye görünür.
 - Değişikliği geri al (sunumdan sonra veriler karışmasın).
 
-### 8. (İsteğe bağlı) Aynı sorun ikinci kez bildirilir (~1 dk)
+### 8. Aynı sorun ikinci kez bildirilir: **gönder'e basmadan** fark edilir (~1 dk)
 
-- Bildiren: "Erkek tuvaletinde sabun bitmiş." → konum **A Blok Zemin Kat Erkek WC** (demo geçmişinde orada açık bir
-  sabun bildirimi var).
-- Bildirim yeni görev açmaz; zaman çizelgesinde "Aynı sorun zaten bildirilmiş, bildiriminiz oraya eklendi" görünür.
-  Müdür detayında Tekrar kontrolü adımı "Aynı sorun bu yerde zaten bildirilmiş." der.
-- **Söylenecek:** "Aynı sorun için ikinci bir ekip yola çıkmaz; bildirim mevcut kayda eklenir."
+> **Sıra:** bu adımı **1. adımdan hemen sonra**, personel işi kapatmadan (3. adımdan önce) yap; ilk bildirim
+> kapanınca artık "açık" değildir ve kart çıkmaz.
+
+- Başka bir bildiren (ör. `akademisyen@`): "Erkek tuvaletinde sabun kalmamış" yaz → konum **B Blok Zemin Kat WC**
+  (1. adımdaki bildirim hâlâ açık).
+- Gönder'e basmadan formda **"Bu sorun zaten bildirilmiş olabilir"** kartı çıkar: tür, yer, kaç kişi bildirdi, ne
+  zaman. Başkasının yazdığı metin gösterilmez (gizlilik).
+- **Ben de yaşıyorum, destekle** → "Desteğiniz eklendi". Müdür ekranında ilk bildirimin "aynı sorunu 2 kişi bildirdi"
+  sayısı artar; ilk bildirim kapanınca destekleyen de bildirim alır.
+- **Söylenecek:** "Tekrar kontrolü agent'ı form anında çalışıyor: gereksiz kayıt hiç açılmadan önleniyor, ekip ikinci
+  kez yola çıkmıyor; aynı sorunu kaç kişinin yaşadığı önceliği de yükseltiyor."
+- Gönder'e basılırsa da kaçmaz: agent hattı aynı kuralla bildirimi mevcut kayda bağlar.
+
+## Sunumda gösterilecek ölçümler
+
+| Ne | Sonuç | Nasıl ölçüldü |
+|---|---|---|
+| Metinden tür (Classification) | accuracy **0,82**, macro-F1 **0,82** (± 0,03), tahmin ~15 ms | 5 katlı, şablon bazlı çapraz doğrulama (`ai/`, AGENTS.md 6) |
+| Fotoğraftan tür (Vision, CLIP) | bekletilmiş 12 kampüs fotoğrafı: katalogdaki türler **6/6**; kapı kilidi/dolap 0/5 → tarif eklendi | önce ölç, sonra iyileştir (AGENTS.md 4.11); yeni fotoğraflarla tekrar ölçülecek |
+| Kanıt fotoğrafı yer kontrolü | aynı yer **0/8** yanlış uyarı, farklı yer **43/58** yakalandı (eşik 0,80) | 66 fotoğraf çifti, kosinüs benzerliği (AGENTS.md 4.13) |
+| Gecikme riski (SLA) | ROC-AUC **0,85** | zaman sıralı: eski %70 eğitim, yeni %30 test (ANALYTICS.md) |
+| Test güvencesi | backend ~1.120, frontend ~920 otomatik test, uçtan uca testler | her PR'da CI |
+
+**Dürüstlük notu (hoca sorarsa):** fotoğraf ölçümleri küçük sette; iyileştirmeden sonraki sayılar aynı fotoğraflar
+için iyimserdir. Bu yüzden önce iyileştirmeden ölçtük ve bunu ayrı yazdık.
+
+## Hoca sorarsa
+
+- **"Neden ChatGPT kullanmadınız?"** Ücretli API yok, veri kampüs dışına çıkmıyor, her karar açıklanabilir ve
+  ölçülebilir. Kendi sınıflandırıcımızı eğittik; görüntüde açık kaynak CLIP'i sunucuda çalıştırıyoruz.
+- **"Yapay zekâ yanlış karar verirse?"** Supervisor güven ve risk düşükse otomatik uygular; emin değilse ya da
+  güvenlik riski varsa müdüre bırakır. Müdürün düzeltmesi kaydedilir ve yeniden eğitimde kullanılır.
+- **"Agent nedir, burada ne yapıyor?"** Her biri tek bir karar veren, girdisi ve gerekçesi kayıtlı modüller:
+  sınıflandırma, tekrar, doğrulama, öncelik, yönlendirme, karar, izleme (SLA), iş kontrolü, kanıt kontrolü, görüntü.
+- **"Kullanıcı dostu mu?"** Öğrenci kategori seçmez; fotoğraf çekip dokunur; QR ile konum hazır gelir; internet
+  yoksa bildirim cihazda bekler; aynı sorun varsa "destekle" yeter; zil ile her adımdan haberdar olur.
 
 ## Olası sürprizler ve yedek plan
 
