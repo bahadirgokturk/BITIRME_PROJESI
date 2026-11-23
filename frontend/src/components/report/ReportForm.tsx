@@ -20,6 +20,7 @@ import { draftForForm } from "@/lib/reportDraft";
 import { AttachmentField } from "./AttachmentField";
 import { DraftNotice } from "./DraftNotice";
 import { LocationField } from "./LocationField";
+import { PhotoSuggestion } from "./PhotoSuggestion";
 import { SimilarNotice } from "./SimilarNotice";
 
 const DESCRIPTION_ID = "report-description";
@@ -161,6 +162,22 @@ function SubmitBar({ pending, savesDraft }: { pending: boolean; savesDraft: bool
   );
 }
 
+// Fotograf/video alani ve ilk fotografa gore tur onerisi
+function PhotoFields({ fileList, onSuggestion }: { fileList: ReturnType<typeof useFileList>; onSuggestion: (name: string) => void }) {
+  return (
+    <>
+      <AttachmentField files={fileList.files} problem={fileList.problem} onPick={fileList.pick} onRemove={fileList.remove} />
+      <PhotoSuggestion photo={fileList.files.find((file) => file.type.startsWith("image/"))} onPick={onSuggestion} />
+    </>
+  );
+}
+
+// Oneri bos aciklamaya yazilir; yazilmis metin silinmez, onerinin arkasina eklenir
+function withSuggestion(description: string, name: string): string {
+  const written = description.trim();
+  return written ? `${name}. ${written}` : `${name}.`;
+}
+
 // Ayni yerde benzer acik bildirim varsa "destekle" secenegi (POST /cases/similar, /cases/support)
 function SimilarCheck({ description, locationId, support }: { description: string; locationId: string; support: ReturnType<typeof useSupportCase> }) {
   const similar = useSimilarCases(description, locationId);
@@ -221,7 +238,7 @@ export function ReportForm({ mutation, support, draftKey, qrLocation }: ReportFo
           notice={fields.qr.notFound ? QR_NOT_FOUND : null}
         />
         <SimilarCheck description={description} locationId={locationId} support={support} />
-        <AttachmentField files={fileList.files} problem={fileList.problem} onPick={fileList.pick} onRemove={fileList.remove} />
+        <PhotoFields fileList={fileList} onSuggestion={(name) => fields.setDescription(withSuggestion(description, name))} />
         <FormAlert error={mutation.error} />
         <SubmitBar pending={mutation.isPending} savesDraft={draftKey !== null} />
       </div>

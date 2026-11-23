@@ -161,6 +161,14 @@ export const caseHandlers = [
     },
   ),
 
+  // Fotograftan tur onerisi (Vision Agent): sahte API her fotografa ayni oneriyi verir
+  http.post(apiUrl("/cases/photo-suggest"), () =>
+    HttpResponse.json({
+      available: true,
+      suggestions: [{ case_type_code: "SOAP_EMPTY", name: "Sabun bitti", confidence: 0.94 }],
+    }),
+  ),
+
   // Bildirmeden once tekrar kontrolu (docs/API.md): sahte API "sabun" gecen metne ayni yerde acik bir
   // bildirim gosterir; gercek karari backend'de Duplicate Agent verir
   http.post<never, Schemas["CaseCreate"]>(apiUrl("/cases/similar"), async ({ request }) => {
