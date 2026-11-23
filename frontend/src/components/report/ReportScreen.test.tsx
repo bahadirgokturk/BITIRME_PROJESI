@@ -310,4 +310,28 @@ describe("ReportScreen", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: "Gönder" })).toBeEnabled());
     expect(screen.queryByRole("region", { name: "Bu sorun zaten bildirilmiş olabilir" })).not.toBeInTheDocument();
   });
+
+  it("suggests the problem from the photo and writes it into an empty description on a tap", async () => {
+    const user = renderScreen();
+
+    await user.upload(screen.getByLabelText("Fotoğraf ya da video ekle"), photo());
+
+    const hint = await screen.findByRole("group", { name: "Fotoğrafa göre öneri" });
+    await user.click(within(hint).getByRole("button", { name: "Sabun bitti (%94)" }));
+    expect(screen.getByLabelText("Ne oldu?")).toHaveValue("Sabun bitti.");
+  });
+
+  it("keeps what I wrote and shows no suggestion when the photo is unclear", async () => {
+    server.use(
+      http.post(apiUrl("/cases/photo-suggest"), () => HttpResponse.json({ available: true, suggestions: [] })),
+    );
+    const user = renderScreen();
+    await user.type(screen.getByLabelText("Ne oldu?"), "Koridorda bir sorun var");
+
+    await user.upload(screen.getByLabelText("Fotoğraf ya da video ekle"), photo());
+
+    await waitFor(() => expect(screen.getByRole("listitem", { name: "sabun.png" })).toBeInTheDocument());
+    expect(screen.queryByRole("group", { name: "Fotoğrafa göre öneri" })).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Ne oldu?")).toHaveValue("Koridorda bir sorun var");
+  });
 });
