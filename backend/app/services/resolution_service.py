@@ -25,11 +25,12 @@ from app.agents.resolution import (
 from app.core.clock import Clock
 from app.models import Case, CaseType, Task
 from app.models.enums import ActorType, CaseEventType, CaseStatus, TaskStatus
-from app.repositories import agent_decision_repository, attachment_repository
+from app.repositories import agent_decision_repository, attachment_repository, review_repository
 from app.repositories.agent_decision_repository import DecisionRun
 from app.services.workflow import Transition, WorkflowService, ensure_task_transition_allowed
 
 AGENT = "resolution"
+EVIDENCE_CHECK_AGENT = "evidence_check"
 SECONDS_PER_MINUTE = 60
 # Personelden bir kez kanit istenir; ikinci kez yetersizse manager karar verir (sonsuz dongu yok)
 MAX_EVIDENCE_REQUESTS = 1
@@ -82,11 +83,17 @@ class ResolutionService:
             > 0,
             work_minutes=max((now - started).total_seconds(), 0) / SECONDS_PER_MINUTE,
             case_type_code=self._case_type_code(case),
+            evidence_place=self._evidence_place(case),
         )
         result = ResolutionAgent().run(inp, AgentContext(now=now))
         run = DecisionRun(case_id=case.id, run_id=uuid.uuid4(), at=now)
         agent_decision_repository.record(self._session, run, inp, result)  # type: ignore[arg-type]
         return result
+
+    def _evidence_place(self, case: Case) -> str | None:
+        # Kanit fotografi kontrolu (4.13) arka planda calisir; henuz bitmediyse karar yoktur
+        latest = review_repository.latest_decision(self._session, case.id, EVIDENCE_CHECK_AGENT)
+        return latest.decision if latest else None
 
     def _case_type_code(self, case: Case) -> str | None:
         # Gorevden gelen bildirimde tur iliskisi yuklenmemis olabilir

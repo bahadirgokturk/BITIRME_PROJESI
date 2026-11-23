@@ -388,6 +388,24 @@ dokunuşla açıklamayı doldurur. **Yalnız öneridir:** türü yine Classifica
   ("Metin başka tür": çelişki = yakalanan hata) ve `_NONE` fotoğrafları her sorunlu türle eşlenir; senaryo
   başına uyumlu / çelişki / anlaşılamadı oranı verilir. Model fotoğraf başına bir kez çalışır.
 
+### 4.13 Evidence Check Agent (K1, kanıt fotoğrafı yer kontrolü)
+✅ **Uygulandı:** `backend/app/agents/evidence_check.py`, servis `services/photo_check_service.py` (`check_evidence`).
+- **Ne zaman:** personel kanıt fotoğrafı (`EVIDENCE`) yükleyince arka planda (Photo Check ile aynı kuyruk).
+- **Nasıl:** kanıt fotoğrafı ve bildirimin bütün fotoğrafları aynı CLIP görüntü kodlayıcısından geçer; kosinüs
+  benzerliklerinin en yükseği eşikle (`SAME_PLACE_FROM = 0.80`) karşılaştırılır. Kararlar: `SAME_PLACE`,
+  `DIFFERENT_PLACE`, `NO_REFERENCE` (bildirimde fotoğraf yok). Karar `agent_decisions`'a yazılır (AI paneli:
+  "Kanıt kontrolü").
+- **Resolution Agent ile:** iş tamamlanınca son karar okunur. `DIFFERENT_PLACE` ise fotoğraf kanıt sayılmaz,
+  karar `NEEDS_MORE_EVIDENCE` (`EVIDENCE_PLACE_MISMATCH`): personelden işin yapıldığı yerden fotoğraf istenir,
+  ikinci seferde müdür karar verir. `SAME_PLACE` fotoğrafı güçlendirir (`EVIDENCE_PLACE_OK`). Kontrol henüz
+  bitmediyse ya da model yoksa eski kural geçerlidir.
+- **Sınır:** sorunun giderilip giderilmediği fotoğraftan anlaşılmaz (dolu ve boş sabunluk CLIP'e aynı görünür);
+  agent yalnız yeri kontrol eder.
+- **Kalibrasyon (23.11.2026, 12 kampüs fotoğrafı, 66 çift):** aynı yer çiftleri 0,861–0,979; farklı yer
+  çiftlerinin ortancası 0,775, en yükseği 0,865 (tuvaletler birbirine çok benzer). 0,80'de aynı yer çiftlerinin
+  hiçbiri yanlış işaretlenmedi, farklı yer çiftlerinin 43/58'i yakalandı. Eşik temkinli seçildi (personeli haksız
+  yere geri çevirmek daha pahalı). Aynı fotoğraflarla ayarlandığı için iyimserdir.
+
 ## 5. Autonomy Policy
 
 | Seviye | Anlam | Örnek case type'lar |

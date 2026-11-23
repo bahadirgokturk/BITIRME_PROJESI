@@ -109,3 +109,21 @@ def test_ordinary_words_are_not_mistaken_for_failure() -> None:
     result = _run(completion_note="Parçalar değiştirildi, sorun yok artık.")
 
     assert result.decision == ResolutionDecision.RESOLVED
+
+
+def test_photo_from_another_place_does_not_count_as_evidence() -> None:
+    # Not ve sure yeterli olsa da yanlis yerden fotograf kuskulu: personelden dogru fotograf istenir
+    result = _run(has_evidence_photo=True, evidence_place="DIFFERENT_PLACE")
+
+    assert result.decision == ResolutionDecision.NEEDS_MORE_EVIDENCE
+    assert _codes(result)[0] == "EVIDENCE_PLACE_MISMATCH"
+    assert "EVIDENCE_PHOTO" not in _codes(result)
+
+
+def test_photo_from_the_reported_place_is_strong_evidence() -> None:
+    result = _run(
+        completion_note="ok", work_minutes=1, has_evidence_photo=True, evidence_place="SAME_PLACE"
+    )
+
+    assert result.decision == ResolutionDecision.RESOLVED
+    assert "EVIDENCE_PLACE_OK" in _codes(result)

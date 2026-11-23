@@ -2,7 +2,9 @@
 
 Kanit: tamamlama notu, personelin ekledigi fotograf ve calisma suresi. Fotograf en guclu kanittir;
 kisa not ya da supheli kisa sureyi telafi eder. Notta "yapilamadi" gibi bir ifade varsa is
-bitmemistir (fotograf olsa da). Fotografin icerigi incelenmez (MVP disi). Karari servis uygular.
+bitmemistir (fotograf olsa da). Fotografin yeri Evidence Check Agent'tan gelir (4.13):
+bildirimdeki yere benzemeyen fotograf kanit sayilmaz, personelden dogru yerden fotograf istenir.
+Karari servis uygular.
 """
 
 import re
@@ -38,6 +40,12 @@ NOT_DONE_PHRASES = (
     "parca bekleniyor",
     "tedarik",
 )
+# Evidence Check kararlari (app/agents/evidence_check.py); agent'lar birbirini import etmez
+SAME_PLACE = "SAME_PLACE"
+DIFFERENT_PLACE = "DIFFERENT_PLACE"
+PLACE_MISMATCH_MESSAGE = (
+    "Kanıt fotoğrafı bildirimdeki yere benzemiyor; işin yapıldığı yerden fotoğraf ekleyin."
+)
 _NOT_DONE = re.compile(r"\b(" + "|".join(re.escape(p) for p in NOT_DONE_PHRASES) + r")\b")
 
 
@@ -55,6 +63,8 @@ class ResolutionInput(BaseModel):
     work_minutes: float = Field(ge=0)
     # Manager turu belirlemeden atadiysa bos
     case_type_code: str | None
+    # Evidence Check karari (SAME_PLACE | DIFFERENT_PLACE | NO_REFERENCE); kontrol yoksa bos
+    evidence_place: str | None = None
 
 
 class ResolutionOutput(BaseModel):
@@ -77,6 +87,10 @@ def _not_done(note: str) -> Reason | None:
 def _signals(inp: ResolutionInput, note: str) -> list[Reason]:
     minimum = MIN_WORK_MINUTES.get(inp.case_type_code or "", DEFAULT_MIN_WORK_MINUTES)
     photo = [Reason(code="EVIDENCE_PHOTO", message="Kanıt fotoğrafı eklenmiş.")]
+    if inp.evidence_place == SAME_PLACE:
+        photo.append(
+            Reason(code="EVIDENCE_PLACE_OK", message="Kanıt fotoğrafı bildirimdeki yerle uyumlu.")
+        )
     note_reason = (
         Reason(code="NOTE_OK", message="Yapılan iş açıklanmış.")
         if len(note) >= MIN_NOTE_LENGTH
@@ -108,6 +122,13 @@ def _evaluate(inp: ResolutionInput) -> tuple[ResolutionOutput, list[Reason]]:
         return ResolutionOutput(decision=ResolutionDecision.REOPEN, message=not_done.message), [
             not_done
         ]
+    if inp.has_evidence_photo and inp.evidence_place == DIFFERENT_PLACE:
+        mismatch = Reason(code="EVIDENCE_PLACE_MISMATCH", message=PLACE_MISMATCH_MESSAGE)
+        output = ResolutionOutput(
+            decision=ResolutionDecision.NEEDS_MORE_EVIDENCE, message=PLACE_MISMATCH_MESSAGE
+        )
+        others = _signals(inp.model_copy(update={"has_evidence_photo": False}), note)
+        return output, [mismatch, *others]
     reasons = _signals(inp, note)
     missing = [r for r in reasons if r.code in _MISSING]
     if missing and not inp.has_evidence_photo:

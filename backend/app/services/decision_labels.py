@@ -5,6 +5,7 @@ case_types tablosundan gelir.
 
 from app.agents.analytics_summary import SummarySource
 from app.agents.duplicate import DuplicateDecision
+from app.agents.evidence_check import EvidenceCheckDecision
 from app.agents.monitoring import NO_ACTION, MonitoringAction
 from app.agents.photo_check import PhotoCheckDecision
 from app.agents.resolution import ResolutionDecision
@@ -26,6 +27,7 @@ AGENT_LABELS: dict[str, str] = {
     "monitoring": "İzleme",
     "analytics_summary": "Yönetim özeti",
     "photo_check": "Fotoğraf kontrolü",
+    "evidence_check": "Kanıt kontrolü",
 }
 
 # Ayni kod farkli agent'ta farkli anlama gelir (LOW: dusuk guven / dusuk oncelik)
@@ -79,6 +81,11 @@ _DECISION_LABELS: dict[str, dict[str, str]] = {
         PhotoCheckDecision.AGREES: "Fotoğraf metinle uyumlu",
         PhotoCheckDecision.CONFLICTS: "Fotoğraf başka sorun gösteriyor",
         PhotoCheckDecision.UNCLEAR: "Fotoğraftan anlaşılamadı",
+    },
+    "evidence_check": {
+        EvidenceCheckDecision.SAME_PLACE: "Kanıt fotoğrafı aynı yerden",
+        EvidenceCheckDecision.DIFFERENT_PLACE: "Kanıt fotoğrafı başka yerden",
+        EvidenceCheckDecision.NO_REFERENCE: "Karşılaştırılacak fotoğraf yok",
     },
     "analytics_summary": {
         SummarySource.TEMPLATE: "Şablon metin",
