@@ -108,6 +108,9 @@ Aynı adımlar otomatik testlerde de var (`frontend/e2e-real/`, [TESTING.md](TES
 
 ### 8. Aynı sorun ikinci kez bildirilir: **gönder'e basmadan** fark edilir (~1 dk)
 
+> **Sıra:** bu adımı **1. adımdan hemen sonra**, personel işi kapatmadan (3. adımdan önce) yap; ilk bildirim
+> kapanınca artık "açık" değildir ve kart çıkmaz.
+
 - Başka bir bildiren (ör. `akademisyen@`): "Erkek tuvaletinde sabun kalmamış" yaz → konum **B Blok Zemin Kat WC**
   (1. adımdaki bildirim hâlâ açık).
 - Gönder'e basmadan formda **"Bu sorun zaten bildirilmiş olabilir"** kartı çıkar: tür, yer, kaç kişi bildirdi, ne
