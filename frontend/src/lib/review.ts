@@ -105,6 +105,7 @@ const AGENT_LABELS: Readonly<Record<string, string | undefined>> = {
   resolution: "İş kontrolü",
   monitoring: "İzleme",
   photo_check: "Fotoğraf kontrolü",
+  evidence_check: "Kanıt kontrolü",
 };
 
 export function agentLabel(name: string): string {

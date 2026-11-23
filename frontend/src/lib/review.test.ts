@@ -96,6 +96,7 @@ describe("labels", () => {
     ["intake", "Ön inceleme"],
     ["resolution", "İş kontrolü"],
     ["photo_check", "Fotoğraf kontrolü"],
+    ["evidence_check", "Kanıt kontrolü"],
     ["something_new", "something_new"],
   ])("names the %s agent", (name, label) => {
     expect(agentLabel(name)).toBe(label);
