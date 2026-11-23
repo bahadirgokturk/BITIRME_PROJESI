@@ -196,6 +196,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/cases/similar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Similar Cases
+         * @description Bildirmeden once: ayni binadaki benzer acik bildirimler (en fazla 3, en benzer once).
+         */
+        post: operations["similar_cases_api_v1_cases_similar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cases/support": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Support Case
+         * @description Ayni sorunu destekle: kisinin kaydi acilir ve gosterilen bildirime baglanir (MERGED).
+         */
+        post: operations["support_case_api_v1_cases_support_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/cases/mine": {
         parameters: {
             query?: never;
@@ -2589,6 +2629,30 @@ export interface components {
             /** Text */
             text: string;
         };
+        /**
+         * SimilarOpenCase
+         * @description Form yazilirken gosterilen acik bildirim. Baskasinin metni, numarasi ve kimligi donmez.
+         */
+        SimilarOpenCase: {
+            /** Case Id */
+            case_id: number;
+            /** Case Type Name */
+            case_type_name: string;
+            /** Location Name */
+            location_name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Supporters */
+            supporters: number;
+        };
+        /** SimilarRead */
+        SimilarRead: {
+            /** Items */
+            items: components["schemas"]["SimilarOpenCase"][];
+        };
         /** SlaPriorityRow */
         SlaPriorityRow: {
             priority: components["schemas"]["Priority"];
@@ -2720,6 +2784,21 @@ export interface components {
          * @enum {string}
          */
         SummarySource: "TEMPLATE" | "LLM";
+        /**
+         * SupportCreate
+         * @description Ben de ayni sorunu yasiyorum: kisinin kendi kaydi acilir ve bu bildirime baglanir.
+         *     case_id yalniz tekrar kontrolunun (POST /cases/similar) gosterdigi bildirimlerden olabilir.
+         */
+        SupportCreate: {
+            /** Description */
+            description: string;
+            /** Location Id */
+            location_id: number;
+            /** Title */
+            title?: string | null;
+            /** Case Id */
+            case_id: number;
+        };
         /**
          * TaskRead
          * @description Personel ekrani icin gorev + bildirim ozeti; liste SLA'ya kalan sureye gore siralanir.
@@ -3571,6 +3650,144 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["CaseCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    similar_cases_api_v1_cases_similar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CaseCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SimilarRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRead"];
+                };
+            };
+        };
+    };
+    support_case_api_v1_cases_support_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupportCreate"];
             };
         };
         responses: {

@@ -88,6 +88,10 @@ function ordered(items: Schemas["CaseRead"][], params: URLSearchParams) {
   return [...items].sort((a, b) => (oldest ? 1 : -1) * a.created_at.localeCompare(b.created_at));
 }
 
+// Sahte tekrar kontrolunun gosterdigi acik bildirim (15 dk once acilmis)
+const SIMILAR_CASE_ID = 301;
+const SIMILAR_AGE_MS = 15 * 60_000;
+
 function newCase(
   body: Schemas["CaseCreate"],
   location: Schemas["LocationRead"],
@@ -156,6 +160,30 @@ export const caseHandlers = [
       return HttpResponse.json(created, { status: 201 });
     },
   ),
+
+  // Bildirmeden once tekrar kontrolu (docs/API.md): sahte API "sabun" gecen metne ayni yerde acik bir
+  // bildirim gosterir; gercek karari backend'de Duplicate Agent verir
+  http.post<never, Schemas["CaseCreate"]>(apiUrl("/cases/similar"), async ({ request }) => {
+    const body = await request.json();
+    const location = LOCATIONS.find((item) => item.id === body.location_id);
+    if (!location || !body.description.toLocaleLowerCase("tr").includes("sabun")) {
+      return HttpResponse.json({ items: [] });
+    }
+    const openedAt = new Date(Date.now() - SIMILAR_AGE_MS).toISOString();
+    const item = { case_id: SIMILAR_CASE_ID, case_type_name: "Sabun bitti", location_name: location.name, created_at: openedAt, supporters: 2 };
+    return HttpResponse.json({ items: [item] });
+  }),
+
+  http.post<never, Schemas["SupportCreate"]>(apiUrl("/cases/support"), async ({ request }) => {
+    const body = await request.json();
+    const location = LOCATIONS.find((item) => item.id === body.location_id);
+    if (!location || body.case_id !== SIMILAR_CASE_ID) {
+      return error(404, "NOT_FOUND", "Kayıt bulunamadı.");
+    }
+    const created: Schemas["CaseRead"] = { ...newCase(body, location), status: "MERGED" };
+    cases.unshift(created);
+    return HttpResponse.json(created, { status: 201 });
+  }),
 
   // Backend gibi: giris yapan kisinin kendi bildirimleri (her rol Bildirimlerim'i gorur)
   http.get(apiUrl("/cases/mine"), ({ request }) => {

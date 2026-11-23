@@ -286,4 +286,28 @@ describe("ReportScreen", () => {
       expect(await screen.findByRole("button", { name: "B Blok 2. Kat Erkek WC" })).toBeInTheDocument();
     });
   });
+
+  it("shows an open report of the same problem and lets me support it instead of sending a new one", async () => {
+    const user = renderScreen();
+    await fillValidReport(user);
+
+    const notice = await screen.findByRole("region", { name: "Bu sorun zaten bildirilmiş olabilir" });
+    expect(notice).toHaveTextContent("Sabun bitti");
+    expect(notice).toHaveTextContent("B Blok 2. Kat Erkek WC");
+    expect(notice).toHaveTextContent("2 kişi bildirdi");
+
+    await user.click(within(notice).getByRole("button", { name: "Ben de yaşıyorum, destekle" }));
+
+    expect(await screen.findByRole("heading", { name: "Desteğiniz eklendi" })).toBeInTheDocument();
+    expect(screen.getByText(/çözülünce haber vereceğiz/)).toBeInTheDocument();
+  });
+
+  it("says nothing when no open report looks like mine", async () => {
+    const user = renderScreen();
+    await user.type(screen.getByLabelText("Ne oldu?"), "Amfideki projeksiyon cihazı açılmıyor");
+    await user.click(await screen.findByRole("button", { name: "B201 Amfi" }));
+
+    await waitFor(() => expect(screen.getByRole("button", { name: "Gönder" })).toBeEnabled());
+    expect(screen.queryByRole("region", { name: "Bu sorun zaten bildirilmiş olabilir" })).not.toBeInTheDocument();
+  });
 });
